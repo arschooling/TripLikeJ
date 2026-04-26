@@ -96,25 +96,38 @@ window.fbListenGroup = (groupId, cb) =>
       err => { console.warn('fbListenGroup error:', err.code); cb(null); }
     );
 
-// ─── 디버그용: 직접 get() 호출 (10초 타임아웃) ───────────────
+// ─── 디버그용: native Promise로 감싸서 10초 타임아웃 보장 ──────
 window.fbDebugRead = function(groupId) {
-  var timeout = new Promise(function(resolve) {
-    setTimeout(function() { resolve({ ok: false, reason: 'TIMEOUT 10s — Firestore 무응답' }); }, 10000);
+  return new Promise(function(resolve) {
+    // 10초 후 무조건 resolve
+    var t = setTimeout(function() {
+      resolve({ ok: false, reason: 'TIMEOUT — Firestore 무응답 (10s)', userCheck: '?' });
+    }, 10000);
+
+    // groups 읽기
+    _fbDb.collection('groups').doc(groupId).get().then(
+      function(snap) {
+        clearTimeout(t);
+        // users도 같이 읽기
+        _fbDb.collection('users').doc(groupId).get().then(
+          function(us) {
+            resolve({
+              ok: snap.exists,
+              reason: snap.exists ? '' : 'groups: no document',
+              title: snap.exists ? (snap.data().title || '(없음)') : '',
+              days:  snap.exists ? (snap.data().days||[]).length : 0,
+              userCheck: 'users:' + (us.exists ? 'OK' : 'noDoc'),
+            });
+          },
+          function(ue) { resolve({ ok: snap.exists, reason: snap.exists ? '' : 'groups:noDoc', title: '', days: 0, userCheck: 'users:ERR:' + ue.code }); }
+        );
+      },
+      function(e) {
+        clearTimeout(t);
+        resolve({ ok: false, reason: 'groups:ERR:' + (e.code||'?') + ':' + (e.message||''), userCheck: '?' });
+      }
+    );
   });
-  var read = _fbDb.collection('groups').doc(groupId).get()
-    .then(function(snap) {
-      if (snap.exists) return { ok: true, title: snap.data().title || '(제목없음)', days: (snap.data().days||[]).length };
-      return { ok: false, reason: 'document does not exist' };
-    })['catch'](function(e) {
-      return { ok: false, reason: (e.code||'?') + ': ' + (e.message||String(e)) };
-    });
-  // users 컬렉션도 동시에 테스트
-  var userRead = _fbDb.collection('users').doc(groupId).get()
-    .then(function(s) { return 'users:' + (s.exists ? 'OK' : 'noDoc'); })['catch'](function(e) { return 'users:ERR:' + e.code; });
-  return Promise.all([Promise.race([read, timeout]), userRead])
-    .then(function(results) {
-      return { ok: results[0].ok, reason: results[0].reason, title: results[0].title, days: results[0].days, userCheck: results[1] };
-    });
 };
 
 window.fbSaveGroup = (groupId, patch) =>
