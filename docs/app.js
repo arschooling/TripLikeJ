@@ -5682,10 +5682,16 @@ function App() {
     const ready = authState === 'out' || (authState === 'in' && trip !== null);
     if (ready) {
       const splash = document.getElementById('splash');
-      if (splash) {
+      if (!splash) return;
+      const bar = document.getElementById('splash-bar');
+      if (bar) {
+        bar.style.transition = 'width 0.2s ease';
+        bar.style.width = '100%';
+      }
+      setTimeout(() => {
         splash.classList.add('hide');
         setTimeout(() => splash.remove(), 350);
-      }
+      }, 220);
     }
   }, [authState, trip]);
 
