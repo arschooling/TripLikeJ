@@ -2092,59 +2092,48 @@ function HomeScreen({
       paddingBottom: 110,
       position: 'relative'
     }
-  }, onBack && /*#__PURE__*/React.createElement("button", {
-    onClick: onBack,
+  },
+  /* ── 네비게이션 헤더 ── */
+  /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'absolute',
-      top: 'calc(12px + env(safe-area-inset-top,0px))',
-      left: 12,
-      zIndex: 10,
-      background: 'transparent',
-      border: 'none', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', gap: 2,
-      padding: '4px 8px 4px 4px',
+      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
+      paddingTop: 'env(safe-area-inset-top)',
+      background: COLORS.bg,
     }
   },
-    /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.mute, stroke: 2 }),
-    /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 14, color: COLORS.mute } }, "My Trips")
+    /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: 52, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', padding: '0 16px 0 8px',
+      }
+    },
+      onBack
+        ? /*#__PURE__*/React.createElement("button", {
+            onClick: onBack,
+            style: { background: 'transparent', border: 'none', cursor: 'pointer',
+              display: 'flex', alignItems: 'center', gap: 2, padding: '4px 8px 4px 4px' }
+          },
+            /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.mute, stroke: 2 }),
+            /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 14, color: COLORS.mute } }, "My Trips")
+          )
+        : /*#__PURE__*/React.createElement("div", null),
+      onOpenCompanion && /*#__PURE__*/React.createElement("button", {
+        onClick: onOpenCompanion,
+        style: {
+          width: 38, height: 38, borderRadius: 19,
+          background: userData?.photoURL ? 'transparent' : COLORS.softer,
+          border: `2px solid ${COLORS.line}`, padding: 0, cursor: 'pointer',
+          overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+        }
+      },
+        userData?.photoURL
+          ? /*#__PURE__*/React.createElement("img", { src: userData.photoURL, alt: "profile", style: { width: '100%', height: '100%', objectFit: 'cover' } })
+          : /*#__PURE__*/React.createElement(Icon, { name: "user", size: 18, color: COLORS.mute })
+      )
+    )
   ),
-  onOpenCompanion && /*#__PURE__*/React.createElement("button", {
-    onClick: onOpenCompanion,
-    style: {
-      position: 'absolute',
-      top: 'calc(14px + env(safe-area-inset-top,0px))',
-      right: 16,
-      zIndex: 10,
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      background: userData?.photoURL ? 'transparent' : COLORS.softer,
-      border: `2px solid ${COLORS.line}`,
-      padding: 0,
-      cursor: 'pointer',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
-    }
-  }, userData?.photoURL ? /*#__PURE__*/React.createElement("img", {
-    src: userData.photoURL,
-    alt: "profile",
-    style: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover'
-    }
-  }) : /*#__PURE__*/React.createElement(Icon, {
-    name: "user",
-    size: 18,
-    color: COLORS.mute
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      paddingTop: 'calc(66px + env(safe-area-inset-top, 0px))'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
+  /*#__PURE__*/React.createElement("div", { style: { paddingTop: 'calc(52px + env(safe-area-inset-top, 0px))' } }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '10px 24px 18px'
     }
@@ -5830,27 +5819,41 @@ function _readCache() {
 function TripsScreen({ trips, onSelect, onAdd, loading, userData, onOpenCompanion, authUser, tripsError }) {
   return /*#__PURE__*/React.createElement("div", {
     style: { minHeight: '100vh', background: COLORS.bg,
-      paddingTop: 'calc(env(safe-area-inset-top) + 64px)', paddingBottom: 100 }
+      paddingTop: 'calc(env(safe-area-inset-top) + 72px)', paddingBottom: 100 }
   },
-    /*#__PURE__*/React.createElement("button", {
-      onClick: onOpenCompanion,
+    /* ── 상단 헤더 ── */
+    /*#__PURE__*/React.createElement("div", {
       style: {
-        position: 'fixed', top: 'calc(14px + env(safe-area-inset-top,0px))', right: 16, zIndex: 300,
-        width: 38, height: 38, borderRadius: 19,
-        background: userData && userData.photoURL ? 'transparent' : COLORS.softer,
-        border: '2px solid ' + COLORS.line, padding: 0, cursor: 'pointer', overflow: 'hidden',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        boxShadow: '0 1px 6px rgba(0,0,0,0.10)',
+        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
+        paddingTop: 'env(safe-area-inset-top)',
+        background: COLORS.bg,
+        borderBottom: '1px solid ' + COLORS.line,
       }
     },
-      userData && userData.photoURL
-        ? /*#__PURE__*/React.createElement("img", { src: userData.photoURL, alt: "profile", style: { width: '100%', height: '100%', objectFit: 'cover' } })
-        : /*#__PURE__*/React.createElement(Icon, { name: "user", size: 18, color: COLORS.mute })
-    ),
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '0 24px 32px' }
-    },
-      /*#__PURE__*/React.createElement("div", { style: { fontFamily: SERIF, fontSize: 30, color: COLORS.ink } }, "My Trips")
+      /*#__PURE__*/React.createElement("div", {
+        style: {
+          height: 56, display: 'flex', alignItems: 'center',
+          justifyContent: 'space-between', padding: '0 20px',
+        }
+      },
+        /*#__PURE__*/React.createElement("span", {
+          style: { fontFamily: SERIF, fontSize: 26, color: COLORS.ink, letterSpacing: '-0.02em', lineHeight: 1 }
+        }, "My Trips"),
+        /*#__PURE__*/React.createElement("button", {
+          onClick: onOpenCompanion,
+          style: {
+            width: 38, height: 38, borderRadius: 19,
+            background: userData && userData.photoURL ? 'transparent' : COLORS.softer,
+            border: '2px solid ' + COLORS.line, padding: 0, cursor: 'pointer', overflow: 'hidden',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
+          }
+        },
+          userData && userData.photoURL
+            ? /*#__PURE__*/React.createElement("img", { src: userData.photoURL, alt: "profile", style: { width: '100%', height: '100%', objectFit: 'cover' } })
+            : /*#__PURE__*/React.createElement(Icon, { name: "user", size: 18, color: COLORS.mute })
+        )
+      )
     ),
     /*#__PURE__*/React.createElement("div", {
         style: { padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12 }
