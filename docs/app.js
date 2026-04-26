@@ -1811,193 +1811,6 @@ function CityPicker({
   })))))));
 }
 
-// ─── TRIPS SCREEN (top level) ───────────────────────────────
-function TripsScreen({
-  trips,
-  onOpenTrip,
-  onAddTrip,
-  onDeleteTrip,
-  onReorder,
-  onEditTripMeta
-}) {
-  const [editing, setEditing] = React.useState(false);
-  const {
-    itemProps
-  } = useDragReorder(onReorder, editing);
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.bg,
-      minHeight: '100%',
-      paddingBottom: 40
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
-      paddingLeft: 24,
-      paddingRight: 24,
-      paddingBottom: 6,
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute,
-      letterSpacing: '0.1em',
-      textTransform: 'uppercase'
-    }
-  }, "My Trips"), /*#__PURE__*/React.createElement(EditBtn, {
-    editing: editing,
-    onClick: () => setEditing(e => !e)
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '10px 24px 22px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 56,
-      lineHeight: 0.95,
-      color: COLORS.ink,
-      letterSpacing: '-0.025em'
-    }
-  }, "\uC5EC\uD589."), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute
-    }
-  }, trips.length, "\uAC1C\uC758 \uC5EC\uC815")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px',
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10
-    }
-  }, trips.map((t, i) => {
-    const dp = itemProps(i);
-    const hue = t.days?.[0]?.hero?.hue ?? 25;
-    const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
-    return /*#__PURE__*/React.createElement("div", _extends({
-      key: i
-    }, dp, {
-      onClick: () => !editing && onOpenTrip(i),
-      style: {
-        background: COLORS.card,
-        borderRadius: 20,
-        overflow: 'hidden',
-        cursor: editing ? 'grab' : 'pointer',
-        border: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.line}`,
-        ...(dp.style || {})
-      }
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'relative'
-      }
-    }, /*#__PURE__*/React.createElement(Photo, {
-      hue: hue,
-      label: label,
-      height: 130
-    }), editing && /*#__PURE__*/React.createElement("button", {
-      onClick: e => {
-        e.stopPropagation();
-        onDeleteTrip(i);
-      },
-      style: {
-        position: 'absolute',
-        top: 10,
-        right: 10,
-        width: 30,
-        height: 30,
-        borderRadius: 15,
-        border: 'none',
-        background: 'rgba(255,255,255,0.92)',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "trash",
-      size: 13,
-      color: COLORS.accent,
-      stroke: 2
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '14px 18px 16px'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 10,
-        color: COLORS.accent,
-        letterSpacing: '0.14em'
-      }
-    }, t.days?.length || 0, " DAYS \xB7 ", t.dates || ''), editing ? /*#__PURE__*/React.createElement("input", {
-      value: t.title,
-      onChange: e => onEditTripMeta(i, {
-        title: e.target.value
-      }),
-      onClick: e => e.stopPropagation(),
-      style: {
-        marginTop: 4,
-        width: '100%',
-        fontFamily: SERIF,
-        fontSize: 28,
-        lineHeight: 1.1,
-        color: COLORS.ink,
-        letterSpacing: '-0.015em',
-        border: 'none',
-        outline: 'none',
-        background: 'transparent',
-        padding: 0
-      }
-    }) : /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 4,
-        fontFamily: SERIF,
-        fontSize: 28,
-        lineHeight: 1.1,
-        color: COLORS.ink,
-        letterSpacing: '-0.015em'
-      }
-    }, t.title), /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 3,
-        fontFamily: SANS,
-        fontSize: 12,
-        color: COLORS.mute,
-        fontStyle: 'italic'
-      }
-    }, t.subtitleKo || '')));
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: onAddTrip,
-    style: {
-      marginTop: 4,
-      padding: '18px 16px',
-      background: 'transparent',
-      border: `1.5px dashed ${COLORS.line}`,
-      borderRadius: 20,
-      color: COLORS.mute,
-      cursor: 'pointer',
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: SANS,
-      fontSize: 13.5
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "plus",
-    size: 15,
-    color: COLORS.mute,
-    stroke: 2
-  }), "New Trip")));
-}
-
 // ─── 날짜 변환 유틸 (앱 전역) ─────────────────────────────────
 const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -6042,21 +5855,36 @@ function App() {
   }, []);
 
   // ── 여행 목록 로드 ─────────────────────────────────────────
+  // authUser가 확정되는 순간 즉시 uid로 첫 번째 여행(groups/{uid}) 로드
   React.useEffect(() => {
-    if (!userData?.uid) return;
-    // uid는 항상 포함 (groups/{uid}에 원본 여행 데이터가 있음)
-    const idSet = new Set([userData.uid]);
-    if (userData.groupId) idSet.add(userData.groupId);
-    if (userData.tripIds && userData.tripIds.length > 0) {
-      userData.tripIds.forEach(function(id) { idSet.add(id); });
-    }
-    const tripIds = Array.from(idSet);
+    if (!authUser?.uid) return;
     setTripsLoading(true);
-    fbLoadTrips(tripIds).then(function(trips) {
-      setUserTrips(trips);
-      setTripsLoading(false);
-    }).catch(function() { setTripsLoading(false); });
-  }, [userData?.uid, userData?.groupId, JSON.stringify(userData?.tripIds)]);
+    fbLoadTrips([authUser.uid])
+      .then(function(trips) {
+        setUserTrips(trips);
+        setTripsLoading(false);
+        if (trips.length === 0) console.warn('[TripLikeJ] groups/' + authUser.uid + ' not found or empty');
+      })
+      .catch(function(err) {
+        console.error('[TripLikeJ] fbLoadTrips failed:', err);
+        setTripsLoading(false);
+      });
+  }, [authUser?.uid]);
+
+  // userData 로드 완료 후 추가 여행(tripIds) 병합
+  React.useEffect(() => {
+    if (!userData?.tripIds || !userData.tripIds.length) return;
+    const extra = userData.tripIds.filter(function(id) { return id !== authUser?.uid; });
+    if (!extra.length) return;
+    fbLoadTrips(extra)
+      .then(function(more) {
+        setUserTrips(function(prev) {
+          var existing = new Set(prev.map(function(t) { return t.id; }));
+          return prev.concat(more.filter(function(t) { return !existing.has(t.id); }));
+        });
+      })
+      .catch(function(err) { console.error('[TripLikeJ] extra trips load failed:', err); });
+  }, [JSON.stringify(userData?.tripIds)]);
 
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);

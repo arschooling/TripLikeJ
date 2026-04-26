@@ -60,18 +60,9 @@ window.fbGetOrCreateUser = async (fbUser) => {
     return { ...data, uid: fbUser.uid };
   }
   const existing = snap.data();
-  // 기존 사용자에게 tripIds가 없으면 마이그레이션
-  // uid는 반드시 포함 (groups/{uid}에 원본 여행 데이터가 있음)
-  if (!existing.tripIds || existing.tripIds.length === 0) {
-    const idSet = new Set([fbUser.uid]);
-    if (existing.groupId) idSet.add(existing.groupId);
-    const tripIds = Array.from(idSet);
-    await ref.update({ tripIds });
-    return { uid: fbUser.uid, ...existing, tripIds };
-  }
-  // 기존 tripIds에 uid가 빠져 있으면 추가
-  if (!existing.tripIds.includes(fbUser.uid)) {
-    const tripIds = [fbUser.uid, ...existing.tripIds];
+  // 기존 사용자: tripIds에 uid가 없으면 추가 (groups/{uid}에 원본 여행이 있음)
+  if (!existing.tripIds || !existing.tripIds.includes(fbUser.uid)) {
+    const tripIds = [fbUser.uid, ...(existing.tripIds || [])];
     await ref.update({ tripIds });
     return { uid: fbUser.uid, ...existing, tripIds };
   }

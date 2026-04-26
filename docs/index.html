@@ -66,10 +66,17 @@
     100% { transform:scaleX(1);    }
   }
 </style>
-<!-- 서비스 워커 등록 (두 번째 방문부터 즉시 로드) -->
+<!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->
 <script>
 if('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('./sw.js');
+  navigator.serviceWorker.register('./sw.js').then(function(reg) {
+    reg.addEventListener('updatefound', function() {
+      var newSW = reg.installing;
+      newSW.addEventListener('statechange', function() {
+        if (newSW.state === 'activated') window.location.reload();
+      });
+    });
+  });
 }
 </script>
 </head>
