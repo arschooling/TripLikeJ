@@ -2491,7 +2491,13 @@ function TakeoffIcon() {
         position:'relative', zIndex:1,
         width:72, height:72, borderRadius:18, background:COLORS.accent,
         display:'flex', alignItems:'center', justifyContent:'center',
-      }}/>
+      }}>
+        {/* 땅선 — 로고와 동일한 rounded rect, 비행기 착지 후 페이드인 */}
+        <svg width="47" height="47" viewBox="0 0 24 24"
+          style={{ position:'absolute', animation:'planeFadeIn 0.12s ease 0.95s both' }}>
+          <rect x="2.5" y="20.1" width="19" height="2" rx="1" fill="white"/>
+        </svg>
+      </div>
 
       {/* 활주로 */}
       <div style={{
