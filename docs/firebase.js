@@ -9,21 +9,13 @@ const firebaseConfig = {
   appId: "1:1045914771780:web:7adef948e46137073e7711",
 };
 
-let _fbAuth, _fbDb, _readyPromise = null;
+// SDK가 firebase-sdk.min.js로 이미 로드됨 — 바로 초기화
+firebase.initializeApp(firebaseConfig);
+const _fbAuth = firebase.auth();
+const _fbDb   = firebase.firestore();
+_fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
 
-function _load() {
-  if (_readyPromise) return _readyPromise;
-  // index.html에서 미리 로드 시작한 Promise 재사용 (없으면 직접 로드)
-  const preloaded = window._fbReady || Promise.resolve();
-  _readyPromise = preloaded.then(() => {
-    if (!window.firebase) throw new Error('Firebase SDK not loaded');
-    firebase.initializeApp(firebaseConfig);
-    _fbAuth = firebase.auth();
-    _fbDb   = firebase.firestore();
-    _fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
-  });
-  return _readyPromise;
-}
+function _load() { return Promise.resolve(); }
 
 // ─── Auth ────────────────────────────────────────────────────
 const _googleProvider = () => new firebase.auth.GoogleAuthProvider();
