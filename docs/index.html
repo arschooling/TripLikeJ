@@ -8,27 +8,108 @@
 <meta name="apple-mobile-web-app-title" content="여행"/>
 <meta name="theme-color" content="#F5F2EC"/>
 <link rel="manifest" href="manifest.json"/>
-<title>뉴욕 여행 · NYC Trip</title>
+<title>Trip Like J</title>
+<!-- 폰트 비차단 로드 -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"
+  onload="this.onload=null;this.rel='stylesheet'"/>
+<noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap"/></noscript>
 <style>
-  html, body { margin: 0; padding: 0; background: #F5F2EC; overflow-x: hidden; }
-  #root { min-height: 100%; background: #F5F2EC; }
-  @keyframes ptr-spin { to { transform: rotate(360deg); } }
+  html, body { margin:0; padding:0; background:#F5F2EC; overflow-x:hidden; }
+  #root { min-height:100%; background:#F5F2EC; }
+  @keyframes ptr-spin { to { transform:rotate(360deg); } }
+
+  /* ── 스플래시 ── */
   #splash {
-    position: fixed; inset: 0; background: #F5F2EC;
-    display: flex; align-items: center; justify-content: center;
-    z-index: 9999; transition: opacity 0.3s ease;
-    font-family: 'Instrument Serif', Georgia, serif;
-    font-size: 32px; color: #1A1816; letter-spacing: -0.5px;
+    position:fixed; inset:0; background:#F5F2EC;
+    display:flex; flex-direction:column;
+    align-items:center; justify-content:center;
+    z-index:9999; transition:opacity 0.35s ease;
   }
-  #splash.hide { opacity: 0; pointer-events: none; }
+  #splash.hide { opacity:0; pointer-events:none; }
+
+  #splash-title {
+    font-family:'Instrument Serif',Georgia,serif;
+    font-size:34px; color:#1A1816; letter-spacing:-0.5px;
+    animation:splashIn 0.5s ease both;
+  }
+  #splash-dest {
+    margin-top:14px; height:22px; overflow:hidden;
+    font-family:-apple-system,sans-serif;
+    font-size:13px; color:#7A756D; letter-spacing:0.04em;
+    text-align:center;
+  }
+  #splash-dest span {
+    display:block;
+    animation:destSlide 0.45s cubic-bezier(0.22,1,0.36,1) both;
+  }
+  #splash-bar {
+    position:absolute; bottom:0; left:0; height:2px;
+    background:#C14F2E;
+    animation:barGrow 2.2s cubic-bezier(0.4,0,0.2,1) forwards;
+    border-radius:0 2px 2px 0;
+  }
+
+  @keyframes splashIn {
+    from { opacity:0; transform:translateY(6px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes destSlide {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  @keyframes barGrow {
+    0%   { width:0%; }
+    40%  { width:55%; }
+    70%  { width:75%; }
+    100% { width:88%; }
+  }
 </style>
+<!-- Firebase 병렬 선(先)로드 — React보다 먼저 시작 -->
+<script>
+(function(){
+  var srcs=[
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js'
+  ];
+  var i=0;
+  window._fbReady=new Promise(function(res){window._fbResolve=res;});
+  function next(){
+    if(i>=srcs.length){window._fbResolve();return;}
+    var s=document.createElement('script');
+    s.src=srcs[i++]; s.onload=next;
+    document.head.appendChild(s);
+  }
+  next();
+})();
+</script>
 </head>
 <body>
-<div id="splash">Trip Like J</div>
+<div id="splash">
+  <div id="splash-title">Trip Like J</div>
+  <div id="splash-dest"><span id="splash-dest-text">✈ 여행을 준비하고 있어요</span></div>
+  <div id="splash-bar"></div>
+</div>
 <div id="root"></div>
+
+<script>
+// 여행지 이름 순환
+(function(){
+  var places=['✈ New York','🗼 Paris','🗾 Tokyo','🌉 San Francisco','🏝 Bali','🎡 London','✈ 여행을 준비하고 있어요'];
+  var i=0;
+  var el=document.getElementById('splash-dest');
+  if(!el) return;
+  setInterval(function(){
+    i=(i+1)%places.length;
+    var span=document.createElement('span');
+    span.textContent=places[i];
+    el.innerHTML='';
+    el.appendChild(span);
+  }, 900);
+})();
+</script>
 
 <script src="react.min.js"></script>
 <script src="react-dom.min.js"></script>

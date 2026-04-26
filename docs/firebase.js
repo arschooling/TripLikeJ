@@ -13,28 +13,14 @@ let _fbAuth, _fbDb, _readyPromise = null;
 
 function _load() {
   if (_readyPromise) return _readyPromise;
-  _readyPromise = new Promise(resolve => {
-    const srcs = [
-      'https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js',
-      'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js',
-      'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js',
-    ];
-    let i = 0;
-    function next() {
-      if (i >= srcs.length) {
-        firebase.initializeApp(firebaseConfig);
-        _fbAuth = firebase.auth();
-        _fbDb   = firebase.firestore();
-        _fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
-        resolve();
-        return;
-      }
-      const s = document.createElement('script');
-      s.src = srcs[i++];
-      s.onload = next;
-      document.head.appendChild(s);
-    }
-    next();
+  // index.html에서 미리 로드 시작한 Promise 재사용 (없으면 직접 로드)
+  const preloaded = window._fbReady || Promise.resolve();
+  _readyPromise = preloaded.then(() => {
+    if (!window.firebase) throw new Error('Firebase SDK not loaded');
+    firebase.initializeApp(firebaseConfig);
+    _fbAuth = firebase.auth();
+    _fbDb   = firebase.firestore();
+    _fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
   });
   return _readyPromise;
 }
