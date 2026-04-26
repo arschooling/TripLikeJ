@@ -2963,6 +2963,152 @@ function DatePickerSheet({
   }, "\uC774 \uB2EC \uB2EC\uB825 \uBCF4\uAE30"))) : /*#__PURE__*/React.createElement(Calendar, null));
 }
 
+// ─── Date Range Picker (시작~종료 한 달력에서 선택) ──────────
+function DateRangePickerSheet({ open, startValue, endValue, onClose, onPick }) {
+  const parseIso = s => {
+    const m = (s || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    return m ? { y: +m[1], mo: +m[2] - 1, d: +m[3] } : null;
+  };
+  const toIso = o => o ? `${o.y}-${String(o.mo + 1).padStart(2, '0')}-${String(o.d).padStart(2, '0')}` : null;
+  const cmp = (a, b) => { // -1 | 0 | 1
+    if (!a || !b) return 0;
+    if (a.y !== b.y) return a.y < b.y ? -1 : 1;
+    if (a.mo !== b.mo) return a.mo < b.mo ? -1 : 1;
+    return a.d < b.d ? -1 : a.d > b.d ? 1 : 0;
+  };
+  const today = new Date();
+  const initStart = parseIso(startValue);
+  const initView = initStart || { y: today.getFullYear(), mo: today.getMonth() };
+  const [view, setView] = React.useState({ y: initView.y, mo: initView.mo });
+  const [rangeStart, setRangeStart] = React.useState(parseIso(startValue));
+  const [rangeEnd,   setRangeEnd]   = React.useState(parseIso(endValue));
+  const [step, setStep] = React.useState('start'); // 'start' | 'end'
+
+  React.useEffect(() => {
+    if (open) {
+      const s = parseIso(startValue);
+      setRangeStart(s);
+      setRangeEnd(parseIso(endValue));
+      setView(s ? { y: s.y, mo: s.mo } : { y: today.getFullYear(), mo: today.getMonth() });
+      setStep('start');
+    }
+  }, [open]);
+
+  const MONTH_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const DOW = ['일','월','화','수','목','금','토'];
+
+  const prevMonth = () => {
+    let { y, mo } = view; mo--; if (mo < 0) { mo = 11; y--; }
+    setView({ y, mo });
+  };
+  const nextMonth = () => {
+    let { y, mo } = view; mo++; if (mo > 11) { mo = 0; y++; }
+    setView({ y, mo });
+  };
+
+  const handleDay = (d) => {
+    const tapped = { y: view.y, mo: view.mo, d };
+    if (step === 'start') {
+      setRangeStart(tapped); setRangeEnd(null); setStep('end');
+    } else {
+      if (cmp(tapped, rangeStart) < 0) {
+        // 시작보다 앞 → 새 시작으로
+        setRangeStart(tapped); setRangeEnd(null);
+      } else {
+        setRangeEnd(tapped); setStep('start');
+      }
+    }
+  };
+
+  const confirm = () => {
+    if (!rangeStart) { onClose(); return; }
+    onPick(toIso(rangeStart), toIso(rangeEnd));
+    onClose();
+  };
+
+  const isInRange = (d) => {
+    const cell = { y: view.y, mo: view.mo, d };
+    if (!rangeStart || !rangeEnd) return false;
+    return cmp(cell, rangeStart) > 0 && cmp(cell, rangeEnd) < 0;
+  };
+  const isStart = (d) => rangeStart && rangeStart.y === view.y && rangeStart.mo === view.mo && rangeStart.d === d;
+  const isEnd   = (d) => rangeEnd   && rangeEnd.y   === view.y && rangeEnd.mo   === view.mo && rangeEnd.d   === d;
+
+  const firstDow = new Date(view.y, view.mo, 1).getDay();
+  const daysInMo = new Date(view.y, view.mo + 1, 0).getDate();
+  const cells = [];
+  for (let i = 0; i < firstDow; i++) cells.push(null);
+  for (let d = 1; d <= daysInMo; d++) cells.push(d);
+
+  const fmtIso = o => o ? `${o.mo + 1}/${o.d}` : '?';
+  const hint = step === 'start' ? '시작일을 선택하세요' : (rangeStart ? `${fmtIso(rangeStart)} → 종료일을 선택하세요` : '');
+
+  return /*#__PURE__*/React.createElement(BottomSheet, { open, onClose, title: '여행 날짜', onConfirm: confirm },
+    // 힌트 + 선택된 범위 표시
+    /*#__PURE__*/React.createElement("div", {
+      style: { padding: '4px 20px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
+    },
+      /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 12, color: COLORS.mute } }, hint),
+      rangeStart && rangeEnd && /*#__PURE__*/React.createElement("span", {
+        style: { fontFamily: MONO, fontSize: 11, color: COLORS.accent }
+      }, fmtIso(rangeStart) + ' — ' + fmtIso(rangeEnd))
+    ),
+    // 월 헤더
+    /*#__PURE__*/React.createElement("div", {
+      style: { padding: '0 16px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
+    },
+      /*#__PURE__*/React.createElement("button", {
+        onClick: prevMonth,
+        style: { width: 30, height: 30, borderRadius: 15, border: 'none', cursor: 'pointer', background: COLORS.card, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron-l', size: 14, color: COLORS.ink, stroke: 2 })),
+      /*#__PURE__*/React.createElement("span", { style: { fontFamily: SERIF, fontSize: 17, color: COLORS.ink } },
+        view.y + '년 ' + MONTH_KR[view.mo]),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: nextMonth,
+        style: { width: 30, height: 30, borderRadius: 15, border: 'none', cursor: 'pointer', background: COLORS.card, display: 'flex', alignItems: 'center', justifyContent: 'center' }
+      }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron', size: 14, color: COLORS.ink, stroke: 2 }))
+    ),
+    // 요일 헤더
+    /*#__PURE__*/React.createElement("div", {
+      style: { padding: '0 14px 2px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }
+    }, DOW.map((w, i) => /*#__PURE__*/React.createElement("div", {
+      key: i,
+      style: { textAlign: 'center', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em',
+        color: i === 0 ? COLORS.accent : i === 6 ? 'oklch(60% 0.06 250)' : COLORS.mute, padding: '4px 0' }
+    }, w))),
+    // 날짜 그리드
+    /*#__PURE__*/React.createElement("div", {
+      style: { padding: '0 8px 14px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }
+    }, cells.map((d, i) => {
+      if (d === null) return /*#__PURE__*/React.createElement("div", { key: i });
+      const sel = isStart(d) || isEnd(d);
+      const inRange = isInRange(d);
+      const dow = (firstDow + d - 1) % 7;
+      const isToday = today.getFullYear() === view.y && today.getMonth() === view.mo && today.getDate() === d;
+      const isStartDay = isStart(d), isEndDay = isEnd(d);
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        style: {
+          position: 'relative',
+          background: inRange ? 'oklch(90% 0.04 50)' : 'transparent',
+          borderRadius: isStartDay ? '50% 0 0 50%' : isEndDay ? '0 50% 50% 0' : 0,
+        }
+      }, /*#__PURE__*/React.createElement("button", {
+        onClick: () => handleDay(d),
+        style: {
+          width: '100%', aspectRatio: '1/1', border: 'none', cursor: 'pointer',
+          borderRadius: '50%', background: sel ? COLORS.ink : 'transparent',
+          color: sel ? '#fff' : dow === 0 ? COLORS.accent : COLORS.ink,
+          fontFamily: SANS, fontSize: 13, fontWeight: sel ? 600 : 400,
+          position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        }
+      }, d, isToday && !sel && /*#__PURE__*/React.createElement("span", {
+        style: { position: 'absolute', bottom: 3, width: 3, height: 3, borderRadius: '50%', background: COLORS.accent }
+      })));
+    }))
+  );
+}
+
 // ─── Wheel column (scroll-snap) ──────────────────────────────
 function WheelColumn({
   items,
@@ -3625,7 +3771,7 @@ function HomeScreen({
   onOpenCompanion
 }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
-  const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
+  const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   const {
     itemProps: dayDragProps,
     isTouchDragging: isDayDragging
@@ -3651,36 +3797,40 @@ function HomeScreen({
     };
   };
   const handlePickStart = iso => {
-    const {
-      startIso
-    } = parseTripDates();
-    // 날짜 diff 계산해서 모든 일정 날짜 이동
-    if (startIso && iso && startIso !== iso) {
-      const oldMs = new Date(startIso + 'T12:00:00').getTime();
-      const newMs = new Date(iso + 'T12:00:00').getTime();
-      const diffDays = Math.round((newMs - oldMs) / 86400000);
-      const shiftedDays = (trip.days || []).map(d => {
-        const dIso = dayDateToIso(d.date, tripYear);
-        if (!dIso) return d;
-        const shifted = new Date(new Date(dIso + 'T12:00:00').getTime() + diffDays * 86400000);
-        const newIso = shifted.toISOString().slice(0, 10);
-        return {
-          ...d,
-          date: isoToDayDate(newIso),
-          weekday: isoToWeekday(newIso)
-        };
-      });
-      // trip.dates 새 시작일로 업데이트
-      const {
-        endIso
-      } = parseTripDates();
-      const newStart = isoToDayDate(iso);
-      const newEnd = endIso ? isoToDayDate(new Date(new Date(endIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : '';
-      onEditTrip({
-        days: shiftedDays,
-        dates: newEnd ? `${newStart} — ${newEnd}` : newStart
-      });
-    }
+    const { startIso } = parseTripDates();
+    if (!iso) return;
+    // 날짜 diff 계산 (시작일이 없으면 days/hotels 이동 없이 dates만 업데이트)
+    const diffDays = (startIso && startIso !== iso)
+      ? Math.round((new Date(iso + 'T12:00:00') - new Date(startIso + 'T12:00:00')) / 86400000)
+      : 0;
+    const shiftIso = (dateStr) => {
+      if (!dateStr) return dateStr;
+      // "May 4, 2025 · 15:00" 형태 처리
+      const timePart = dateStr.includes(' · ') ? dateStr.slice(dateStr.indexOf(' · ')) : '';
+      const datePart = timePart ? dateStr.slice(0, dateStr.indexOf(' · ')) : dateStr;
+      const dIso = dayDateToIso(datePart, tripYear);
+      if (!dIso) return dateStr;
+      const newIso = new Date(new Date(dIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10);
+      return isoToDayDate(newIso) + timePart;
+    };
+    const shiftedDays = diffDays === 0 ? trip.days : (trip.days || []).map(d => ({
+      ...d,
+      date: shiftIso(d.date) || d.date,
+      weekday: (() => { const s = dayDateToIso(d.date, tripYear); return s ? isoToWeekday(new Date(new Date(s + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : d.weekday; })()
+    }));
+    const shiftedHotels = diffDays === 0 ? trip.hotels : (trip.hotels || []).map(h => ({
+      ...h,
+      checkin:  shiftIso(h.checkin),
+      checkout: shiftIso(h.checkout),
+    }));
+    const { endIso } = parseTripDates();
+    const newStart = isoToDayDate(iso);
+    const newEnd = endIso ? isoToDayDate(new Date(new Date(endIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : '';
+    onEditTrip({
+      days: shiftedDays,
+      hotels: shiftedHotels,
+      dates: newEnd ? `${newStart} — ${newEnd}` : newStart
+    });
   };
   const handlePickEnd = iso => {
     const {
@@ -3702,7 +3852,20 @@ function HomeScreen({
       paddingBottom: 110,
       position: 'relative'
     }
-  }, onOpenCompanion && /*#__PURE__*/React.createElement("button", {
+  }, onBack && /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      position: 'absolute',
+      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      left: 12,
+      zIndex: 10,
+      width: 36, height: 36, borderRadius: 18,
+      background: COLORS.softer,
+      border: 'none', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+    }
+  }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.ink, stroke: 2 })),
+  onOpenCompanion && /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       position: 'absolute',
@@ -3736,7 +3899,7 @@ function HomeScreen({
     color: COLORS.mute
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))'
+      paddingTop: 'calc(66px + env(safe-area-inset-top, 0px))'
     }
   }), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3782,7 +3945,7 @@ function HomeScreen({
       flexWrap: 'wrap'
     }
   }, editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDatePicker('start'),
+    onClick: () => setDateRangeOpen(true),
     style: {
       border: `1.5px solid ${COLORS.line}`,
       borderRadius: 8,
@@ -3807,7 +3970,7 @@ function HomeScreen({
       fontSize: 13
     }
   }, "\u2014"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDatePicker('end'),
+    onClick: () => setDateRangeOpen(true),
     style: {
       border: `1.5px solid ${COLORS.line}`,
       borderRadius: 8,
@@ -4434,24 +4597,15 @@ function HomeScreen({
   }, /*#__PURE__*/React.createElement(FxCard, null), /*#__PURE__*/React.createElement(TimezoneCard, {
     city: city,
     onClick: onPickCity
-  })), /*#__PURE__*/React.createElement(DatePickerSheet, {
-    open: datePicker === 'start',
-    title: "\uC2DC\uC791 \uB0A0\uC9DC",
-    value: startIso,
-    onClose: () => setDatePicker(null),
-    onPick: iso => {
-      handlePickStart(iso);
-      setDatePicker(null);
-    }
-  }), /*#__PURE__*/React.createElement(DatePickerSheet, {
-    open: datePicker === 'end',
-    title: "\uC885\uB8CC \uB0A0\uC9DC",
-    value: endIso,
-    minDate: startIso,
-    onClose: () => setDatePicker(null),
-    onPick: iso => {
-      handlePickEnd(iso);
-      setDatePicker(null);
+  })), /*#__PURE__*/React.createElement(DateRangePickerSheet, {
+    open: dateRangeOpen,
+    startValue: startIso,
+    endValue: endIso,
+    onClose: () => setDateRangeOpen(false),
+    onPick: (newStart, newEnd) => {
+      if (newStart) handlePickStart(newStart);
+      if (newEnd) handlePickEnd(newEnd);
+      setDateRangeOpen(false);
     }
   }));
 }
@@ -8169,6 +8323,7 @@ function App() {
         editing: editing,
         setEditing: setEditing,
         userData: userData,
+        onBack: dayIdx === null && hotelIdx === null ? function() { setActiveTripId(null); setTrip(null); setEditing(false); } : null,
         onOpenCompanion: () => setCompanionOpen(true)
       });
       label = 'Home';
@@ -8268,16 +8423,6 @@ function App() {
       background: '#F5F2EC'
     }
   },
-  tab === 'home' && dayIdx === null && hotelIdx === null && /*#__PURE__*/React.createElement("button", {
-    onClick: function() { setActiveTripId(null); setTrip(null); setEditing(false); },
-    style: {
-      position: 'fixed', top: 'calc(env(safe-area-inset-top) + 14px)', left: 12, zIndex: 300,
-      width: 36, height: 36, borderRadius: 18,
-      background: 'rgba(245,242,236,0.85)', backdropFilter: 'blur(8px)',
-      border: 'none', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-    }
-  }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.ink, stroke: 2 })),
   /*#__PURE__*/React.createElement(SwipeBackLayer, {
     onBack: swipeBack
   }, screen), /*#__PURE__*/React.createElement(TabBar, {
