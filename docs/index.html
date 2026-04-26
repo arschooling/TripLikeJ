@@ -84,16 +84,16 @@ if('serviceWorker' in navigator) {
 <script>
 // 여행지 이름 순환
 (function(){
-  var places=['✈ New York','🗼 Paris','🗾 Tokyo','🌉 San Francisco','🏝 Bali','🎡 London','✈ 여행을 준비하고 있어요'];
+  var places=['✈ New York','🗼 Paris','🗾 Tokyo','🌉 San Francisco','🏝 Bali','🎡 London'];
   var i=0;
   var el=document.getElementById('splash-dest');
   if(!el) return;
-  setInterval(function(){
-    i=(i+1)%places.length;
+  var timer=setInterval(function(){
     var span=document.createElement('span');
     span.textContent=places[i];
     el.innerHTML='';
     el.appendChild(span);
+    if(++i>=places.length) clearInterval(timer);
   }, 571);
 })();
 </script>
