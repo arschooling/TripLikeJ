@@ -2493,9 +2493,9 @@ function TakeoffIcon() {
         display:'flex', alignItems:'center', justifyContent:'center',
       }}/>
 
-      {/* 활주로 — top:52 = 비행기 30% 확대 후 땅선 위치 + 간격 조정 */}
+      {/* 활주로 */}
       <div style={{
-        position:'absolute', top:52, left:'50%',
+        position:'absolute', top:47, left:'50%',
         zIndex:2, pointerEvents:'none',
       }}>
         <div style={{

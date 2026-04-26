@@ -58,14 +58,13 @@
     to   { opacity:1; }
   }
   /* 활주로: 비행기 멈추면 좌우에서 탄력있게 아이콘 크기로 수축 */
-  /* 최종 폭: 비행기 47px 기준 땅선 19유닛 × 1.958 = 37.2px → 37.2/700 = 0.053 */
   @keyframes runwaySpring {
     0%   { transform:scaleX(1); }
-    36%  { transform:scaleX(0.028); }
-    60%  { transform:scaleX(0.078); }
-    76%  { transform:scaleX(0.044); }
-    89%  { transform:scaleX(0.062); }
-    100% { transform:scaleX(0.053); }
+    36%  { transform:scaleX(0.022); }
+    60%  { transform:scaleX(0.060); }
+    76%  { transform:scaleX(0.034); }
+    89%  { transform:scaleX(0.048); }
+    100% { transform:scaleX(0.041); }
   }
 </style>
 <!-- 서비스 워커 등록 (두 번째 방문부터 즉시 로드) -->
