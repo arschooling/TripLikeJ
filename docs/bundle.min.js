@@ -7614,37 +7614,26 @@ function App() {
     });
   }, []);
 
-  // ── 여행 목록 로드 ─────────────────────────────────────────
-  // authUser가 확정되는 순간 즉시 uid로 첫 번째 여행(groups/{uid}) 로드
+  // ── 여행 목록: groups/{uid} 실시간 리스너 ─────────────────
+  // fbListenGroup은 이전부터 뉴욕 일정 불러오던 바로 그 함수
   React.useEffect(() => {
     if (!authUser?.uid) return;
     setTripsLoading(true);
-    fbLoadTrips([authUser.uid])
-      .then(function(trips) {
-        setUserTrips(trips);
-        setTripsLoading(false);
-        if (trips.length === 0) console.warn('[TripLikeJ] groups/' + authUser.uid + ' not found or empty');
-      })
-      .catch(function(err) {
-        console.error('[TripLikeJ] fbLoadTrips failed:', err);
-        setTripsLoading(false);
-      });
-  }, [authUser?.uid]);
-
-  // userData 로드 완료 후 추가 여행(tripIds) 병합
-  React.useEffect(() => {
-    if (!userData?.tripIds || !userData.tripIds.length) return;
-    const extra = userData.tripIds.filter(function(id) { return id !== authUser?.uid; });
-    if (!extra.length) return;
-    fbLoadTrips(extra)
-      .then(function(more) {
+    var uid = authUser.uid;
+    var unsub = fbListenGroup(uid, function(data) {
+      setTripsLoading(false);
+      if (data) {
+        var primaryTrip = Object.assign({ id: uid }, data);
         setUserTrips(function(prev) {
-          var existing = new Set(prev.map(function(t) { return t.id; }));
-          return prev.concat(more.filter(function(t) { return !existing.has(t.id); }));
+          var rest = prev.filter(function(t) { return t.id !== uid; });
+          return [primaryTrip].concat(rest);
         });
-      })
-      .catch(function(err) { console.error('[TripLikeJ] extra trips load failed:', err); });
-  }, [JSON.stringify(userData?.tripIds)]);
+      } else {
+        console.warn('[TripLikeJ] groups/' + uid + ' 문서 없음');
+      }
+    });
+    return unsub;
+  }, [authUser?.uid]);
 
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
