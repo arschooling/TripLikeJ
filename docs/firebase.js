@@ -18,7 +18,11 @@ _fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
 function _load() { return Promise.resolve(); }
 
 // ─── Auth ────────────────────────────────────────────────────
-const _googleProvider = () => new firebase.auth.GoogleAuthProvider();
+const _googleProvider = () => {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: 'select_account' });
+  return provider;
+};
 window.fbSignIn         = async () => { await _load(); return _fbAuth.signInWithPopup(_googleProvider()); };
 window.fbSignInRedirect = async () => { await _load(); return _fbAuth.signInWithRedirect(_googleProvider()); };
 window.fbSignOut        = async () => { await _load(); return _fbAuth.signOut(); };
