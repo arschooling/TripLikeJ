@@ -6404,4 +6404,1259 @@ function App() {
     }
   }, "\uC800\uC7A5")))), document.body));
 }
+ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh', background: COLORS.bg, display: 'flex',
+      flexDirection: 'column', justifyContent: 'center', padding: '48px 36px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: { width: 72, height: 72, borderRadius: 18, background: COLORS.accent,
+      display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 32 }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "36", height: "36", viewBox: "0 0 24 24", fill: "none",
+    stroke: "white", strokeWidth: "2", strokeLinecap: "round", strokeLinejoin: "round"
+  }, /*#__PURE__*/React.createElement("path", { d: "M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l4 5-3 3h2l3 2 5 4 .5-.8Z" }),
+  /*#__PURE__*/React.createElement("path", { d: "M3 20h18" }))),
+  /*#__PURE__*/React.createElement("div", {
+    style: { fontFamily: SERIF, fontSize: 56, color: COLORS.ink,
+      letterSpacing: '-0.02em', lineHeight: 1.1, marginBottom: 14 }
+  }, "Trip", /*#__PURE__*/React.createElement("br", null), "Like J."),
+  /*#__PURE__*/React.createElement("div", {
+    style: { fontFamily: SANS, fontSize: 15, color: COLORS.mute, marginBottom: 56, lineHeight: 1.5 }
+  }, "여행 일정 만들고 간편하게 공유해 보세요."), React.createElement("button", {
+    onClick: handleLogin,
+    disabled: loading,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      padding: '14px 28px',
+      background: loading ? COLORS.softer : '#fff',
+      border: `1.5px solid ${COLORS.line}`,
+      borderRadius: 16,
+      cursor: 'pointer',
+      boxShadow: '0 2px 12px rgba(0,0,0,0.08)',
+      width: '100%',
+      maxWidth: 300,
+      fontFamily: SANS,
+      fontSize: 15,
+      fontWeight: 500,
+      color: COLORS.ink,
+      justifyContent: 'center',
+      transition: 'opacity 0.2s',
+      opacity: loading ? 0.6 : 1
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "20",
+    height: "20",
+    viewBox: "0 0 48 48"
+  }, /*#__PURE__*/React.createElement("path", {
+    fill: "#EA4335",
+    d: "M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"
+  }), /*#__PURE__*/React.createElement("path", {
+    fill: "#4285F4",
+    d: "M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"
+  }), /*#__PURE__*/React.createElement("path", {
+    fill: "#FBBC05",
+    d: "M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"
+  }), /*#__PURE__*/React.createElement("path", {
+    fill: "#34A853",
+    d: "M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.96 2.29-8.16 2.29-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"
+  })), loading ? '로그인 중...' : 'Google로 로그인'), displayErr && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20,
+      padding: '12px 16px',
+      background: '#FEF2F2',
+      borderRadius: 12,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: '#C0392B',
+      maxWidth: 300,
+      textAlign: 'center',
+      lineHeight: 1.5
+    }
+  }, displayErr));
+}
+
+// ─── Companion Sheet ──────────────────────────────────────────
+function CompanionSheet({
+  open,
+  onClose,
+  authUser,
+  userData,
+  onUserDataUpdate
+}) {
+  const [tab, setTab] = React.useState('companions'); // 'companions' | 'invite'
+  const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteMsg, setInviteMsg] = React.useState('');
+  const [inviting, setInviting] = React.useState(false);
+  const [companions, setCompanions] = React.useState([]);
+  const [pendingInvites, setPendingInvites] = React.useState([]);
+  React.useEffect(() => {
+    if (!open || !userData) return;
+    fbGetCompanions(userData.groupId, authUser.uid).then(setCompanions);
+    const unsub = fbListenInvites(authUser.uid, setPendingInvites);
+    return unsub;
+  }, [open, userData?.groupId]);
+
+  // 배경 스크롤 잠금
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setInviting(true);
+    setInviteMsg('');
+    const res = await fbSendInvite(userData, inviteEmail);
+    setInviting(false);
+    if (res.error) setInviteMsg(res.error);else {
+      setInviteMsg(`${res.toName}님께 초대를 보냈습니다!`);
+      setInviteEmail('');
+    }
+  };
+  const handleAccept = async inv => {
+    const newGroupId = await fbAcceptInvite(inv, authUser.uid);
+    onUserDataUpdate({
+      ...userData,
+      groupId: newGroupId
+    });
+    setPendingInvites(p => p.filter(i => i.id !== inv.id));
+  };
+  const handleLeave = async () => {
+    if (!confirm('동행인 그룹에서 나가시겠습니까? 나만의 개인 일정으로 분리됩니다.')) return;
+    await fbLeaveGroup(userData);
+    onUserDataUpdate({
+      ...userData,
+      groupId: authUser.uid
+    });
+    onClose();
+  };
+  if (!open) return null;
+  const isInGroup = userData?.groupId !== authUser?.uid;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 200,
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      paddingBottom: 'calc(24px + env(safe-area-inset-bottom,0px))',
+      maxHeight: '88%',
+      overflowY: 'auto'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 20px 16px',
+      display: 'flex',
+      gap: 14,
+      alignItems: 'center',
+      borderBottom: `1px solid ${COLORS.line}`
+    }
+  }, authUser.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: authUser.photoURL,
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      flexShrink: 0
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      background: COLORS.accent,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+      fontFamily: SANS,
+      fontSize: 20,
+      color: '#fff',
+      fontWeight: 600
+    }
+  }, (authUser.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 18,
+      color: COLORS.ink
+    }
+  }, authUser.displayName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      marginTop: 2
+    }
+  }, authUser.email)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      fbSignOut();
+      onClose();
+    },
+    style: {
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 10,
+      padding: '7px 12px',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      cursor: 'pointer'
+    }
+  }, "\uB85C\uADF8\uC544\uC6C3")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      padding: '12px 16px 0',
+      gap: 8
+    }
+  }, [['companions', '동행인'], ['invite', '초대하기']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
+    key: id,
+    onClick: () => setTab(id),
+    style: {
+      padding: '7px 16px',
+      borderRadius: 20,
+      border: 'none',
+      cursor: 'pointer',
+      background: tab === id ? COLORS.ink : COLORS.card,
+      color: tab === id ? COLORS.bg : COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: tab === id ? 600 : 400
+    }
+  }, label))), pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '14px 16px 0',
+      background: '#FFF8E1',
+      borderRadius: 14,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: '#B8860B',
+      letterSpacing: '0.1em',
+      marginBottom: 8
+    }
+  }, "\uD83D\uDCE9 \uB3D9\uD589 \uCD08\uB300 ", pendingInvites.length, "\uAC74"), pendingInvites.map(inv => /*#__PURE__*/React.createElement("div", {
+    key: inv.id,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 8
+    }
+  }, inv.fromPhoto ? /*#__PURE__*/React.createElement("img", {
+    src: inv.fromPhoto,
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 18
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      background: COLORS.accent,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: '#fff'
+    }
+  }, (inv.fromName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      fontWeight: 500
+    }
+  }, inv.fromName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute
+    }
+  }, inv.fromEmail)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleAccept(inv),
+    style: {
+      border: 'none',
+      borderRadius: 10,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      background: COLORS.ink,
+      color: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: 500
+    }
+  }, "\uC218\uB77D"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => fbRejectInvite(inv.id).then(() => setPendingInvites(p => p.filter(i => i.id !== inv.id))),
+    style: {
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 10,
+      padding: '6px 10px',
+      cursor: 'pointer',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute
+    }
+  }, "\uAC70\uC808")))), tab === 'companions' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '14px 16px 0'
+    }
+  }, companions.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '24px 0',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC544\uC9C1 \uB3D9\uD589\uC778\uC774 \uC5C6\uC5B4\uC694.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 12
+    }
+  }, "\uCD08\uB300\uD558\uAE30 \uD0ED\uC5D0\uC11C \uC774\uBA54\uC77C\uB85C \uCD08\uB300\uD574\uBCF4\uC138\uC694.")) : companions.map(c => /*#__PURE__*/React.createElement("div", {
+    key: c.uid,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12,
+      padding: '10px 0',
+      borderBottom: `1px solid ${COLORS.line}`
+    }
+  }, c.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: c.photoURL,
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 20
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      background: COLORS.softer,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: 16,
+      color: COLORS.mute
+    }
+  }, (c.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      fontWeight: 500
+    }
+  }, c.displayName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute
+    }
+  }, c.email)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.accent
+    }
+  }, "\uB3D9\uD589\uC911"))), isInGroup && /*#__PURE__*/React.createElement("button", {
+    onClick: handleLeave,
+    style: {
+      marginTop: 20,
+      width: '100%',
+      padding: '13px',
+      border: `1.5px solid ${COLORS.line}`,
+      borderRadius: 14,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uADF8\uB8F9\uC5D0\uC11C \uB098\uAC00\uAE30")), tab === 'invite' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '16px 16px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute,
+      marginBottom: 12
+    }
+  }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
+    value: inviteEmail,
+    onChange: e => setInviteEmail(e.target.value),
+    placeholder: "\uC0C1\uB300\uBC29 \uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
+    onKeyDown: e => e.key === 'Enter' && handleInvite(),
+    style: {
+      width: '100%',
+      padding: '12px 14px',
+      borderRadius: 12,
+      border: `1.5px solid ${COLORS.line}`,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }), inviteMsg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontFamily: SANS,
+      fontSize: 12,
+      color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B'
+    }
+  }, inviteMsg), /*#__PURE__*/React.createElement("button", {
+    onClick: handleInvite,
+    disabled: inviting || !inviteEmail.trim(),
+    style: {
+      marginTop: 12,
+      width: '100%',
+      padding: '14px',
+      border: 'none',
+      borderRadius: 14,
+      background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
+      color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: 'pointer'
+    }
+  }, inviting ? '보내는 중...' : '초대 보내기'))));
+}
+
+// ─── App ─────────────────────────────────────────────────────
+function App() {
+  const _nav = loadNav();
+  // ── Firebase auth + data state ─────────────────────────────
+  const [authState, setAuthState] = React.useState('loading'); // loading | out | in
+  const [authUser, setAuthUser] = React.useState(null);
+  const [userData, setUserData] = React.useState(null);
+  const [trip, setTrip] = React.useState(null);
+  const [prep, setPrep] = React.useState({
+    checklist: [],
+    docs: [],
+    pack: []
+  });
+  const [companionOpen, setCompanionOpen] = React.useState(false);
+  const [loginError, setLoginError] = React.useState('');
+  const tripRef = React.useRef(null); // for loop-prevention
+
+  // ── UI nav state ───────────────────────────────────────────
+  const [tab, setTab] = React.useState(_nav.tab || 'home');
+  const [dayIdx, setDayIdx] = React.useState(_nav.dayIdx ?? null);
+  const [hotelIdx, setHotelIdx] = React.useState(_nav.hotelIdx ?? null);
+  const [openStop, setOpenStop] = React.useState(null);
+  const [city, setCity] = React.useState(CITIES[0]);
+  const [cityPicker, setCityPicker] = React.useState(false);
+  const [hotelSheet, setHotelSheet] = React.useState(null);
+  const [scrollKey, setScrollKey] = React.useState(0);
+  const [editing, setEditing] = React.useState(false);
+  const [tabBarVisible, setTabBarVisible] = React.useState(true);
+  const [saveConfirm, setSaveConfirm] = React.useState(false); // 저장 확인 다이얼로그
+  const lastScrollTop = React.useRef(0);
+  const savedHomeScrollY = React.useRef(0);
+  const navGoingBack = React.useRef(false);
+  const editSnapshot = React.useRef(null); // 편집 시작 시 trip+prep 스냅샷
+
+  // 편집 버튼 토글 핸들러
+  const handleEditToggle = () => {
+    if (!editing) {
+      // 편집 시작 — 스냅샷 저장
+      editSnapshot.current = JSON.stringify({
+        trip,
+        prep
+      });
+      setEditing(true);
+    } else {
+      const changed = editSnapshot.current !== JSON.stringify({
+        trip,
+        prep
+      });
+      if (changed) {
+        setSaveConfirm(true); // 변경 있으면 확인 다이얼로그
+      } else {
+        setEditing(false); // 변경 없으면 그냥 닫기
+      }
+    }
+  };
+
+  // ── 스플래시 숨기기 (auth + trip 준비 후 최소 1초 표시) ────────
+  React.useEffect(() => {
+    const ready = authState === 'out' || (authState === 'in' && trip !== null);
+    if (ready) {
+      const delay = Math.max(0, 4000 - (Date.now() - (window._splashStart || Date.now())));
+      setTimeout(() => {
+        const splash = document.getElementById('splash');
+        if (!splash) return;
+        const bar = document.getElementById('splash-bar');
+        if (bar) {
+          bar.style.transition = 'width 0.2s ease';
+          bar.style.width = '100%';
+        }
+        setTimeout(() => {
+          splash.style.animation = 'none';
+          splash.classList.add('hide');
+          setTimeout(() => splash.remove(), 350);
+        }, 220);
+      }, delay);
+    }
+  }, [authState, trip]);
+
+  // ── Firebase auth listener ─────────────────────────────────
+  React.useEffect(() => {
+    return fbOnAuth(async fbUser => {
+      if (fbUser) {
+        setAuthUser(fbUser);
+        // Firestore 실패해도 auth 정보만으로 일단 진입
+        const fallback = {
+          uid: fbUser.uid,
+          displayName: fbUser.displayName || '여행자',
+          email: fbUser.email || '',
+          photoURL: fbUser.photoURL || '',
+          groupId: fbUser.uid
+        };
+        try {
+          const ud = await Promise.race([fbGetOrCreateUser(fbUser), new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000))]);
+          setUserData(ud);
+        } catch (e) {
+          console.warn('Firestore 연결 실패, auth 정보로 진행:', e.message);
+          setUserData(fallback);
+          // 백그라운드에서 재시도
+          fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
+        }
+        setLoginError('');
+        setAuthState('in');
+      } else {
+        setAuthUser(null);
+        setUserData(null);
+        setTrip(null);
+        setPrep({
+          checklist: [],
+          docs: [],
+          pack: []
+        });
+        setAuthState('out');
+      }
+    });
+  }, []);
+
+  // ── Firestore: shared group listener ──────────────────────
+  React.useEffect(() => {
+    if (!userData?.groupId) return;
+    return fbListenGroup(userData.groupId, data => {
+      setTrip(prev => {
+        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
+        tripRef.current = data;
+        return data;
+      });
+    });
+  }, [userData?.groupId]);
+
+  // ── Firestore: private prep listener ──────────────────────
+  React.useEffect(() => {
+    if (!authUser?.uid) return;
+    return fbListenPrep(authUser.uid, p => {
+      // preps 문서가 없거나 비어있으면 TRIP_DEFAULT.prep으로 초기화
+      const hasData = p && (p.checklist?.length || p.docs?.length || p.pack?.length);
+      if (!hasData) {
+        const def = window.TRIP_DEFAULT?.prep || {
+          checklist: [],
+          docs: [],
+          pack: []
+        };
+        fbSavePrep(authUser.uid, def).catch(console.error);
+        setPrep(def);
+      } else {
+        setPrep(p);
+      }
+    });
+  }, [authUser?.uid]);
+  React.useEffect(() => {
+    saveNav({
+      tab,
+      dayIdx,
+      hotelIdx
+    });
+  }, [tab, dayIdx, hotelIdx]);
+  React.useEffect(() => {
+    if (navGoingBack.current) {
+      // 뒤로가기: 저장된 홈 스크롤 위치 복원
+      const target = savedHomeScrollY.current || 0;
+      requestAnimationFrame(() => {
+        window.scrollTo(0, target);
+        lastScrollTop.current = target;
+      });
+      navGoingBack.current = false;
+    } else {
+      window.scrollTo(0, 0);
+      lastScrollTop.current = 0;
+    }
+    setTabBarVisible(true);
+    setEditing(false);
+  }, [scrollKey, tab, dayIdx, hotelIdx]);
+  React.useEffect(() => {
+    const handleScroll = () => {
+      const st = window.scrollY;
+      const diff = st - lastScrollTop.current;
+      if (Math.abs(diff) > 4) {
+        setTabBarVisible(diff < 0 || st < 60);
+      }
+      lastScrollTop.current = st;
+    };
+    window.addEventListener('scroll', handleScroll, {
+      passive: true
+    });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // ── Trip-level actions (Firestore) ────────────────────────
+  const editTrip = patch => {
+    setTrip(prev => ({
+      ...prev,
+      ...patch
+    }));
+    if (userData?.groupId) fbSaveGroup(userData.groupId, patch).catch(console.error);
+  };
+  const editPrep = newPrep => {
+    setPrep(newPrep);
+    if (authUser?.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
+  };
+
+  // ── Day actions ────────────────────────────────────────
+  const reorderDays = (from, to) => {
+    const days = [...trip.days];
+    const [m] = days.splice(from, 1);
+    days.splice(to, 0, m);
+    editTrip({
+      days: days.map((d, i) => ({
+        ...d,
+        n: i + 1
+      }))
+    });
+  };
+  const addDay = () => {
+    const n = trip.days.length + 1;
+    const newDay = {
+      n,
+      date: '',
+      weekday: '',
+      title: `Day ${n}`,
+      titleEn: '',
+      hero: {
+        hue: 20 + n * 5,
+        label: `DAY ${n}`
+      },
+      weather: '',
+      items: []
+    };
+    editTrip({
+      days: [...trip.days, newDay]
+    });
+  };
+  const deleteDay = i => {
+    if (!confirm(`Day ${trip.days[i].n} 일정을 삭제할까요?`)) return;
+    const days = trip.days.filter((_, j) => j !== i).map((d, k) => ({
+      ...d,
+      n: k + 1
+    }));
+    editTrip({
+      days
+    });
+  };
+  const editDay = patch => {
+    const days = [...trip.days];
+    days[dayIdx] = {
+      ...days[dayIdx],
+      ...patch
+    };
+    editTrip({
+      days
+    });
+  };
+
+  // ── Stop actions ───────────────────────────────────────
+  const reorderItems = (from, to) => {
+    const days = [...trip.days];
+    const items = [...days[dayIdx].items];
+    const [m] = items.splice(from, 1);
+    items.splice(to, 0, m);
+    days[dayIdx] = {
+      ...days[dayIdx],
+      items
+    };
+    editTrip({
+      days
+    });
+  };
+  const addItem = () => {
+    const newItem = {
+      time: '12:00',
+      cat: 'sight',
+      title: '새 일정',
+      en: 'New stop',
+      loc: '',
+      note: ''
+    };
+    const days = [...trip.days];
+    days[dayIdx] = {
+      ...days[dayIdx],
+      items: [...days[dayIdx].items, newItem]
+    };
+    editTrip({
+      days
+    });
+    setOpenStop({
+      idx: days[dayIdx].items.length - 1,
+      stop: newItem,
+      editing: true
+    });
+  };
+  const addItemToFirstDay = () => {
+    const newItem = {
+      time: '12:00',
+      cat: 'sight',
+      title: '새 일정',
+      en: 'New stop',
+      loc: '',
+      note: ''
+    };
+    const days = [...trip.days];
+    days[0] = {
+      ...days[0],
+      items: [...days[0].items, newItem]
+    };
+    editTrip({
+      days
+    });
+    setDayIdx(0);
+    setScrollKey(k => k + 1);
+    setOpenStop({
+      idx: days[0].items.length - 1,
+      stop: newItem,
+      editing: true
+    });
+  };
+  const deleteItem = i => {
+    if (!confirm('이 일정을 삭제할까요?')) return;
+    const days = [...trip.days];
+    days[dayIdx] = {
+      ...days[dayIdx],
+      items: days[dayIdx].items.filter((_, j) => j !== i)
+    };
+    editTrip({
+      days
+    });
+  };
+  const saveStop = draft => {
+    const days = [...trip.days];
+    const items = [...days[dayIdx].items];
+    items[openStop.idx] = draft;
+    days[dayIdx] = {
+      ...days[dayIdx],
+      items
+    };
+    editTrip({
+      days
+    });
+    setOpenStop(null);
+  };
+
+  // ── Hotel ↔ Days sync ─────────────────────────────────
+  // When a hotel has checkin/checkout dates+times, ensure day timelines
+  // contain corresponding 'hotel' category items. Match day by date string.
+  const normalizeDate = s => (s || '').replace(/,\s*\d{4}\s*$/, '').trim(); // strip year
+  const syncHotelToDays = (days, hotel, prevHotel) => {
+    if (!hotel) return days;
+    let result = [...days];
+    // Remove any existing items tagged as this hotel (by _hotelRef name)
+    const prevName = prevHotel?.name;
+    if (prevName) {
+      result = result.map(d => ({
+        ...d,
+        items: d.items.filter(it => !(it._hotelRef === prevName))
+      }));
+    }
+    // Also strip items tagged to the NEW name (in case of re-sync/rename collisions)
+    result = result.map(d => ({
+      ...d,
+      items: d.items.filter(it => !(it._hotelRef === hotel.name))
+    }));
+    const findDay = dateStr => {
+      if (!dateStr) return -1;
+      const target = normalizeDate(dateStr);
+      return result.findIndex(d => normalizeDate(d.date) === target);
+    };
+    const inIdx = findDay(hotel.checkin);
+    // If checkout not given but nights is, derive checkout day from trip.days
+    let outIdx = findDay(hotel.checkout);
+    const nights = parseInt(hotel.nights, 10);
+    if (outIdx < 0 && inIdx >= 0 && nights > 0) {
+      outIdx = Math.min(inIdx + nights, result.length - 1);
+    }
+    const push = (di, item) => {
+      if (di < 0) return;
+      const items = [...result[di].items, item].sort((a, b) => (a.time || '99:99').localeCompare(b.time || '99:99'));
+      result[di] = {
+        ...result[di],
+        items
+      };
+    };
+    if (inIdx >= 0) {
+      push(inIdx, {
+        time: hotel.checkinTime || '15:00',
+        cat: 'hotel',
+        title: `${hotel.name} 체크인`,
+        en: hotel.name,
+        loc: hotel.area || '',
+        note: hotel.address || '',
+        _hotelRef: hotel.name
+      });
+    }
+    if (outIdx >= 0 && outIdx !== inIdx) {
+      push(outIdx, {
+        time: hotel.checkoutTime || '12:00',
+        cat: 'hotel',
+        title: `${hotel.name} 체크아웃`,
+        en: hotel.name,
+        loc: hotel.area || '',
+        note: hotel.address || '',
+        _hotelRef: hotel.name
+      });
+    }
+    // Intermediate nights: days strictly between checkin and checkout
+    if (inIdx >= 0 && outIdx > inIdx + 1) {
+      for (let di = inIdx + 1; di < outIdx; di++) {
+        push(di, {
+          time: '',
+          cat: 'hotel',
+          title: `${hotel.name} 숙박`,
+          en: hotel.name,
+          loc: hotel.area || '',
+          note: hotel.address || '',
+          _hotelRef: hotel.name
+        });
+      }
+    }
+    return result;
+  };
+
+  // ── Hotel actions ──────────────────────────────────────
+  const editHotel = patch => {
+    const hotels = [...(trip.hotels || [])];
+    const prev = hotels[hotelIdx];
+    const next = {
+      ...prev,
+      ...patch
+    };
+    hotels[hotelIdx] = next;
+    const days = syncHotelToDays(trip.days, next, prev);
+    editTrip({
+      hotels,
+      days
+    });
+  };
+  const deleteHotel = i => {
+    if (!confirm(`"${trip.hotels[i].name}" 숙소를 삭제할까요?`)) return;
+    const prev = trip.hotels[i];
+    const hotels = (trip.hotels || []).filter((_, j) => j !== i);
+    // remove hotel items from days
+    const days = trip.days.map(d => ({
+      ...d,
+      items: d.items.filter(it => it._hotelRef !== prev.name)
+    }));
+    editTrip({
+      hotels,
+      days
+    });
+  };
+  const convertInlineHotel = h => {
+    // 인라인 숙소를 trip.hotels에 추가하고 상세 화면 오픈
+    const checkinDate = (h.checkin || '').split(' · ')[0];
+    const newHotel = {
+      name: h.name,
+      area: h.area,
+      checkin: checkinDate,
+      nights: 1,
+      hue: h.hue || 25
+    };
+    const hotels = [...(trip.hotels || []), newHotel];
+    editTrip({
+      hotels
+    });
+    savedHomeScrollY.current = window.scrollY;
+    setHotelIdx(hotels.length - 1);
+    setScrollKey(k => k + 1);
+  };
+  const reorderHotels = (from, to) => {
+    const hotels = [...(trip.hotels || [])];
+    const [moved] = hotels.splice(from, 1);
+    hotels.splice(to, 0, moved);
+    editTrip({
+      hotels
+    });
+  };
+  const addHotel = () => {
+    const newHotel = {
+      name: '새 호텔',
+      area: '',
+      checkin: '',
+      checkout: '',
+      nights: 1,
+      hue: 30
+    };
+    const hotels = [...(trip.hotels || []), newHotel];
+    editTrip({
+      hotels
+    });
+    setHotelIdx(hotels.length - 1);
+  };
+  const pickHotelFromSearch = name => {
+    // name may be "Hotel Name (Area)"
+    const m = name.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
+    const parsed = m ? {
+      name: m[1],
+      area: m[2]
+    } : {
+      name
+    };
+    if (hotelSheet === 'new') {
+      const newHotel = {
+        ...parsed,
+        nights: 1,
+        hue: 30
+      };
+      const hotels = [...(trip.hotels || []), newHotel];
+      editTrip({
+        hotels
+      });
+      setHotelIdx(hotels.length - 1);
+    } else if (typeof hotelSheet === 'number') {
+      const hotels = [...(trip.hotels || [])];
+      const prev = hotels[hotelSheet];
+      const next = {
+        ...prev,
+        ...parsed
+      };
+      hotels[hotelSheet] = next;
+      const days = syncHotelToDays(trip.days, next, prev);
+      editTrip({
+        hotels,
+        days
+      });
+    }
+  };
+
+  // ── Render ─────────────────────────────────────────────
+  let screen, label;
+  if (tab === 'home') {
+    if (hotelIdx !== null && trip) {
+      screen = /*#__PURE__*/React.createElement(HotelDetailScreen, {
+        hotel: trip.hotels[hotelIdx],
+        onBack: () => {
+          navGoingBack.current = true;
+          setHotelIdx(null);
+        },
+        onEdit: editHotel,
+        onOpenSearch: () => setHotelSheet(hotelIdx),
+        editing: editing,
+        setEditing: setEditing
+      });
+      label = 'Hotel';
+    } else if (dayIdx !== null && trip) {
+      screen = /*#__PURE__*/React.createElement(DayScreen, {
+        trip: trip,
+        dayIdx: dayIdx,
+        onBack: () => {
+          navGoingBack.current = true;
+          setDayIdx(null);
+        },
+        onOpenStop: setOpenStop,
+        onNavDay: i => {
+          setDayIdx(i);
+          setOpenStop(null);
+          setScrollKey(k => k + 1);
+        },
+        onEditDay: editDay,
+        onAddItem: addItem,
+        onDeleteItem: deleteItem,
+        onReorderItems: reorderItems,
+        editing: editing,
+        setEditing: setEditing
+      });
+      label = `Day ${dayIdx + 1}`;
+    } else {
+      screen = /*#__PURE__*/React.createElement(HomeScreen, {
+        trip: trip,
+        onOpenDay: i => {
+          savedHomeScrollY.current = window.scrollY;
+          setDayIdx(i);
+          setScrollKey(k => k + 1);
+        },
+        onOpenHotel: i => {
+          savedHomeScrollY.current = window.scrollY;
+          setHotelIdx(i);
+          setScrollKey(k => k + 1);
+        },
+        city: city,
+        onPickCity: () => setCityPicker(true),
+        onEditTrip: editTrip,
+        onReorderDays: reorderDays,
+        onAddDay: addDay,
+        onDeleteDay: deleteDay,
+        onAddHotel: addHotel,
+        onAddHotelFromSearch: () => setHotelSheet('new'),
+        onDeleteHotel: deleteHotel,
+        onReorderHotels: reorderHotels,
+        onConvertInlineHotel: convertInlineHotel,
+        onAddItemToFirstDay: addItemToFirstDay,
+        editing: editing,
+        setEditing: setEditing
+      });
+      label = 'Home';
+    }
+  } else if (tab === 'map') {
+    screen = /*#__PURE__*/React.createElement(MapScreen, {
+      trip: trip
+    });
+    label = 'Map';
+  } else if (tab === 'food') {
+    screen = /*#__PURE__*/React.createElement(FoodScreen, {
+      trip: trip,
+      onEditFood: food => editTrip({
+        food
+      }),
+      editing: editing,
+      setEditing: setEditing
+    });
+    label = 'Food';
+  } else {
+    screen = /*#__PURE__*/React.createElement(PrepScreen, {
+      trip: trip,
+      prep: prep,
+      onEditPrep: editPrep,
+      editing: editing,
+      setEditing: setEditing
+    });
+    label = 'Prep';
+  }
+  const dayHue = dayIdx !== null && trip ? trip.days[dayIdx].hero.hue : 30;
+
+  // ── Auth gating ───────────────────────────────────────────
+  if (authState === 'loading') return null;
+  if (authState === 'out') return /*#__PURE__*/React.createElement(LoginScreen, {
+    errorMsg: loginError
+  });
+  if (!trip) return null;
+
+  // Figure out what "back" means in the current state, for swipe-from-edge.
+  let swipeBack = null;
+  if (tab === 'home') {
+    if (hotelIdx !== null) swipeBack = () => {
+      navGoingBack.current = true;
+      setHotelIdx(null);
+    };else if (dayIdx !== null) swipeBack = () => {
+      navGoingBack.current = true;
+      setDayIdx(null);
+    };
+  }
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      fontFamily: '-apple-system, system-ui, sans-serif',
+      background: '#F5F2EC'
+    }
+  }, /*#__PURE__*/React.createElement(SwipeBackLayer, {
+    onBack: swipeBack
+  }, screen), /*#__PURE__*/React.createElement(TabBar, {
+    tab: tab,
+    setTab: t => {
+      setTab(t);
+      setDayIdx(null);
+      setHotelIdx(null);
+      setOpenStop(null);
+      setEditing(false);
+    },
+    visible: tabBarVisible,
+    editing: editing,
+    onToggleEdit: handleEditToggle
+  }), tab === 'home' && dayIdx === null && hotelIdx === null && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCompanionOpen(true),
+    style: {
+      position: 'fixed',
+      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      right: 16,
+      zIndex: 90,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      background: userData?.photoURL ? 'transparent' : COLORS.softer,
+      border: `2px solid ${COLORS.line}`,
+      padding: 0,
+      cursor: 'pointer',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
+    }
+  }, userData?.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: userData.photoURL,
+    alt: "profile",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 18,
+    color: COLORS.mute
+  })), /*#__PURE__*/React.createElement(StopSheet, {
+    open: openStop,
+    dayHue: dayHue,
+    onClose: () => setOpenStop(null),
+    onSave: saveStop
+  }), cityPicker && /*#__PURE__*/React.createElement(CityPicker, {
+    current: city,
+    onPick: setCity,
+    onClose: () => setCityPicker(false)
+  }), hotelSheet !== null && /*#__PURE__*/React.createElement(HotelSearchSheet, {
+    COLORS: COLORS,
+    SERIF: SERIF,
+    SANS: SANS,
+    MONO: MONO,
+    Icon: Icon,
+    onPick: pickHotelFromSearch,
+    onClose: () => setHotelSheet(null)
+  }), /*#__PURE__*/React.createElement(CompanionSheet, {
+    open: companionOpen,
+    onClose: () => setCompanionOpen(false),
+    authUser: authUser,
+    userData: userData,
+    onUserDataUpdate: ud => setUserData(ud)
+  }), saveConfirm && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 700,
+      background: 'rgba(0,0,0,0.45)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 22,
+      padding: '28px 24px 20px',
+      width: '100%',
+      maxWidth: 320,
+      textAlign: 'center',
+      boxShadow: '0 20px 60px rgba(0,0,0,0.25)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.ink,
+      marginBottom: 8
+    }
+  }, "\uC218\uC815\uC744 \uC644\uB8CC\uD560\uAE4C\uC694?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.mute,
+      marginBottom: 24,
+      lineHeight: 1.5
+    }
+  }, "\uBCC0\uACBD\uB41C \uB0B4\uC6A9\uC774 \uC800\uC7A5\uB429\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSaveConfirm(false),
+    style: {
+      flex: 1,
+      padding: '13px',
+      border: `1.5px solid ${COLORS.line}`,
+      borderRadius: 14,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.mute
+    }
+  }, "\uACC4\uC18D \uC218\uC815"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setSaveConfirm(false);
+      setEditing(false);
+    },
+    style: {
+      flex: 1,
+      padding: '13px',
+      border: 'none',
+      borderRadius: 14,
+      background: COLORS.ink,
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: '#fff'
+    }
+  }, "\uC800\uC7A5")))), document.body));
+}
 ReactDOM.createRoot(document.getElementById('root')).render(/*#__PURE__*/React.createElement(App, null));

@@ -2415,12 +2415,19 @@ function LoginScreen({ errorMsg }) {
 
   return (
     <div style={{ minHeight:'100vh', background:COLORS.bg, display:'flex', flexDirection:'column',
-      alignItems:'center', justifyContent:'center', padding:32 }}>
-      <div style={{ fontFamily:SERIF, fontSize:52, color:COLORS.ink, letterSpacing:'-0.02em', marginBottom:6 }}>
-        여행.
+      justifyContent:'center', padding:'48px 36px' }}>
+      <div style={{ width:72, height:72, borderRadius:18, background:COLORS.accent,
+        display:'flex', alignItems:'center', justifyContent:'center', marginBottom:32 }}>
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17.8 19.2 16 11l3.5-3.5a2.12 2.12 0 0 0-3-3L13 8 4.8 6.2a.5.5 0 0 0-.5.8l4 5-3 3h2l3 2 5 4 .5-.8Z"/>
+          <path d="M3 20h18"/>
+        </svg>
       </div>
-      <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.mute, marginBottom:56 }}>
-        나만의 여행 플래너
+      <div style={{ fontFamily:SERIF, fontSize:56, color:COLORS.ink, letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:14 }}>
+        Trip<br/>Like J.
+      </div>
+      <div style={{ fontFamily:SANS, fontSize:15, color:COLORS.mute, marginBottom:56, lineHeight:1.5 }}>
+        여행 일정 만들고 간편하게 공유해 보세요.
       </div>
       <button onClick={handleLogin} disabled={loading}
         style={{ display:'flex', alignItems:'center', gap:12, padding:'14px 28px',
