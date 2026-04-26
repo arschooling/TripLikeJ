@@ -5677,6 +5677,17 @@ function App() {
     }
   };
 
+  // ── 스플래시 숨기기 (auth 상태 확인되면) ─────────────────────
+  React.useEffect(() => {
+    if (authState !== 'loading') {
+      const splash = document.getElementById('splash');
+      if (splash) {
+        splash.classList.add('hide');
+        setTimeout(() => splash.remove(), 350);
+      }
+    }
+  }, [authState]);
+
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(() => {
     return fbOnAuth(async fbUser => {
