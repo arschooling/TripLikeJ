@@ -5699,13 +5699,11 @@ function TripsScreen({ trips, onSelect, onAdd, loading, userData, onOpenCompanio
       style: { margin: '0 16px 16px', padding: 12, background: '#fff3cd', borderRadius: 12,
         fontFamily: MONO, fontSize: 11, color: '#333', lineHeight: 1.6 }
     },
-      /*#__PURE__*/React.createElement("div", null, 'uid: ' + (authUser ? authUser.uid : 'null')),
-      /*#__PURE__*/React.createElement("div", null, 'trips: ' + trips.length),
-      /*#__PURE__*/React.createElement("div", null, 'loading: ' + loading),
+      /*#__PURE__*/React.createElement("div", null, 'uid(auth): ' + (authUser ? authUser.uid : 'null')),
+      /*#__PURE__*/React.createElement("div", null, 'uid(data): ' + (userData ? userData.uid : 'null')),
+      /*#__PURE__*/React.createElement("div", null, 'trips: ' + trips.length + ' | loading: ' + loading),
       /*#__PURE__*/React.createElement("div", null, 'error: ' + (tripsError || 'none')),
-      /*#__PURE__*/React.createElement("div", null, 'ver: APP-V13'),
-      /*#__PURE__*/React.createElement("div", null, 'fbDebugRead: ' + typeof window.fbDebugRead),
-      /*#__PURE__*/React.createElement("div", null, new Date().toLocaleTimeString('ko-KR'))
+      /*#__PURE__*/React.createElement("div", null, 'ver: APP-V14 | ' + new Date().toLocaleTimeString('ko-KR'))
     ),
     loading
       ? /*#__PURE__*/React.createElement("div", {
@@ -5868,41 +5866,25 @@ function App() {
   }, []);
 
   // ── 여행 목록 로드 ────────────────────────────────────────
+  // userData.uid를 사용 — localStorage 캐시에서 즉시 로드되므로
+  // Firebase Auth 비동기 대기 없이 바로 Firestore 연결 가능
   const [tripsError, setTripsError] = React.useState('');
   React.useEffect(() => {
-    if (!authUser?.uid) return;
-    var uid = authUser.uid;
+    var uid = userData?.uid;
+    if (!uid) return;
     setTripsLoading(true);
     setTripsError('');
-    // firebase.js 로드 확인
-    if (typeof fbDebugRead !== 'function') {
-      setTripsError('firebase.js 로드 실패 — fbDebugRead 없음');
+    var unsub = fbListenGroup(uid, function(data) {
       setTripsLoading(false);
-      return;
-    }
-    if (typeof fbListenGroup !== 'function') {
-      setTripsError('firebase.js 로드 실패 — fbListenGroup 없음');
-      setTripsLoading(false);
-      return;
-    }
-    fbDebugRead(uid)
-      .then(function(result) {
-        if (result.ok) {
-          setTripsError('OK:' + result.title + '(' + result.days + 'd)|' + (result.userCheck||''));
-          fbListenGroup(uid, function(data) {
-            setTripsLoading(false);
-            if (data) setUserTrips([Object.assign({ id: uid }, data)]);
-          });
-        } else {
-          setTripsError('FAIL:' + result.reason + '|' + (result.userCheck||''));
-          setTripsLoading(false);
-        }
-      })
-      .catch(function(err) {
-        setTripsError('THROW: ' + (err && err.message ? err.message : String(err)));
-        setTripsLoading(false);
-      });
-  }, [authUser?.uid]);
+      if (data) {
+        setUserTrips([Object.assign({ id: uid }, data)]);
+        setTripsError('');
+      } else {
+        setTripsError('no-data');
+      }
+    });
+    return unsub;
+  }, [userData?.uid]);
 
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
