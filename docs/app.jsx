@@ -2649,14 +2649,28 @@ function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate })
 }
 
 // ─── App ─────────────────────────────────────────────────────
+// 로컬 캐시 읽기 (로그인 상태면 즉시 앱 표시용)
+function _readCache() {
+  if (!localStorage.getItem('tlj_authed')) return null;
+  try {
+    return {
+      userData: JSON.parse(localStorage.getItem('tlj_userData') || 'null'),
+      trip    : JSON.parse(localStorage.getItem('tlj_trip')     || 'null'),
+      prep    : JSON.parse(localStorage.getItem('tlj_prep')     || 'null'),
+    };
+  } catch(e) { return null; }
+}
+
 function App() {
-  const _nav = loadNav();
+  const _nav   = loadNav();
+  const _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
+
   // ── Firebase auth + data state ─────────────────────────────
-  const [authState, setAuthState]   = React.useState('loading'); // loading | out | in
+  const [authState, setAuthState]   = React.useState(_cache?.userData ? 'in' : 'loading');
   const [authUser, setAuthUser]     = React.useState(null);
-  const [userData, setUserData]     = React.useState(null);
-  const [trip, setTrip]             = React.useState(null);
-  const [prep, setPrep]             = React.useState({ checklist:[], docs:[], pack:[] });
+  const [userData, setUserData]     = React.useState(_cache?.userData || null);
+  const [trip, setTrip]             = React.useState(_cache?.trip     || null);
+  const [prep, setPrep]             = React.useState(_cache?.prep     || { checklist:[], docs:[], pack:[] });
   const [companionOpen, setCompanionOpen] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
   const tripRef = React.useRef(null); // for loop-prevention
@@ -2694,7 +2708,7 @@ function App() {
     }
   };
 
-  // ── 스플래시 즉시 숨기기 (React 마운트되면 바로 로그인 화면 표시) ─
+  // ── 스플래시 즉시 숨기기 (로그아웃 상태일 때만 표시됨) ─────────
   React.useEffect(() => {
     const splash = document.getElementById('splash');
     if (splash) {
@@ -2702,6 +2716,17 @@ function App() {
       setTimeout(() => splash.remove(), 350);
     }
   }, []);
+
+  // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용) ──────────────────
+  React.useEffect(() => {
+    if (userData) localStorage.setItem('tlj_userData', JSON.stringify(userData));
+  }, [userData]);
+  React.useEffect(() => {
+    if (trip) localStorage.setItem('tlj_trip', JSON.stringify(trip));
+  }, [trip]);
+  React.useEffect(() => {
+    if (prep) localStorage.setItem('tlj_prep', JSON.stringify(prep));
+  }, [prep]);
 
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(() => {
@@ -2715,27 +2740,20 @@ function App() {
           photoURL: fbUser.photoURL || '',
           groupId: fbUser.uid,
         };
-        // fallback 즉시 세팅 → fbListenGroup + fbListenPrep 즉시 시작 (병렬)
+        // fallback 즉시 세팅 → 바로 앱 화면 표시
         setUserData(fallback);
-        // fbGetOrCreateUser와 병렬로 리스너가 이미 시작됨
-        // 문서 생성 보장 후 authState 전환 (신규 유저 안전)
-        try {
-          const ud = await Promise.race([
-            fbGetOrCreateUser(fbUser),
-            new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), 5000)),
-          ]);
-          setUserData(ud);
-        } catch(e) {
-          console.warn('Firestore 연결 실패, auth 정보로 진행:', e.message);
-          fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
-        }
         setLoginError('');
         localStorage.setItem('tlj_authed', '1');
         setAuthState('in');
+        // Firestore는 백그라운드에서 실제 데이터로 업데이트
+        fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
       } else {
         setAuthUser(null); setUserData(null);
         setTrip(null); setPrep({ checklist:[], docs:[], pack:[] });
         localStorage.removeItem('tlj_authed');
+        localStorage.removeItem('tlj_userData');
+        localStorage.removeItem('tlj_trip');
+        localStorage.removeItem('tlj_prep');
         setAuthState('out');
       }
     });
