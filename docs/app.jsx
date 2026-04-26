@@ -850,85 +850,47 @@ function CityPicker({ current, onPick, onClose }) {
 }
 
 // ─── TRIPS SCREEN (top level) ───────────────────────────────
-function TripsScreen({ trips, onOpenTrip, onAddTrip, onDeleteTrip, onReorder, onEditTripMeta }) {
-  const [editing, setEditing] = React.useState(false);
-  const { itemProps } = useDragReorder(onReorder, editing);
+function TripsScreen({ trips, onSelect, onAdd, loading }) {
   return (
-    <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:40 }}>
-      <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:6,
-        display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
-          My Trips
-        </div>
-        <EditBtn editing={editing} onClick={() => setEditing(e => !e)}/>
-      </div>
-      <div style={{ padding:'10px 24px 22px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:56, lineHeight:0.95, color:COLORS.ink, letterSpacing:'-0.025em' }}>
-          여행.
-        </div>
-        <div style={{ marginTop:10, fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-          {trips.length}개의 여정
-        </div>
-      </div>
-
-      <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:10 }}>
-        {trips.map((t, i) => {
-          const dp = itemProps(i);
-          const hue = t.days?.[0]?.hero?.hue ?? 25;
-          const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
-          return (
-            <div key={i} {...dp} onClick={() => !editing && onOpenTrip(i)} style={{
-              background:COLORS.card, borderRadius:20, overflow:'hidden',
-              cursor: editing ? 'grab' : 'pointer',
-              border: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : `1px solid ${COLORS.line}`,
-              ...(dp.style || {}),
-            }}>
-              <div style={{ position:'relative' }}>
-                <Photo hue={hue} label={label} height={130}/>
-                {editing && (
-                  <button onClick={(e)=>{e.stopPropagation(); onDeleteTrip(i);}} style={{
-                    position:'absolute', top:10, right:10,
-                    width:30, height:30, borderRadius:15, border:'none',
-                    background:'rgba(255,255,255,0.92)', cursor:'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    <Icon name="trash" size={13} color={COLORS.accent} stroke={2}/>
-                  </button>
-                )}
-              </div>
-              <div style={{ padding:'14px 18px 16px' }}>
-                <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
-                  {t.days?.length || 0} DAYS · {t.dates || ''}
-                </div>
-                {editing ? (
-                  <input value={t.title} onChange={e => onEditTripMeta(i, { title: e.target.value })}
-                    onClick={e => e.stopPropagation()}
-                    style={{ marginTop:4, width:'100%', fontFamily:SERIF, fontSize:28, lineHeight:1.1,
-                      color:COLORS.ink, letterSpacing:'-0.015em', border:'none', outline:'none',
-                      background:'transparent', padding:0 }}/>
-                ) : (
-                  <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1,
-                    color:COLORS.ink, letterSpacing:'-0.015em' }}>{t.title}</div>
-                )}
-                <div style={{ marginTop:3, fontFamily:SANS, fontSize:12, color:COLORS.mute, fontStyle:'italic' }}>
-                  {t.subtitleKo || ''}
-                </div>
-              </div>
-            </div>
-          );
-        })}
-
-        <button onClick={onAddTrip} style={{
-          marginTop:4, padding:'18px 16px', background:'transparent',
-          border:`1.5px dashed ${COLORS.line}`, borderRadius:20,
-          color:COLORS.mute, cursor:'pointer',
-          display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-          fontFamily:SANS, fontSize:13.5,
-        }}>
-          <Icon name="plus" size={15} color={COLORS.mute} stroke={2}/>
-          새 여행 추가
+    <div style={{ minHeight:'100vh', background:COLORS.bg,
+      paddingTop:'calc(env(safe-area-inset-top) + 64px)', paddingBottom:100 }}>
+      <div style={{ padding:'0 24px 32px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+        <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink }}>내 여행</div>
+        <button onClick={onAdd} style={{ background:COLORS.ink, color:COLORS.bg, border:'none',
+          borderRadius:20, padding:'8px 18px', fontFamily:SANS, fontSize:13, fontWeight:500, cursor:'pointer' }}>
+          + 새 여행
         </button>
       </div>
+      {loading
+        ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
+        : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
+            {trips.map(t => {
+              const hue = t.days?.[0]?.hero?.hue ?? 25;
+              const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
+              return (
+                <div key={t.id} onClick={() => onSelect(t.id)} style={{
+                  background:COLORS.card, borderRadius:20, overflow:'hidden',
+                  cursor:'pointer', border:`1px solid ${COLORS.line}`,
+                }}>
+                  <Photo hue={hue} label={label} height={130}/>
+                  <div style={{ padding:'14px 18px 16px' }}>
+                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+                      {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
+                    </div>
+                    <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
+                      {t.title || '새 여행'}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+            <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
+              border:`1.5px dashed ${COLORS.line}`, borderRadius:20, color:COLORS.mute, cursor:'pointer',
+              display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:13.5 }}>
+              <Icon name="plus" size={15} color={COLORS.mute} stroke={2}/>새 여행 추가
+            </button>
+          </div>
+      }
     </div>
   );
 }
@@ -2809,6 +2771,9 @@ function App() {
   const [userData, setUserData]     = React.useState(_cache?.userData || null);
   const [trip, setTrip]             = React.useState(_cache?.trip     || null);
   const [prep, setPrep]             = React.useState(_cache?.prep     || { checklist:[], docs:[], pack:[] });
+  const [activeTripId, setActiveTripId] = React.useState(null);
+  const [userTrips, setUserTrips]       = React.useState([]);
+  const [tripsLoading, setTripsLoading] = React.useState(false);
   const [companionOpen, setCompanionOpen] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -2849,10 +2814,10 @@ function App() {
 
   // ── 앱 준비되면 loginPending 해제 ────────────────────────────
   React.useEffect(() => {
-    if (loginPending && authState === 'in' && trip !== null) {
+    if (loginPending && authState === 'in') {
       setLoginPending(false);
     }
-  }, [loginPending, authState, trip]);
+  }, [loginPending, authState]);
 
   // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용) ──────────────────
   React.useEffect(() => {
@@ -2886,7 +2851,8 @@ function App() {
         fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
       } else {
         setAuthUser(null); setUserData(null);
-        setTrip(null); setPrep({ checklist:[], docs:[], pack:[] });
+        setTrip(null); setActiveTripId(null); setUserTrips([]);
+        setPrep({ checklist:[], docs:[], pack:[] });
         localStorage.removeItem('tlj_authed');
         localStorage.removeItem('tlj_userData');
         localStorage.removeItem('tlj_trip');
@@ -2896,22 +2862,29 @@ function App() {
     });
   }, []);
 
+  // ── 여행 목록 로드 ─────────────────────────────────────────
+  React.useEffect(() => {
+    if (!userData?.uid) return;
+    const tripIds = userData.tripIds || [userData.groupId];
+    setTripsLoading(true);
+    fbLoadTrips(tripIds)
+      .then(trips => { setUserTrips(trips); setTripsLoading(false); })
+      .catch(() => setTripsLoading(false));
+  }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
+
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
   React.useEffect(() => {
-    if (!userData?.groupId) return;
+    if (!activeTripId) return;
     groupCreateRef.current = false;
-    return fbListenGroup(userData.groupId, (data) => {
+    setTrip(null);
+    return fbListenGroup(activeTripId, (data) => {
       if (data === null) {
-        // groups 문서가 없으면 기본값으로 생성 (한 번만)
         if (groupCreateRef.current) return;
         groupCreateRef.current = true;
-        const def = window.TRIP_DEFAULT || {};
-        fbSaveGroup(userData.groupId, {
-          title: def.title || '새 여행', dates: def.dates || '',
-          hotel: def.hotel || '', days: def.days || [],
-          hotels: def.hotels || [], food: def.food || [],
-          members: [userData.uid],
+        fbSaveGroup(activeTripId, {
+          title: '새 여행', dates: '', hotel: '', days: [],
+          hotels: [], food: [], members: [userData.uid],
         });
         return;
       }
@@ -2921,7 +2894,7 @@ function App() {
         return data;
       });
     });
-  }, [userData?.groupId]);
+  }, [activeTripId]);
 
   // ── Firestore: private prep listener ──────────────────────
   React.useEffect(() => {
@@ -2975,7 +2948,7 @@ function App() {
   // ── Trip-level actions (Firestore) ────────────────────────
   const editTrip = (patch) => {
     setTrip(prev => ({ ...prev, ...patch }));
-    if (userData?.groupId) fbSaveGroup(userData.groupId, patch).catch(console.error);
+    if (activeTripId) fbSaveGroup(activeTripId, patch).catch(console.error);
   };
   const editPrep = (newPrep) => {
     setPrep(newPrep);
@@ -3219,9 +3192,27 @@ function App() {
   // 로그인 버튼 누른 후 데이터 준비될 때까지 스플래시 표시
   const showSplash = loginPending && (authState !== 'in' || trip === null);
   if (showSplash) return <SplashScreen visible={true}/>;
-  if (authState === 'loading') return null; // 짧은 초기 로딩 (캐시 없을 때)
+  if (authState === 'loading') return null;
   if (authState === 'out') return <LoginScreen errorMsg={loginError} onLoginStart={() => setLoginPending(true)}/>;
-  if (!trip) return null; // 캐시 있으면 거의 발생 안 함
+
+  // ── 여행 목록 화면 ─────────────────────────────────────────
+  if (!activeTripId) return (
+    <TripsScreen
+      trips={userTrips}
+      loading={tripsLoading}
+      onSelect={(id) => { setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false); }}
+      onAdd={async () => {
+        const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
+        if (!title) return;
+        const tripId = await fbCreateNewTrip(userData.uid, title);
+        setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[] }]);
+        setActiveTripId(tripId);
+        setTab('home'); setDayIdx(null); setHotelIdx(null);
+      }}
+    />
+  );
+
+  if (!trip) return null;
 
   // Figure out what "back" means in the current state, for swipe-from-edge.
   let swipeBack = null;
@@ -3232,6 +3223,16 @@ function App() {
 
   return (
     <div style={{ minHeight:'100vh', fontFamily:'-apple-system, system-ui, sans-serif', background:'#F5F2EC' }}>
+      {tab === 'home' && dayIdx === null && hotelIdx === null && (
+        <button onClick={() => { setActiveTripId(null); setTrip(null); setEditing(false); }} style={{
+          position:'fixed', top:'calc(env(safe-area-inset-top) + 14px)', left:16, zIndex:300,
+          background:'transparent', border:'none', padding:'4px 8px', cursor:'pointer',
+          display:'flex', alignItems:'center', gap:3,
+          fontFamily:SANS, fontSize:13, color:COLORS.mute,
+        }}>
+          <Icon name="chevron-left" size={14} color={COLORS.mute} stroke={2}/>내 여행
+        </button>
+      )}
       <SwipeBackLayer onBack={swipeBack}>
         {screen}
       </SwipeBackLayer>

@@ -149,3 +149,26 @@ window.fbLeaveGroup = async (userData) => {
 
 window.fbUpdateUserGroupId = (uid, groupId) =>
   _fbDb.collection('users').doc(uid).update({ groupId });
+
+// ─── Multiple Trips ───────────────────────────────────────────
+window.fbLoadTrips = async (tripIds) => {
+  if (!tripIds || !tripIds.length) return [];
+  const snaps = await Promise.all(
+    tripIds.map(id => _fbDb.collection('groups').doc(id).get())
+  );
+  return snaps.filter(s => s.exists).map(s => ({ id: s.id, ...s.data() }));
+};
+
+window.fbCreateNewTrip = async (uid, title) => {
+  const ref = _fbDb.collection('groups').doc();
+  const tripId = ref.id;
+  await ref.set({
+    title, dates: '', hotel: '', days: [], hotels: [], food: [],
+    members: [uid],
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+  await _fbDb.collection('users').doc(uid).update({
+    tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
+  });
+  return tripId;
+};

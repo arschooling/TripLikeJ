@@ -7616,6 +7616,49 @@ function _readCache() {
     return null;
   }
 }
+function TripsScreen({ trips, onSelect, onAdd, loading }) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: { minHeight: '100vh', background: COLORS.bg,
+      paddingTop: 'calc(env(safe-area-inset-top) + 64px)', paddingBottom: 100 }
+  },
+    /*#__PURE__*/React.createElement("div", {
+      style: { padding: '0 24px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
+    },
+      /*#__PURE__*/React.createElement("div", { style: { fontFamily: SERIF, fontSize: 30, color: COLORS.ink } }, "내 여행"),
+      /*#__PURE__*/React.createElement("button", {
+        onClick: onAdd,
+        style: { background: COLORS.ink, color: COLORS.bg, border: 'none', borderRadius: 20,
+          padding: '8px 18px', fontFamily: SANS, fontSize: 13, fontWeight: 500, cursor: 'pointer' }
+      }, "+ 새 여행")
+    ),
+    loading
+      ? /*#__PURE__*/React.createElement("div", {
+          style: { textAlign: 'center', padding: 60, color: COLORS.mute, fontFamily: SANS, fontSize: 14 }
+        }, "로딩 중...")
+      : /*#__PURE__*/React.createElement("div", {
+          style: { padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12 }
+        },
+          trips.map(function(t) {
+            return /*#__PURE__*/React.createElement("div", {
+              key: t.id, onClick: function() { onSelect(t.id); },
+              style: { background: 'white', borderRadius: 20, padding: '22px 24px',
+                cursor: 'pointer', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' }
+            },
+              /*#__PURE__*/React.createElement("div", {
+                style: { fontFamily: SERIF, fontSize: 24, color: COLORS.ink, marginBottom: 6 }
+              }, t.title || '새 여행'),
+              t.dates && /*#__PURE__*/React.createElement("div", {
+                style: { fontFamily: MONO, fontSize: 12, color: COLORS.mute }
+              }, t.dates),
+              /*#__PURE__*/React.createElement("div", {
+                style: { fontFamily: MONO, fontSize: 11, color: COLORS.mute, marginTop: 8, letterSpacing: '0.08em' }
+              }, (t.days || []).length + ' DAYS · ' + (t.days || []).reduce(function(s, d) { return s + (d.items || []).length; }, 0) + ' STOPS')
+            );
+          })
+        )
+  );
+}
+
 function App() {
   const _nav = loadNav();
   const _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
@@ -7630,6 +7673,9 @@ function App() {
     docs: [],
     pack: []
   });
+  const [activeTripId, setActiveTripId] = React.useState(null);
+  const [userTrips, setUserTrips] = React.useState([]);
+  const [tripsLoading, setTripsLoading] = React.useState(false);
   const [companionOpen, setCompanionOpen] = React.useState(false);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -7676,10 +7722,10 @@ function App() {
 
   // ── 앱 준비되면 loginPending 해제 ────────────────────────────
   React.useEffect(() => {
-    if (loginPending && authState === 'in' && trip !== null) {
+    if (loginPending && authState === 'in') {
       setLoginPending(false);
     }
-  }, [loginPending, authState, trip]);
+  }, [loginPending, authState]);
 
   // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용) ──────────────────
   React.useEffect(() => {
@@ -7715,6 +7761,8 @@ function App() {
         setAuthUser(null);
         setUserData(null);
         setTrip(null);
+        setActiveTripId(null);
+        setUserTrips([]);
         setPrep({
           checklist: [],
           docs: [],
@@ -7729,25 +7777,30 @@ function App() {
     });
   }, []);
 
+  // ── 여행 목록 로드 ─────────────────────────────────────────
+  React.useEffect(() => {
+    if (!userData?.uid) return;
+    const tripIds = userData.tripIds || [userData.groupId];
+    setTripsLoading(true);
+    fbLoadTrips(tripIds).then(function(trips) {
+      setUserTrips(trips);
+      setTripsLoading(false);
+    }).catch(function() { setTripsLoading(false); });
+  }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
+
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
   React.useEffect(() => {
-    if (!userData?.groupId) return;
+    if (!activeTripId) return;
     groupCreateRef.current = false;
-    return fbListenGroup(userData.groupId, data => {
+    setTrip(null);
+    return fbListenGroup(activeTripId, data => {
       if (data === null) {
-        // groups 문서가 없으면 기본값으로 생성 (한 번만)
         if (groupCreateRef.current) return;
         groupCreateRef.current = true;
-        const def = window.TRIP_DEFAULT || {};
-        fbSaveGroup(userData.groupId, {
-          title: def.title || '새 여행',
-          dates: def.dates || '',
-          hotel: def.hotel || '',
-          days: def.days || [],
-          hotels: def.hotels || [],
-          food: def.food || [],
-          members: [userData.uid]
+        fbSaveGroup(activeTripId, {
+          title: '새 여행', dates: '', hotel: '', days: [],
+          hotels: [], food: [], members: [userData.uid]
         });
         return;
       }
@@ -7757,7 +7810,7 @@ function App() {
         return data;
       });
     });
-  }, [userData?.groupId]);
+  }, [activeTripId]);
 
   // ── Firestore: private prep listener ──────────────────────
   React.useEffect(() => {
@@ -7822,7 +7875,7 @@ function App() {
       ...prev,
       ...patch
     }));
-    if (userData?.groupId) fbSaveGroup(userData.groupId, patch).catch(console.error);
+    if (activeTripId) fbSaveGroup(activeTripId, patch).catch(console.error);
   };
   const editPrep = newPrep => {
     setPrep(newPrep);
@@ -8256,12 +8309,37 @@ function App() {
   if (showSplash) return /*#__PURE__*/React.createElement(SplashScreen, {
     visible: true
   });
-  if (authState === 'loading') return null; // 짧은 초기 로딩 (캐시 없을 때)
+  if (authState === 'loading') return null;
   if (authState === 'out') return /*#__PURE__*/React.createElement(LoginScreen, {
     errorMsg: loginError,
     onLoginStart: () => setLoginPending(true)
   });
-  if (!trip) return null; // 캐시 있으면 거의 발생 안 함
+
+  // ── 여행 목록 화면 ─────────────────────────────────────────
+  if (!activeTripId) return /*#__PURE__*/React.createElement(TripsScreen, {
+    trips: userTrips,
+    loading: tripsLoading,
+    onSelect: function(id) {
+      setActiveTripId(id);
+      setTab('home');
+      setDayIdx(null);
+      setHotelIdx(null);
+      setEditing(false);
+    },
+    onAdd: async function() {
+      const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
+      if (!title) return;
+      const tripId = await fbCreateNewTrip(userData.uid, title);
+      const newTrip = { id: tripId, title, dates: '', days: [], hotels: [] };
+      setUserTrips(prev => [...prev, newTrip]);
+      setActiveTripId(tripId);
+      setTab('home');
+      setDayIdx(null);
+      setHotelIdx(null);
+    }
+  });
+
+  if (!trip) return null;
 
   // Figure out what "back" means in the current state, for swipe-from-edge.
   let swipeBack = null;
@@ -8280,7 +8358,23 @@ function App() {
       fontFamily: '-apple-system, system-ui, sans-serif',
       background: '#F5F2EC'
     }
-  }, /*#__PURE__*/React.createElement(SwipeBackLayer, {
+  },
+  tab === 'home' && dayIdx === null && hotelIdx === null && /*#__PURE__*/React.createElement("button", {
+    onClick: function() { setActiveTripId(null); setTrip(null); setEditing(false); },
+    style: {
+      position: 'fixed',
+      top: 'calc(env(safe-area-inset-top) + 14px)',
+      left: 16, zIndex: 300,
+      background: 'transparent', border: 'none',
+      padding: '4px 8px', cursor: 'pointer',
+      display: 'flex', alignItems: 'center', gap: 3,
+      fontFamily: SANS, fontSize: 13, color: COLORS.mute,
+    }
+  },
+    /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 14, color: COLORS.mute, stroke: 2 }),
+    "내 여행"
+  ),
+  /*#__PURE__*/React.createElement(SwipeBackLayer, {
     onBack: swipeBack
   }, screen), /*#__PURE__*/React.createElement(TabBar, {
     tab: tab,
