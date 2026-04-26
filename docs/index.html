@@ -30,13 +30,17 @@
     90%  { transform:translateY(-3px) scale(1.02); }
     100% { opacity:1; transform:translateY(0) scale(1); }
   }
-  @keyframes planeTaxi {
-    0%   { transform:translateX(-290px) translateY(12px) rotate(17deg); opacity:0; }
-    6%   { opacity:1; }
-    55%  { transform:translateX(-50px) translateY(8px) rotate(13deg); }
-    76%  { transform:translateX(7px) translateY(-5px) rotate(-6deg); }
-    89%  { transform:translateX(-2px) translateY(1px) rotate(2deg); }
-    100% { transform:translateX(0px) translateY(0px) rotate(0deg); opacity:1; }
+  @keyframes planeFly {
+    0%   { transform:translateX(-310px) rotate(22deg); opacity:1; }
+    56%  { transform:translateX(-14px)  rotate(20deg); }
+    75%  { transform:translateX(7px)    translateY(-8px) rotate(-10deg); }
+    88%  { transform:translateX(-1px)   translateY(-1px) rotate(2deg); }
+    94%  { transform:translateX(0)      translateY(0)    rotate(0deg); opacity:1; }
+    100% { transform:translateX(0)      translateY(0)    rotate(0deg); opacity:0; }
+  }
+  @keyframes planeFadeIn {
+    from { opacity:0; }
+    to   { opacity:1; }
   }
   @keyframes paintFly {
     0%   { transform:translateY(-34px) scale(1.1); opacity:1; }

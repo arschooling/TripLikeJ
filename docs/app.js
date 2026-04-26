@@ -5249,68 +5249,70 @@ function SplashScreen({
 }
 
 // ─── Paint Splat Icon ────────────────────────────────────────
-// 물감 파티클은 비행기가 착지(~0.85s)한 직후에 튀도록 delay 설정
+// 물감 파티클: 비행기 착지(~0.84s) 직후 튀어나감
 const PAINTS = [{
   angle: 0,
   w: 7,
   h: 12,
   color: '#C14F2E',
-  delay: 0.86
+  delay: 0.84
 }, {
   angle: 38,
   w: 5,
   h: 9,
   color: '#F5C842',
-  delay: 0.90
+  delay: 0.88
 }, {
   angle: 72,
   w: 9,
   h: 13,
   color: '#4A8FE7',
-  delay: 0.87
+  delay: 0.85
 }, {
   angle: 108,
   w: 6,
   h: 10,
   color: '#5DBB6A',
-  delay: 0.92
+  delay: 0.90
 }, {
   angle: 145,
   w: 8,
   h: 12,
   color: '#E87FAA',
-  delay: 0.88
+  delay: 0.86
 }, {
   angle: 180,
   w: 5,
   h: 9,
   color: '#9B72CF',
-  delay: 0.91
+  delay: 0.89
 }, {
   angle: 215,
   w: 9,
   h: 13,
   color: '#F5C842',
-  delay: 0.85
+  delay: 0.83
 }, {
   angle: 252,
   w: 6,
   h: 10,
   color: '#C14F2E',
-  delay: 0.89
+  delay: 0.87
 }, {
   angle: 288,
   w: 8,
   h: 11,
   color: '#4A8FE7',
-  delay: 0.93
+  delay: 0.91
 }, {
   angle: 325,
   w: 5,
   h: 9,
   color: '#5DBB6A',
-  delay: 0.95
+  delay: 0.93
 }];
+// 비행기 날개+동체만 (활주선 제외)
+const PLANE_BODY = 'M22.07 9.64c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z';
 function PaintSplatIcon() {
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5351,17 +5353,42 @@ function PaintSplatIcon() {
       background: COLORS.accent,
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      animation: 'planeTaxi 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0s both'
+      justifyContent: 'center'
     }
   }, /*#__PURE__*/React.createElement("svg", {
     width: "36",
     height: "36",
     viewBox: "0 0 24 24",
-    fill: "white"
+    style: {
+      animation: 'planeFadeIn 0.15s ease 0.88s both'
+    }
   }, /*#__PURE__*/React.createElement("path", {
-    d: "M2.5 19h19v2h-19zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z"
-  }))));
+    fill: "white",
+    d: 'M2.5 19h19v2h-19z ' + PLANE_BODY
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      zIndex: 3,
+      pointerEvents: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      animation: 'planeFly 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0s both'
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "36",
+    height: "36",
+    viewBox: "0 0 24 24",
+    style: {
+      display: 'block',
+      transform: 'translate(-18px,-18px)'
+    }
+  }, /*#__PURE__*/React.createElement("path", {
+    fill: "#ffa500",
+    d: PLANE_BODY
+  })))));
 }
 
 // ─── Login Screen ────────────────────────────────────────────
@@ -5422,13 +5449,13 @@ function LoginScreen({
     key: 't' + i,
     style: {
       display: 'inline-block',
-      animation: `charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.78 + i * 0.055}s both`
+      animation: `charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.82 + i * 0.055}s both`
     }
   }, ch)), /*#__PURE__*/React.createElement("br", null), [...'Like J.'].map((ch, i) => /*#__PURE__*/React.createElement("span", {
     key: 'l' + i,
     style: {
       display: 'inline-block',
-      animation: `charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.78 + (4 + i) * 0.055 + 0.04}s both`
+      animation: `charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.82 + (4 + i) * 0.055 + 0.04}s both`
     }
   }, ch === ' ' ? ' ' : ch))), /*#__PURE__*/React.createElement("div", {
     style: {

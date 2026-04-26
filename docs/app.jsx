@@ -2479,19 +2479,22 @@ function SplashScreen({ visible }) {
 }
 
 // ─── Paint Splat Icon ────────────────────────────────────────
-// 물감 파티클은 비행기가 착지(~0.85s)한 직후에 튀도록 delay 설정
+// 물감 파티클: 비행기 착지(~0.84s) 직후 튀어나감
 const PAINTS = [
-  { angle:   0, w: 7,  h:12, color:'#C14F2E', delay:0.86 },
-  { angle:  38, w: 5,  h: 9, color:'#F5C842', delay:0.90 },
-  { angle:  72, w: 9,  h:13, color:'#4A8FE7', delay:0.87 },
-  { angle: 108, w: 6,  h:10, color:'#5DBB6A', delay:0.92 },
-  { angle: 145, w: 8,  h:12, color:'#E87FAA', delay:0.88 },
-  { angle: 180, w: 5,  h: 9, color:'#9B72CF', delay:0.91 },
-  { angle: 215, w: 9,  h:13, color:'#F5C842', delay:0.85 },
-  { angle: 252, w: 6,  h:10, color:'#C14F2E', delay:0.89 },
-  { angle: 288, w: 8,  h:11, color:'#4A8FE7', delay:0.93 },
-  { angle: 325, w: 5,  h: 9, color:'#5DBB6A', delay:0.95 },
+  { angle:   0, w: 7,  h:12, color:'#C14F2E', delay:0.84 },
+  { angle:  38, w: 5,  h: 9, color:'#F5C842', delay:0.88 },
+  { angle:  72, w: 9,  h:13, color:'#4A8FE7', delay:0.85 },
+  { angle: 108, w: 6,  h:10, color:'#5DBB6A', delay:0.90 },
+  { angle: 145, w: 8,  h:12, color:'#E87FAA', delay:0.86 },
+  { angle: 180, w: 5,  h: 9, color:'#9B72CF', delay:0.89 },
+  { angle: 215, w: 9,  h:13, color:'#F5C842', delay:0.83 },
+  { angle: 252, w: 6,  h:10, color:'#C14F2E', delay:0.87 },
+  { angle: 288, w: 8,  h:11, color:'#4A8FE7', delay:0.91 },
+  { angle: 325, w: 5,  h: 9, color:'#5DBB6A', delay:0.93 },
 ];
+// 비행기 날개+동체만 (활주선 제외)
+const PLANE_BODY = 'M22.07 9.64c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z';
+
 function PaintSplatIcon() {
   return (
     <div style={{ position:'relative', width:72, height:72, marginBottom:32 }}>
@@ -2504,26 +2507,38 @@ function PaintSplatIcon() {
           pointerEvents:'none',
         }}>
           <div style={{
-            position:'absolute',
-            left: -p.w / 2,
-            top: -p.h,
-            width: p.w, height: p.h,
-            background: p.color,
+            position:'absolute', left:-p.w/2, top:-p.h,
+            width:p.w, height:p.h, background:p.color,
             borderRadius:'50% 50% 42% 42% / 58% 58% 42% 42%',
             animation:`paintFly 0.52s cubic-bezier(0.2,0.6,0.4,1) ${p.delay}s both`,
           }}/>
         </div>
       ))}
-      {/* 아이콘 본체 — 왼쪽에서 달려와 이륙 자세로 멈춤 (0.9s) */}
+
+      {/* 아이콘 박스 — 처음부터 중앙 고정, 내부 비행기는 처음엔 없음 */}
       <div style={{
         position:'relative', zIndex:1,
         width:72, height:72, borderRadius:18, background:COLORS.accent,
         display:'flex', alignItems:'center', justifyContent:'center',
-        animation:'planeTaxi 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0s both',
       }}>
-        <svg width="36" height="36" viewBox="0 0 24 24" fill="white">
-          <path d="M2.5 19h19v2h-19zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z"/>
+        {/* 흰 비행기 — 주황 비행기 착지 후 나타남 */}
+        <svg width="36" height="36" viewBox="0 0 24 24"
+          style={{ animation:'planeFadeIn 0.15s ease 0.88s both' }}>
+          <path fill="white" d={'M2.5 19h19v2h-19z ' + PLANE_BODY}/>
         </svg>
+      </div>
+
+      {/* 주황 비행기 — 왼쪽 수평 이동 → 이륙 자세로 착지 → 사라짐 */}
+      <div style={{
+        position:'absolute', top:'50%', left:'50%',
+        zIndex:3, pointerEvents:'none',
+      }}>
+        <div style={{ animation:'planeFly 0.9s cubic-bezier(0.25,0.46,0.45,0.94) 0s both' }}>
+          <svg width="36" height="36" viewBox="0 0 24 24"
+            style={{ display:'block', transform:'translate(-18px,-18px)' }}>
+            <path fill="#ffa500" d={PLANE_BODY}/>
+          </svg>
+        </div>
       </div>
     </div>
   );
@@ -2565,12 +2580,12 @@ function LoginScreen({ errorMsg, onLoginStart }) {
       <div style={{ fontFamily:SERIF, fontSize:56, color:COLORS.ink, letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:14 }}>
         {[...'Trip'].map((ch, i) => (
           <span key={'t'+i} style={{ display:'inline-block',
-            animation:`charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.78 + i*0.055}s both` }}>{ch}</span>
+            animation:`charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.82 + i*0.055}s both` }}>{ch}</span>
         ))}
         <br/>
         {[...'Like J.'].map((ch, i) => (
           <span key={'l'+i} style={{ display:'inline-block',
-            animation:`charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.78 + (4+i)*0.055 + 0.04}s both` }}>
+            animation:`charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.82 + (4+i)*0.055 + 0.04}s both` }}>
             {ch === ' ' ? ' ' : ch}
           </span>
         ))}
