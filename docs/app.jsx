@@ -112,7 +112,7 @@ function EditBtn({ editing, onClick, compact }) {
 }
 
 // ─── Swipeable row (swipe-left to reveal edit/delete) ────────
-function SwipeableRow({ children, onEdit, onDelete, disabled, wrapStyle = {} }) {
+function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {} }) {
   const [x, setX] = React.useState(0);
   const [open, setOpen] = React.useState(false);
   const startRef = React.useRef(null);
@@ -123,6 +123,8 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, wrapStyle = {} }) 
 
   const close = () => { setX(0); xRef.current = 0; setOpen(false); };
   React.useEffect(() => { if (disabled) close(); }, [disabled]);
+  // 드래그 중에는 스와이프 버튼 즉시 닫기
+  React.useEffect(() => { if (isDragging) close(); }, [isDragging]);
 
   const onTouchStart = (e) => {
     if (disabled) return;
@@ -969,8 +971,8 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
                       userData, onOpenCompanion }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
-  const { itemProps: dayDragProps } = useDragReorder(onReorderDays, editing);
-  const { itemProps: hotelDragProps } = useDragReorder(onReorderHotels, editing);
+  const { itemProps: dayDragProps, isTouchDragging: isDayDragging } = useDragReorder(onReorderDays, editing);
+  const { itemProps: hotelDragProps, isTouchDragging: isHotelDragging } = useDragReorder(onReorderHotels, editing);
   const featured = trip.days[0];
   const tripYear = extractTripYear(trip);
 
@@ -1122,48 +1124,67 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
       <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:8 }}>
         {trip.days.map((d, i) => {
           const dp = dayDragProps(i);
+          const isDropTarget = dp['data-drop-target'];
+          const isDragSource = dp['data-drag-source'];
           return (
-            <SwipeableRow key={i} onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} wrapStyle={{ borderRadius:16 }}>
-            <div {...dp} onClick={() => !editing && onOpenDay(i)} style={{
-              background:COLORS.card, borderRadius:16, padding:12,
-              display:'flex', gap:12, alignItems:'center',
+            <SwipeableRow key={i} onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} isDragging={isDayDragging} wrapStyle={{ borderRadius:16 }}>
+            <div ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
+              onClick={() => !editing && !isDayDragging && onOpenDay(i)} style={{
+              borderRadius:16,
               cursor: editing ? 'grab' : 'pointer',
-              border: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
               ...(dp.style || {}),
+              // 드롭 타겟: 카드 모양 고스트 플레이스홀더
+              ...(isDropTarget ? {
+                background: 'transparent',
+                border: `2px dashed ${COLORS.line}`,
+              } : {
+                background: COLORS.card,
+                border: 'none',
+              }),
             }}>
-              <div style={{ width:64, height:64, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
-                <Photo hue={d.hero.hue} height={64} small/>
-              </div>
-              <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ display:'flex', gap:8, alignItems:'baseline' }}>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.12em' }}>
-                    DAY {String(d.n).padStart(2,'0')}
-                  </div>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
-                    {d.date} · {d.weekday}
-                  </div>
-                </div>
-                <div style={{ marginTop:3, fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
-                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.title}</div>
-                <div style={{ marginTop:3, fontFamily:SANS, fontSize:11.5, color:COLORS.mute,
-                  display:'flex', gap:5, alignItems:'center' }}>
-                  <Icon name="pin" size={11} color={COLORS.mute} stroke={1.8}/>
-                  <span>{d.items.length} stops</span>
-                </div>
-              </div>
-              {editing ? (
-                <>
-                  <DragHandle size={14} color={COLORS.mute}/>
-                  <button onClick={(e)=>{e.stopPropagation(); onDeleteDay(i);}} style={{
-                    width:26, height:26, borderRadius:13, border:'none',
-                    background:'rgba(193,79,46,0.12)', cursor:'pointer',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
-                  </button>
-                </>
+              {isDropTarget ? (
+                // 카드 모양 빈 플레이스홀더 (같은 높이)
+                <div style={{ height:88, borderRadius:14 }}/>
               ) : (
-                <Icon name="chevron" size={16} color={COLORS.mute} stroke={1.8}/>
+                <div style={{ padding:12, display:'flex', gap:12, alignItems:'center' }}>
+                  <div style={{ width:64, height:64, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
+                    <Photo hue={d.hero.hue} height={64} small/>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ display:'flex', gap:8, alignItems:'baseline' }}>
+                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.12em' }}>
+                        DAY {String(d.n).padStart(2,'0')}
+                      </div>
+                      <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
+                        {d.date} · {d.weekday}
+                      </div>
+                    </div>
+                    <div style={{ marginTop:3, fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
+                      whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.title}</div>
+                    <div style={{ marginTop:3, fontFamily:SANS, fontSize:11.5, color:COLORS.mute,
+                      display:'flex', gap:5, alignItems:'center' }}>
+                      <Icon name="pin" size={11} color={COLORS.mute} stroke={1.8}/>
+                      <span>{d.items.length} stops</span>
+                    </div>
+                  </div>
+                  {editing ? (
+                    <>
+                      <DragHandle size={14} color={COLORS.mute}/>
+                      {/* 드래그 중엔 삭제 버튼 숨김 */}
+                      {!isDayDragging && (
+                        <button onClick={(e)=>{e.stopPropagation(); onDeleteDay(i);}} style={{
+                          width:26, height:26, borderRadius:13, border:'none',
+                          background:'rgba(193,79,46,0.12)', cursor:'pointer',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                          <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
+                        </button>
+                      )}
+                    </>
+                  ) : (
+                    <Icon name="chevron" size={16} color={COLORS.mute} stroke={1.8}/>
+                  )}
+                </div>
               )}
             </div>
             </SwipeableRow>

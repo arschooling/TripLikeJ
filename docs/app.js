@@ -399,6 +399,7 @@ function SwipeableRow({
   onEdit,
   onDelete,
   disabled,
+  isDragging,
   wrapStyle = {}
 }) {
   const [x, setX] = React.useState(0);
@@ -416,6 +417,10 @@ function SwipeableRow({
   React.useEffect(() => {
     if (disabled) close();
   }, [disabled]);
+  // 드래그 중에는 스와이프 버튼 즉시 닫기
+  React.useEffect(() => {
+    if (isDragging) close();
+  }, [isDragging]);
   const onTouchStart = e => {
     if (disabled) return;
     startRef.current = {
@@ -2049,10 +2054,12 @@ function HomeScreen({
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
   const {
-    itemProps: dayDragProps
+    itemProps: dayDragProps,
+    isTouchDragging: isDayDragging
   } = useDragReorder(onReorderDays, editing);
   const {
-    itemProps: hotelDragProps
+    itemProps: hotelDragProps,
+    isTouchDragging: isHotelDragging
   } = useDragReorder(onReorderHotels, editing);
   const featured = trip.days[0];
   const tripYear = extractTripYear(trip);
@@ -2361,28 +2368,52 @@ function HomeScreen({
     }
   }, trip.days.map((d, i) => {
     const dp = dayDragProps(i);
+    const isDropTarget = dp['data-drop-target'];
+    const isDragSource = dp['data-drag-source'];
     return /*#__PURE__*/React.createElement(SwipeableRow, {
       key: i,
       onEdit: () => onOpenDay(i),
       onDelete: () => onDeleteDay(i),
       disabled: editing,
+      isDragging: isDayDragging,
       wrapStyle: {
         borderRadius: 16
       }
-    }, /*#__PURE__*/React.createElement("div", _extends({}, dp, {
-      onClick: () => !editing && onOpenDay(i),
+    }, /*#__PURE__*/React.createElement("div", {
+      ref: dp.ref,
+      onTouchStart: dp.onTouchStart,
+      onTouchMove: dp.onTouchMove,
+      onTouchEnd: dp.onTouchEnd,
+      onClick: () => !editing && !isDayDragging && onOpenDay(i),
       style: {
-        background: COLORS.card,
         borderRadius: 16,
+        cursor: editing ? 'grab' : 'pointer',
+        ...(dp.style || {}),
+        // 드롭 타겟: 카드 모양 고스트 플레이스홀더
+        ...(isDropTarget ? {
+          background: 'transparent',
+          border: `2px dashed ${COLORS.line}`
+        } : {
+          background: COLORS.card,
+          border: 'none'
+        })
+      }
+    }, isDropTarget ?
+    /*#__PURE__*/
+    // 카드 모양 빈 플레이스홀더 (같은 높이)
+    React.createElement("div", {
+      style: {
+        height: 88,
+        borderRadius: 14
+      }
+    }) : /*#__PURE__*/React.createElement("div", {
+      style: {
         padding: 12,
         display: 'flex',
         gap: 12,
-        alignItems: 'center',
-        cursor: editing ? 'grab' : 'pointer',
-        border: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
-        ...(dp.style || {})
+        alignItems: 'center'
       }
-    }), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
         width: 64,
         height: 64,
@@ -2447,7 +2478,7 @@ function HomeScreen({
     }), /*#__PURE__*/React.createElement("span", null, d.items.length, " stops"))), editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DragHandle, {
       size: 14,
       color: COLORS.mute
-    }), /*#__PURE__*/React.createElement("button", {
+    }), !isDayDragging && /*#__PURE__*/React.createElement("button", {
       onClick: e => {
         e.stopPropagation();
         onDeleteDay(i);
@@ -2473,7 +2504,7 @@ function HomeScreen({
       size: 16,
       color: COLORS.mute,
       stroke: 1.8
-    })));
+    }))));
   }), !editing && /*#__PURE__*/React.createElement("button", {
     onClick: onAddDay,
     style: {

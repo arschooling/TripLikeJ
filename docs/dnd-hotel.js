@@ -71,6 +71,8 @@ function useDragReorder(onReorder, enabled = true) {
 
     // Visual style
     let style = {};
+    let isDragSource = false;
+    let isDropTarget = false;
     if (td) {
       const {
         from,
@@ -79,27 +81,25 @@ function useDragReorder(onReorder, enabled = true) {
         itemH
       } = td;
       if (idx === from) {
+        isDragSource = true;
         style = {
           transform: `translateY(${dy}px) scale(1.035)`,
           transition: 'transform 0s, box-shadow 0.15s, opacity 0.15s',
           zIndex: 50,
-          opacity: 0.92,
+          opacity: 0.88,
           position: 'relative',
           boxShadow: '0 16px 40px rgba(0,0,0,0.24), 0 4px 8px rgba(0,0,0,0.12)'
         };
       } else {
         let shift = 0;
-        if (from < to && idx > from && idx <= to) shift = -itemH;else if (from > to && idx >= to && idx < from) shift = itemH;
-        const isTarget = from !== to && idx === to;
+        if (from < to && idx > from && idx <= to) shift = -itemH;
+        else if (from > to && idx >= to && idx < from) shift = itemH;
+        isDropTarget = from !== to && idx === to;
         style = {
           transform: `translateY(${shift}px)`,
-          transition: 'transform 0.24s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.18s ease, background 0.18s ease',
+          // 더 자연스러운 스프링 모션
+          transition: 'transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
           position: 'relative',
-          ...(isTarget ? {
-            outline: '2.5px solid #C14F2E',
-            outlineOffset: '2px',
-            background: 'rgba(193,79,46,0.07)'
-          } : {})
         };
       }
     } else if (enabled) {
@@ -154,14 +154,17 @@ function useDragReorder(onReorder, enabled = true) {
       onTouchEnd,
       ...html5,
       style,
-      'data-drag-over': !td && enabled && overIdx === idx && dragIdx !== null && dragIdx !== idx
+      'data-drag-over': !td && enabled && overIdx === idx && dragIdx !== null && dragIdx !== idx,
+      'data-drag-source': isDragSource,
+      'data-drop-target': isDropTarget,
     };
   };
   return {
     containerProps,
     itemProps,
     dragIdx: td ? td.from : dragIdx,
-    overIdx: td ? td.to : overIdx
+    overIdx: td ? td.to : overIdx,
+    isTouchDragging: !!td,
   };
 }
 
