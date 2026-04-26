@@ -59,13 +59,12 @@
   }
   /* 활주로: 넓게 펼쳐졌다가 아이콘 크기로 수축 후 사라짐 */
   @keyframes runwaySpring {
-    0%   { transform:scaleX(1);     opacity:1; }
-    36%  { transform:scaleX(0.022); opacity:1; }
-    60%  { transform:scaleX(0.060); opacity:1; }
-    76%  { transform:scaleX(0.034); opacity:1; }
-    89%  { transform:scaleX(0.048); opacity:1; }
-    95%  { transform:scaleX(0.041); opacity:1; }
-    100% { transform:scaleX(0.041); opacity:0; }
+    0%   { transform:scaleX(1); }
+    36%  { transform:scaleX(0.022); }
+    60%  { transform:scaleX(0.060); }
+    76%  { transform:scaleX(0.034); }
+    89%  { transform:scaleX(0.048); }
+    100% { transform:scaleX(0.053); }
   }
 </style>
 <!-- 서비스 워커 등록 (두 번째 방문부터 즉시 로드) -->

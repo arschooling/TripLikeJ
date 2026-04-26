@@ -5271,22 +5271,7 @@ function TakeoffIcon() {
       alignItems: 'center',
       justifyContent: 'center'
     }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "47",
-    height: "47",
-    viewBox: "0 0 24 24",
-    style: {
-      position: 'absolute',
-      animation: 'planeFadeIn 0.12s ease 1.48s both'
-    }
-  }, /*#__PURE__*/React.createElement("rect", {
-    x: "2.5",
-    y: "20.1",
-    width: "19",
-    height: "2",
-    rx: "1",
-    fill: "white"
-  }))), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
       top: 52,
