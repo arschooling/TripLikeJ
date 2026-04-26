@@ -5271,26 +5271,24 @@ function TakeoffIcon() {
       alignItems: 'center',
       justifyContent: 'center'
     }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      top: 52,
-      left: '50%',
-      zIndex: 2,
-      pointerEvents: 'none'
-    }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'absolute',
-      left: -350,
-      width: 700,
-      height: 3,
-      background: 'white',
-      borderRadius: '50%',
       transformOrigin: 'center center',
       animation: 'runwaySpring 0.6s linear 0.93s both'
     }
-  })), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "47",
+    height: "47",
+    viewBox: "0 0 24 24",
+    style: { display: 'block' }
+  }, /*#__PURE__*/React.createElement("rect", {
+    x: "2.5",
+    y: "20.1",
+    width: "19",
+    height: "2",
+    rx: "1",
+    fill: "white"
+  })))), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
       top: '50%',

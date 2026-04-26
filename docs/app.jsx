@@ -2491,19 +2491,13 @@ function TakeoffIcon() {
         position:'relative', zIndex:1,
         width:72, height:72, borderRadius:18, background:COLORS.accent,
         display:'flex', alignItems:'center', justifyContent:'center',
-      }}/>
-
-      {/* 활주로 */}
-      <div style={{
-        position:'absolute', top:52, left:'50%',
-        zIndex:2, pointerEvents:'none',
       }}>
-        <div style={{
-          position:'absolute', left:-350, width:700, height:3,
-          background:'white', borderRadius:'50%',
-          transformOrigin:'center center',
-          animation:'runwaySpring 0.6s linear 0.93s both',
-        }}/>
+        {/* 땅선 — SVG rect를 scaleX로 늘렸다 줄임 */}
+        <div style={{ transformOrigin:'center center', animation:'runwaySpring 0.6s linear 0.93s both' }}>
+          <svg width="47" height="47" viewBox="0 0 24 24" style={{ display:'block' }}>
+            <rect x="2.5" y="20.1" width="19" height="2" rx="1" fill="white"/>
+          </svg>
+        </div>
       </div>
 
       {/* 흰 비행기 — 30% 확대 (36→47px), 중앙 정렬 보정 */}
