@@ -5248,6 +5248,121 @@ function SplashScreen({
   }));
 }
 
+// ─── Paint Splat Icon ────────────────────────────────────────
+const PAINTS = [{
+  angle: 0,
+  w: 7,
+  h: 12,
+  color: '#C14F2E',
+  delay: 0.13
+}, {
+  angle: 38,
+  w: 5,
+  h: 9,
+  color: '#F5C842',
+  delay: 0.17
+}, {
+  angle: 72,
+  w: 9,
+  h: 13,
+  color: '#4A8FE7',
+  delay: 0.14
+}, {
+  angle: 108,
+  w: 6,
+  h: 10,
+  color: '#5DBB6A',
+  delay: 0.19
+}, {
+  angle: 145,
+  w: 8,
+  h: 12,
+  color: '#E87FAA',
+  delay: 0.15
+}, {
+  angle: 180,
+  w: 5,
+  h: 9,
+  color: '#9B72CF',
+  delay: 0.18
+}, {
+  angle: 215,
+  w: 9,
+  h: 13,
+  color: '#F5C842',
+  delay: 0.12
+}, {
+  angle: 252,
+  w: 6,
+  h: 10,
+  color: '#C14F2E',
+  delay: 0.16
+}, {
+  angle: 288,
+  w: 8,
+  h: 11,
+  color: '#4A8FE7',
+  delay: 0.20
+}, {
+  angle: 325,
+  w: 5,
+  h: 9,
+  color: '#5DBB6A',
+  delay: 0.22
+}];
+function PaintSplatIcon() {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      width: 72,
+      height: 72,
+      marginBottom: 32
+    }
+  }, PAINTS.map((p, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      position: 'absolute',
+      top: '50%',
+      left: '50%',
+      width: 0,
+      height: 0,
+      transform: `rotate(${p.angle}deg)`,
+      pointerEvents: 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      left: -p.w / 2,
+      top: -p.h,
+      width: p.w,
+      height: p.h,
+      background: p.color,
+      borderRadius: '50% 50% 42% 42% / 58% 58% 42% 42%',
+      animation: `paintFly 0.52s cubic-bezier(0.2,0.6,0.4,1) ${p.delay}s both`
+    }
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      zIndex: 1,
+      width: 72,
+      height: 72,
+      borderRadius: 18,
+      background: COLORS.accent,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      animation: 'iconStamp 0.55s cubic-bezier(0.34,1.56,0.64,1) 0.05s both'
+    }
+  }, /*#__PURE__*/React.createElement("svg", {
+    width: "36",
+    height: "36",
+    viewBox: "0 0 24 24",
+    fill: "white"
+  }, /*#__PURE__*/React.createElement("path", {
+    d: "M2.5 19h19v2h-19zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z"
+  }))));
+}
+
 // ─── Login Screen ────────────────────────────────────────────
 function LoginScreen({
   errorMsg,
@@ -5293,26 +5408,7 @@ function LoginScreen({
       padding: '48px 36px',
       textAlign: 'center'
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 72,
-      height: 72,
-      borderRadius: 18,
-      background: COLORS.accent,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      marginBottom: 32,
-      animation: 'charPop 0.6s cubic-bezier(0.34,1.56,0.64,1) 0s both'
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "36",
-    height: "36",
-    viewBox: "0 0 24 24",
-    fill: "white"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M2.5 19h19v2h-19zm19.57-9.36c-.21-.8-1.04-1.28-1.84-1.06L14.92 10l-6.9-6.43-1.93.51 4.14 7.17-4.97 1.33-1.97-1.54-1.45.39 2.59 4.49L21 11.67c.81-.23 1.28-1.05 1.07-1.85z"
-  }))), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(PaintSplatIcon, null), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SERIF,
       fontSize: 56,
