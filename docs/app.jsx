@@ -965,7 +965,8 @@ function isoToWeekday(iso) {
 function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
                       onEditTrip, onReorderDays, onAddDay, onDeleteDay, onBack,
                       onAddHotel, onAddHotelFromSearch, onDeleteHotel, onReorderHotels,
-                      onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing }) {
+                      onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
+                      userData, onOpenCompanion }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
   const { itemProps: dayDragProps } = useDragReorder(onReorderDays, editing);
@@ -1018,7 +1019,24 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
   const { startIso, endIso } = parseTripDates();
 
   return (
-    <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110 }}>
+    <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110, position:'relative' }}>
+      {/* 프로필 버튼 — 페이지 상단에만 고정, 스크롤하면 올라감 */}
+      {onOpenCompanion && (
+        <button onClick={onOpenCompanion} style={{
+          position:'absolute', top:'calc(14px + env(safe-area-inset-top,0px))', right:16, zIndex:10,
+          width:38, height:38, borderRadius:19,
+          background: userData?.photoURL ? 'transparent' : COLORS.softer,
+          border:`2px solid ${COLORS.line}`,
+          padding:0, cursor:'pointer', overflow:'hidden',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
+        }}>
+          {userData?.photoURL
+            ? <img src={userData.photoURL} alt="profile" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+            : <Icon name="user" size={18} color={COLORS.mute}/>
+          }
+        </button>
+      )}
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))' }}/>
 
       <div style={{ padding:'10px 24px 18px' }}>
@@ -3122,7 +3140,8 @@ function App() {
         onReorderHotels={reorderHotels}
         onConvertInlineHotel={convertInlineHotel}
         onAddItemToFirstDay={addItemToFirstDay}
-        editing={editing} setEditing={setEditing}/>;
+        editing={editing} setEditing={setEditing}
+        userData={userData} onOpenCompanion={() => setCompanionOpen(true)}/>;
       label = 'Home';
     }
   } else if (tab === 'map')  { screen = <MapScreen trip={trip}/>; label='Map'; }
@@ -3152,21 +3171,6 @@ function App() {
         {screen}
       </SwipeBackLayer>
       <TabBar tab={tab} setTab={(t)=>{setTab(t); setDayIdx(null); setHotelIdx(null); setOpenStop(null); setEditing(false);}} visible={tabBarVisible} editing={editing} onToggleEdit={handleEditToggle}/>
-      {/* 프로필 / 동행인 버튼 — 항상 오른쪽 상단 고정 */}
-      <button onClick={() => setCompanionOpen(true)} style={{
-        position:'fixed', top:'calc(14px + env(safe-area-inset-top,0px))', right:16, zIndex:90,
-        width:38, height:38, borderRadius:19,
-        background: userData?.photoURL ? 'transparent' : COLORS.softer,
-        border:`2px solid ${COLORS.line}`,
-        padding:0, cursor:'pointer', overflow:'hidden',
-        display:'flex', alignItems:'center', justifyContent:'center',
-        boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
-      }}>
-        {userData?.photoURL
-          ? <img src={userData.photoURL} alt="profile" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-          : <Icon name="user" size={18} color={COLORS.mute}/>
-        }
-      </button>
       <StopSheet open={openStop} dayHue={dayHue}
         onClose={() => setOpenStop(null)} onSave={saveStop}/>
       {cityPicker && (

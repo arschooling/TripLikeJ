@@ -2042,7 +2042,9 @@ function HomeScreen({
   onConvertInlineHotel,
   onAddItemToFirstDay,
   editing,
-  setEditing
+  setEditing,
+  userData,
+  onOpenCompanion
 }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
@@ -2117,9 +2119,42 @@ function HomeScreen({
     style: {
       background: COLORS.bg,
       minHeight: '100%',
-      paddingBottom: 110
+      paddingBottom: 110,
+      position: 'relative'
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, onOpenCompanion && /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenCompanion,
+    style: {
+      position: 'absolute',
+      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      right: 16,
+      zIndex: 10,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      background: userData?.photoURL ? 'transparent' : COLORS.softer,
+      border: `2px solid ${COLORS.line}`,
+      padding: 0,
+      cursor: 'pointer',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
+    }
+  }, userData?.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: userData.photoURL,
+    alt: "profile",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 18,
+    color: COLORS.mute
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))'
     }
@@ -6330,7 +6365,9 @@ function App() {
         onConvertInlineHotel: convertInlineHotel,
         onAddItemToFirstDay: addItemToFirstDay,
         editing: editing,
-        setEditing: setEditing
+        setEditing: setEditing,
+        userData: userData,
+        onOpenCompanion: () => setCompanionOpen(true)
       });
       label = 'Home';
     }
@@ -6405,39 +6442,7 @@ function App() {
     visible: tabBarVisible,
     editing: editing,
     onToggleEdit: handleEditToggle
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setCompanionOpen(true),
-    style: {
-      position: 'fixed',
-      top: 'calc(14px + env(safe-area-inset-top,0px))',
-      right: 16,
-      zIndex: 90,
-      width: 38,
-      height: 38,
-      borderRadius: 19,
-      background: userData?.photoURL ? 'transparent' : COLORS.softer,
-      border: `2px solid ${COLORS.line}`,
-      padding: 0,
-      cursor: 'pointer',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
-    }
-  }, userData?.photoURL ? /*#__PURE__*/React.createElement("img", {
-    src: userData.photoURL,
-    alt: "profile",
-    style: {
-      width: '100%',
-      height: '100%',
-      objectFit: 'cover'
-    }
-  }) : /*#__PURE__*/React.createElement(Icon, {
-    name: "user",
-    size: 18,
-    color: COLORS.mute
-  })), /*#__PURE__*/React.createElement(StopSheet, {
+  }), /*#__PURE__*/React.createElement(StopSheet, {
     open: openStop,
     dayHue: dayHue,
     onClose: () => setOpenStop(null),
