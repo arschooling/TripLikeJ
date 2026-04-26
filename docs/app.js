@@ -2096,15 +2096,18 @@ function HomeScreen({
     onClick: onBack,
     style: {
       position: 'absolute',
-      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      top: 'calc(12px + env(safe-area-inset-top,0px))',
       left: 12,
       zIndex: 10,
-      width: 36, height: 36, borderRadius: 18,
-      background: COLORS.softer,
+      background: 'transparent',
       border: 'none', cursor: 'pointer',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      display: 'flex', alignItems: 'center', gap: 2,
+      padding: '4px 8px 4px 4px',
     }
-  }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.ink, stroke: 2 })),
+  },
+    /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.mute, stroke: 2 }),
+    /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 14, color: COLORS.mute } }, "My Trips")
+  ),
   onOpenCompanion && /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
