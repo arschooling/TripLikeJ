@@ -2491,13 +2491,7 @@ function TakeoffIcon() {
         position:'relative', zIndex:1,
         width:72, height:72, borderRadius:18, background:COLORS.accent,
         display:'flex', alignItems:'center', justifyContent:'center',
-      }}>
-        {/* 땅선만 — 비행기 착지 후 페이드인 */}
-        <svg width="36" height="36" viewBox="0 0 24 24"
-          style={{ animation:'planeFadeIn 0.12s ease 0.95s both' }}>
-          <path fill="white" d="M2.5 19h19v2h-19z"/>
-        </svg>
-      </div>
+      }}/>
 
       {/* 활주로 — 아이콘 중심 기준 좌우 350px씩, 아이콘 앞(zIndex:2)
           top:47 = 아이콘 내 땅선 중심(48px)에 맞춤 (height:3 → center at 48.5≈48) */}
