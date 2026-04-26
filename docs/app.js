@@ -6073,19 +6073,15 @@ function App() {
       if (data === null) {
         if (groupCreateRef.current) return;
         groupCreateRef.current = true;
-        // 캐시에 실제 데이터 있으면 그걸로 복원, 없으면 TRIP_DEFAULT
+        // 문서 없으면 빈 여행 생성 (캐시 데이터 있으면 복원)
         const cached = _cache?.trip;
         const restoreData = (cached && cached.days && cached.days.length > 0)
           ? cached
-          : { title: 'New York', dates: window.TRIP_DEFAULT?.dates || '', days: window.TRIP_DEFAULT?.days || [],
-              hotels: window.TRIP_DEFAULT?.hotels || [], food: window.TRIP_DEFAULT?.food || [],
-              hotel: window.TRIP_DEFAULT?.hotel || '', members: [userData.uid] };
+          : { title: '내 여행', dates: '', days: [], hotels: [], food: [], hotel: '', members: [userData.uid] };
         fbSaveGroup(activeTripId, restoreData);
         return;
       }
       setTrip(prev => {
-        // Firestore 데이터가 비어있고 캐시에 실제 데이터가 있으면 캐시 우선
-        if ((!data.days || data.days.length === 0) && prev && prev.days && prev.days.length > 0) return prev;
         if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
         tripRef.current = data;
         return data;

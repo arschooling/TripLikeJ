@@ -37,7 +37,6 @@ window.fbGetOrCreateUser = async (fbUser) => {
   const ref  = _fbDb.collection('users').doc(fbUser.uid);
   const snap = await ref.get();
   if (!snap.exists) {
-    const def  = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
     const data = {
       displayName : fbUser.displayName || '여행자',
       email       : fbUser.email       || '',
@@ -47,18 +46,19 @@ window.fbGetOrCreateUser = async (fbUser) => {
       createdAt   : firebase.firestore.FieldValue.serverTimestamp(),
     };
     await ref.set(data);
+    // 신규 유저는 빈 여행으로 시작 (뉴욕 기본값 X)
     await _fbDb.collection('groups').doc(fbUser.uid).set({
-      title   : def.title,
-      dates   : def.dates,
-      hotel   : def.hotel || '',
-      days    : def.days,
-      hotels  : def.hotels  || [],
-      food    : def.food    || [],
+      title   : '내 여행',
+      dates   : '',
+      hotel   : '',
+      days    : [],
+      hotels  : [],
+      food    : [],
       members : [fbUser.uid],
       createdAt: firebase.firestore.FieldValue.serverTimestamp(),
     });
     await _fbDb.collection('preps').doc(fbUser.uid).set({
-      prep: def.prep || { checklist:[], docs:[], pack:[] },
+      prep: { checklist:[], docs:[], pack:[] },
     });
     return { ...data, uid: fbUser.uid };
   }
