@@ -2523,83 +2523,342 @@ const CITIES = [{
   key: 'New York',
   kor: '뉴욕',
   zone: 'America/New_York',
-  flag: '🇺🇸'
+  flag: '🇺🇸',
+  lat: 40.71,
+  lon: -74.01
 }, {
   key: 'Los Angeles',
   kor: '로스앤젤레스',
   zone: 'America/Los_Angeles',
-  flag: '🇺🇸'
+  flag: '🇺🇸',
+  lat: 34.05,
+  lon: -118.24
 }, {
   key: 'Washington',
   kor: '워싱턴',
   zone: 'America/New_York',
-  flag: '🇺🇸'
+  flag: '🇺🇸',
+  lat: 38.91,
+  lon: -77.04
 }, {
   key: 'London',
   kor: '런던',
   zone: 'Europe/London',
-  flag: '🇬🇧'
+  flag: '🇬🇧',
+  lat: 51.51,
+  lon: -0.13
 }, {
   key: 'Paris',
   kor: '파리',
   zone: 'Europe/Paris',
-  flag: '🇫🇷'
+  flag: '🇫🇷',
+  lat: 48.85,
+  lon: 2.35
 }, {
   key: 'Rome',
   kor: '로마',
   zone: 'Europe/Rome',
-  flag: '🇮🇹'
+  flag: '🇮🇹',
+  lat: 41.90,
+  lon: 12.50
 }, {
   key: 'Berlin',
   kor: '베를린',
   zone: 'Europe/Berlin',
-  flag: '🇩🇪'
+  flag: '🇩🇪',
+  lat: 52.52,
+  lon: 13.40
 }, {
   key: 'Dubai',
   kor: '두바이',
   zone: 'Asia/Dubai',
-  flag: '🇦🇪'
+  flag: '🇦🇪',
+  lat: 25.20,
+  lon: 55.27
 }, {
   key: 'Bangkok',
   kor: '방콕',
   zone: 'Asia/Bangkok',
-  flag: '🇹🇭'
+  flag: '🇹🇭',
+  lat: 13.75,
+  lon: 100.52
 }, {
   key: 'Singapore',
   kor: '싱가포르',
   zone: 'Asia/Singapore',
-  flag: '🇸🇬'
+  flag: '🇸🇬',
+  lat: 1.35,
+  lon: 103.82
 }, {
   key: 'Hong Kong',
   kor: '홍콩',
   zone: 'Asia/Hong_Kong',
-  flag: '🇭🇰'
+  flag: '🇭🇰',
+  lat: 22.32,
+  lon: 114.17
 }, {
   key: 'Shanghai',
   kor: '상하이',
   zone: 'Asia/Shanghai',
-  flag: '🇨🇳'
+  flag: '🇨🇳',
+  lat: 31.23,
+  lon: 121.47
 }, {
   key: 'Tokyo',
   kor: '도쿄',
   zone: 'Asia/Tokyo',
-  flag: '🇯🇵'
+  flag: '🇯🇵',
+  lat: 35.68,
+  lon: 139.69
 }, {
   key: 'Seoul',
   kor: '서울',
   zone: 'Asia/Seoul',
-  flag: '🇰🇷'
+  flag: '🇰🇷',
+  lat: 37.57,
+  lon: 126.98
 }, {
   key: 'Sydney',
   kor: '시드니',
   zone: 'Australia/Sydney',
-  flag: '🇦🇺'
+  flag: '🇦🇺',
+  lat: -33.87,
+  lon: 151.21
 }, {
   key: 'Hawaii',
   kor: '하와이',
   zone: 'Pacific/Honolulu',
-  flag: '🇺🇸'
+  flag: '🇺🇸',
+  lat: 21.31,
+  lon: -157.86
 }];
+
+// WMO 날씨 코드 → 설명 + 이모지
+const WMO = {
+  0: ['맑음', '☀️'],
+  1: ['구름 조금', '🌤'],
+  2: ['구름 많음', '⛅'],
+  3: ['흐림', '☁️'],
+  45: ['안개', '🌫'],
+  48: ['안개', '🌫'],
+  51: ['가벼운 이슬비', '🌦'],
+  53: ['이슬비', '🌦'],
+  55: ['짙은 이슬비', '🌧'],
+  61: ['가벼운 비', '🌧'],
+  63: ['비', '🌧'],
+  65: ['강한 비', '🌧'],
+  71: ['가벼운 눈', '🌨'],
+  73: ['눈', '🌨'],
+  75: ['강한 눈', '❄️'],
+  77: ['싸락눈', '🌨'],
+  80: ['소나기', '🌦'],
+  81: ['소나기', '🌦'],
+  82: ['강한 소나기', '⛈'],
+  85: ['눈 소나기', '🌨'],
+  86: ['강한 눈 소나기', '🌨'],
+  95: ['뇌우', '⛈'],
+  96: ['뇌우', '⛈'],
+  99: ['뇌우·우박', '⛈']
+};
+const wmoInfo = code => WMO[code] || ['—', '🌡'];
+function useWeather(lat, lon, zone) {
+  const [state, setState] = React.useState({
+    loading: true,
+    data: null
+  });
+  React.useEffect(() => {
+    let alive = true;
+    setState({
+      loading: true,
+      data: null
+    });
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}` + `&current=temperature_2m,apparent_temperature,weather_code,wind_speed_10m,relative_humidity_2m` + `&daily=weather_code,temperature_2m_max,temperature_2m_min` + `&timezone=${encodeURIComponent(zone)}&forecast_days=5`;
+    fetch(url).then(r => r.json()).then(j => {
+      if (alive) setState({
+        loading: false,
+        data: j
+      });
+    }).catch(() => {
+      if (alive) setState({
+        loading: false,
+        data: null
+      });
+    });
+    return () => {
+      alive = false;
+    };
+  }, [lat, lon]);
+  return state;
+}
+const DAY_KO = ['일', '월', '화', '수', '목', '금', '토'];
+function WeatherCard({
+  city
+}) {
+  const {
+    loading,
+    data
+  } = useWeather(city.lat, city.lon, city.zone);
+  const cur = data?.current;
+  const daily = data?.daily;
+  const skeleton = /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '13px 14px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase'
+    }
+  }, "\uB0A0\uC528"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, loading ? '불러오는 중…' : '정보 없음'));
+  if (loading || !cur) return skeleton;
+  const [desc, emoji] = wmoInfo(cur.weather_code);
+  const forecast = daily?.time?.slice(0, 5).map((d, i) => ({
+    label: i === 0 ? '오늘' : DAY_KO[new Date(d + 'T12:00:00').getDay()],
+    emoji: wmoInfo(daily.weather_code[i])[1],
+    max: Math.round(daily.temperature_2m_max[i]),
+    min: Math.round(daily.temperature_2m_min[i])
+  })) || [];
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '13px 14px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase'
+    }
+  }, "\uB0A0\uC528"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute
+    }
+  }, city.flag, " ", city.key)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 10,
+      display: 'flex',
+      alignItems: 'flex-end',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 36,
+      lineHeight: 1
+    }
+  }, emoji), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 36,
+      color: COLORS.ink,
+      lineHeight: 1,
+      letterSpacing: '-0.02em'
+    }
+  }, Math.round(cur.temperature_2m), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 22
+    }
+  }, "\xB0")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      marginTop: 3
+    }
+  }, desc))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'right',
+      paddingBottom: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.mute
+    }
+  }, "\uCCB4\uAC10 ", Math.round(cur.apparent_temperature), "\xB0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.mute,
+      marginTop: 3
+    }
+  }, "\uC2B5\uB3C4 ", cur.relative_humidity_2m, "%"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.mute,
+      marginTop: 3
+    }
+  }, "\uBC14\uB78C ", Math.round(cur.wind_speed_10m), "\u339E/h"))), forecast.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 12,
+      paddingTop: 10,
+      borderTop: `1px solid ${COLORS.line}`,
+      display: 'flex',
+      justifyContent: 'space-between'
+    }
+  }, forecast.map(f => /*#__PURE__*/React.createElement("div", {
+    key: f.label,
+    style: {
+      flex: 1,
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      marginBottom: 3
+    }
+  }, f.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontSize: 16,
+      marginBottom: 3
+    }
+  }, f.emoji), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.ink,
+      fontWeight: 600
+    }
+  }, f.max, "\xB0"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute
+    }
+  }, f.min, "\xB0")))));
+}
 function zoneOffsetMin(zone, d = new Date()) {
   const dtf = new Intl.DateTimeFormat('en-US', {
     timeZone: zone,
@@ -3483,7 +3742,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v129")), /*#__PURE__*/React.createElement("button", {
+  }, "v130")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -4485,6 +4744,12 @@ function HomeScreen({
   }, /*#__PURE__*/React.createElement(FxCard, null), /*#__PURE__*/React.createElement(TimezoneCard, {
     city: city,
     onPick: onPickCity
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 16px 0'
+    }
+  }, /*#__PURE__*/React.createElement(WeatherCard, {
+    city: city
   })), /*#__PURE__*/React.createElement(DateRangeSheet, {
     open: dateRangeOpen,
     startIso: startIso,
@@ -11831,7 +12096,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v129"))), /*#__PURE__*/React.createElement("button", {
+  }, "v130"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
