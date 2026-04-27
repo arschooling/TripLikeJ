@@ -1435,7 +1435,7 @@ function TripSwipeCard({ children, onShare, onDelete, wrapStyle = {} }) {
       }}>
         <button onClick={(e) => { e.stopPropagation(); close(); setTimeout(onShare, 100); }} style={{
           width:50, height:50, borderRadius:25, border:'none', cursor:'pointer',
-          background:COLORS.accent, flexShrink:0,
+          background:'#ffa500', flexShrink:0,
           display:'flex', alignItems:'center', justifyContent:'center',
         }}><Icon name="share" size={18} color="#fff" stroke={2}/></button>
         <button onClick={(e) => { e.stopPropagation(); close(); setTimeout(onDelete, 100); }} style={{
@@ -1702,7 +1702,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:72, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v155</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v156</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6300,7 +6300,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v155</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v156</div>
         </div>
       </div>
       <button onClick={async () => {
