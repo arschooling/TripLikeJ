@@ -1179,7 +1179,7 @@ function TripsScreen({ trips, onSelect, onAdd, onShare, onDelete, loading, userD
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
         : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
             {trips.map(t => {
-              const hue = t.days?.[0]?.hero?.hue ?? 25;
+              const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
               const isShared = Array.isArray(t.members) && t.members.length > 0 && t.members[0] !== myUid;
               return (
@@ -3555,8 +3555,8 @@ function App() {
         onAdd={async () => {
           const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
           if (!title) return;
-          const tripId = await fbCreateNewTrip(userData.uid, title);
-          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[], members:[userData.uid] }]);
+          const { tripId, hue } = await fbCreateNewTrip(userData.uid, title);
+          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[], members:[userData.uid], hue }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}

@@ -3048,8 +3048,8 @@ function TripsScreen(_ref17) {
       gap: 12
     }
   }, trips.map(function (t) {
-    var _t$days$0$hero$hue, _t$days, _t$days2, _t$title;
-    var hue = (_t$days$0$hero$hue = (_t$days = t.days) === null || _t$days === void 0 || (_t$days = _t$days[0]) === null || _t$days === void 0 || (_t$days = _t$days.hero) === null || _t$days === void 0 ? void 0 : _t$days.hue) !== null && _t$days$0$hero$hue !== void 0 ? _t$days$0$hero$hue : 25;
+    var _ref18, _t$hue, _t$days, _t$days2, _t$title;
+    var hue = (_ref18 = (_t$hue = t.hue) !== null && _t$hue !== void 0 ? _t$hue : (_t$days = t.days) === null || _t$days === void 0 || (_t$days = _t$days[0]) === null || _t$days === void 0 || (_t$days = _t$days.hero) === null || _t$days === void 0 ? void 0 : _t$days.hue) !== null && _ref18 !== void 0 ? _ref18 : 25;
     var label = ((_t$days2 = t.days) === null || _t$days2 === void 0 || (_t$days2 = _t$days2[0]) === null || _t$days2 === void 0 || (_t$days2 = _t$days2.hero) === null || _t$days2 === void 0 ? void 0 : _t$days2.label) || ((_t$title = t.title) === null || _t$title === void 0 ? void 0 : _t$title.toUpperCase()) || 'TRIP';
     var isShared = Array.isArray(t.members) && t.members.length > 0 && t.members[0] !== myUid;
     return /*#__PURE__*/React.createElement(TripSwipeCard, {
@@ -3182,27 +3182,27 @@ function isoToWeekday(iso) {
 }
 
 // ─── Home ───────────────────────────────────────────────────
-function HomeScreen(_ref18) {
-  var trip = _ref18.trip,
-    onOpenDay = _ref18.onOpenDay,
-    onOpenHotel = _ref18.onOpenHotel,
-    city = _ref18.city,
-    onPickCity = _ref18.onPickCity,
-    onEditTrip = _ref18.onEditTrip,
-    onReorderDays = _ref18.onReorderDays,
-    onAddDay = _ref18.onAddDay,
-    onDeleteDay = _ref18.onDeleteDay,
-    onBack = _ref18.onBack,
-    onAddHotel = _ref18.onAddHotel,
-    onAddHotelFromSearch = _ref18.onAddHotelFromSearch,
-    onDeleteHotel = _ref18.onDeleteHotel,
-    onReorderHotels = _ref18.onReorderHotels,
-    onConvertInlineHotel = _ref18.onConvertInlineHotel,
-    onAddItemToFirstDay = _ref18.onAddItemToFirstDay,
-    editing = _ref18.editing,
-    setEditing = _ref18.setEditing,
-    userData = _ref18.userData,
-    onOpenCompanion = _ref18.onOpenCompanion;
+function HomeScreen(_ref19) {
+  var trip = _ref19.trip,
+    onOpenDay = _ref19.onOpenDay,
+    onOpenHotel = _ref19.onOpenHotel,
+    city = _ref19.city,
+    onPickCity = _ref19.onPickCity,
+    onEditTrip = _ref19.onEditTrip,
+    onReorderDays = _ref19.onReorderDays,
+    onAddDay = _ref19.onAddDay,
+    onDeleteDay = _ref19.onDeleteDay,
+    onBack = _ref19.onBack,
+    onAddHotel = _ref19.onAddHotel,
+    onAddHotelFromSearch = _ref19.onAddHotelFromSearch,
+    onDeleteHotel = _ref19.onDeleteHotel,
+    onReorderHotels = _ref19.onReorderHotels,
+    onConvertInlineHotel = _ref19.onConvertInlineHotel,
+    onAddItemToFirstDay = _ref19.onAddItemToFirstDay,
+    editing = _ref19.editing,
+    setEditing = _ref19.setEditing,
+    userData = _ref19.userData,
+    onOpenCompanion = _ref19.onOpenCompanion;
   var _React$useState51 = React.useState(false),
     _React$useState52 = _slicedToArray(_React$useState51, 2),
     editingTitle = _React$useState52[0],
@@ -4071,18 +4071,18 @@ function HomeScreen(_ref18) {
 }
 
 // ─── Day screen ─────────────────────────────────────────────
-function DayScreen(_ref19) {
-  var trip = _ref19.trip,
-    dayIdx = _ref19.dayIdx,
-    onBack = _ref19.onBack,
-    onOpenStop = _ref19.onOpenStop,
-    onNavDay = _ref19.onNavDay,
-    onEditDay = _ref19.onEditDay,
-    onAddItem = _ref19.onAddItem,
-    onDeleteItem = _ref19.onDeleteItem,
-    onReorderItems = _ref19.onReorderItems,
-    editing = _ref19.editing,
-    setEditing = _ref19.setEditing;
+function DayScreen(_ref20) {
+  var trip = _ref20.trip,
+    dayIdx = _ref20.dayIdx,
+    onBack = _ref20.onBack,
+    onOpenStop = _ref20.onOpenStop,
+    onNavDay = _ref20.onNavDay,
+    onEditDay = _ref20.onEditDay,
+    onAddItem = _ref20.onAddItem,
+    onDeleteItem = _ref20.onDeleteItem,
+    onReorderItems = _ref20.onReorderItems,
+    editing = _ref20.editing,
+    setEditing = _ref20.setEditing;
   var day = trip.days[dayIdx];
   var tripYear = extractTripYear(trip);
   var _React$useState55 = React.useState(function () {
@@ -4617,13 +4617,13 @@ function DayScreen(_ref19) {
 }
 
 // ─── Hotel Detail page ──────────────────────────────────────
-function HotelDetailScreen(_ref20) {
-  var hotel = _ref20.hotel,
-    onBack = _ref20.onBack,
-    onEdit = _ref20.onEdit,
-    onOpenSearch = _ref20.onOpenSearch,
-    editing = _ref20.editing,
-    setEditing = _ref20.setEditing;
+function HotelDetailScreen(_ref21) {
+  var hotel = _ref21.hotel,
+    onBack = _ref21.onBack,
+    onEdit = _ref21.onEdit,
+    onOpenSearch = _ref21.onOpenSearch,
+    editing = _ref21.editing,
+    setEditing = _ref21.setEditing;
   var _React$useState61 = React.useState(hotel),
     _React$useState62 = _slicedToArray(_React$useState61, 2),
     draft = _React$useState62[0],
@@ -5137,11 +5137,11 @@ function HotelDetailScreen(_ref20) {
 }
 
 // ─── Stop sheet (unchanged except pulls editing from open) ─
-function StopSheet(_ref21) {
-  var open = _ref21.open,
-    dayHue = _ref21.dayHue,
-    onClose = _ref21.onClose,
-    onSave = _ref21.onSave;
+function StopSheet(_ref22) {
+  var open = _ref22.open,
+    dayHue = _ref22.dayHue,
+    onClose = _ref22.onClose,
+    onSave = _ref22.onSave;
   if (!open) return null;
   var _React$useState65 = React.useState(!!open.editing),
     _React$useState66 = _slicedToArray(_React$useState65, 2),
@@ -5482,9 +5482,9 @@ function StopSheet(_ref21) {
     stroke: 1.8
   })))))));
 }
-function EditStopForm(_ref22) {
-  var draft = _ref22.draft,
-    setDraft = _ref22.setDraft;
+function EditStopForm(_ref23) {
+  var draft = _ref23.draft,
+    setDraft = _ref23.setDraft;
   var _React$useState71 = React.useState(false),
     _React$useState72 = _slicedToArray(_React$useState71, 2),
     showHotelSearch = _React$useState72[0],
@@ -5539,10 +5539,10 @@ function EditStopForm(_ref22) {
         color: COLORS.ink,
         boxSizing: 'border-box'
       }
-    }, Object.entries(CAT_META).map(function (_ref23) {
-      var _ref24 = _slicedToArray(_ref23, 2),
-        k = _ref24[0],
-        v = _ref24[1];
+    }, Object.entries(CAT_META).map(function (_ref24) {
+      var _ref25 = _slicedToArray(_ref24, 2),
+        k = _ref25[0],
+        v = _ref25[1];
       return /*#__PURE__*/React.createElement("option", {
         key: k,
         value: k
@@ -5631,8 +5631,8 @@ function EditStopForm(_ref22) {
 }
 
 // ─── Map ────────────────────────────────────────────────────
-function MapScreen(_ref25) {
-  var trip = _ref25.trip;
+function MapScreen(_ref26) {
+  var trip = _ref26.trip;
   var _React$useState73 = React.useState(0),
     _React$useState74 = _slicedToArray(_React$useState73, 2),
     selectedDay = _React$useState74[0],
@@ -5801,11 +5801,11 @@ function MapScreen(_ref25) {
 }
 
 // ─── Food ───────────────────────────────────────────────────
-function FoodScreen(_ref26) {
-  var trip = _ref26.trip,
-    onEditFood = _ref26.onEditFood,
-    editing = _ref26.editing,
-    setEditing = _ref26.setEditing;
+function FoodScreen(_ref27) {
+  var trip = _ref27.trip,
+    onEditFood = _ref27.onEditFood,
+    editing = _ref27.editing,
+    setEditing = _ref27.setEditing;
   var grouped = {};
   (trip.food || []).forEach(function (f, idx) {
     (grouped[f.cat] = grouped[f.cat] || []).push(_objectSpread(_objectSpread({}, f), {}, {
@@ -5869,10 +5869,10 @@ function FoodScreen(_ref26) {
       flexDirection: 'column',
       gap: 18
     }
-  }, Object.entries(grouped).map(function (_ref27) {
-    var _ref28 = _slicedToArray(_ref27, 2),
-      cat = _ref28[0],
-      items = _ref28[1];
+  }, Object.entries(grouped).map(function (_ref28) {
+    var _ref29 = _slicedToArray(_ref28, 2),
+      cat = _ref29[0],
+      items = _ref29[1];
     return /*#__PURE__*/React.createElement("div", {
       key: cat
     }, /*#__PURE__*/React.createElement("div", {
@@ -6034,13 +6034,13 @@ function FoodScreen(_ref26) {
 }
 
 // ─── Prep (editable lists) ─────────────────────────────────
-function PrepScreen(_ref29) {
+function PrepScreen(_ref30) {
   var _trip$days$, _trip$days;
-  var trip = _ref29.trip,
-    prepProp = _ref29.prep,
-    onEditPrep = _ref29.onEditPrep,
-    editing = _ref29.editing,
-    setEditing = _ref29.setEditing;
+  var trip = _ref30.trip,
+    prepProp = _ref30.prep,
+    onEditPrep = _ref30.onEditPrep,
+    editing = _ref30.editing,
+    setEditing = _ref30.setEditing;
   var totalStops = trip.days.reduce(function (s, d) {
     return s + d.items.length;
   }, 0);
@@ -6081,9 +6081,9 @@ function PrepScreen(_ref29) {
       ddayColor = COLORS.mute;
     }
   }
-  var Section = function Section(_ref30) {
-    var sectionKey = _ref30.sectionKey,
-      title = _ref30.title;
+  var Section = function Section(_ref31) {
+    var sectionKey = _ref31.sectionKey,
+      title = _ref31.title;
     var items = prep[sectionKey] || [];
     var _useDragReorder4 = useDragReorder(function (from, to) {
         var list = _toConsumableArray(items);
@@ -6363,12 +6363,12 @@ function PrepScreen(_ref29) {
 }
 
 // ─── Tab bar (no edit toggle) ──────────────────────────────
-function TabBar(_ref31) {
-  var tab = _ref31.tab,
-    setTab = _ref31.setTab,
-    visible = _ref31.visible,
-    editing = _ref31.editing,
-    onToggleEdit = _ref31.onToggleEdit;
+function TabBar(_ref32) {
+  var tab = _ref32.tab,
+    setTab = _ref32.setTab,
+    visible = _ref32.visible,
+    editing = _ref32.editing,
+    onToggleEdit = _ref32.onToggleEdit;
   var tabs = [{
     id: 'home',
     icon: 'sight',
@@ -6484,8 +6484,8 @@ function saveNav(state) {
 
 // ─── Splash Screen (로그인 후 로딩 중 표시) ──────────────────
 var SPLASH_PLACES = ['✈ New York', '🗼 Paris', '🗾 Tokyo', '🌉 San Francisco', '🏝 Bali', '🎡 London'];
-function SplashScreen(_ref32) {
-  var visible = _ref32.visible;
+function SplashScreen(_ref33) {
+  var visible = _ref33.visible;
   var _React$useState75 = React.useState(0),
     _React$useState76 = _slicedToArray(_React$useState75, 2),
     idx = _React$useState76[0],
@@ -6638,9 +6638,9 @@ function TakeoffIcon() {
 }
 
 // ─── Login Screen ────────────────────────────────────────────
-function LoginScreen(_ref33) {
-  var errorMsg = _ref33.errorMsg,
-    onLoginStart = _ref33.onLoginStart;
+function LoginScreen(_ref34) {
+  var errorMsg = _ref34.errorMsg,
+    onLoginStart = _ref34.onLoginStart;
   var _React$useState81 = React.useState(false),
     _React$useState82 = _slicedToArray(_React$useState81, 2),
     loading = _React$useState82[0],
@@ -6650,7 +6650,7 @@ function LoginScreen(_ref33) {
     errLocal = _React$useState84[0],
     setErrLocal = _React$useState84[1];
   var handleLogin = /*#__PURE__*/function () {
-    var _ref34 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
+    var _ref35 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3() {
       var _t4, _t5;
       return _regenerator().w(function (_context4) {
         while (1) switch (_context4.p = _context4.n) {
@@ -6700,7 +6700,7 @@ function LoginScreen(_ref33) {
       }, _callee3, null, [[4, 6], [1, 3]]);
     }));
     return function handleLogin() {
-      return _ref34.apply(this, arguments);
+      return _ref35.apply(this, arguments);
     };
   }();
   var displayErr = errorMsg || errLocal;
@@ -6805,13 +6805,13 @@ function LoginScreen(_ref33) {
 }
 
 // ─── Companion Sheet ──────────────────────────────────────────
-function CompanionSheet(_ref35) {
-  var open = _ref35.open,
-    onClose = _ref35.onClose,
-    authUser = _ref35.authUser,
-    userData = _ref35.userData,
-    onUserDataUpdate = _ref35.onUserDataUpdate,
-    trips = _ref35.trips;
+function CompanionSheet(_ref36) {
+  var open = _ref36.open,
+    onClose = _ref36.onClose,
+    authUser = _ref36.authUser,
+    userData = _ref36.userData,
+    onUserDataUpdate = _ref36.onUserDataUpdate,
+    trips = _ref36.trips;
   var _React$useState85 = React.useState({}),
     _React$useState86 = _slicedToArray(_React$useState85, 2),
     tripCompanions = _React$useState86[0],
@@ -6860,7 +6860,7 @@ function CompanionSheet(_ref35) {
     }
   }, [open]);
   var handleInvite = /*#__PURE__*/function () {
-    var _ref36 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(tripId, tripTitle) {
+    var _ref37 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(tripId, tripTitle) {
       var res;
       return _regenerator().w(function (_context5) {
         while (1) switch (_context5.n) {
@@ -6888,11 +6888,11 @@ function CompanionSheet(_ref35) {
       }, _callee4);
     }));
     return function handleInvite(_x2, _x3) {
-      return _ref36.apply(this, arguments);
+      return _ref37.apply(this, arguments);
     };
   }();
   var handleAccept = /*#__PURE__*/function () {
-    var _ref37 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(inv) {
+    var _ref38 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(inv) {
       var tripId;
       return _regenerator().w(function (_context6) {
         while (1) switch (_context6.n) {
@@ -6915,7 +6915,7 @@ function CompanionSheet(_ref35) {
       }, _callee5);
     }));
     return function handleAccept(_x4) {
-      return _ref37.apply(this, arguments);
+      return _ref38.apply(this, arguments);
     };
   }();
   if (!open) return null;
@@ -7487,7 +7487,7 @@ function App() {
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(function () {
     return fbOnAuth(/*#__PURE__*/function () {
-      var _ref38 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(fbUser) {
+      var _ref39 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(fbUser) {
         var fallback;
         return _regenerator().w(function (_context7) {
           while (1) switch (_context7.n) {
@@ -7530,7 +7530,7 @@ function App() {
         }, _callee6);
       }));
       return function (_x5) {
-        return _ref38.apply(this, arguments);
+        return _ref39.apply(this, arguments);
       };
     }());
   }, []);
@@ -7657,7 +7657,7 @@ function App() {
     if (authUser !== null && authUser !== void 0 && authUser.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
   };
   var deleteTrip = /*#__PURE__*/function () {
-    var _ref39 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(tripId) {
+    var _ref40 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(tripId) {
       var t, isOwner, msg;
       return _regenerator().w(function (_context8) {
         while (1) switch (_context8.n) {
@@ -7694,7 +7694,7 @@ function App() {
       }, _callee7);
     }));
     return function deleteTrip(_x6) {
-      return _ref39.apply(this, arguments);
+      return _ref40.apply(this, arguments);
     };
   }();
 
@@ -8183,7 +8183,7 @@ function App() {
       setEditing(false);
     },
     onAdd: /*#__PURE__*/_asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8() {
-      var title, tripId;
+      var title, _yield$fbCreateNewTri, tripId, hue;
       return _regenerator().w(function (_context9) {
         while (1) switch (_context9.n) {
           case 0:
@@ -8197,7 +8197,9 @@ function App() {
             _context9.n = 2;
             return fbCreateNewTrip(userData.uid, title);
           case 2:
-            tripId = _context9.v;
+            _yield$fbCreateNewTri = _context9.v;
+            tripId = _yield$fbCreateNewTri.tripId;
+            hue = _yield$fbCreateNewTri.hue;
             setUserTrips(function (prev) {
               return [].concat(_toConsumableArray(prev), [{
                 id: tripId,
@@ -8205,7 +8207,8 @@ function App() {
                 dates: '',
                 days: [],
                 hotels: [],
-                members: [userData.uid]
+                members: [userData.uid],
+                hue: hue
               }]);
             });
             setActiveTripId(tripId);

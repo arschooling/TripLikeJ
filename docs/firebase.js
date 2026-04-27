@@ -231,15 +231,16 @@ window.fbLoadTrips = async (tripIds) => {
 window.fbCreateNewTrip = async (uid, title) => {
   const ref = _fbDb.collection('groups').doc();
   const tripId = ref.id;
+  const hue = Math.floor(Math.random() * 360);
   await ref.set({
     title, dates: '', hotel: '', days: [], hotels: [], food: [],
-    members: [uid],
+    members: [uid], hue,
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
   await _fbDb.collection('users').doc(uid).update({
     tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
   });
-  return tripId;
+  return { tripId, hue };
 };
 
 // ─── Trip-specific invites ────────────────────────────────────
