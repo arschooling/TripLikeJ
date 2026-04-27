@@ -2416,49 +2416,109 @@ function EditStopForm({ draft, setDraft }) {
   );
 }
 
-// ─── Map ────────────────────────────────────────────────────
-function MapScreen({ trip }) {
-  const [selectedDay, setSelectedDay] = React.useState(0);
-  const day = trip.days[selectedDay];
-  const stops = day.items.filter(it => it.loc);
-  const places = stops.map(it => `${it.title} ${it.loc}`.trim() + ', New York');
+// ─── Geocoding cache ─────────────────────────────────────────
+const GEO_CACHE = {};
 
-  let embedUrl;
-  if (places.length === 0) {
-    const fallback = encodeURIComponent((day.titleEn || 'New York') + ', New York');
-    embedUrl = `https://www.google.com/maps?q=${fallback}&output=embed`;
-  } else if (places.length === 1) {
-    embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(places[0])}&output=embed`;
-  } else {
-    const saddr = encodeURIComponent(places[0]);
-    const daddr = places.slice(1).map(encodeURIComponent).join('+to:');
-    embedUrl = `https://maps.google.com/maps?saddr=${saddr}&daddr=${daddr}&output=embed`;
-  }
+// ─── Map ─────────────────────────────────────────────────────
+function MapScreen({ trip }) {
+  const [state, dispatch] = React.useReducer((s, a) => {
+    if (a.type === 'DAY') return { selDay: a.v, ordered: trip.days[a.v].items.filter(it => it.loc) };
+    if (a.type === 'REORDER') {
+      const o = [...s.ordered]; o.splice(a.to, 0, o.splice(a.from, 1)[0]);
+      return { ...s, ordered: o };
+    }
+    return s;
+  }, null, () => ({ selDay: 0, ordered: trip.days[0].items.filter(it => it.loc) }));
+
+  const { selDay, ordered } = state;
+  const day = trip.days[selDay];
+  const { itemProps } = useDragReorder((from, to) => dispatch({ type:'REORDER', from, to }), true);
+
+  const mapDiv  = React.useRef(null);
+  const mapInst = React.useRef(null);
+  const layers  = React.useRef([]);
+
+  // 날짜 바뀌면 지도 재초기화
+  React.useEffect(() => {
+    if (!window.L || !mapDiv.current) return;
+    if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; }
+    layers.current = [];
+    const map = window.L.map(mapDiv.current, { zoomControl:true, attributionControl:false });
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom:19 }).addTo(map);
+    map.setView([40.7128, -74.006], 12);
+    mapInst.current = map;
+    return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
+  }, [selDay]);
+
+  // 순서 바뀌면 마커·루트만 업데이트
+  const mapKey = ordered.map(s => s.title).join('|');
+  React.useEffect(() => {
+    if (!window.L) return;
+    let cancelled = false;
+    (async () => {
+      // 이전 레이어 제거
+      layers.current.forEach(l => { try { l.remove(); } catch(_) {} });
+      layers.current = [];
+      if (!ordered.length || !mapInst.current) return;
+
+      const pts = [];
+      for (const s of ordered) {
+        if (cancelled) return;
+        const k = `${s.title} ${s.loc}, New York`;
+        if (!GEO_CACHE[k]) {
+          try {
+            const j = await (await fetch(
+              `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(k)}&format=json&limit=1&countrycodes=us`
+            )).json();
+            if (j[0]) GEO_CACHE[k] = [+j[0].lat, +j[0].lon];
+          } catch(_) {}
+        }
+        if (GEO_CACHE[k]) pts.push({ pos: GEO_CACHE[k], title: s.title });
+      }
+      if (cancelled || !mapInst.current || !pts.length) return;
+
+      pts.forEach(({ pos, title }, i) => {
+        const m = window.L.marker(pos, { icon: window.L.divIcon({
+          className: '',
+          html: `<div style="width:26px;height:26px;border-radius:50%;background:#C14F2E;color:#fff;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">${i+1}</div>`,
+          iconSize:[26,26], iconAnchor:[13,13],
+        }) }).addTo(mapInst.current).bindPopup(`<b>${title}</b>`);
+        layers.current.push(m);
+      });
+      if (pts.length > 1) {
+        const line = window.L.polyline(pts.map(p => p.pos), {
+          color:'#C14F2E', weight:3, opacity:0.7, dashArray:'8 5',
+        }).addTo(mapInst.current);
+        layers.current.push(line);
+      }
+      mapInst.current.fitBounds(window.L.latLngBounds(pts.map(p => p.pos)), { padding:[40,40] });
+    })();
+    return () => { cancelled = true; };
+  }, [selDay, mapKey]);
 
   return (
     <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110 }}>
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:8 }}>
         <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Map</div>
-        <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Google Maps.</div>
+        <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Route.</div>
       </div>
       <div style={{ padding:'4px 16px 12px', overflowX:'auto', whiteSpace:'nowrap' }}>
         <div style={{ display:'inline-flex', gap:6 }}>
           {trip.days.map((d, i) => (
-            <button key={i} onClick={() => setSelectedDay(i)} style={{
+            <button key={i} onClick={() => dispatch({ type:'DAY', v:i })} style={{
               border:'none', borderRadius:14, padding:'8px 14px', cursor:'pointer',
-              background: i === selectedDay ? COLORS.ink : COLORS.card,
-              color: i === selectedDay ? COLORS.bg : COLORS.ink,
+              background: i === selDay ? COLORS.ink : COLORS.card,
+              color: i === selDay ? COLORS.bg : COLORS.ink,
               fontFamily:MONO, fontSize:11, letterSpacing:'0.08em',
             }}>D{String(d.n).padStart(2,'0')}</button>
           ))}
         </div>
       </div>
       <div style={{ padding:'0 16px' }}>
-        <div style={{ background:COLORS.card, borderRadius:18, overflow:'hidden', border:`1px solid ${COLORS.line}` }}>
-          <iframe key={embedUrl} src={embedUrl}
-            style={{ width:'100%', height:340, border:'none', display:'block' }}
-            loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Google Maps"/>
-        </div>
+        <div ref={mapDiv} style={{
+          borderRadius:18, overflow:'hidden', border:`1px solid ${COLORS.line}`,
+          height:340, background:COLORS.softer,
+        }}/>
       </div>
       <div style={{ padding:'16px 24px 6px' }}>
         <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>
@@ -2466,26 +2526,34 @@ function MapScreen({ trip }) {
         </div>
       </div>
       <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:6 }}>
-        {stops.map((it, i) => (
-          <button key={i} onClick={() => window.open(mapsDirectionsUrl(`${it.title} ${it.loc} New York`), '_blank')} style={{
-            background:COLORS.card, borderRadius:12, padding:'11px 14px',
-            display:'flex', gap:10, alignItems:'center', cursor:'pointer', border:'none', textAlign:'left',
-          }}>
-            <div style={{
-              width:22, height:22, borderRadius:11, flexShrink:0,
-              background:COLORS.accent, color:'#fff',
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontFamily:MONO, fontSize:10, fontWeight:700,
-            }}>{i + 1}</div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500,
-                whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.title}</div>
-              <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute,
-                whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.loc}</div>
-            </div>
-            <Icon name="nav" size={14} color={COLORS.mute} stroke={1.8}/>
-          </button>
-        ))}
+        {ordered.map((it, i) => {
+          const p = itemProps(i);
+          return (
+            <button key={it.title + i} {...p}
+              onClick={() => window.open(mapsDirectionsUrl(`${it.title} ${it.loc} New York`), '_blank')}
+              style={{
+                ...p.style,
+                background: p.style?.background || COLORS.card,
+                borderRadius:12, padding:'11px 14px', width:'100%',
+                display:'flex', gap:10, alignItems:'center',
+                cursor:'pointer', border:'none', textAlign:'left',
+              }}>
+              <div style={{
+                width:22, height:22, borderRadius:11, flexShrink:0,
+                background:COLORS.accent, color:'#fff',
+                display:'flex', alignItems:'center', justifyContent:'center',
+                fontFamily:MONO, fontSize:10, fontWeight:700,
+              }}>{i+1}</div>
+              <div style={{ flex:1, minWidth:0 }}>
+                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500,
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.title}</div>
+                <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute,
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.loc}</div>
+              </div>
+              <Icon name="nav" size={14} color={COLORS.mute} stroke={1.8}/>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
