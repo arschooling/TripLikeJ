@@ -2391,11 +2391,11 @@ function PickerSheet({
       right: 0,
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      maxHeight: '82%',
+      maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 16}px)` : '82%',
       display: 'flex',
       flexDirection: 'column',
       transform: `translateY(${entered ? 0 : '100vh'})`,
-      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1), bottom 0.2s ease'
+      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1), bottom 0.22s ease, max-height 0.22s ease'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3914,7 +3914,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v145"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v146"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -6518,6 +6518,8 @@ function StopSheet({
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
+      paddingBottom: kbh,
+      transition: 'padding 0.22s ease',
       background: `rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})`
     },
     onClick: onClose
@@ -6528,10 +6530,10 @@ function StopSheet({
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
       paddingBottom: 40,
-      maxHeight: '92%',
+      maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 16}px)` : '92%',
       overflowY: 'auto',
       overflowX: 'hidden',
-      transform: `translateY(${entered ? sheetY - kbh : window.innerHeight}px)`,
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
       transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -12620,7 +12622,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v145"))), /*#__PURE__*/React.createElement("button", {
+  }, "v146"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);

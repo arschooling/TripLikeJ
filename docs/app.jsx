@@ -996,9 +996,10 @@ function PickerSheet({ open, onClose, title, items, getKey, filterFn, renderRow,
         style={{
           position:'fixed', bottom:kbh, left:0, right:0,
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
-          maxHeight:'82%', display:'flex', flexDirection:'column',
+          maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 16}px)` : '82%',
+          display:'flex', flexDirection:'column',
           transform:`translateY(${entered ? 0 : '100vh'})`,
-          transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1), bottom 0.2s ease',
+          transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1), bottom 0.22s ease, max-height 0.22s ease',
         }}>
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px', flexShrink:0 }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
@@ -1702,7 +1703,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:72, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v145</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v146</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3001,12 +3002,16 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   return (
     <div style={{ position:'fixed', inset:0, zIndex:1000,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
+      paddingBottom: kbh,
+      transition: 'padding 0.22s ease',
       background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
       <div ref={sheetRef} onClick={(e)=>e.stopPropagation()}
         style={{
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
-          paddingBottom:40, maxHeight:'92%', overflowY:'auto', overflowX:'hidden',
-          transform: `translateY(${entered ? sheetY - kbh : window.innerHeight}px)`,
+          paddingBottom:40,
+          maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 16}px)` : '92%',
+          overflowY:'auto', overflowX:'hidden',
+          transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
           transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
         }}>
         {/* 드래그 핸들 */}
@@ -6126,7 +6131,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v145</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v146</div>
         </div>
       </div>
       <button onClick={async () => {
