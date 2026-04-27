@@ -1605,7 +1605,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v130</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v131</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -4294,88 +4294,85 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
 
       {/* 요약 카드 */}
       <div style={{ margin:'0 16px 14px', background:COLORS.ink, borderRadius:20, padding:'22px 22px 20px' }}>
-        {/* 총 수입(왼쪽) / 총 지출(오른쪽) */}
+        {/* 총 수입(왼쪽) / 총 지출(오른쪽) — 핵심 포인트 색상 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
           <div>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 수입</div>
+            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 수입</div>
             <div style={{ fontFamily:SERIF, fontSize:32, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1 }}>
               {fmtAmt(Math.round(krwTotalIn), 'KRW')}
             </div>
           </div>
           <div>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 지출</div>
-            <div style={{ fontFamily:SERIF, fontSize:32, color:'#E88A7E', letterSpacing:'-0.02em', lineHeight:1 }}>
+            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 지출</div>
+            <div style={{ fontFamily:SERIF, fontSize:32, color:'#E07B6A', letterSpacing:'-0.02em', lineHeight:1 }}>
               {fmtAmt(Math.round(krwTotalOut), 'KRW')}
             </div>
           </div>
         </div>
 
-        {/* 통화별 수입/지출 */}
+        {/* 통화별 수입/지출 — 흰색 계열만 */}
         {Object.keys(byCurrency).length > 0 && (
-          <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
             {Object.entries(byCurrency).map(([cur, { out, inc }]) => (
               <div key={cur} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, marginBottom:8 }}>
                 <div>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', letterSpacing:'0.08em', marginBottom:3 }}>{cur} 수입</div>
-                  {inc > 0
-                    ? <div style={{ fontFamily:MONO, fontSize:15, color:'#7EC88A', fontWeight:600 }}>{fmtAmt(inc, cur)}</div>
-                    : <div style={{ fontFamily:MONO, fontSize:13, color:'rgba(255,255,255,0.2)' }}>—</div>
-                  }
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', letterSpacing:'0.06em', marginBottom:3 }}>{cur} 수입</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color: inc > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)', fontWeight: inc>0?600:400 }}>
+                    {inc > 0 ? fmtAmt(inc, cur) : '—'}
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', letterSpacing:'0.08em', marginBottom:3 }}>{cur} 지출</div>
-                  {out > 0
-                    ? <div style={{ fontFamily:MONO, fontSize:15, color:'#E88A7E', fontWeight:600 }}>{fmtAmt(out, cur)}</div>
-                    : <div style={{ fontFamily:MONO, fontSize:13, color:'rgba(255,255,255,0.2)' }}>—</div>
-                  }
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', letterSpacing:'0.06em', marginBottom:3 }}>{cur} 지출</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color: out > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)', fontWeight: out>0?600:400 }}>
+                    {out > 0 ? fmtAmt(out, cur) : '—'}
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* 공동(왼쪽) / 개인(오른쪽) */}
+        {/* 개인(왼쪽) / 공동(오른쪽) + ➗ 버튼 */}
         {hasShared && (
-          <div style={{ marginTop:16, paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.1)',
+          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)',
             display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
-            {/* 공동 */}
-            <div>
-              <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>공동</div>
-              {krwSharedIn > 0 && (
-                <div style={{ marginBottom:8 }}>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', marginBottom:3 }}>수입</div>
-                  <div style={{ fontFamily:MONO, fontSize:15, color:'#7EC88A', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedIn),'KRW')}</div>
-                </div>
-              )}
-              {krwSharedOut > 0 && (
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', marginBottom:3 }}>지출</div>
-                  <div style={{ fontFamily:MONO, fontSize:15, color:'#E88A7E', fontWeight:600, marginBottom:8 }}>{fmtAmt(Math.round(krwSharedOut),'KRW')}</div>
-                  <button onClick={() => setSplitOpen(true)} style={{
-                    padding:'8px 14px', border:'none',
-                    borderRadius:10, background:'rgba(255,255,255,0.14)', cursor:'pointer',
-                    fontFamily:MONO, fontSize:12, fontWeight:600,
-                    color:'rgba(255,255,255,0.85)', letterSpacing:'0.04em',
-                    display:'flex', alignItems:'center', gap:5,
-                  }}>
-                    <span style={{ fontSize:14 }}>÷</span> 1/N 계산
-                  </button>
-                </div>
-              )}
-            </div>
             {/* 개인 */}
             <div>
-              <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.45)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인</div>
+              <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인</div>
               {krwPersonalIn > 0 && (
-                <div style={{ marginBottom:8 }}>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', marginBottom:3 }}>수입</div>
-                  <div style={{ fontFamily:MONO, fontSize:15, color:'#7EC88A', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalIn),'KRW')}</div>
+                <div style={{ marginBottom:7 }}>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>수입</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalIn),'KRW')}</div>
                 </div>
               )}
               {krwPersonalOut > 0 && (
                 <div>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.35)', marginBottom:3 }}>지출</div>
-                  <div style={{ fontFamily:MONO, fontSize:15, color:'#E88A7E', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalOut),'KRW')}</div>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>지출</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalOut),'KRW')}</div>
+                </div>
+              )}
+            </div>
+            {/* 공동 + ➗ */}
+            <div>
+              <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
+                <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동</div>
+                {krwSharedOut > 0 && (
+                  <button onClick={() => setSplitOpen(true)} style={{
+                    background:'none', border:'none', cursor:'pointer', padding:0,
+                    fontSize:15, lineHeight:1, opacity:0.75,
+                  }}>➗</button>
+                )}
+              </div>
+              {krwSharedIn > 0 && (
+                <div style={{ marginBottom:7 }}>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>수입</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedIn),'KRW')}</div>
+                </div>
+              )}
+              {krwSharedOut > 0 && (
+                <div>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>지출</div>
+                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedOut),'KRW')}</div>
                 </div>
               )}
             </div>
@@ -5814,7 +5811,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v130</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v131</div>
         </div>
       </div>
       <button onClick={async () => {

@@ -3742,7 +3742,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v130")), /*#__PURE__*/React.createElement("button", {
+  }, "v131")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -9355,7 +9355,7 @@ function BudgetScreen({
     style: {
       fontFamily: MONO,
       fontSize: 10,
-      color: 'rgba(255,255,255,0.45)',
+      color: 'rgba(255,255,255,0.4)',
       letterSpacing: '0.1em',
       textTransform: 'uppercase',
       marginBottom: 6
@@ -9372,7 +9372,7 @@ function BudgetScreen({
     style: {
       fontFamily: MONO,
       fontSize: 10,
-      color: 'rgba(255,255,255,0.45)',
+      color: 'rgba(255,255,255,0.4)',
       letterSpacing: '0.1em',
       textTransform: 'uppercase',
       marginBottom: 6
@@ -9381,15 +9381,15 @@ function BudgetScreen({
     style: {
       fontFamily: SERIF,
       fontSize: 32,
-      color: '#E88A7E',
+      color: '#E07B6A',
       letterSpacing: '-0.02em',
       lineHeight: 1
     }
   }, fmtAmt(Math.round(krwTotalOut), 'KRW')))), Object.keys(byCurrency).length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16,
-      paddingTop: 16,
-      borderTop: '1px solid rgba(255,255,255,0.1)'
+      paddingTop: 14,
+      borderTop: '1px solid rgba(255,255,255,0.08)'
     }
   }, Object.entries(byCurrency).map(([cur, {
     out,
@@ -9405,50 +9405,38 @@ function BudgetScreen({
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
-      letterSpacing: '0.08em',
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
+      letterSpacing: '0.06em',
       marginBottom: 3
     }
-  }, cur, " \uC218\uC785"), inc > 0 ? /*#__PURE__*/React.createElement("div", {
+  }, cur, " \uC218\uC785"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 15,
-      color: '#7EC88A',
-      fontWeight: 600
+      fontSize: 14,
+      color: inc > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)',
+      fontWeight: inc > 0 ? 600 : 400
     }
-  }, fmtAmt(inc, cur)) : /*#__PURE__*/React.createElement("div", {
+  }, inc > 0 ? fmtAmt(inc, cur) : '—')), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.2)'
-    }
-  }, "\u2014")), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
-      letterSpacing: '0.08em',
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
+      letterSpacing: '0.06em',
       marginBottom: 3
     }
-  }, cur, " \uC9C0\uCD9C"), out > 0 ? /*#__PURE__*/React.createElement("div", {
+  }, cur, " \uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 15,
-      color: '#E88A7E',
-      fontWeight: 600
+      fontSize: 14,
+      color: out > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)',
+      fontWeight: out > 0 ? 600 : 400
     }
-  }, fmtAmt(out, cur)) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 13,
-      color: 'rgba(255,255,255,0.2)'
-    }
-  }, "\u2014"))))), hasShared && /*#__PURE__*/React.createElement("div", {
+  }, out > 0 ? fmtAmt(out, cur) : '—'))))), hasShared && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 16,
-      paddingTop: 16,
-      borderTop: '1px solid rgba(255,255,255,0.1)',
+      paddingTop: 14,
+      borderTop: '1px solid rgba(255,255,255,0.08)',
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
       gap: 0
@@ -9457,107 +9445,102 @@ function BudgetScreen({
     style: {
       fontFamily: MONO,
       fontSize: 10,
-      color: 'rgba(255,255,255,0.45)',
-      letterSpacing: '0.1em',
-      textTransform: 'uppercase',
-      marginBottom: 10
-    }
-  }, "\uACF5\uB3D9"), krwSharedIn > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginBottom: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
-      marginBottom: 3
-    }
-  }, "\uC218\uC785"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 15,
-      color: '#7EC88A',
-      fontWeight: 600
-    }
-  }, fmtAmt(Math.round(krwSharedIn), 'KRW'))), krwSharedOut > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
-      marginBottom: 3
-    }
-  }, "\uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 15,
-      color: '#E88A7E',
-      fontWeight: 600,
-      marginBottom: 8
-    }
-  }, fmtAmt(Math.round(krwSharedOut), 'KRW')), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setSplitOpen(true),
-    style: {
-      padding: '8px 14px',
-      border: 'none',
-      borderRadius: 10,
-      background: 'rgba(255,255,255,0.14)',
-      cursor: 'pointer',
-      fontFamily: MONO,
-      fontSize: 12,
-      fontWeight: 600,
-      color: 'rgba(255,255,255,0.85)',
-      letterSpacing: '0.04em',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 5
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 14
-    }
-  }, "\xF7"), " 1/N \uACC4\uC0B0"))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.45)',
+      color: 'rgba(255,255,255,0.4)',
       letterSpacing: '0.1em',
       textTransform: 'uppercase',
       marginBottom: 10
     }
   }, "\uAC1C\uC778"), krwPersonalIn > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
-      marginBottom: 8
+      marginBottom: 7
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
       marginBottom: 3
     }
   }, "\uC218\uC785"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 15,
-      color: '#7EC88A',
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.82)',
       fontWeight: 600
     }
   }, fmtAmt(Math.round(krwPersonalIn), 'KRW'))), krwPersonalOut > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 10,
-      color: 'rgba(255,255,255,0.35)',
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
       marginBottom: 3
     }
   }, "\uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
-      fontSize: 15,
-      color: '#E88A7E',
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.82)',
       fontWeight: 600
     }
-  }, fmtAmt(Math.round(krwPersonalOut), 'KRW')))))), /*#__PURE__*/React.createElement("div", {
+  }, fmtAmt(Math.round(krwPersonalOut), 'KRW')))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase'
+    }
+  }, "\uACF5\uB3D9"), krwSharedOut > 0 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSplitOpen(true),
+    style: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 0,
+      fontSize: 15,
+      lineHeight: 1,
+      opacity: 0.75
+    }
+  }, "\u2797")), krwSharedIn > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 7
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
+      marginBottom: 3
+    }
+  }, "\uC218\uC785"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.82)',
+      fontWeight: 600
+    }
+  }, fmtAmt(Math.round(krwSharedIn), 'KRW'))), krwSharedOut > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.3)',
+      marginBottom: 3
+    }
+  }, "\uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 14,
+      color: 'rgba(255,255,255,0.82)',
+      fontWeight: 600
+    }
+  }, fmtAmt(Math.round(krwSharedOut), 'KRW')))))), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '0 16px 16px',
       display: 'flex',
@@ -12096,7 +12079,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v130"))), /*#__PURE__*/React.createElement("button", {
+  }, "v131"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
