@@ -1435,7 +1435,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v98</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v100</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -1900,25 +1900,6 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
                   </SwipeableRow>
                 );
               })}
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={onAddHotelFromSearch} style={{
-            flex:1, padding:'13px 12px', background:COLORS.ink, color:COLORS.bg,
-            border:'none', borderRadius:14, cursor:'pointer',
-            display:'flex', gap:7, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:13, fontWeight:500,
-          }}>
-            <Icon name="search" size={13} color={COLORS.bg} stroke={2}/> 숙소 검색
-          </button>
-          <button onClick={onAddHotel} style={{
-            flex:1, padding:'13px 12px', background:'transparent',
-            border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
-            color:COLORS.mute, cursor:'pointer',
-            display:'flex', gap:7, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:13,
-          }}>
-            <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 직접 추가
-          </button>
-        </div>
       </div>
           </>
         );
@@ -3035,6 +3016,18 @@ function MapScreen({ trip, onEditItem }) {
       .map((it, ii) => ({ ...it, _origIdx: ii }))
       .filter(it => it.loc);
 
+  const getTodayDayIdx = () => {
+    const yr = extractTripYear(trip);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const isos = trip.days.map(d => dayDateToIso(d.date, yr) || '');
+    const todayIdx = isos.findIndex(iso => iso === todayIso);
+    if (todayIdx >= 0) return todayIdx;
+    const future = isos.findIndex(iso => iso > todayIso);
+    if (future === 0 || isos.every(iso => !iso)) return 0;
+    if (future < 0) return trip.days.length - 1;
+    return future - 1;
+  };
+
   const [state, dispatch] = React.useReducer((s, a) => {
     if (a.type === 'DAY') return { selDay: a.v, ordered: makeOrdered(a.v) };
     if (a.type === 'REORDER') {
@@ -3047,7 +3040,7 @@ function MapScreen({ trip, onEditItem }) {
       return { ...s, ordered: o };
     }
     return s;
-  }, null, () => ({ selDay: 0, ordered: makeOrdered(0) }));
+  }, null, () => { const i = getTodayDayIdx(); return { selDay: i, ordered: makeOrdered(i) }; });
 
   const { selDay, ordered } = state;
   const day = trip.days[selDay];
@@ -3284,57 +3277,54 @@ function MapScreen({ trip, onEditItem }) {
 
 // ─── Food ───────────────────────────────────────────────────
 function FoodScreen({ trip, onEditFood, editing, setEditing }) {
-  const [query,    setQuery]    = React.useState('');
-  const [selCat,   setSelCat]   = React.useState(null); // null = 전체
-  const [addCatInput, setAddCatInput] = React.useState(false);
+  const [query,       setQuery]       = React.useState('');
+  const [newCatInput, setNewCatInput] = React.useState(false);
   const [newCatName,  setNewCatName]  = React.useState('');
+  const [addSelCat,   setAddSelCat]   = React.useState(null); // which cat is showing inline add
 
   const allFood = trip.food || [];
   const cats = [...new Set(allFood.map(f => f.cat).filter(Boolean))];
 
-  const filtered = allFood.reduce((acc, f, idx) => {
-    const qLow = query.toLowerCase();
-    const matchQ = !query || (f.name||'').toLowerCase().includes(qLow)
-      || (f.detail||'').toLowerCase().includes(qLow)
-      || (f.note||'').toLowerCase().includes(qLow);
-    const matchCat = selCat === null || f.cat === selCat;
-    if (matchQ && matchCat) acc.push({ ...f, idx });
-    return acc;
-  }, []);
+  const qLow = query.toLowerCase();
+  const matchesQuery = (f) => !query
+    || (f.name||'').toLowerCase().includes(qLow)
+    || (f.detail||'').toLowerCase().includes(qLow)
+    || (f.note||'').toLowerCase().includes(qLow);
 
+  // Group: if searching, flat list; otherwise by category
   const grouped = {};
-  filtered.forEach(f => { (grouped[f.cat||'기타'] = grouped[f.cat||'기타'] || []).push(f); });
+  allFood.forEach((f, idx) => {
+    if (!matchesQuery(f)) return;
+    const key = f.cat || '기타';
+    (grouped[key] = grouped[key] || []).push({ ...f, idx });
+  });
+  const groupEntries = Object.entries(grouped);
+  const totalFiltered = groupEntries.reduce((s, [,items]) => s + items.length, 0);
 
   const addFood = (cat) => {
-    const list = [...allFood, { cat: cat || (cats[0]||'🍽 기타'), name:'새 맛집', detail:'', price:'', note:'' }];
-    onEditFood(list);
+    onEditFood([...allFood, { cat, name:'새 맛집', detail:'', price:'', note:'' }]);
+    setAddSelCat(null);
   };
   const delFood = (idx) => {
     if (!confirm('이 맛집을 삭제할까요?')) return;
     onEditFood(allFood.filter((_, i) => i !== idx));
   };
   const updateFood = (idx, patch) => {
-    const list = [...allFood]; list[idx] = { ...list[idx], ...patch };
-    onEditFood(list);
+    const list = [...allFood]; list[idx] = { ...list[idx], ...patch }; onEditFood(list);
   };
   const renameCat = (oldCat, newCat) => {
     if (!newCat.trim() || newCat === oldCat) return;
-    const list = allFood.map(f => f.cat === oldCat ? { ...f, cat: newCat } : f);
-    onEditFood(list);
-    if (selCat === oldCat) setSelCat(newCat);
+    onEditFood(allFood.map(f => f.cat === oldCat ? { ...f, cat: newCat } : f));
   };
   const deleteCat = (cat) => {
     if (!confirm(`"${cat}" 카테고리와 모든 맛집을 삭제할까요?`)) return;
-    const list = allFood.filter(f => f.cat !== cat);
-    onEditFood(list);
-    if (selCat === cat) setSelCat(null);
+    onEditFood(allFood.filter(f => f.cat !== cat));
   };
   const addCategory = () => {
     const name = newCatName.trim();
     if (!name) return;
     addFood(name);
-    setSelCat(name);
-    setNewCatName(''); setAddCatInput(false);
+    setNewCatName(''); setNewCatInput(false);
   };
 
   return (
@@ -3346,94 +3336,40 @@ function FoodScreen({ trip, onEditFood, editing, setEditing }) {
       </div>
 
       {/* 검색창 */}
-      <div style={{ padding:'0 16px 10px', position:'relative' }}>
+      <div style={{ padding:'0 16px 16px', position:'relative' }}>
         <Icon name="search" size={14} color={COLORS.mute} stroke={2}
           style={{ position:'absolute', left:28, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}/>
         <input value={query} onChange={e => setQuery(e.target.value)}
           placeholder="맛집 검색..."
-          style={{
-            width:'100%', boxSizing:'border-box',
+          style={{ width:'100%', boxSizing:'border-box',
             paddingLeft:36, paddingRight:12, paddingTop:9, paddingBottom:9,
             border:`1px solid ${COLORS.line}`, borderRadius:12,
-            background:COLORS.card, fontFamily:SANS, fontSize:13.5,
-            color:COLORS.ink, outline:'none',
-          }}/>
+            background:COLORS.card, fontFamily:SANS, fontSize:13.5, color:COLORS.ink, outline:'none' }}/>
       </div>
 
-      {/* 카테고리 탭 */}
-      <div style={{ display:'flex', alignItems:'center', overflowX:'auto', paddingLeft:16, paddingRight:16,
-        scrollbarWidth:'none', msOverflowStyle:'none', gap:4, marginBottom:14 }}>
-        <button onClick={() => setSelCat(null)} style={{
-          flexShrink:0, padding:'6px 14px', border:'none', cursor:'pointer', borderRadius:20,
-          background: selCat === null ? COLORS.ink : 'transparent',
-          color: selCat === null ? '#fff' : COLORS.mute,
-          fontFamily:SANS, fontSize:12.5, fontWeight: selCat === null ? 600 : 400,
-        }}>전체</button>
-        {cats.map(c => (
-          <button key={c} onClick={() => setSelCat(c === selCat ? null : c)} style={{
-            flexShrink:0, padding:'6px 14px', border:'none', cursor:'pointer', borderRadius:20,
-            background: selCat === c ? COLORS.ink : 'transparent',
-            color: selCat === c ? '#fff' : COLORS.mute,
-            fontFamily:SANS, fontSize:12.5, fontWeight: selCat === c ? 600 : 400,
-          }}>{c}</button>
-        ))}
-        {editing && !addCatInput && (
-          <button onClick={() => setAddCatInput(true)} style={{
-            flexShrink:0, padding:'6px 12px', border:`1.5px dashed ${COLORS.line}`, cursor:'pointer',
-            borderRadius:20, background:'transparent', color:COLORS.mute,
-            fontFamily:SANS, fontSize:12.5, display:'flex', alignItems:'center', gap:3,
-          }}>
-            <Icon name="plus" size={11} color={COLORS.mute} stroke={2}/> 카테고리
-          </button>
-        )}
-        {editing && addCatInput && (
-          <form onSubmit={e => { e.preventDefault(); addCategory(); }}
-            style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
-            <input autoFocus value={newCatName} onChange={e => setNewCatName(e.target.value)}
-              placeholder="카테고리 이름"
-              style={{ width:110, padding:'5px 10px', border:`1px solid ${COLORS.line}`,
-                borderRadius:16, fontFamily:SANS, fontSize:12.5, background:COLORS.card,
-                color:COLORS.ink, outline:'none' }}/>
-            <button type="submit" style={{ padding:'5px 10px', border:'none', borderRadius:16,
-              background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:12, cursor:'pointer' }}>추가</button>
-            <button type="button" onClick={() => { setAddCatInput(false); setNewCatName(''); }} style={{
-              padding:'5px 8px', border:'none', borderRadius:16, background:'transparent',
-              color:COLORS.mute, fontFamily:SANS, fontSize:12, cursor:'pointer' }}>취소</button>
-          </form>
-        )}
-      </div>
-
-      {/* 아이템 목록 */}
-      <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:18 }}>
-        {Object.entries(grouped).map(([cat, items]) => (
+      {/* 카테고리별 목록 */}
+      <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:20 }}>
+        {groupEntries.map(([cat, items]) => (
           <div key={cat}>
-            {/* 카테고리 헤더 */}
-            <div style={{ padding:'0 4px 8px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <span style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, letterSpacing:'0.08em' }}>{cat}</span>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, paddingLeft:2 }}>
+              <span style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', flex:1 }}>{cat}</span>
               {editing && (
-                <div style={{ display:'flex', gap:4 }}>
-                  <button onClick={() => {
-                    const n = prompt('카테고리 이름 변경:', cat);
-                    if (n) renameCat(cat, n);
-                  }} style={{ padding:'3px 8px', border:`1px solid ${COLORS.line}`,
-                    borderRadius:8, background:'transparent', cursor:'pointer',
-                    fontFamily:SANS, fontSize:11, color:COLORS.mute }}>이름 변경</button>
+                <>
+                  <button onClick={() => { const n = prompt('카테고리 이름 변경:', cat); if (n) renameCat(cat, n); }}
+                    style={{ padding:'3px 8px', border:`1px solid ${COLORS.line}`, borderRadius:8,
+                      background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:11, color:COLORS.mute }}>이름 변경</button>
                   <button onClick={() => deleteCat(cat)} style={{
-                    padding:'3px 6px', border:'none', borderRadius:8,
-                    background:'rgba(193,79,46,0.10)', cursor:'pointer',
-                    display:'flex', alignItems:'center',
-                  }}>
+                    width:24, height:24, borderRadius:12, border:'none', background:'rgba(193,79,46,0.10)',
+                    cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
                     <Icon name="trash" size={11} color={COLORS.accent} stroke={2}/>
                   </button>
-                </div>
+                </>
               )}
             </div>
             <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
               {items.map((f, i) => (
-                <div key={f.idx} style={{
-                  padding:'12px 14px', position:'relative',
-                  borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none',
-                }}>
+                <div key={f.idx} style={{ padding:'12px 14px', position:'relative',
+                  borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none' }}>
                   {editing ? (
                     <div style={{ display:'flex', flexDirection:'column', gap:4, paddingRight:32 }}>
                       <input value={f.name} onChange={e => updateFood(f.idx, { name: e.target.value })}
@@ -3456,9 +3392,8 @@ function FoodScreen({ trip, onEditFood, editing, setEditing }) {
                       </div>
                     </div>
                   ) : (
-                    <button onClick={() => window.open(mapsSearchUrl(f.name), '_blank')} style={{
-                      width:'100%', padding:0, border:'none', background:'transparent', cursor:'pointer', textAlign:'left',
-                    }}>
+                    <button onClick={() => window.open(mapsSearchUrl(f.name), '_blank')}
+                      style={{ width:'100%', padding:0, border:'none', background:'transparent', cursor:'pointer', textAlign:'left' }}>
                       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
                         <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500 }}>{f.name}</div>
                         {f.price && <div style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.accent, flexShrink:0 }}>{f.price}</div>}
@@ -3469,45 +3404,71 @@ function FoodScreen({ trip, onEditFood, editing, setEditing }) {
                   )}
                   {editing && (
                     <button onClick={() => delFood(f.idx)} style={{
-                      position:'absolute', top:8, right:8,
-                      width:24, height:24, borderRadius:12, border:'none',
-                      background:'rgba(193,79,46,0.12)', cursor:'pointer',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                    }}>
+                      position:'absolute', top:8, right:8, width:24, height:24, borderRadius:12,
+                      border:'none', background:'rgba(193,79,46,0.12)', cursor:'pointer',
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
                       <Icon name="trash" size={11} color={COLORS.accent} stroke={2}/>
                     </button>
                   )}
                 </div>
               ))}
+              {/* 항목 추가 */}
+              {addSelCat === cat ? (
+                <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px',
+                  borderTop: `1px solid ${COLORS.line}` }}>
+                  <button onClick={() => addFood(cat)} style={{
+                    flex:1, padding:'8px 0', border:'none', borderRadius:10,
+                    background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                    추가
+                  </button>
+                  <button onClick={() => setAddSelCat(null)} style={{
+                    padding:'8px 12px', border:'none', borderRadius:10,
+                    background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:13, cursor:'pointer' }}>
+                    취소
+                  </button>
+                </div>
+              ) : (
+                <button onClick={() => setAddSelCat(cat)} style={{
+                  width:'100%', padding:'10px 14px', background:'transparent', border:'none',
+                  borderTop:`1px solid ${COLORS.line}`,
+                  display:'flex', alignItems:'center', gap:8, cursor:'pointer',
+                  color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+                  <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 맛집 추가
+                </button>
+              )}
             </div>
-            {editing && (
-              <button onClick={() => addFood(cat)} style={{
-                marginTop:4, padding:'9px 12px', background:'transparent',
-                border:`1.5px dashed ${COLORS.line}`, borderRadius:10,
-                color:COLORS.mute, cursor:'pointer', width:'100%',
-                display:'flex', gap:6, alignItems:'center', justifyContent:'center',
-                fontFamily:SANS, fontSize:11.5,
-              }}>
-                <Icon name="plus" size={11} color={COLORS.mute} stroke={2}/> {cat}에 추가
-              </button>
-            )}
           </div>
         ))}
-        {editing && (
-          <button onClick={() => addFood(cats[0]||'🍽 기타')} style={{
-            padding:'14px 12px', background:'transparent',
-            border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
-            color:COLORS.mute, cursor:'pointer',
-            display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:13,
-          }}>
-            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 맛집 추가
-          </button>
-        )}
-        {filtered.length === 0 && (
+
+        {/* 빈 상태 */}
+        {totalFiltered === 0 && (
           <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-            {query ? '검색 결과가 없어요' : '아직 맛집이 없어요'}
+            {query ? '검색 결과가 없어요' : cats.length === 0 ? '카테고리를 만들어 맛집을 추가해 보세요' : '맛집을 추가해 보세요'}
           </div>
+        )}
+
+        {/* 카테고리 추가 */}
+        {newCatInput ? (
+          <form onSubmit={e => { e.preventDefault(); addCategory(); }}
+            style={{ display:'flex', gap:8, alignItems:'center' }}>
+            <input autoFocus value={newCatName} onChange={e => setNewCatName(e.target.value)}
+              placeholder="카테고리 이름"
+              style={{ flex:1, padding:'11px 14px', border:`1px solid ${COLORS.line}`, borderRadius:12,
+                fontFamily:SANS, fontSize:13.5, background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
+            <button type="submit" style={{ padding:'11px 16px', border:'none', borderRadius:12,
+              background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:13, fontWeight:600, cursor:'pointer' }}>추가</button>
+            <button type="button" onClick={() => { setNewCatInput(false); setNewCatName(''); }}
+              style={{ padding:'11px 12px', border:'none', borderRadius:12,
+                background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:13, cursor:'pointer' }}>취소</button>
+          </form>
+        ) : (
+          <button onClick={() => setNewCatInput(true)} style={{
+            width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
+            background:'transparent', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
+          </button>
         )}
       </div>
     </div>
@@ -3530,54 +3491,40 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
   const prep    = normalizePrepCats(rawPrep);
   const cats    = prep.cats || [];
 
-  const [selCat,    setSelCat]    = React.useState(0);
-  const [renamingCat, setRenamingCat] = React.useState(null);
-
-  const safeSel = Math.min(selCat, Math.max(0, cats.length - 1));
-  const cur     = cats[safeSel] || { id:'', name:'', items:[] };
+  const [renamingCat,  setRenamingCat]  = React.useState(null);
+  const [addInputCat,  setAddInputCat]  = React.useState(null);
+  const [addInputText, setAddInputText] = React.useState('');
 
   const save = (newCats) => onEditPrep({ ...prep, cats: newCats });
 
   const addCat = () => {
     const id = 'cat_' + Date.now();
-    save([...cats, { id, name:'새 카테고리', items:[] }]);
-    setSelCat(cats.length);
-    setRenamingCat(cats.length);
+    const newCats = [...cats, { id, name:'새 카테고리', items:[] }];
+    save(newCats);
+    setTimeout(() => setRenamingCat(newCats.length - 1), 50);
   };
   const deleteCat = (i) => {
     if (!confirm(`"${cats[i].name}" 카테고리를 삭제할까요?`)) return;
     const next = cats.filter((_, j) => j !== i);
     if (!next.length) next.push({ id:'cat_1', name:'체크리스트', items:[] });
     save(next);
-    setSelCat(Math.min(safeSel, next.length - 1));
   };
-  const renameCat = (i, name) => {
-    const next = [...cats]; next[i] = { ...next[i], name };
+  const renameCat = (i, name) => { const next=[...cats]; next[i]={...next[i],name}; save(next); };
+  const addItem = (ci) => {
+    if (!addInputText.trim()) return;
+    const next=[...cats];
+    next[ci]={...next[ci],items:[...(next[ci].items||[]),addInputText.trim()]};
+    save(next); setAddInputText(''); setAddInputCat(null);
+  };
+  const updateItem = (ci, ii, val) => {
+    const next=[...cats]; const items=[...next[ci].items]; items[ii]=val;
+    next[ci]={...next[ci],items}; save(next);
+  };
+  const deleteItem = (ci, ii) => {
+    const next=[...cats];
+    next[ci]={...next[ci],items:next[ci].items.filter((_,j)=>j!==ii)};
     save(next);
   };
-  const addItem = () => {
-    const next = [...cats];
-    next[safeSel] = { ...next[safeSel], items: [...(next[safeSel].items || []), '새 항목'] };
-    save(next);
-  };
-  const updateItem = (ii, val) => {
-    const next = [...cats];
-    const items = [...next[safeSel].items]; items[ii] = val;
-    next[safeSel] = { ...next[safeSel], items };
-    save(next);
-  };
-  const deleteItem = (ii) => {
-    const next = [...cats];
-    next[safeSel] = { ...next[safeSel], items: next[safeSel].items.filter((_,j) => j !== ii) };
-    save(next);
-  };
-  const { itemProps } = useDragReorder((from, to) => {
-    const next = [...cats];
-    const items = [...next[safeSel].items];
-    const [m] = items.splice(from, 1); items.splice(to, 0, m);
-    next[safeSel] = { ...next[safeSel], items };
-    save(next);
-  }, editing);
 
   // D-day
   const tripYear = extractTripYear(trip);
@@ -3611,7 +3558,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
 
       {/* D-day 카드 */}
       {depDate && (
-        <div style={{ padding:'0 16px', marginBottom:12 }}>
+        <div style={{ padding:'0 16px', marginBottom:20 }}>
           <div style={{ background:COLORS.card, borderRadius:16, padding:'14px 18px',
             display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
@@ -3629,111 +3576,105 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
         </div>
       )}
 
-      {/* 카테고리 탭 */}
-      <div style={{ display:'flex', alignItems:'center', gap:0, overflowX:'auto', paddingLeft:16, paddingRight:16,
-        scrollbarWidth:'none', msOverflowStyle:'none', marginBottom:16 }}>
-        {cats.map((c, i) => (
-          <button key={c.id} onClick={() => setSelCat(i)} style={{
-            flexShrink:0, padding:'7px 14px', border:'none', cursor:'pointer', borderRadius:20,
-            background: i === safeSel ? COLORS.ink : 'transparent',
-            color: i === safeSel ? '#fff' : COLORS.mute,
-            fontFamily:SANS, fontSize:13, fontWeight: i === safeSel ? 600 : 400,
-            transition:'background 0.15s',
-          }}>{c.name}</button>
-        ))}
-        {editing && (
-          <button onClick={addCat} style={{
-            flexShrink:0, padding:'7px 12px', border:`1.5px dashed ${COLORS.line}`, cursor:'pointer',
-            borderRadius:20, background:'transparent', color:COLORS.mute,
-            fontFamily:SANS, fontSize:13, display:'flex', alignItems:'center', gap:4, marginLeft:4,
-          }}>
-            <Icon name="plus" size={12} color={COLORS.mute} stroke={2}/> 카테고리
-          </button>
-        )}
-      </div>
+      {/* 카테고리 목록 — 전부 표시 */}
+      {cats.map((cat, ci) => (
+        <div key={cat.id} style={{ padding:'0 16px', marginBottom:20 }}>
+          {/* 카테고리 헤더 */}
+          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, paddingLeft:2 }}>
+            {editing && renamingCat === ci ? (
+              <input autoFocus value={cat.name}
+                onChange={e => renameCat(ci, e.target.value)}
+                onBlur={() => setRenamingCat(null)}
+                onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
+                style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
+                  padding:'4px 8px', fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
+                  textTransform:'uppercase', background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
+            ) : (
+              <span style={{ flex:1, fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
+                textTransform:'uppercase', color:COLORS.mute }}>
+                {cat.name}
+              </span>
+            )}
+            {editing && renamingCat !== ci && (
+              <button onClick={() => setRenamingCat(ci)} style={{
+                width:22, height:22, borderRadius:11, border:'none', background:'transparent',
+                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Icon name="edit" size={12} color={COLORS.mute} stroke={2}/>
+              </button>
+            )}
+            {editing && (
+              <button onClick={() => deleteCat(ci)} style={{
+                width:22, height:22, borderRadius:11, border:'none', background:'rgba(193,79,46,0.10)',
+                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
+              </button>
+            )}
+          </div>
 
-      {/* 카테고리 헤더 (편집 시 이름 수정 + 삭제) */}
-      {editing && (
-        <div style={{ padding:'0 16px 10px', display:'flex', alignItems:'center', gap:8 }}>
-          {renamingCat === safeSel ? (
-            <input autoFocus value={cur.name}
-              onChange={e => renameCat(safeSel, e.target.value)}
-              onBlur={() => setRenamingCat(null)}
-              onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
-              style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
-                padding:'6px 10px', fontFamily:SANS, fontSize:13, background:COLORS.card,
-                color:COLORS.ink, outline:'none' }}/>
-          ) : (
-            <button onClick={() => setRenamingCat(safeSel)} style={{
-              flex:1, textAlign:'left', border:`1px solid ${COLORS.line}`, borderRadius:8,
-              padding:'6px 10px', fontFamily:SANS, fontSize:13, background:COLORS.card,
-              color:COLORS.ink, cursor:'pointer', display:'flex', alignItems:'center', gap:6,
-            }}>
-              <Icon name="edit" size={11} color={COLORS.mute} stroke={2}/>{cur.name}
-            </button>
-          )}
-          <button onClick={() => deleteCat(safeSel)} style={{
-            width:32, height:32, borderRadius:16, border:'none', background:'rgba(193,79,46,0.10)',
-            cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-          }}>
-            <Icon name="trash" size={13} color={COLORS.accent} stroke={2}/>
-          </button>
-        </div>
-      )}
-
-      {/* 아이템 목록 */}
-      <div style={{ padding:'0 16px' }}>
-        <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
-          {(cur.items || []).length === 0 && !editing && (
-            <div style={{ padding:'24px 16px', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-              아직 항목이 없어요
-            </div>
-          )}
-          {(cur.items || []).map((t, ii) => {
-            const dp = itemProps(ii);
-            return (
-              <div key={ii} {...dp} style={{
-                display:'flex', alignItems:'center', gap:12, padding:'12px 14px',
-                borderBottom: ii < cur.items.length - 1 ? `1px solid ${COLORS.line}` : 'none',
-                ...(dp.style || {}),
-                outline: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
-                outlineOffset:-2,
-              }}>
+          {/* 아이템 목록 */}
+          <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
+            {(cat.items || []).length === 0 && addInputCat !== ci && (
+              <div style={{ padding:'14px 16px', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                항목이 없어요
+              </div>
+            )}
+            {(cat.items || []).map((item, ii) => (
+              <div key={ii} style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px',
+                borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none' }}>
                 <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
                 {editing ? (
-                  <input value={t} onChange={e => updateItem(ii, e.target.value)}
+                  <input value={item} onChange={e => updateItem(ci, ii, e.target.value)}
                     style={{ flex:1, border:'none', outline:'none', background:'transparent',
                       fontFamily:SANS, fontSize:13.5, color:COLORS.ink, padding:0 }}/>
                 ) : (
-                  <span style={{ flex:1, fontFamily:SANS, fontSize:13.5, color:COLORS.ink }}>{t}</span>
+                  <span style={{ flex:1, fontFamily:SANS, fontSize:13.5, color:COLORS.ink }}>{item}</span>
                 )}
                 {editing && (
-                  <>
-                    <DragHandle size={13} color={COLORS.mute}/>
-                    <button onClick={() => deleteItem(ii)} style={{
-                      width:22, height:22, borderRadius:11, border:'none',
-                      background:'rgba(193,79,46,0.12)', cursor:'pointer',
-                      display:'flex', alignItems:'center', justifyContent:'center',
-                    }}>
-                      <Icon name="trash" size={11} color={COLORS.accent} stroke={2}/>
-                    </button>
-                  </>
+                  <button onClick={() => deleteItem(ci, ii)} style={{
+                    width:22, height:22, borderRadius:11, border:'none',
+                    background:'rgba(193,79,46,0.12)', cursor:'pointer',
+                    display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                    <Icon name="trash" size={11} color={COLORS.accent} stroke={2}/>
+                  </button>
                 )}
               </div>
-            );
-          })}
+            ))}
+            {/* 항목 추가 */}
+            {addInputCat === ci ? (
+              <div style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px',
+                borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none' }}>
+                <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
+                <input autoFocus value={addInputText} onChange={e => setAddInputText(e.target.value)}
+                  placeholder="항목 입력..."
+                  onKeyDown={e => { if (e.key==='Enter') addItem(ci); if (e.key==='Escape') { setAddInputCat(null); setAddInputText(''); }}}
+                  style={{ flex:1, border:'none', outline:'none', background:'transparent',
+                    fontFamily:SANS, fontSize:13.5, color:COLORS.ink, padding:0 }}/>
+                <button onClick={() => addItem(ci)} style={{
+                  padding:'4px 10px', border:'none', borderRadius:8,
+                  background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:12, cursor:'pointer' }}>추가</button>
+              </div>
+            ) : (
+              <button onClick={() => { setAddInputCat(ci); setAddInputText(''); }} style={{
+                width:'100%', padding:'10px 14px', background:'transparent', border:'none',
+                borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none',
+                display:'flex', alignItems:'center', gap:8, cursor:'pointer',
+                color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+                <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 항목 추가
+              </button>
+            )}
+          </div>
         </div>
-        {editing && (
-          <button onClick={addItem} style={{
-            marginTop:6, padding:'10px 12px', background:'transparent',
-            border:`1.5px dashed ${COLORS.line}`, borderRadius:12,
-            color:COLORS.mute, cursor:'pointer', width:'100%',
-            display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:12,
-          }}>
-            <Icon name="plus" size={12} color={COLORS.mute} stroke={2}/> 항목 추가
-          </button>
-        )}
+      ))}
+
+      {/* 카테고리 추가 */}
+      <div style={{ padding:'0 16px 20px' }}>
+        <button onClick={addCat} style={{
+          width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
+          background:'transparent', cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+          color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+          <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
+        </button>
       </div>
     </div>
   );
@@ -5345,7 +5286,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v98</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v100</div>
         </div>
       </div>
       <button onClick={async () => {
