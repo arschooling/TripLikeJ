@@ -1168,7 +1168,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
       paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between',
         padding:'0 20px 20px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v52</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v53</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3303,26 +3303,13 @@ function App() {
   React.useEffect(() => {
     if (!activeTripId) return;
     groupCreateRef.current = false;
-    // userTrips에 이미 있는 데이터로 즉시 표시, Firestore는 실시간 업데이트용
-    const rawCached = userTrips.find(t => t.id === activeTripId);
-    const cached = normalizeTrip(rawCached, activeTripId);
-    if (cached) { tripRef.current = cached; setTrip(cached); }
-    // else: onSelect already set trip — don't overwrite with null here
-    // If there's truly nothing, fetch directly from Firestore as fallback
-    if (!cached && !tripRef.current) {
-      fbLoadTrips([activeTripId]).then(trips => {
-        if (trips && trips.length) {
-          const t = normalizeTrip(trips[0], activeTripId);
-          tripRef.current = t;
-          setTrip(t);
-        }
-      }).catch(() => {});
-    }
     return fbListenGroup(activeTripId, (data) => {
-      if (data === null) return; // 문서 없음 또는 오류 — 기존 데이터 보호
-      const normalized = normalizeTrip(data, activeTripId);
-      tripRef.current = normalized;
-      setTrip(normalized);
+      if (data === null) return;
+      const incoming = normalizeTrip(data, activeTripId);
+      // 기존에 days 있는데 Firestore가 빈 데이터 주면 무시 (쓰기 진행 중)
+      if (incoming.days.length === 0 && (tripRef.current?.days?.length || 0) > 0) return;
+      tripRef.current = incoming;
+      setTrip(incoming);
     });
   }, [activeTripId]);
 
@@ -3662,9 +3649,17 @@ function App() {
         myUid={authUser?.uid}
         onOpenCompanion={() => setCompanionOpen(true)}
         onSelect={(id) => {
+          // 캐시된 데이터 먼저 표시
           const found = userTrips.find(t => t.id === id);
           if (found) { tripRef.current = found; setTrip(found); }
           setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false);
+          // Firestore에서 직접 읽어 최신 데이터로 보장
+          fbLoadTrips([id]).then(trips => {
+            if (!trips || !trips.length) return;
+            const fresh = normalizeTrip(trips[0], id);
+            tripRef.current = fresh;
+            setTrip(fresh);
+          }).catch(() => {});
         }}
         onAdd={async () => {
           const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
