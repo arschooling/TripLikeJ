@@ -1435,7 +1435,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v102</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v103</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3710,13 +3710,13 @@ function BudgetScreen({ trip, onEditBudget }) {
 
   const openAdd = (type) => {
     const cats = type === 'out' ? outCats : inCats;
-    setForm({ type, amount:'', cat: cats[0] || '', note:'', date:'', currency:'KRW' });
+    setForm({ type, amount:'', cat: cats[0] || '', note:'', date:'', currency:'KRW', scope:'shared' });
     setEditIdx(null); setDelConfirm(false); setAddingCat(false); setNewCatVal('');
     setAddOpen(true);
   };
   const openEdit = (idx) => {
     const e = entries[idx];
-    setForm({ type:e.type, amount:String(e.amount), cat:e.cat, note:e.note||'', date:e.date||'', currency:e.currency||'KRW' });
+    setForm({ type:e.type, amount:String(e.amount), cat:e.cat, note:e.note||'', date:e.date||'', currency:e.currency||'KRW', scope:e.scope||'shared' });
     setEditIdx(idx); setDelConfirm(false); setAddingCat(false); setNewCatVal('');
     setAddOpen(true);
   };
@@ -3740,6 +3740,7 @@ function BudgetScreen({ trip, onEditBudget }) {
       id: editIdx !== null ? entries[editIdx].id : Date.now().toString(),
       type: form.type, amount: amt, cat: form.cat,
       note: form.note, currency: cur,
+      scope: form.scope || 'shared',
       date: form.date || new Date().toISOString().slice(0,10),
     };
     const updated = editIdx !== null
@@ -3753,6 +3754,10 @@ function BudgetScreen({ trip, onEditBudget }) {
     setAddOpen(false);
   };
 
+  const sharedIn  = entries.filter(e=>e.type==='in'  && (e.scope||'shared')==='shared').reduce((s,e)=>s+e.amount,0);
+  const sharedOut = entries.filter(e=>e.type==='out' && (e.scope||'shared')==='shared').reduce((s,e)=>s+e.amount,0);
+  const personalIn  = entries.filter(e=>e.type==='in'  && e.scope==='personal').reduce((s,e)=>s+e.amount,0);
+  const personalOut = entries.filter(e=>e.type==='out' && e.scope==='personal').reduce((s,e)=>s+e.amount,0);
   const catTotals = {};
   entries.filter(e=>e.type==='out').forEach(e => { catTotals[e.cat] = (catTotals[e.cat]||0)+e.amount; });
   const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);
@@ -3781,8 +3786,23 @@ function BudgetScreen({ trip, onEditBudget }) {
             <div style={{ fontFamily:MONO, fontSize:16, color:'#E88A7E', marginTop:3, fontWeight:500 }}>-{totalOut.toLocaleString()}</div>
           </div>
         </div>
+        {/* 공동/개인 분리 */}
+        <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.1)', display:'flex', gap:24 }}>
+          <div>
+            <div style={{ fontFamily:MONO, fontSize:9, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', marginBottom:4 }}>공동</div>
+            <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.7)' }}>
+              +{sharedIn.toLocaleString()} / -{sharedOut.toLocaleString()}
+            </div>
+          </div>
+          <div>
+            <div style={{ fontFamily:MONO, fontSize:9, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', marginBottom:4 }}>개인</div>
+            <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.7)' }}>
+              +{personalIn.toLocaleString()} / -{personalOut.toLocaleString()}
+            </div>
+          </div>
+        </div>
         {topCats.length > 0 && (
-          <div style={{ marginTop:18, paddingTop:16, borderTop:'1px solid rgba(255,255,255,0.1)', display:'flex', flexWrap:'wrap', gap:'8px 20px' }}>
+          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.1)', display:'flex', flexWrap:'wrap', gap:'8px 20px' }}>
             {topCats.map(([cat, amt]) => (
               <div key={cat} style={{ fontFamily:MONO, fontSize:11, color:'rgba(255,255,255,0.55)' }}>
                 {cat} <span style={{ color:'rgba(255,255,255,0.85)' }}>{amt.toLocaleString()}</span>
@@ -3832,8 +3852,15 @@ function BudgetScreen({ trip, onEditBudget }) {
                   color={e.type==='in' ? '#3A9B4C' : '#C14F2E'} stroke={2.5}/>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>
-                  {e.cat}{e.note ? ` · ${e.note}` : ''}
+                <div style={{ display:'flex', alignItems:'center', gap:6 }}>
+                  <span style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>
+                    {e.cat}{e.note ? ` · ${e.note}` : ''}
+                  </span>
+                  <span style={{ fontFamily:MONO, fontSize:9.5, padding:'2px 6px', borderRadius:6,
+                    background: (e.scope||'shared')==='shared' ? 'rgba(79,107,237,0.1)' : COLORS.softer,
+                    color: (e.scope||'shared')==='shared' ? '#4F6BED' : COLORS.mute }}>
+                    {(e.scope||'shared')==='shared' ? '공동' : '개인'}
+                  </span>
                 </div>
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:2 }}>
                   {e.date}{e.currency && e.currency !== 'KRW' ? ` · ${e.currency}` : ''}
@@ -3864,17 +3891,30 @@ function BudgetScreen({ trip, onEditBudget }) {
             background:COLORS.bg, borderRadius:'22px 22px 0 0',
             padding:'20px 18px', paddingBottom:'calc(24px + env(safe-area-inset-bottom,0px))',
           }} onClick={e => e.stopPropagation()}>
-            {/* 수입/지출 토글 */}
-            <div style={{ display:'flex', gap:6, marginBottom:14, background:COLORS.softer, borderRadius:14, padding:4 }}>
-              {[{v:'out',label:'지출'},{v:'in',label:'수입'}].map(({v,label}) => (
-                <button key={v} onClick={() => setForm(f => ({ ...f, type:v, cat: v==='out'?'식비':'환전' }))}
-                  style={{ flex:1, padding:'9px 0', border:'none', borderRadius:10, cursor:'pointer',
-                    background: form.type===v ? COLORS.card : 'transparent',
-                    fontFamily:SANS, fontSize:14, fontWeight:600,
-                    color: form.type===v ? COLORS.ink : COLORS.mute }}>
-                  {label}
-                </button>
-              ))}
+            {/* 수입/지출 토글 + 공동/개인 */}
+            <div style={{ display:'flex', gap:8, marginBottom:14 }}>
+              <div style={{ flex:1, display:'flex', gap:6, background:COLORS.softer, borderRadius:14, padding:4 }}>
+                {[{v:'out',label:'지출'},{v:'in',label:'수입'}].map(({v,label}) => (
+                  <button key={v} onClick={() => { const cats = v==='out'?outCats:inCats; setForm(f => ({ ...f, type:v, cat:cats[0]||'' })); }}
+                    style={{ flex:1, padding:'9px 0', border:'none', borderRadius:10, cursor:'pointer',
+                      background: form.type===v ? COLORS.card : 'transparent',
+                      fontFamily:SANS, fontSize:14, fontWeight:600,
+                      color: form.type===v ? COLORS.ink : COLORS.mute }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
+              <div style={{ display:'flex', gap:4, background:COLORS.softer, borderRadius:14, padding:4 }}>
+                {[{v:'shared',label:'공동'},{v:'personal',label:'개인'}].map(({v,label}) => (
+                  <button key={v} onClick={() => setForm(f => ({...f, scope:v}))}
+                    style={{ padding:'9px 12px', border:'none', borderRadius:10, cursor:'pointer',
+                      background: (form.scope||'shared')===v ? COLORS.card : 'transparent',
+                      fontFamily:SANS, fontSize:13, fontWeight:600,
+                      color: (form.scope||'shared')===v ? COLORS.ink : COLORS.mute }}>
+                    {label}
+                  </button>
+                ))}
+              </div>
             </div>
             {/* 금액 */}
             <input type="number" inputMode="decimal" value={form.amount}
@@ -3916,18 +3956,48 @@ function BudgetScreen({ trip, onEditBudget }) {
               )}
             </div>
             {/* 통화 선택 */}
-            <div style={{ display:'flex', gap:6, marginBottom:12, flexWrap:'wrap' }}>
-              {['KRW','USD','EUR','JPY','CNY','GBP','기타'].map(cur => (
-                <button key={cur} onClick={() => setForm(f => ({...f, currency: cur}))}
-                  style={{ padding:'6px 13px', borderRadius:20, cursor:'pointer',
-                    border:`1.5px solid ${(form.currency||'KRW')===cur ? COLORS.ink : COLORS.line}`,
-                    background: (form.currency||'KRW')===cur ? COLORS.ink : 'transparent',
-                    fontFamily:MONO, fontSize:12, fontWeight: (form.currency||'KRW')===cur ? 600 : 400,
-                    color: (form.currency||'KRW')===cur ? '#fff' : COLORS.mute }}>
-                  {cur}
-                </button>
+            <select value={form.currency||'KRW'} onChange={e => setForm(f => ({...f, currency: e.target.value}))}
+              style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', marginBottom:12,
+                border:`1px solid ${COLORS.line}`, borderRadius:12, background:COLORS.card,
+                fontFamily:MONO, fontSize:13, color:COLORS.ink, outline:'none',
+                appearance:'none', WebkitAppearance:'none',
+                backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+                backgroundRepeat:'no-repeat', backgroundPosition:'right 14px center' }}>
+              {[
+                ['KRW','₩  KRW — 한국 원'],
+                ['USD','$  USD — 미국 달러'],
+                ['EUR','€  EUR — 유로'],
+                ['JPY','¥  JPY — 일본 엔'],
+                ['CNY','¥  CNY — 중국 위안'],
+                ['HKD','HK$  HKD — 홍콩 달러'],
+                ['TWD','NT$  TWD — 대만 달러'],
+                ['SGD','S$  SGD — 싱가포르 달러'],
+                ['THB','฿  THB — 태국 바트'],
+                ['VND','₫  VND — 베트남 동'],
+                ['PHP','₱  PHP — 필리핀 페소'],
+                ['IDR','Rp  IDR — 인도네시아 루피아'],
+                ['MYR','RM  MYR — 말레이시아 링깃'],
+                ['INR','₹  INR — 인도 루피'],
+                ['AUD','A$  AUD — 호주 달러'],
+                ['NZD','NZ$  NZD — 뉴질랜드 달러'],
+                ['GBP','£  GBP — 영국 파운드'],
+                ['CHF','Fr  CHF — 스위스 프랑'],
+                ['SEK','kr  SEK — 스웨덴 크로나'],
+                ['NOK','kr  NOK — 노르웨이 크로네'],
+                ['DKK','kr  DKK — 덴마크 크로네'],
+                ['CAD','C$  CAD — 캐나다 달러'],
+                ['MXN','$  MXN — 멕시코 페소'],
+                ['BRL','R$  BRL — 브라질 헤알'],
+                ['AED','AED — UAE 디르함'],
+                ['SAR','SAR — 사우디 리얄'],
+                ['TRY','₺  TRY — 터키 리라'],
+                ['CZK','Kč  CZK — 체코 코루나'],
+                ['HUF','Ft  HUF — 헝가리 포린트'],
+                ['PLN','zł  PLN — 폴란드 즐로티'],
+              ].map(([code, label]) => (
+                <option key={code} value={code}>{label}</option>
               ))}
-            </div>
+            </select>
             {/* 메모 */}
             <input value={form.note} onChange={e => setForm(f => ({...f, note:e.target.value}))}
               placeholder="메모 (선택)"
@@ -3979,15 +4049,15 @@ function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
   ];
   return (
     <div style={{
-      position:'fixed', left:0, right:0,
-      bottom:0,
+      position:'fixed', left:14, right:14,
+      bottom:'calc(env(safe-area-inset-bottom, 10px) + 4px)',
       zIndex:30,
-      background:'rgba(255,255,255,0.92)',
+      background:'rgba(255,255,255,0.88)',
       backdropFilter:'blur(20px) saturate(180%)',
       WebkitBackdropFilter:'blur(20px) saturate(180%)',
-      borderRadius:'22px 22px 0 0',
-      padding:`12px 10px calc(14px + env(safe-area-inset-bottom,0px))`,
-      borderTop:`0.5px solid ${COLORS.line}`,
+      borderRadius:26,
+      padding:'12px 10px 14px',
+      border:`0.5px solid ${COLORS.line}`,
       display:'flex', gap:2, alignItems:'center',
       transition:'opacity 0.25s ease',
       opacity: visible ? 1 : 0,
@@ -5095,6 +5165,7 @@ function App() {
       edgeDragRef.current = { x: touch.clientX, y: touch.clientY, t: Date.now(), dir, targetTab, locked: false };
     };
 
+    let rafId = null;
     const onTouchMove = (e) => {
       const s = edgeDragRef.current;
       if (!s) return;
@@ -5110,13 +5181,20 @@ function App() {
         const init = { dir: s.dir, targetTab: s.targetTab, tx: 0, settling: false, settleComplete: false };
         tabDragRef.current = init;
         setTabDrag(init);
+        return;
       }
       e.preventDefault();
       const raw = s.dir === 'prev' ? adx : -adx;
       const tx = Math.max(0, Math.min(raw, window.innerWidth));
-      const next = { ...tabDragRef.current, tx, settling: false };
-      tabDragRef.current = next;
-      setTabDrag(next);
+      tabDragRef.current = { ...tabDragRef.current, tx, settling: false };
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          rafId = null;
+          if (tabDragRef.current && !tabDragRef.current.settling) {
+            setTabDrag({ ...tabDragRef.current });
+          }
+        });
+      }
     };
 
     const onTouchEnd = (e) => {
@@ -5532,7 +5610,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v102</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v103</div>
         </div>
       </div>
       <button onClick={async () => {
