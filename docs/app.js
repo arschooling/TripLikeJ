@@ -5531,8 +5531,9 @@ function MapScreen({
       zoomControl: true,
       attributionControl: false
     });
-    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19
+    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+      maxZoom: 19,
+      subdomains: 'abcd'
     }).addTo(map);
     map.setView([40.7128, -74.006], 12);
     mapInst.current = map;
