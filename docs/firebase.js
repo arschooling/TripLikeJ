@@ -64,19 +64,21 @@ window.fbGetOrCreateUser = async (fbUser) => {
   // groups/{uid} 문서가 없으면 생성 (데이터가 사라진 경우 복구)
   const groupRef  = _fbDb.collection('groups').doc(fbUser.uid);
   const groupSnap = await groupRef.get();
+  const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+  const tripDefault = {
+    title   : def.title  || 'New York',
+    dates   : def.dates  || '',
+    hotel   : def.hotel  || '',
+    days    : def.days   || [],
+    hotels  : def.hotels || [],
+    food    : def.food   || [],
+  };
   if (!groupSnap.exists) {
     console.warn('[TripLikeJ] groups/' + fbUser.uid + ' 없음 → 새로 생성');
-    const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
-    await groupRef.set({
-      title   : def.title || '내 여행',
-      dates   : def.dates || '',
-      hotel   : def.hotel || '',
-      days    : def.days  || [],
-      hotels  : def.hotels  || [],
-      food    : def.food    || [],
-      members : [fbUser.uid],
-      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-    });
+    await groupRef.set({ ...tripDefault, members: [fbUser.uid], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+  } else if (!(groupSnap.data().days || []).length) {
+    console.warn('[TripLikeJ] groups/' + fbUser.uid + ' days 비어있음 → TRIP_DEFAULT로 복구');
+    await groupRef.set(tripDefault, { merge: true });
   }
 
   // tripIds 정리: 실제 멤버로 남아있는 여행만 유지
