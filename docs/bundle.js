@@ -7533,7 +7533,14 @@ function App() {
   React.useEffect(function () {
     if (!activeTripId) return;
     groupCreateRef.current = false;
-    setTrip(null);
+    // userTrips에 이미 있는 데이터로 즉시 표시, Firestore는 실시간 업데이트용
+    var cached = userTrips.find(function (t) {
+      return t.id === activeTripId;
+    });
+    if (cached) {
+      tripRef.current = cached;
+      setTrip(cached);
+    } else setTrip(null);
     return fbListenGroup(activeTripId, function (data) {
       if (data === null) {
         if (groupCreateRef.current) return;
