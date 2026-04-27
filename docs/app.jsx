@@ -1666,26 +1666,26 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
     catch (e) { setRestoreErr('복원 실패. 다시 시도해 주세요.'); setRestoring(false); }
   };
   return (
-    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100 }}>
-      <div style={{
-        display:'flex', alignItems:'center', justifyContent:'space-between',
-        paddingTop:'calc(env(safe-area-inset-top, 0px) + 16px)',
-        paddingLeft:20, paddingRight:20, paddingBottom:16,
+    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100, position:'relative' }}>
+      <button onClick={onOpenCompanion} style={{
+        position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:20, zIndex:10,
+        width:38, height:38, borderRadius:19,
+        background: userData?.photoURL ? 'transparent' : COLORS.softer,
+        border:`2px solid ${COLORS.line}`,
+        padding:0, cursor:'pointer', overflow:'hidden',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v140</span></div>
-        <button onClick={onOpenCompanion} style={{
-          width:38, height:38, borderRadius:19, flexShrink:0,
-          background: userData?.photoURL ? 'transparent' : COLORS.softer,
-          border:`2px solid ${COLORS.line}`,
-          padding:0, cursor:'pointer', overflow:'hidden',
-          display:'flex', alignItems:'center', justifyContent:'center',
-          boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
-        }}>
-          {userData?.photoURL
-            ? <img src={userData.photoURL} alt="profile" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
-            : <Icon name="user" size={18} color={COLORS.mute}/>
-          }
-        </button>
+        {userData?.photoURL
+          ? <img src={userData.photoURL} alt="profile" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
+          : <Icon name="user" size={18} color={COLORS.mute}/>
+        }
+      </button>
+      <div style={{
+        paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
+        paddingLeft:20, paddingRight:72, paddingBottom:16,
+      }}>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v141</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5737,28 +5737,51 @@ function App() {
   const saveStop = (draft) => {
     const days = [...trip.days];
     const items = [...days[dayIdx].items];
-    items[openStop.idx] = draft;
-    days[dayIdx] = { ...days[dayIdx], items: sortByTime(items) };
+    let savedDraft = { ...draft };
+    let hotels = [...(trip.hotels || [])];
 
-    // 숙소 스탑이면 메인 호텔 시간도 역방향 동기화
-    let hotels = trip.hotels;
-    if (draft._hotelRef && draft.time) {
-      const hIdx = (trip.hotels || []).findIndex(h => h.name === draft._hotelRef);
-      if (hIdx >= 0) {
-        const isCheckIn  = (draft.title || '').includes('체크인');
-        const isCheckOut = (draft.title || '').includes('체크아웃');
-        if (isCheckIn || isCheckOut) {
-          hotels = [...trip.hotels];
+    if (draft.cat === 'hotel') {
+      // 호텔 이름: en 우선, 없으면 타이틀에서 한국어 접미사 제거
+      const hotelName = draft.en
+        || (draft.title || '').replace(/\s*(체크인|체크아웃|숙박|입실|퇴실)\s*$/, '').trim()
+        || '숙소';
+
+      if (draft._hotelRef) {
+        // 기존 호텔 항목에 위치·메모·시간 역방향 동기화
+        const hIdx = hotels.findIndex(h => h.name === draft._hotelRef);
+        if (hIdx >= 0) {
+          const prev = hotels[hIdx];
+          const t = draft.title || '';
+          const isIn  = t.includes('체크인') || t.includes('입실');
+          const isOut = t.includes('체크아웃') || t.includes('퇴실');
           hotels[hIdx] = {
-            ...hotels[hIdx],
-            ...(isCheckIn  ? { checkinTime:  draft.time } : {}),
-            ...(isCheckOut ? { checkoutTime: draft.time } : {}),
+            ...prev,
+            area:    draft.loc  || prev.area,
+            address: draft.note || prev.address,
+            ...(isIn  && draft.time ? { checkinTime:  draft.time } : {}),
+            ...(isOut && draft.time ? { checkoutTime: draft.time } : {}),
           };
         }
+      } else {
+        // _hotelRef 없음 → 숙소 항목 자동 생성 후 스탑에 링크
+        if (!hotels.find(h => h.name === hotelName)) {
+          const day = days[dayIdx];
+          const t2 = draft.title || '';
+          const isIn = t2.includes('체크인') || t2.includes('입실');
+          hotels.push({
+            name: hotelName, area: draft.loc || '',
+            address: draft.note || '', checkin: day.date || '',
+            nights: 1, hue: 25,
+            ...(isIn && draft.time ? { checkinTime: draft.time } : {}),
+          });
+        }
+        savedDraft = { ...draft, _hotelRef: hotelName };
       }
     }
 
-    editTrip({ days, ...(hotels !== trip.hotels ? { hotels } : {}) });
+    items[openStop.idx] = savedDraft;
+    days[dayIdx] = { ...days[dayIdx], items: sortByTime(items) };
+    editTrip({ days, hotels });
     setOpenStop(null);
   };
 
@@ -6069,7 +6092,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v140</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v141</div>
         </div>
       </div>
       <button onClick={async () => {

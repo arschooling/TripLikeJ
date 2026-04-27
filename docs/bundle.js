@@ -3838,39 +3838,19 @@ function TripsScreen({
     style: {
       minHeight: '100vh',
       background: COLORS.bg,
-      paddingBottom: 100
+      paddingBottom: 100,
+      position: 'relative'
     }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
-      paddingLeft: 20,
-      paddingRight: 20,
-      paddingBottom: 16
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 34,
-      color: COLORS.ink,
-      letterSpacing: '-0.02em'
-    }
-  }, "My Trips", /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: 'monospace',
-      fontSize: 11,
-      color: COLORS.mute,
-      marginLeft: 8
-    }
-  }, "v140")), /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
+      position: 'absolute',
+      top: 'calc(16px + env(safe-area-inset-top,0px))',
+      right: 20,
+      zIndex: 10,
       width: 38,
       height: 38,
       borderRadius: 19,
-      flexShrink: 0,
       background: userData?.photoURL ? 'transparent' : COLORS.softer,
       border: `2px solid ${COLORS.line}`,
       padding: 0,
@@ -3893,7 +3873,28 @@ function TripsScreen({
     name: "user",
     size: 18,
     color: COLORS.mute
-  }))), loading ? /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingTop: 'calc(16px + env(safe-area-inset-top,0px))',
+      paddingLeft: 20,
+      paddingRight: 72,
+      paddingBottom: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 34,
+      color: COLORS.ink,
+      letterSpacing: '-0.02em'
+    }
+  }, "My Trips", /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: 'monospace',
+      fontSize: 11,
+      color: COLORS.mute,
+      marginLeft: 8
+    }
+  }, "v141"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -11998,38 +11999,65 @@ function App() {
   const saveStop = draft => {
     const days = [...trip.days];
     const items = [...days[dayIdx].items];
-    items[openStop.idx] = draft;
-    days[dayIdx] = {
-      ...days[dayIdx],
-      items: sortByTime(items)
+    let savedDraft = {
+      ...draft
     };
-
-    // 숙소 스탑이면 메인 호텔 시간도 역방향 동기화
-    let hotels = trip.hotels;
-    if (draft._hotelRef && draft.time) {
-      const hIdx = (trip.hotels || []).findIndex(h => h.name === draft._hotelRef);
-      if (hIdx >= 0) {
-        const isCheckIn = (draft.title || '').includes('체크인');
-        const isCheckOut = (draft.title || '').includes('체크아웃');
-        if (isCheckIn || isCheckOut) {
-          hotels = [...trip.hotels];
+    let hotels = [...(trip.hotels || [])];
+    if (draft.cat === 'hotel') {
+      // 호텔 이름: en 우선, 없으면 타이틀에서 한국어 접미사 제거
+      const hotelName = draft.en || (draft.title || '').replace(/\s*(체크인|체크아웃|숙박|입실|퇴실)\s*$/, '').trim() || '숙소';
+      if (draft._hotelRef) {
+        // 기존 호텔 항목에 위치·메모·시간 역방향 동기화
+        const hIdx = hotels.findIndex(h => h.name === draft._hotelRef);
+        if (hIdx >= 0) {
+          const prev = hotels[hIdx];
+          const t = draft.title || '';
+          const isIn = t.includes('체크인') || t.includes('입실');
+          const isOut = t.includes('체크아웃') || t.includes('퇴실');
           hotels[hIdx] = {
-            ...hotels[hIdx],
-            ...(isCheckIn ? {
+            ...prev,
+            area: draft.loc || prev.area,
+            address: draft.note || prev.address,
+            ...(isIn && draft.time ? {
               checkinTime: draft.time
             } : {}),
-            ...(isCheckOut ? {
+            ...(isOut && draft.time ? {
               checkoutTime: draft.time
             } : {})
           };
         }
+      } else {
+        // _hotelRef 없음 → 숙소 항목 자동 생성 후 스탑에 링크
+        if (!hotels.find(h => h.name === hotelName)) {
+          const day = days[dayIdx];
+          const t2 = draft.title || '';
+          const isIn = t2.includes('체크인') || t2.includes('입실');
+          hotels.push({
+            name: hotelName,
+            area: draft.loc || '',
+            address: draft.note || '',
+            checkin: day.date || '',
+            nights: 1,
+            hue: 25,
+            ...(isIn && draft.time ? {
+              checkinTime: draft.time
+            } : {})
+          });
+        }
+        savedDraft = {
+          ...draft,
+          _hotelRef: hotelName
+        };
       }
     }
+    items[openStop.idx] = savedDraft;
+    days[dayIdx] = {
+      ...days[dayIdx],
+      items: sortByTime(items)
+    };
     editTrip({
       days,
-      ...(hotels !== trip.hotels ? {
-        hotels
-      } : {})
+      hotels
     });
     setOpenStop(null);
   };
@@ -12556,7 +12584,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v140"))), /*#__PURE__*/React.createElement("button", {
+  }, "v141"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
