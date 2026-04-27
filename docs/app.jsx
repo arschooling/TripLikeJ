@@ -1055,12 +1055,15 @@ function TimezoneCard({ city, onClick }) {
         <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>시차</div>
         <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={1.8}/>
       </div>
-      <div style={{ marginTop:5, fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{formatDiffFromSeoul(city.zone)}</div>
-      <div style={{ marginTop:1, fontFamily:SANS, fontSize:11, color:COLORS.mute, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-        {city.flag} {city.key} · {formatCityTime(city.zone)}
+      <div style={{ marginTop:5, display:'flex', alignItems:'baseline', gap:10 }}>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, flexShrink:0 }}>{formatDiffFromSeoul(city.zone)}</div>
+        <div style={{ display:'flex', flexDirection:'column', gap:1, minWidth:0 }}>
+          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.ink, letterSpacing:'0.02em' }}>{formatCityTime(city.zone)}</div>
+          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.04em' }}>{formatCityDateWeekday(city.zone)}</div>
+        </div>
       </div>
-      <div style={{ marginTop:2, fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.06em' }}>
-        {formatCityDateWeekday(city.zone)}
+      <div style={{ marginTop:5, fontFamily:SANS, fontSize:11, color:COLORS.mute, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+        {city.flag} {city.key}
       </div>
     </button>
   );
@@ -1438,7 +1441,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v108</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v109</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -5670,7 +5673,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v108</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v109</div>
         </div>
       </div>
       <button onClick={async () => {
