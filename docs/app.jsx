@@ -1438,7 +1438,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v106</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v107</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3794,13 +3794,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
     setAddOpen(false);
   };
 
-  const sharedIn  = entries.filter(e=>e.type==='in'  && (e.scope||'shared')==='shared').reduce((s,e)=>s+e.amount,0);
-  const sharedOut = entries.filter(e=>e.type==='out' && (e.scope||'shared')==='shared').reduce((s,e)=>s+e.amount,0);
-  const personalIn  = entries.filter(e=>e.type==='in'  && e.scope==='personal').reduce((s,e)=>s+e.amount,0);
-  const personalOut = entries.filter(e=>e.type==='out' && e.scope==='personal').reduce((s,e)=>s+e.amount,0);
-  const catTotals = {};
-  entries.filter(e=>e.type==='out').forEach(e => { catTotals[e.cat] = (catTotals[e.cat]||0)+e.amount; });
-  const topCats = Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).slice(0,4);
+
 
   return (
     <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110 }}>
@@ -5676,7 +5670,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v106</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v107</div>
         </div>
       </div>
       <button onClick={async () => {
