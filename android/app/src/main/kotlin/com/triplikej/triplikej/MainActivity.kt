@@ -1,0 +1,5 @@
+package com.triplikej.triplikej
+
+import io.flutter.embedding.android.FlutterActivity
+
+class MainActivity : FlutterActivity()

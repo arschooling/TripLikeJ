@@ -671,6 +671,36 @@ const Icon = ({
       return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
         d: "M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.1-8.7A2 2 0 0 1 4 2h3a2 2 0 0 1 2 1.7c.1.9.3 1.8.6 2.6a2 2 0 0 1-.5 2.1L7.9 9.7a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.8.3 1.7.5 2.6.6a2 2 0 0 1 1.7 2z"
       }));
+    case 'sparkle':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+        d: "M12 3 9.5 9.5 3 12l6.5 2.5L12 21l2.5-6.5L21 12l-6.5-2.5z"
+      }));
+    case 'wallet':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("rect", {
+        x: "2",
+        y: "5",
+        width: "20",
+        height: "14",
+        rx: "3"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M16 12h.01"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M2 10h20"
+      }));
+    case 'minus':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+        d: "M5 12h14"
+      }));
+    case 'calculator':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("rect", {
+        x: "4",
+        y: "2",
+        width: "16",
+        height: "20",
+        rx: "2"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h2M8 18h2M12 18h2M16 18h2"
+      }));
     default:
       return null;
   }
@@ -844,7 +874,8 @@ function SwipeableRow({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8
+      gap: 8,
+      zIndex: 0
     }
   }, /*#__PURE__*/React.createElement("button", {
     onClick: e => {
@@ -898,7 +929,9 @@ function SwipeableRow({
       transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.22,1,0.36,1)',
       willChange: 'transform',
       position: 'relative',
-      zIndex: 1
+      zIndex: 1,
+      background: COLORS.card,
+      WebkitTapHighlightColor: 'transparent'
     }
   }, children));
 }
@@ -1594,10 +1627,7 @@ function CompactWheel({
     }, 100);
   };
   const PAD = IH * Math.floor(VIS / 2);
-  const stop = e => {
-    e.stopPropagation();
-    e.preventDefault();
-  };
+  const stopProp = e => e.stopPropagation();
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'relative',
@@ -1605,10 +1635,10 @@ function CompactWheel({
       height: IH * VIS,
       overflow: 'hidden'
     },
-    onClick: stop,
-    onTouchStart: stop,
-    onTouchMove: stop,
-    onTouchEnd: stop
+    onClick: stopProp,
+    onTouchStart: stopProp,
+    onTouchMove: stopProp,
+    onTouchEnd: stopProp
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
@@ -1696,15 +1726,9 @@ function TimeField({
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'center',
-      gap: 6
+      justifyContent: 'center'
     }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "clock",
-    size: 13,
-    color: COLORS.mute,
-    stroke: 1.8
-  }), value || '09:00');
+  }, value || '09:00');
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -2292,7 +2316,59 @@ function TimeWheelSheet({
 }
 
 // ─── FX ─────────────────────────────────────────────────────
-function useFxRate() {
+const FX_CURRENCIES = [{
+  code: 'USD',
+  sym: '$'
+}, {
+  code: 'EUR',
+  sym: '€'
+}, {
+  code: 'JPY',
+  sym: '¥'
+}, {
+  code: 'GBP',
+  sym: '£'
+}, {
+  code: 'CNY',
+  sym: '¥'
+}, {
+  code: 'HKD',
+  sym: 'HK$'
+}, {
+  code: 'TWD',
+  sym: 'NT$'
+}, {
+  code: 'SGD',
+  sym: 'S$'
+}, {
+  code: 'THB',
+  sym: '฿'
+}, {
+  code: 'AUD',
+  sym: 'A$'
+}, {
+  code: 'CAD',
+  sym: 'C$'
+}, {
+  code: 'CHF',
+  sym: 'Fr'
+}, {
+  code: 'AED',
+  sym: 'AED'
+}, {
+  code: 'MYR',
+  sym: 'RM'
+}, {
+  code: 'VND',
+  sym: '₫'
+}, {
+  code: 'PHP',
+  sym: '₱'
+}, {
+  code: 'MXN',
+  sym: 'MX$'
+}];
+function useFxRate(currency) {
   const [state, setState] = React.useState({
     loading: true,
     rate: null,
@@ -2303,23 +2379,23 @@ function useFxRate() {
       ...s,
       loading: true
     }));
-    // Try several free USD→KRW feeds in sequence; first success wins.
+    const cur = currency.toLowerCase();
     const sources = [{
-      url: 'https://api.frankfurter.app/latest?from=USD&to=KRW',
+      url: `https://api.frankfurter.app/latest?from=${currency}&to=KRW`,
       parse: j => ({
         rate: j?.rates?.KRW,
         ts: j?.date
       })
     }, {
-      url: 'https://open.er-api.com/v6/latest/USD',
+      url: `https://open.er-api.com/v6/latest/${currency}`,
       parse: j => ({
         rate: j?.rates?.KRW,
         ts: j?.time_last_update_utc?.slice(0, 16)
       })
     }, {
-      url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
+      url: `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/${cur}.json`,
       parse: j => ({
-        rate: j?.usd?.krw,
+        rate: j?.[cur]?.krw,
         ts: j?.date
       })
     }];
@@ -2345,7 +2421,7 @@ function useFxRate() {
       }).catch(() => tryNext(i + 1));
     };
     tryNext(0);
-  }, []);
+  }, [currency]);
   React.useEffect(() => {
     fetchRate();
   }, [fetchRate]);
@@ -2355,12 +2431,14 @@ function useFxRate() {
   };
 }
 function FxCard() {
+  const [curIdx, setCurIdx] = React.useState(0);
+  const cur = FX_CURRENCIES[curIdx];
   const {
     loading,
     rate,
     ts,
     refresh
-  } = useFxRate();
+  } = useFxRate(cur.code);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.card,
@@ -2381,7 +2459,7 @@ function FxCard() {
       letterSpacing: '0.1em',
       textTransform: 'uppercase'
     }
-  }, "\uD558\uB098\uC740\uD589 \xB7 \uB9E4\uB9E4\uAE30\uC900\uC728"), /*#__PURE__*/React.createElement("button", {
+  }, "\uD658\uC728"), /*#__PURE__*/React.createElement("button", {
     onClick: refresh,
     style: {
       border: 'none',
@@ -2403,16 +2481,41 @@ function FxCard() {
     }
   }, loading ? '…' : rate ? `₩${Math.round(rate).toLocaleString()}` : '—'), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 1,
+      marginTop: 4,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontFamily: SANS,
       fontSize: 11,
       color: COLORS.mute
     }
-  }, "= $1 ", ts && /*#__PURE__*/React.createElement("span", {
+  }, "= ", cur.sym, "1 ", ts && /*#__PURE__*/React.createElement("span", {
     style: {
-      opacity: 0.7
+      opacity: 0.6
     }
-  }, "\xB7 ", ts)));
+  }, "\xB7 ", ts)), /*#__PURE__*/React.createElement("select", {
+    value: curIdx,
+    onChange: e => setCurIdx(Number(e.target.value)),
+    style: {
+      border: 'none',
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.ink,
+      fontWeight: 600,
+      outline: 'none',
+      padding: '2px 0',
+      appearance: 'none',
+      WebkitAppearance: 'none'
+    }
+  }, FX_CURRENCIES.map((c, i) => /*#__PURE__*/React.createElement("option", {
+    key: c.code,
+    value: i
+  }, c.code)))));
 }
 
 // ─── Timezones ──────────────────────────────────────────────
@@ -2513,6 +2616,19 @@ function formatCityTime(zone) {
     hour12: false
   }).format(new Date());
 }
+function formatCityDateWeekday(zone) {
+  const d = new Date();
+  const date = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: zone,
+    month: 'long',
+    day: 'numeric'
+  }).format(d);
+  const weekday = new Intl.DateTimeFormat('ko-KR', {
+    timeZone: zone,
+    weekday: 'short'
+  }).format(d);
+  return `${date} (${weekday})`;
+}
 function TimezoneCard({
   city,
   onClick
@@ -2555,13 +2671,41 @@ function TimezoneCard({
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 5,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontFamily: SERIF,
       fontSize: 22,
-      color: COLORS.ink
+      color: COLORS.ink,
+      flexShrink: 0
     }
   }, formatDiffFromSeoul(city.zone)), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 1,
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'flex-end',
+      gap: 2
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.04em'
+    }
+  }, formatCityDateWeekday(city.zone)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 16,
+      color: COLORS.ink,
+      letterSpacing: '0.04em'
+    }
+  }, formatCityTime(city.zone)))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 5,
       fontFamily: SANS,
       fontSize: 11,
       color: COLORS.mute,
@@ -2569,7 +2713,7 @@ function TimezoneCard({
       overflow: 'hidden',
       textOverflow: 'ellipsis'
     }
-  }, city.flag, " ", city.key, " \xB7 ", formatCityTime(city.zone)));
+  }, city.flag, " ", city.key));
 }
 function CityPicker({
   current,
@@ -2818,7 +2962,7 @@ function TripSwipeCard({
       borderRadius: 25,
       border: 'none',
       cursor: 'pointer',
-      background: '#4F6BED',
+      background: COLORS.accent,
       flexShrink: 0,
       display: 'flex',
       alignItems: 'center',
@@ -3291,21 +3435,14 @@ function TripsScreen({
     style: {
       minHeight: '100vh',
       background: COLORS.bg,
-      paddingBottom: 100,
-      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 72px)'
+      paddingBottom: 100
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 50,
-      background: COLORS.bg,
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
-      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 20px)',
       paddingLeft: 20,
       paddingRight: 20,
       paddingBottom: 16
@@ -3324,7 +3461,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v91")), /*#__PURE__*/React.createElement("button", {
+  }, "v127")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -3376,7 +3513,7 @@ function TripsScreen({
       onShare: () => onShare(t),
       onDelete: () => onDelete(t.id),
       wrapStyle: {
-        borderRadius: 20,
+        borderRadius: 16,
         border: `1px solid ${COLORS.line}`
       }
     }, /*#__PURE__*/React.createElement("button", {
@@ -3446,7 +3583,7 @@ function TripsScreen({
     style: {
       padding: '28px 20px',
       background: COLORS.card,
-      borderRadius: 20,
+      borderRadius: 16,
       border: `1px solid ${COLORS.line}`,
       textAlign: 'center',
       marginBottom: 4
@@ -3494,7 +3631,7 @@ function TripsScreen({
       padding: '18px 16px',
       background: 'transparent',
       border: `1.5px dashed ${COLORS.line}`,
-      borderRadius: 20,
+      borderRadius: 16,
       color: COLORS.mute,
       cursor: 'pointer',
       display: 'flex',
@@ -3621,25 +3758,44 @@ function HomeScreen({
       startIso: oldStart
     } = parseTripDates();
     let days = trip.days;
-    // 시작일 변경 시 모든 일정 날짜 이동
+    let hotels = trip.hotels || [];
+    // 시작일 변경 시 모든 일정 날짜 + 숙소 날짜 동시 이동
     if (newStartIso && oldStart && oldStart !== newStartIso) {
       const diffDays = Math.round((new Date(newStartIso + 'T12:00:00').getTime() - new Date(oldStart + 'T12:00:00').getTime()) / 86400000);
+      const shiftIso = iso => {
+        if (!iso) return iso;
+        const d = new Date(new Date(iso + 'T12:00:00').getTime() + diffDays * 86400000);
+        return d.toISOString().slice(0, 10);
+      };
+      const shiftHotelDate = dateStr => {
+        if (!dateStr) return dateStr;
+        const iso = dayDateToIso(dateStr, tripYear);
+        if (!iso) return dateStr;
+        const newIso = shiftIso(iso);
+        const m = newIso.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        return m ? `${MONTH_NAMES_SHORT[parseInt(m[2], 10) - 1]} ${parseInt(m[3], 10)}` : dateStr;
+      };
       days = (trip.days || []).map(d => {
         const dIso = dayDateToIso(d.date, tripYear);
         if (!dIso) return d;
-        const shifted = new Date(new Date(dIso + 'T12:00:00').getTime() + diffDays * 86400000);
-        const iso = shifted.toISOString().slice(0, 10);
+        const iso = shiftIso(dIso);
         return {
           ...d,
           date: isoToDayDate(iso),
           weekday: isoToWeekday(iso)
         };
       });
+      hotels = hotels.map(h => ({
+        ...h,
+        checkin: shiftHotelDate(h.checkin),
+        checkout: shiftHotelDate(h.checkout)
+      }));
     }
     const newStart = newStartIso ? isoToDayDate(newStartIso) : '';
     const newEnd = newEndIso ? isoToDayDate(newEndIso) : '';
     onEditTrip({
       days,
+      hotels,
       dates: newEnd ? `${newStart} — ${newEnd}` : newStart
     });
   };
@@ -3650,11 +3806,34 @@ function HomeScreen({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110,
       position: 'relative'
     }
-  }, onOpenCompanion && /*#__PURE__*/React.createElement("button", {
+  }, onBack && /*#__PURE__*/React.createElement("button", {
+    onClick: onBack,
+    style: {
+      position: 'absolute',
+      top: 'calc(16px + env(safe-area-inset-top,0px))',
+      left: 14,
+      zIndex: 10,
+      background: 'transparent',
+      border: 'none',
+      padding: '4px 8px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 3,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-l",
+    size: 14,
+    color: COLORS.mute,
+    stroke: 2
+  }), "My Trips"), onOpenCompanion && /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       position: 'absolute',
@@ -4121,25 +4300,10 @@ function HomeScreen({
     color: COLORS.mute,
     stroke: 2
   }), " \uC77C\uCC28 \uCD94\uAC00")), (() => {
-    const hotelList = trip.hotels || [];
-    // Inline hotels: hotel items in days not already in trip.hotels
-    const inlineHotels = [];
-    trip.days.forEach((d, di) => {
-      (d.items || []).forEach((it, ii) => {
-        if (it.cat === 'hotel') {
-          const exists = hotelList.some(h => h.name === it.title || h.name === it.en || it._hotelRef && it._hotelRef === h.name);
-          if (!exists) inlineHotels.push({
-            name: it.en || it.title.replace(/\s*(체크인|체크아웃)\s*$/, ''),
-            area: d.title,
-            checkin: `${d.date}${it.time ? ' · ' + it.time : ''}`,
-            hue: d.hero.hue,
-            _inline: true,
-            _dayIdx: di
-          });
-        }
-      });
-    });
-    const total = hotelList.length + inlineHotels.length;
+    const allHotels = trip.hotels || [];
+    const linkedNames = new Set((trip.days || []).flatMap(d => (d.items || []).filter(it => it._hotelRef).map(it => it._hotelRef)));
+    const hotelList = allHotels.filter(h => linkedNames.has(h.name));
+    const total = hotelList.length;
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '22px 24px 8px',
@@ -4278,142 +4442,7 @@ function HomeScreen({
         color: COLORS.mute,
         stroke: 1.8
       })));
-    }), inlineHotels.map((h, i) => {
-      // trip.hotels에 같은 이름 있으면 그리로, 없으면 자동 추가 후 오픈
-      const handleClick = () => {
-        const matchIdx = (trip.hotels || []).findIndex(h2 => h2.name === h.name);
-        if (matchIdx >= 0) {
-          onOpenHotel(matchIdx);
-        } else {
-          onConvertInlineHotel(h);
-        }
-      };
-      return /*#__PURE__*/React.createElement(SwipeableRow, {
-        key: 'inl' + i,
-        onEdit: handleClick,
-        onDelete: () => {},
-        disabled: editing,
-        wrapStyle: {
-          borderRadius: 16
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        onClick: handleClick,
-        style: {
-          background: COLORS.card,
-          borderRadius: 16,
-          padding: 12,
-          display: 'flex',
-          gap: 12,
-          alignItems: 'center',
-          cursor: 'pointer'
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          width: 64,
-          height: 64,
-          borderRadius: 10,
-          overflow: 'hidden',
-          flexShrink: 0
-        }
-      }, /*#__PURE__*/React.createElement(Photo, {
-        hue: h.hue ?? 25,
-        height: 64,
-        small: true
-      })), /*#__PURE__*/React.createElement("div", {
-        style: {
-          flex: 1,
-          minWidth: 0
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontFamily: MONO,
-          fontSize: 9.5,
-          color: COLORS.accent,
-          letterSpacing: '0.12em'
-        }
-      }, "STAY \xB7 ", h.checkin), /*#__PURE__*/React.createElement("div", {
-        style: {
-          marginTop: 3,
-          fontFamily: SERIF,
-          fontSize: 18,
-          lineHeight: 1.2,
-          color: COLORS.ink,
-          whiteSpace: 'nowrap',
-          overflow: 'hidden',
-          textOverflow: 'ellipsis'
-        }
-      }, h.name), /*#__PURE__*/React.createElement("div", {
-        style: {
-          marginTop: 3,
-          fontFamily: SANS,
-          fontSize: 11.5,
-          color: COLORS.mute,
-          display: 'flex',
-          gap: 5,
-          alignItems: 'center'
-        }
-      }, /*#__PURE__*/React.createElement(Icon, {
-        name: "pin",
-        size: 11,
-        color: COLORS.mute,
-        stroke: 1.8
-      }), /*#__PURE__*/React.createElement("span", null, h.area))), /*#__PURE__*/React.createElement(Icon, {
-        name: "chevron",
-        size: 16,
-        color: COLORS.mute,
-        stroke: 1.8
-      })));
-    }), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 8
-      }
-    }, /*#__PURE__*/React.createElement("button", {
-      onClick: onAddHotelFromSearch,
-      style: {
-        flex: 1,
-        padding: '13px 12px',
-        background: COLORS.ink,
-        color: COLORS.bg,
-        border: 'none',
-        borderRadius: 14,
-        cursor: 'pointer',
-        display: 'flex',
-        gap: 7,
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SANS,
-        fontSize: 13,
-        fontWeight: 500
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "search",
-      size: 13,
-      color: COLORS.bg,
-      stroke: 2
-    }), " \uC219\uC18C \uAC80\uC0C9"), /*#__PURE__*/React.createElement("button", {
-      onClick: onAddHotel,
-      style: {
-        flex: 1,
-        padding: '13px 12px',
-        background: 'transparent',
-        border: `1.5px dashed ${COLORS.line}`,
-        borderRadius: 14,
-        color: COLORS.mute,
-        cursor: 'pointer',
-        display: 'flex',
-        gap: 7,
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SANS,
-        fontSize: 13
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "plus",
-      size: 13,
-      color: COLORS.mute,
-      stroke: 2
-    }), " \uC9C1\uC811 \uCD94\uAC00"))));
+    })));
   })(), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '22px 24px 8px'
@@ -4524,13 +4553,15 @@ function DayScreen({
   });
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePickerOpen, setDatePickerOpen] = React.useState(false);
+  const [nearbyStop, setNearbyStop] = React.useState(null);
+  const [nearbyTab, setNearbyTab] = React.useState('hotspot');
   const {
     itemProps: itemDragProps
   } = useDragReorder(onReorderItems, editing);
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -4790,7 +4821,60 @@ function DayScreen({
       style: {
         position: 'relative'
       }
+    }, !editing && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        zIndex: 5,
+        display: 'flex',
+        gap: 4
+      }
     }, /*#__PURE__*/React.createElement("button", {
+      onClick: e => {
+        e.stopPropagation();
+        setNearbyTab('food');
+        setNearbyStop(it);
+      },
+      style: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        border: 'none',
+        background: 'rgba(26,24,22,0.06)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "food",
+      size: 13,
+      color: COLORS.mute,
+      stroke: 1.8
+    })), /*#__PURE__*/React.createElement("button", {
+      onClick: e => {
+        e.stopPropagation();
+        setNearbyTab('hotspot');
+        setNearbyStop(it);
+      },
+      style: {
+        width: 26,
+        height: 26,
+        borderRadius: 13,
+        border: 'none',
+        background: 'rgba(26,24,22,0.06)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "sparkle",
+      size: 13,
+      color: COLORS.mute,
+      stroke: 1.8
+    }))), /*#__PURE__*/React.createElement("button", {
       onClick: () => onOpenStop({
         idx: i,
         stop: it,
@@ -5030,6 +5114,10 @@ function DayScreen({
       });
       setDatePickerOpen(false);
     }
+  }), /*#__PURE__*/React.createElement(NearbySheet, {
+    stop: nearbyStop,
+    initialTab: nearbyTab,
+    onClose: () => setNearbyStop(null)
   }));
 }
 
@@ -5138,7 +5226,7 @@ function HotelDetailScreen({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -5528,6 +5616,369 @@ function HotelDetailScreen({
   }));
 }
 
+// ─── Nearby suggestions sheet ────────────────────────────────
+function haversineM(lat1, lon1, lat2, lon2) {
+  const R = 6371000,
+    toR = Math.PI / 180;
+  const dLat = (lat2 - lat1) * toR,
+    dLon = (lon2 - lon1) * toR;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * toR) * Math.cos(lat2 * toR) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function NearbySheet({
+  stop,
+  initialTab,
+  onClose
+}) {
+  const [tab, setTab] = React.useState('hotspot');
+  const [hotspots, setHotspots] = React.useState(null);
+  const [food, setFood] = React.useState(null);
+  const [photos, setPhotos] = React.useState({});
+  const [entered, setEntered] = React.useState(false);
+  const [sheetY, setSheetY] = React.useState(0);
+  const sheetRef = React.useRef(null);
+  const sheetYRef = React.useRef(0);
+  const dragRef = React.useRef({
+    active: false
+  });
+
+  // 열릴 때마다 리셋 + 슬라이드업 애니
+  React.useEffect(() => {
+    if (!stop) {
+      setEntered(false);
+      return;
+    }
+    setTab(initialTab || 'hotspot');
+    setHotspots(null);
+    setFood(null);
+    setPhotos({});
+    setSheetY(0);
+    sheetYRef.current = 0;
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [stop, initialTab]);
+
+  // 두 타입 병렬 fetch
+  React.useEffect(() => {
+    if (!stop) return;
+    const ctrl = new AbortController();
+    (async () => {
+      try {
+        let lat, lon;
+        if (stop.coords) {
+          [lat, lon] = stop.coords;
+        } else {
+          const q = encodeURIComponent([stop.title, stop.en, stop.loc].filter(Boolean).join(' '));
+          const geo = await fetch(`https://photon.komoot.io/api/?q=${q}&limit=1`, {
+            signal: ctrl.signal
+          }).then(r => r.json());
+          const f = geo.features?.[0];
+          if (!f) {
+            setHotspots([]);
+            setFood([]);
+            return;
+          }
+          [lon, lat] = f.geometry.coordinates;
+        }
+        const parse = d => {
+          const seen = new Set();
+          return (d.elements || []).reduce((acc, e) => {
+            const nm = e.tags?.name || e.tags?.['name:en'] || '';
+            if (!nm || seen.has(nm) || !e.lat) return acc;
+            seen.add(nm);
+            acc.push({
+              name: nm,
+              type: e.tags?.amenity || e.tags?.tourism || e.tags?.historic || e.tags?.leisure || '',
+              wikipedia: e.tags?.wikipedia || '',
+              dist: haversineM(lat, lon, e.lat, e.lon),
+              lat: e.lat,
+              lon: e.lon
+            });
+            return acc;
+          }, []).sort((a, b) => a.dist - b.dist);
+        };
+        const hQ = `[out:json][timeout:10];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo"](around:900,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"](around:900,${lat},${lon});node["leisure"~"park|garden"](around:900,${lat},${lon}););out 30;`;
+        const fQ = `[out:json][timeout:10];(node["amenity"~"restaurant|cafe|bar|fast_food|pub|biergarten|food_court"](around:600,${lat},${lon}););out 30;`;
+        const base = 'https://overpass-api.de/api/interpreter?data=';
+        const [hR, fR] = await Promise.all([fetch(base + encodeURIComponent(hQ), {
+          signal: ctrl.signal
+        }).then(r => r.json()), fetch(base + encodeURIComponent(fQ), {
+          signal: ctrl.signal
+        }).then(r => r.json())]);
+        setHotspots(parse(hR));
+        setFood(parse(fR));
+      } catch (e) {
+        if (!ctrl.signal.aborted) {
+          setHotspots([]);
+          setFood([]);
+        }
+      }
+    })();
+    return () => ctrl.abort();
+  }, [stop]);
+
+  // Wikipedia 사진 fetch
+  React.useEffect(() => {
+    [...(hotspots || []), ...(food || [])].forEach(item => {
+      if (!item.wikipedia || item.name in photos) return;
+      setPhotos(p => ({
+        ...p,
+        [item.name]: null
+      }));
+      const title = item.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
+      fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`).then(r => r.json()).then(d => {
+        if (d.thumbnail?.source) setPhotos(p => ({
+          ...p,
+          [item.name]: d.thumbnail.source
+        }));
+      }).catch(() => {});
+    });
+  }, [hotspots, food]);
+
+  // 드래그-투-클로즈
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !stop) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY,
+        st: el.scrollTop
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      if (dragRef.current.st > 8 || dy <= 0) {
+        dragRef.current.active = false;
+        return;
+      }
+      e.preventDefault();
+      sheetYRef.current = Math.max(0, dy);
+      setSheetY(sheetYRef.current);
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      if (sheetYRef.current > 110) onClose();else {
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [stop]);
+  if (!stop) return null;
+  const TYPE_KO = {
+    restaurant: '레스토랑',
+    cafe: '카페',
+    bar: '바',
+    fast_food: '패스트푸드',
+    pub: '펍',
+    biergarten: '비어가든',
+    food_court: '푸드코트',
+    attraction: '명소',
+    museum: '박물관',
+    viewpoint: '전망대',
+    gallery: '갤러리',
+    theme_park: '테마파크',
+    zoo: '동물원',
+    park: '공원',
+    garden: '정원',
+    monument: '기념비',
+    castle: '성',
+    ruins: '유적',
+    memorial: '기념관',
+    historic: '유적지'
+  };
+  const fmtDist = m => m < 1000 ? `${Math.round(m)}m` : `${(m / 1000).toFixed(1)}km`;
+  const currentData = tab === 'hotspot' ? hotspots : food;
+  const loading = currentData === null;
+  const renderItem = item => {
+    const photoUrl = photos[item.name];
+    const hue = item.name.split('').reduce((h, c) => h * 31 + c.charCodeAt(0) & 0xffff, 0) % 360;
+    return /*#__PURE__*/React.createElement("button", {
+      key: item.name,
+      onClick: () => window.open(mapsSearchUrl(item.name), '_blank'),
+      style: {
+        width: '100%',
+        padding: '10px 16px',
+        border: 'none',
+        borderBottom: `1px solid ${COLORS.line}`,
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'left',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 58,
+        height: 58,
+        borderRadius: 12,
+        flexShrink: 0,
+        overflow: 'hidden'
+      }
+    }, photoUrl ? /*#__PURE__*/React.createElement("img", {
+      src: photoUrl,
+      style: {
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover'
+      },
+      loading: "lazy"
+    }) : /*#__PURE__*/React.createElement(Photo, {
+      hue: hue,
+      height: 58,
+      small: true
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13.5,
+        fontWeight: 500,
+        color: COLORS.ink,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, item.name), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10,
+        color: COLORS.mute,
+        marginTop: 3
+      }
+    }, TYPE_KO[item.type] || item.type || '—', " \xB7 ", fmtDist(item.dist))), /*#__PURE__*/React.createElement(Icon, {
+      name: "chevron",
+      size: 14,
+      color: COLORS.line,
+      stroke: 2
+    }));
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 1100,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: `rgba(0,0,0,${Math.max(0, 0.32 - sheetY / 500)})`
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      maxHeight: '74%',
+      overflowY: 'auto',
+      overflowX: 'hidden',
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom,0px))',
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 2px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 18px 12px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 19,
+      color: COLORS.ink,
+      flex: 1,
+      minWidth: 0,
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis'
+    }
+  }, stop.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      background: COLORS.softer,
+      borderRadius: 12,
+      padding: 3,
+      gap: 2,
+      flexShrink: 0
+    }
+  }, [{
+    v: 'hotspot',
+    label: '핫플'
+  }, {
+    v: 'food',
+    label: '음식점'
+  }].map(({
+    v,
+    label
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setTab(v),
+    style: {
+      padding: '7px 13px',
+      border: 'none',
+      borderRadius: 9,
+      cursor: 'pointer',
+      background: tab === v ? COLORS.card : 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: 600,
+      color: tab === v ? COLORS.ink : COLORS.mute,
+      boxShadow: tab === v ? '0 1px 4px rgba(0,0,0,0.08)' : 'none'
+    }
+  }, label)))), loading && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '40px 20px',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC8FC\uBCC0 \uC7A5\uC18C\uB97C \uCC3E\uB294 \uC911..."), !loading && currentData.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '40px 20px',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC8FC\uBCC0\uC5D0 ", tab === 'hotspot' ? '핫플이' : '음식점이', " \uC5C6\uC5B4\uC694"), !loading && currentData.length > 0 && /*#__PURE__*/React.createElement("div", null, currentData.map(renderItem))));
+}
+
 // ─── Stop sheet (unchanged except pulls editing from open) ─
 function StopSheet({
   open,
@@ -5541,6 +5992,7 @@ function StopSheet({
   const [draft, setDraft] = React.useState(open.stop);
   const committed = React.useRef(open.stop);
   const [sheetY, setSheetY] = React.useState(0);
+  const [entered, setEntered] = React.useState(false);
   const sheetRef = React.useRef(null);
   const sheetYRef = React.useRef(0);
   const dragRef = React.useRef({
@@ -5554,17 +6006,16 @@ function StopSheet({
     setSheetY(0);
     sheetYRef.current = 0;
     setEditing(!!open.editing);
+    setEntered(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
 
-  // 배경 스크롤 완전 차단
+  // 배경 스크롤 차단
   React.useEffect(() => {
     const prevOverflow = document.body.style.overflow;
-    const prevTouch = document.body.style.touchAction;
     document.body.style.overflow = 'hidden';
-    document.body.style.touchAction = 'none';
     return () => {
       document.body.style.overflow = prevOverflow;
-      document.body.style.touchAction = prevTouch;
     };
   }, []);
 
@@ -5597,7 +6048,8 @@ function StopSheet({
     };
     const onEnd = () => {
       dragRef.current.active = false;
-      if (sheetYRef.current > window.innerHeight * 0.5) {
+      const topPos = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
+      if (topPos > window.innerHeight / 2) {
         onClose();
       } else {
         sheetYRef.current = 0;
@@ -5641,8 +6093,8 @@ function StopSheet({
       maxHeight: '92%',
       overflowY: 'auto',
       overflowX: 'hidden',
-      transform: `translateY(${sheetY}px)`,
-      transition: sheetY === 0 ? 'transform 0.32s cubic-bezier(0.32,0.72,0,1)' : 'none'
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6424,6 +6876,17 @@ function MapScreen({
     ...it,
     _origIdx: ii
   })).filter(it => it.loc);
+  const getTodayDayIdx = () => {
+    const yr = extractTripYear(trip);
+    const todayIso = new Date().toISOString().slice(0, 10);
+    const isos = trip.days.map(d => dayDateToIso(d.date, yr) || '');
+    const todayIdx = isos.findIndex(iso => iso === todayIso);
+    if (todayIdx >= 0) return todayIdx;
+    const future = isos.findIndex(iso => iso > todayIso);
+    if (future === 0 || isos.every(iso => !iso)) return 0;
+    if (future < 0) return trip.days.length - 1;
+    return future - 1;
+  };
   const [state, dispatch] = React.useReducer((s, a) => {
     if (a.type === 'DAY') return {
       selDay: a.v,
@@ -6449,10 +6912,13 @@ function MapScreen({
       };
     }
     return s;
-  }, null, () => ({
-    selDay: 0,
-    ordered: makeOrdered(0)
-  }));
+  }, null, () => {
+    const i = getTodayDayIdx();
+    return {
+      selDay: i,
+      ordered: makeOrdered(i)
+    };
+  });
   const {
     selDay,
     ordered
@@ -6618,7 +7084,7 @@ function MapScreen({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -6872,39 +7338,72 @@ function FoodScreen({
   editing,
   setEditing
 }) {
+  const [query, setQuery] = React.useState('');
+  const [newCatInput, setNewCatInput] = React.useState(false);
+  const [newCatName, setNewCatName] = React.useState('');
+  const [addSelCat, setAddSelCat] = React.useState(null); // which cat is showing inline add
+
+  const allFood = trip.food || [];
+  const cats = [...new Set(allFood.map(f => f.cat).filter(Boolean))];
+  const qLow = query.toLowerCase();
+  const matchesQuery = f => !query || (f.name || '').toLowerCase().includes(qLow) || (f.detail || '').toLowerCase().includes(qLow) || (f.note || '').toLowerCase().includes(qLow);
+
+  // Group: if searching, flat list; otherwise by category
   const grouped = {};
-  (trip.food || []).forEach((f, idx) => {
-    (grouped[f.cat] = grouped[f.cat] || []).push({
+  allFood.forEach((f, idx) => {
+    if (!matchesQuery(f)) return;
+    const key = f.cat || '기타';
+    (grouped[key] = grouped[key] || []).push({
       ...f,
       idx
     });
   });
-  const addFood = () => {
-    const list = [...(trip.food || []), {
-      cat: '🍕 New',
+  const groupEntries = Object.entries(grouped);
+  const totalFiltered = groupEntries.reduce((s, [, items]) => s + items.length, 0);
+  const addFood = cat => {
+    onEditFood([...allFood, {
+      cat,
       name: '새 맛집',
       detail: '',
       price: '',
       note: ''
-    }];
-    onEditFood(list);
+    }]);
+    setAddSelCat(null);
   };
   const delFood = idx => {
     if (!confirm('이 맛집을 삭제할까요?')) return;
-    onEditFood((trip.food || []).filter((_, i) => i !== idx));
+    onEditFood(allFood.filter((_, i) => i !== idx));
   };
   const updateFood = (idx, patch) => {
-    const list = [...(trip.food || [])];
+    const list = [...allFood];
     list[idx] = {
       ...list[idx],
       ...patch
     };
     onEditFood(list);
   };
+  const renameCat = (oldCat, newCat) => {
+    if (!newCat.trim() || newCat === oldCat) return;
+    onEditFood(allFood.map(f => f.cat === oldCat ? {
+      ...f,
+      cat: newCat
+    } : f));
+  };
+  const deleteCat = cat => {
+    if (!confirm(`"${cat}" 카테고리와 모든 맛집을 삭제할까요?`)) return;
+    onEditFood(allFood.filter(f => f.cat !== cat));
+  };
+  const addCategory = () => {
+    const name = newCatName.trim();
+    if (!name) return;
+    addFood(name);
+    setNewCatName('');
+    setNewCatInput(false);
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -6912,7 +7411,7 @@ function FoodScreen({
       paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
       paddingLeft: 24,
       paddingRight: 24,
-      paddingBottom: 16
+      paddingBottom: 12
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6930,80 +7429,91 @@ function FoodScreen({
       color: COLORS.ink,
       letterSpacing: '-0.02em'
     }
-  }, "\uBA39\uC5B4\uBCFC \uAC83.")), /*#__PURE__*/React.createElement("div", {
+  }, "Eat List.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px 16px',
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "search",
+    size: 14,
+    color: COLORS.mute,
+    stroke: 2,
+    style: {
+      position: 'absolute',
+      left: 28,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      pointerEvents: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: query,
+    onChange: e => setQuery(e.target.value),
+    placeholder: "\uB9DB\uC9D1 \uAC80\uC0C9...",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      paddingLeft: 36,
+      paddingRight: 12,
+      paddingTop: 9,
+      paddingBottom: 9,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '0 16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: 18
+      gap: 20
     }
-  }, Object.entries(grouped).map(([cat, items]) => /*#__PURE__*/React.createElement("div", {
+  }, groupEntries.map(([cat, items]) => /*#__PURE__*/React.createElement("div", {
     key: cat
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '0 4px 8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      marginBottom: 8,
+      paddingLeft: 2
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
       fontFamily: MONO,
+      fontSize: 10.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      flex: 1
+    }
+  }, cat), editing && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      const n = prompt('카테고리 이름 변경:', cat);
+      if (n) renameCat(cat, n);
+    },
+    style: {
+      padding: '3px 8px',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 8,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
       fontSize: 11,
-      color: COLORS.mute,
-      letterSpacing: '0.08em'
+      color: COLORS.mute
     }
-  }, cat), /*#__PURE__*/React.createElement("div", {
+  }, "\uC774\uB984 \uBCC0\uACBD"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => deleteCat(cat),
     style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      overflow: 'hidden'
-    }
-  }, items.map((f, i) => /*#__PURE__*/React.createElement("div", {
-    key: f.idx,
-    style: {
-      padding: '12px 14px',
-      position: 'relative',
-      borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none'
-    }
-  }, editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("input", {
-    value: f.name,
-    onChange: e => updateFood(f.idx, {
-      name: e.target.value
-    }),
-    style: {
-      width: '100%',
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: SANS,
-      fontSize: 14,
-      fontWeight: 500,
-      color: COLORS.ink,
-      padding: 0
-    }
-  }), /*#__PURE__*/React.createElement("input", {
-    value: f.detail,
-    onChange: e => updateFood(f.idx, {
-      detail: e.target.value
-    }),
-    placeholder: "\uC0C1\uC138",
-    style: {
-      width: '100%',
-      marginTop: 3,
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute,
-      padding: 0
-    }
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => delFood(f.idx),
-    style: {
-      position: 'absolute',
-      top: 8,
-      right: 8,
       width: 24,
       height: 24,
       borderRadius: 12,
       border: 'none',
-      background: 'rgba(193,79,46,0.12)',
+      background: 'rgba(193,79,46,0.10)',
       cursor: 'pointer',
       display: 'flex',
       alignItems: 'center',
@@ -7014,8 +7524,104 @@ function FoodScreen({
     size: 11,
     color: COLORS.accent,
     stroke: 2
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      overflow: 'hidden'
+    }
+  }, items.map((f, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
+    key: f.idx,
+    onEdit: () => setEditing(true),
+    onDelete: () => delFood(f.idx),
+    disabled: editing,
+    wrapStyle: {
+      borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 14px',
+      position: 'relative'
+    }
+  }, editing ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 4,
+      paddingRight: 32
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: f.name,
+    onChange: e => updateFood(f.idx, {
+      name: e.target.value
+    }),
+    placeholder: "\uB9DB\uC9D1 \uC774\uB984",
+    style: {
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 500,
+      color: COLORS.ink,
+      padding: 0,
+      width: '100%'
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: f.detail || '',
+    onChange: e => updateFood(f.idx, {
+      detail: e.target.value
+    }),
+    placeholder: "\uC0C1\uC138 \uC124\uBA85",
+    style: {
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      padding: 0,
+      width: '100%'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: f.price || '',
+    onChange: e => updateFood(f.idx, {
+      price: e.target.value
+    }),
+    placeholder: "\uAC00\uACA9",
+    style: {
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.accent,
+      padding: 0,
+      width: 60
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    value: f.note || '',
+    onChange: e => updateFood(f.idx, {
+      note: e.target.value
+    }),
+    placeholder: "\uBA54\uBAA8",
+    style: {
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute,
+      padding: 0,
+      flex: 1
+    }
   }))) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => window.open(mapsSearchUrl(`${f.name} New York`), '_blank'),
+    onClick: () => window.open(mapsSearchUrl(f.name), '_blank'),
     style: {
       width: '100%',
       padding: 0,
@@ -7045,7 +7651,7 @@ function FoodScreen({
       color: COLORS.accent,
       flexShrink: 0
     }
-  }, f.price)), /*#__PURE__*/React.createElement("div", {
+  }, f.price)), f.detail && /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 3,
       fontFamily: SANS,
@@ -7062,19 +7668,159 @@ function FoodScreen({
       fontStyle: 'italic',
       opacity: 0.8
     }
-  }, "\u2014 ", f.note))))))), editing && /*#__PURE__*/React.createElement("button", {
-    onClick: addFood,
+  }, "\u2014 ", f.note)), editing && /*#__PURE__*/React.createElement("button", {
+    onClick: () => delFood(f.idx),
     style: {
-      padding: '14px 12px',
-      background: 'transparent',
-      border: `1.5px dashed ${COLORS.line}`,
-      borderRadius: 14,
-      color: COLORS.mute,
+      position: 'absolute',
+      top: 8,
+      right: 8,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      border: 'none',
+      background: 'rgba(193,79,46,0.12)',
       cursor: 'pointer',
       display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 11,
+    color: COLORS.accent,
+    stroke: 2
+  }))))), addSelCat === cat ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
       gap: 8,
+      padding: '10px 14px',
+      borderTop: `1px solid ${COLORS.line}`
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => addFood(cat),
+    style: {
+      flex: 1,
+      padding: '8px 0',
+      border: 'none',
+      borderRadius: 10,
+      background: COLORS.accent,
+      color: '#fff',
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer'
+    }
+  }, "\uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddSelCat(null),
+    style: {
+      padding: '8px 12px',
+      border: 'none',
+      borderRadius: 10,
+      background: COLORS.softer,
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13,
+      cursor: 'pointer'
+    }
+  }, "\uCDE8\uC18C")) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddSelCat(cat),
+    style: {
+      width: '100%',
+      padding: '10px 14px',
+      background: 'transparent',
+      border: 'none',
+      borderTop: `1px solid ${COLORS.line}`,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      cursor: 'pointer',
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 13,
+    color: COLORS.mute,
+    stroke: 2
+  }), " \uB9DB\uC9D1 \uCD94\uAC00")))), totalFiltered === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '32px 0',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, query ? '검색 결과가 없어요' : cats.length === 0 ? '카테고리를 만들어 맛집을 추가해 보세요' : '맛집을 추가해 보세요'), newCatInput ? /*#__PURE__*/React.createElement("form", {
+    onSubmit: e => {
+      e.preventDefault();
+      addCategory();
+    },
+    style: {
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: newCatName,
+    onChange: e => setNewCatName(e.target.value),
+    placeholder: "\uCE74\uD14C\uACE0\uB9AC \uC774\uB984",
+    style: {
+      flex: 1,
+      padding: '11px 14px',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      fontFamily: SANS,
+      fontSize: 13.5,
+      background: COLORS.card,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "submit",
+    style: {
+      padding: '11px 16px',
+      border: 'none',
+      borderRadius: 12,
+      background: COLORS.ink,
+      color: '#fff',
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer'
+    }
+  }, "\uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => {
+      setNewCatInput(false);
+      setNewCatName('');
+    },
+    style: {
+      padding: '11px 12px',
+      border: 'none',
+      borderRadius: 12,
+      background: COLORS.softer,
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13,
+      cursor: 'pointer'
+    }
+  }, "\uCDE8\uC18C")) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => setNewCatInput(true),
+    style: {
+      width: '100%',
+      padding: '12px 16px',
+      border: `1.5px dashed ${COLORS.line}`,
+      borderRadius: 14,
+      background: 'transparent',
+      cursor: 'pointer',
+      display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
+      gap: 8,
+      color: COLORS.mute,
       fontFamily: SANS,
       fontSize: 13
     }
@@ -7083,10 +7829,37 @@ function FoodScreen({
     size: 14,
     color: COLORS.mute,
     stroke: 2
-  }), " \uB9DB\uC9D1 \uCD94\uAC00")));
+  }), " \uCE74\uD14C\uACE0\uB9AC \uCD94\uAC00")));
 }
 
-// ─── Prep (editable lists) ─────────────────────────────────
+// ─── Prep (editable lists with categories) ────────────────────
+function normalizePrepCats(raw) {
+  if (raw?.cats) return raw;
+  const result = [];
+  if (raw?.checklist?.length) result.push({
+    id: 'cat_checklist',
+    name: '체크리스트',
+    items: raw.checklist
+  });
+  if (raw?.docs?.length) result.push({
+    id: 'cat_docs',
+    name: '입국 서류',
+    items: raw.docs
+  });
+  if (raw?.pack?.length) result.push({
+    id: 'cat_pack',
+    name: '챙길 물건',
+    items: raw.pack
+  });
+  if (!result.length) result.push({
+    id: 'cat_1',
+    name: '체크리스트',
+    items: []
+  });
+  return {
+    cats: result
+  };
+}
 function PrepScreen({
   trip,
   prep: prepProp,
@@ -7094,22 +7867,84 @@ function PrepScreen({
   editing,
   setEditing
 }) {
-  const totalStops = trip.days.reduce((s, d) => s + d.items.length, 0);
-  const prep = prepProp || trip.prep || {
-    checklist: [],
-    docs: [],
-    pack: []
+  const rawPrep = prepProp || trip.prep || {};
+  const prep = normalizePrepCats(rawPrep);
+  const cats = prep.cats || [];
+  const [renamingCat, setRenamingCat] = React.useState(null);
+  const [addInputCat, setAddInputCat] = React.useState(null);
+  const [addInputText, setAddInputText] = React.useState('');
+  const [editingItem, setEditingItem] = React.useState(null); // { ci, ii }
+
+  const save = newCats => onEditPrep({
+    ...prep,
+    cats: newCats
+  });
+  const addCat = () => {
+    const id = 'cat_' + Date.now();
+    const newCats = [...cats, {
+      id,
+      name: '새 카테고리',
+      items: []
+    }];
+    save(newCats);
+    setTimeout(() => setRenamingCat(newCats.length - 1), 50);
+  };
+  const deleteCat = i => {
+    if (!confirm(`"${cats[i].name}" 카테고리를 삭제할까요?`)) return;
+    const next = cats.filter((_, j) => j !== i);
+    if (!next.length) next.push({
+      id: 'cat_1',
+      name: '체크리스트',
+      items: []
+    });
+    save(next);
+  };
+  const renameCat = (i, name) => {
+    const next = [...cats];
+    next[i] = {
+      ...next[i],
+      name
+    };
+    save(next);
+  };
+  const addItem = ci => {
+    if (!addInputText.trim()) return;
+    const next = [...cats];
+    next[ci] = {
+      ...next[ci],
+      items: [...(next[ci].items || []), addInputText.trim()]
+    };
+    save(next);
+    setAddInputText('');
+    setAddInputCat(null);
+  };
+  const updateItem = (ci, ii, val) => {
+    const next = [...cats];
+    const items = [...next[ci].items];
+    items[ii] = val;
+    next[ci] = {
+      ...next[ci],
+      items
+    };
+    save(next);
+  };
+  const deleteItem = (ci, ii) => {
+    const next = [...cats];
+    next[ci] = {
+      ...next[ci],
+      items: next[ci].items.filter((_, j) => j !== ii)
+    };
+    save(next);
   };
 
-  // ── D-day 계산 ─────────────────────────────────────────────
+  // D-day
   const tripYear = extractTripYear(trip);
   const firstDate = trip.days[0]?.date || '';
   const lastDate = trip.days[trip.days.length - 1]?.date || '';
   const parseDate = s => {
     if (!s) return null;
     const iso = dayDateToIso(s, tripYear);
-    if (!iso) return null;
-    return new Date(iso + 'T12:00:00');
+    return iso ? new Date(iso + 'T12:00:00') : null;
   };
   const depDate = parseDate(firstDate);
   const retDate = parseDate(lastDate);
@@ -7125,159 +7960,17 @@ function PrepScreen({
       ddayLabel = `D-${diff}`;
       ddayColor = COLORS.accent;
     } else if (retDate && today <= retDate) {
-      ddayLabel = `여행 중 ✈️`;
+      ddayLabel = '여행 중 ✈️';
       ddayColor = '#2E7D32';
     } else {
       ddayLabel = `D+${Math.abs(diff)}`;
       ddayColor = COLORS.mute;
     }
   }
-  const Section = ({
-    sectionKey,
-    title
-  }) => {
-    const items = prep[sectionKey] || [];
-    const {
-      itemProps
-    } = useDragReorder((from, to) => {
-      const list = [...items];
-      const [m] = list.splice(from, 1);
-      list.splice(to, 0, m);
-      onEditPrep({
-        ...prep,
-        [sectionKey]: list
-      });
-    }, editing);
-    const update = (i, v) => {
-      const list = [...items];
-      list[i] = v;
-      onEditPrep({
-        ...prep,
-        [sectionKey]: list
-      });
-    };
-    const del = i => onEditPrep({
-      ...prep,
-      [sectionKey]: items.filter((_, j) => j !== i)
-    });
-    const add = () => onEditPrep({
-      ...prep,
-      [sectionKey]: [...items, '새 항목']
-    });
-    return /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '0 16px',
-        marginTop: 16
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '0 4px 8px',
-        fontFamily: MONO,
-        fontSize: 10,
-        color: COLORS.mute,
-        letterSpacing: '0.12em',
-        textTransform: 'uppercase'
-      }
-    }, title), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: COLORS.card,
-        borderRadius: 14,
-        overflow: 'hidden'
-      }
-    }, items.map((t, i) => {
-      const dp = itemProps(i);
-      return /*#__PURE__*/React.createElement("div", _extends({
-        key: i
-      }, dp, {
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          padding: '12px 14px',
-          borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none',
-          ...(dp.style || {}),
-          outline: dp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
-          outlineOffset: -2
-        }
-      }), /*#__PURE__*/React.createElement("div", {
-        style: {
-          width: 16,
-          height: 16,
-          borderRadius: 8,
-          border: `1.5px solid ${COLORS.ink}`,
-          flexShrink: 0
-        }
-      }), editing ? /*#__PURE__*/React.createElement("input", {
-        value: t,
-        onChange: e => update(i, e.target.value),
-        style: {
-          flex: 1,
-          border: 'none',
-          outline: 'none',
-          background: 'transparent',
-          fontFamily: SANS,
-          fontSize: 13.5,
-          color: COLORS.ink,
-          padding: 0
-        }
-      }) : /*#__PURE__*/React.createElement("span", {
-        style: {
-          flex: 1,
-          fontFamily: SANS,
-          fontSize: 13.5,
-          color: COLORS.ink
-        }
-      }, t), editing && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(DragHandle, {
-        size: 13,
-        color: COLORS.mute
-      }), /*#__PURE__*/React.createElement("button", {
-        onClick: () => del(i),
-        style: {
-          width: 22,
-          height: 22,
-          borderRadius: 11,
-          border: 'none',
-          background: 'rgba(193,79,46,0.12)',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }
-      }, /*#__PURE__*/React.createElement(Icon, {
-        name: "trash",
-        size: 11,
-        color: COLORS.accent,
-        stroke: 2
-      }))));
-    })), editing && /*#__PURE__*/React.createElement("button", {
-      onClick: add,
-      style: {
-        marginTop: 6,
-        padding: '10px 12px',
-        background: 'transparent',
-        border: `1.5px dashed ${COLORS.line}`,
-        borderRadius: 12,
-        color: COLORS.mute,
-        cursor: 'pointer',
-        width: '100%',
-        display: 'flex',
-        gap: 8,
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontFamily: SANS,
-        fontSize: 12
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "plus",
-      size: 12,
-      color: COLORS.mute,
-      stroke: 2
-    }), " \uD56D\uBAA9 \uCD94\uAC00"));
-  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.bg,
-      minHeight: '100%',
+      minHeight: '100vh',
       paddingBottom: 110
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -7303,10 +7996,10 @@ function PrepScreen({
       color: COLORS.ink,
       letterSpacing: '-0.02em'
     }
-  }, "\uCD9C\uBC1C \uC900\uBE44.")), depDate && /*#__PURE__*/React.createElement("div", {
+  }, "Pack & Go.")), depDate && /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '0 16px',
-      marginBottom: 8
+      marginBottom: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7315,8 +8008,7 @@ function PrepScreen({
       padding: '14px 18px',
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between',
-      boxShadow: '0 1px 4px rgba(0,0,0,0.06)'
+      justifyContent: 'space-between'
     }
   }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7341,7 +8033,7 @@ function PrepScreen({
       color: COLORS.mute,
       marginTop: 3
     }
-  }, trip.days.length, "\uBC15 ", trip.days.length, "\uC77C")), /*#__PURE__*/React.createElement("div", {
+  }, trip.days.length, "\uC77C")), /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'right'
     }
@@ -7362,54 +8054,1756 @@ function PrepScreen({
       letterSpacing: '-0.02em',
       lineHeight: 1
     }
-  }, ddayLabel)))), /*#__PURE__*/React.createElement("div", {
+  }, ddayLabel)))), cats.map((cat, ci) => /*#__PURE__*/React.createElement("div", {
+    key: cat.id,
     style: {
       padding: '0 16px',
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr 1fr',
-      gap: 8
-    }
-  }, [{
-    v: trip.days.length,
-    l: 'Days'
-  }, {
-    v: totalStops,
-    l: 'Stops'
-  }, {
-    v: (trip.food || []).length,
-    l: 'Eats'
-  }].map((s, i) => /*#__PURE__*/React.createElement("div", {
-    key: i,
-    style: {
-      background: COLORS.card,
-      borderRadius: 12,
-      padding: '14px 10px',
-      textAlign: 'center'
+      marginBottom: 20
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: SERIF,
-      fontSize: 28,
-      color: COLORS.ink
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      marginBottom: 8,
+      paddingLeft: 2
     }
-  }, s.v), /*#__PURE__*/React.createElement("div", {
+  }, editing && renamingCat === ci ? /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: cat.name,
+    onChange: e => renameCat(ci, e.target.value),
+    onBlur: () => setRenamingCat(null),
+    onKeyDown: e => e.key === 'Enter' && setRenamingCat(null),
+    style: {
+      flex: 1,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 8,
+      padding: '4px 8px',
+      fontFamily: MONO,
+      fontSize: 10.5,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      background: COLORS.card,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }) : /*#__PURE__*/React.createElement("span", {
+    style: {
+      flex: 1,
+      fontFamily: MONO,
+      fontSize: 10.5,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      color: COLORS.mute
+    }
+  }, cat.name), editing && renamingCat !== ci && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setRenamingCat(ci),
+    style: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      border: 'none',
+      background: 'transparent',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "edit",
+    size: 12,
+    color: COLORS.mute,
+    stroke: 2
+  })), editing && /*#__PURE__*/React.createElement("button", {
+    onClick: () => deleteCat(ci),
+    style: {
+      width: 22,
+      height: 22,
+      borderRadius: 11,
+      border: 'none',
+      background: 'rgba(193,79,46,0.10)',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 12,
+    color: COLORS.accent,
+    stroke: 2
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      overflow: 'hidden'
+    }
+  }, (cat.items || []).length === 0 && addInputCat !== ci && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '14px 16px',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694"), (cat.items || []).map((item, ii) => {
+    const isEditingThis = editingItem?.ci === ci && editingItem?.ii === ii;
+    return /*#__PURE__*/React.createElement(SwipeableRow, {
+      key: ii,
+      onEdit: () => setEditingItem({
+        ci,
+        ii
+      }),
+      onDelete: () => deleteItem(ci, ii),
+      wrapStyle: {
+        borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 14px',
+        background: COLORS.card
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        border: `1.5px solid ${COLORS.line}`,
+        flexShrink: 0
+      }
+    }), editing || isEditingThis ? /*#__PURE__*/React.createElement("input", {
+      autoFocus: isEditingThis,
+      value: item,
+      onChange: e => updateItem(ci, ii, e.target.value),
+      onBlur: () => {
+        if (isEditingThis) setEditingItem(null);
+      },
+      onKeyDown: e => {
+        if (e.key === 'Enter' || e.key === 'Escape') setEditingItem(null);
+      },
+      style: {
+        flex: 1,
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 13.5,
+        color: COLORS.ink,
+        padding: 0
+      }
+    }) : /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1,
+        fontFamily: SANS,
+        fontSize: 13.5,
+        color: COLORS.ink
+      }
+    }, item), editing && !isEditingThis && /*#__PURE__*/React.createElement("button", {
+      onClick: () => deleteItem(ci, ii),
+      style: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        border: 'none',
+        background: 'rgba(193,79,46,0.12)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 11,
+      color: COLORS.accent,
+      stroke: 2
+    }))));
+  }), addInputCat === ci ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      padding: '10px 14px',
+      borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 16,
+      height: 16,
+      borderRadius: 8,
+      border: `1.5px solid ${COLORS.line}`,
+      flexShrink: 0
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: addInputText,
+    onChange: e => setAddInputText(e.target.value),
+    placeholder: "\uD56D\uBAA9 \uC785\uB825...",
+    onKeyDown: e => {
+      if (e.key === 'Enter') addItem(ci);
+      if (e.key === 'Escape') {
+        setAddInputCat(null);
+        setAddInputText('');
+      }
+    },
+    style: {
+      flex: 1,
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.ink,
+      padding: 0
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => addItem(ci),
+    style: {
+      padding: '4px 10px',
+      border: 'none',
+      borderRadius: 8,
+      background: COLORS.accent,
+      color: '#fff',
+      fontFamily: SANS,
+      fontSize: 12,
+      cursor: 'pointer'
+    }
+  }, "\uCD94\uAC00")) : /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAddInputCat(ci);
+      setAddInputText('');
+    },
+    style: {
+      width: '100%',
+      padding: '10px 14px',
+      background: 'transparent',
+      border: 'none',
+      borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      cursor: 'pointer',
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 13,
+    color: COLORS.mute,
+    stroke: 2
+  }), " \uD56D\uBAA9 \uCD94\uAC00")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px 20px'
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: addCat,
+    style: {
+      width: '100%',
+      padding: '12px 16px',
+      border: `1.5px dashed ${COLORS.line}`,
+      borderRadius: 14,
+      background: 'transparent',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 14,
+    color: COLORS.mute,
+    stroke: 2
+  }), " \uCE74\uD14C\uACE0\uB9AC \uCD94\uAC00")));
+}
+
+// ─── Budget Screen ─────────────────────────────────────────
+const BUDGET_OUT_CATS_DEFAULT = ['교통', '숙박', '식비', '쇼핑', '관광', '기타'];
+const BUDGET_IN_CATS_DEFAULT = ['환전', '지원금', '기타'];
+
+// 원화 환산 환율 (대략적 기준)
+const KRW_RATES = {
+  KRW: 1,
+  USD: 1350,
+  EUR: 1480,
+  JPY: 9.2,
+  CNY: 188,
+  HKD: 173,
+  TWD: 43,
+  SGD: 1010,
+  THB: 38,
+  VND: 0.055,
+  PHP: 23,
+  IDR: 0.088,
+  MYR: 308,
+  INR: 16,
+  AUD: 890,
+  NZD: 820,
+  GBP: 1720,
+  CHF: 1530,
+  SEK: 128,
+  NOK: 122,
+  DKK: 198,
+  CAD: 1000,
+  MXN: 73,
+  BRL: 272,
+  AED: 368,
+  SAR: 360,
+  TRY: 42,
+  CZK: 62,
+  HUF: 3.7,
+  PLN: 345
+};
+const CURRENCY_SYMBOL = {
+  KRW: '₩',
+  USD: '$',
+  EUR: '€',
+  JPY: '¥',
+  CNY: '¥',
+  HKD: 'HK$',
+  TWD: 'NT$',
+  SGD: 'S$',
+  THB: '฿',
+  VND: '₫',
+  PHP: '₱',
+  IDR: 'Rp',
+  MYR: 'RM',
+  INR: '₹',
+  AUD: 'A$',
+  NZD: 'NZ$',
+  GBP: '£',
+  CHF: 'Fr',
+  SEK: 'kr',
+  NOK: 'kr',
+  DKK: 'kr',
+  CAD: 'C$',
+  MXN: '$',
+  BRL: 'R$',
+  AED: 'AED',
+  SAR: 'SAR',
+  TRY: '₺',
+  CZK: 'Kč',
+  HUF: 'Ft',
+  PLN: 'zł'
+};
+const toKrw = (amt, cur) => amt * (KRW_RATES[cur] || 1);
+const fmtAmt = (n, cur) => {
+  const sym = CURRENCY_SYMBOL[cur] || cur;
+  return sym + n.toLocaleString('ko-KR', {
+    maximumFractionDigits: cur === 'KRW' ? 0 : 2
+  });
+};
+function BudgetCalcSheet({
+  open,
+  onClose,
+  onEnter
+}) {
+  const [display, setDisplay] = React.useState('0');
+  const [prevVal, setPrevVal] = React.useState(null);
+  const [op, setOp] = React.useState(null);
+  const [waitNew, setWaitNew] = React.useState(false);
+  const [entered, setEntered] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) {
+      setEntered(false);
+      return;
+    }
+    setDisplay('0');
+    setPrevVal(null);
+    setOp(null);
+    setWaitNew(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [open]);
+  if (!open) return null;
+  const compute = (a, b, o) => {
+    if (o === '+') return a + b;
+    if (o === '−') return a - b;
+    if (o === '×') return a * b;
+    if (o === '÷') return b !== 0 ? a / b : 0;
+    return b;
+  };
+  const pressDigit = d => {
+    if (waitNew) {
+      setDisplay(d === '.' ? '0.' : d);
+      setWaitNew(false);
+      return;
+    }
+    if (d === '.' && display.includes('.')) return;
+    setDisplay(display === '0' && d !== '.' ? d : display + d);
+  };
+  const pressOp = newOp => {
+    const cur = parseFloat(display) || 0;
+    if (prevVal !== null && !waitNew) {
+      const r = compute(prevVal, cur, op);
+      setDisplay(String(Math.round(r * 100) / 100));
+      setPrevVal(r);
+    } else {
+      setPrevVal(cur);
+    }
+    setOp(newOp);
+    setWaitNew(true);
+  };
+  const pressEqual = () => {
+    const cur = parseFloat(display) || 0;
+    if (prevVal !== null && op) {
+      const r = compute(prevVal, cur, op);
+      setDisplay(String(Math.round(r * 100) / 100));
+    }
+    setPrevVal(null);
+    setOp(null);
+    setWaitNew(true);
+  };
+  const pressClear = () => {
+    setDisplay('0');
+    setPrevVal(null);
+    setOp(null);
+    setWaitNew(false);
+  };
+  const pressBack = () => {
+    if (waitNew || display.length <= 1) {
+      setDisplay('0');
+      setWaitNew(false);
+    } else setDisplay(display.slice(0, -1) || '0');
+  };
+  const displayNum = parseFloat(display) || 0;
+  const fmtDisp = display.includes('.') ? display : Number(display).toLocaleString('ko-KR');
+  const KS = (bg, color, extra = {}) => ({
+    flex: 1,
+    padding: '17px 0',
+    border: 'none',
+    borderRadius: 14,
+    cursor: 'pointer',
+    fontFamily: MONO,
+    fontSize: 20,
+    fontWeight: 600,
+    background: bg,
+    color,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...extra
+  });
+  const isOp = o => op === o;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 310,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: 'rgba(0,0,0,0.4)'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      paddingBottom: 'env(safe-area-inset-bottom,0px)',
+      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
+      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 4px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '8px 20px 14px',
+      textAlign: 'right',
+      minHeight: 64
+    }
+  }, op && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 16,
+      color: COLORS.mute,
+      marginRight: 8
+    }
+  }, op), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 44,
+      color: COLORS.ink,
+      letterSpacing: '-0.02em'
+    }
+  }, fmtDisp)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 14px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: pressClear,
+    style: KS(COLORS.softer, COLORS.mute)
+  }, "C"), /*#__PURE__*/React.createElement("button", {
+    onClick: pressBack,
+    style: KS(COLORS.softer, COLORS.mute)
+  }, "\u232B"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setDisplay(String(Math.round((parseFloat(display) || 0) / 100 * 100) / 100));
+      setWaitNew(true);
+    },
+    style: KS(COLORS.softer, COLORS.mute)
+  }, "%"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => pressOp('÷'),
+    style: KS(isOp('÷') ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp('÷') ? '#fff' : COLORS.accent)
+  }, "\xF7")), [['7', '8', '9', '×'], ['4', '5', '6', '−'], ['1', '2', '3', '+']].map(row => /*#__PURE__*/React.createElement("div", {
+    key: row[0],
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, row.slice(0, 3).map(d => /*#__PURE__*/React.createElement("button", {
+    key: d,
+    onClick: () => pressDigit(d),
+    style: KS(COLORS.card, COLORS.ink)
+  }, d)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => pressOp(row[3]),
+    style: KS(isOp(row[3]) ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp(row[3]) ? '#fff' : COLORS.accent)
+  }, row[3]))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => pressDigit('0'),
+    style: KS(COLORS.card, COLORS.ink, {
+      flex: 2
+    })
+  }, "0"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => pressDigit('.'),
+    style: KS(COLORS.card, COLORS.ink)
+  }, "."), /*#__PURE__*/React.createElement("button", {
+    onClick: pressEqual,
+    style: KS(COLORS.accent, '#fff')
+  }, "="))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '12px 14px 16px',
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onEnter('in', displayNum);
+      onClose();
+    },
+    style: {
+      flex: 1,
+      padding: '14px 0',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 14,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: COLORS.ink,
+      cursor: 'pointer'
+    }
+  }, "\uC218\uC785\uC73C\uB85C \uC785\uB825"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onEnter('out', displayNum);
+      onClose();
+    },
+    style: {
+      flex: 1,
+      padding: '14px 0',
+      border: 'none',
+      borderRadius: 14,
+      background: COLORS.accent,
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: 'pointer'
+    }
+  }, "\uC9C0\uCD9C\uB85C \uC785\uB825"))));
+}
+function SplitSheet({
+  open,
+  onClose,
+  totalKrw,
+  defaultN,
+  onEnter
+}) {
+  const [n, setN] = React.useState(String(defaultN));
+  const [entered, setEntered] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) {
+      setEntered(false);
+      return;
+    }
+    setN(String(defaultN));
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [open, defaultN]);
+  if (!open) return null;
+  const count = Math.max(1, parseInt(n) || 1);
+  const perPerson = Math.round(totalKrw / count);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 310,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: 'rgba(0,0,0,0.4)'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      padding: '0 16px',
+      paddingBottom: 'calc(20px + env(safe-area-inset-bottom,0px))',
+      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
+      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 20,
+      color: COLORS.ink,
+      padding: '6px 4px 14px'
+    }
+  }, "1/N \uBD84\uD560"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '14px 16px',
+      marginBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
       fontSize: 9.5,
       color: COLORS.mute,
       letterSpacing: '0.1em',
       textTransform: 'uppercase',
-      marginTop: 2
+      marginBottom: 4
     }
-  }, s.l)))), /*#__PURE__*/React.createElement(Section, {
-    sectionKey: "checklist",
-    title: "\uCCB4\uD06C\uB9AC\uC2A4\uD2B8"
-  }), /*#__PURE__*/React.createElement(Section, {
-    sectionKey: "docs",
-    title: "\uC785\uAD6D \uC11C\uB958"
-  }), /*#__PURE__*/React.createElement(Section, {
-    sectionKey: "pack",
-    title: "\uCC59\uAE38 \uBB3C\uAC74"
+  }, "\uACF5\uB3D9 \uC9C0\uCD9C \uCD1D\uC561 (\u20A9 \uD658\uC0B0)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 26,
+      color: COLORS.ink
+    }
+  }, fmtAmt(totalKrw, 'KRW'))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '14px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      marginBottom: 8
+    }
+  }, "\uC778\uC6D0 \uC218"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => setN(String(Math.max(1, count - 1))),
+    style: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 18,
+      color: COLORS.ink,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, "\u2212"), /*#__PURE__*/React.createElement("input", {
+    value: n,
+    onChange: e => setN(e.target.value.replace(/[^0-9]/g, '')),
+    style: {
+      width: 36,
+      textAlign: 'center',
+      border: 'none',
+      outline: 'none',
+      fontFamily: MONO,
+      fontSize: 22,
+      fontWeight: 700,
+      color: COLORS.ink,
+      background: 'transparent'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setN(String(count + 1)),
+    style: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 18,
+      color: COLORS.ink,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, "+"))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.mute
+    }
+  }, "="), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1.3,
+      background: COLORS.ink,
+      borderRadius: 14,
+      padding: '14px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.5)',
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "1\uC778\uB2F9"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: '#fff',
+      letterSpacing: '-0.01em'
+    }
+  }, fmtAmt(perPerson, 'KRW')))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onEnter('in', perPerson);
+      onClose();
+    },
+    style: {
+      flex: 1,
+      padding: '14px 0',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 14,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: COLORS.ink,
+      cursor: 'pointer'
+    }
+  }, "\uC218\uC785\uC73C\uB85C \uC785\uB825"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onEnter('out', perPerson);
+      onClose();
+    },
+    style: {
+      flex: 1,
+      padding: '14px 0',
+      border: 'none',
+      borderRadius: 14,
+      background: COLORS.accent,
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: 'pointer'
+    }
+  }, "\uC9C0\uCD9C\uB85C \uC785\uB825"))));
+}
+function BudgetScreen({
+  trip,
+  onEditBudget,
+  onSheetChange
+}) {
+  const budget = trip.budget || {};
+  const entries = budget.entries || [];
+  const outCats = budget.outCats || BUDGET_OUT_CATS_DEFAULT;
+  const inCats = budget.inCats || BUDGET_IN_CATS_DEFAULT;
+  const [addOpen, setAddOpen] = React.useState(false);
+  const [editIdx, setEditIdx] = React.useState(null);
+  const [delConfirm, setDelConfirm] = React.useState(false);
+  const [form, setForm] = React.useState({
+    type: 'out',
+    amount: '',
+    cat: '식비',
+    note: '',
+    date: ''
+  });
+  const [addingCat, setAddingCat] = React.useState(false);
+  const [newCatVal, setNewCatVal] = React.useState('');
+  const [calcOpen, setCalcOpen] = React.useState(false);
+  const [splitOpen, setSplitOpen] = React.useState(false);
+  const sheetTouchY = React.useRef(null);
+  React.useEffect(() => {
+    onSheetChange?.(addOpen || editIdx !== null);
+  }, [addOpen, editIdx]);
+
+  // KRW 환산 합계 (총 금액 표시용)
+  const krwTotalOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+  const krwTotalIn = entries.filter(e => e.type === 'in').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+
+  // 통화별 수입/지출 원액
+  const byCurrency = {};
+  entries.forEach(e => {
+    const cur = e.currency || 'KRW';
+    if (!byCurrency[cur]) byCurrency[cur] = {
+      out: 0,
+      inc: 0
+    };
+    if (e.type === 'out') byCurrency[cur].out += e.amount;else byCurrency[cur].inc += e.amount;
+  });
+
+  // 공동/개인 KRW 합계 (지출/수입 각각)
+  const hasShared = entries.some(e => (e.scope || 'personal') === 'shared');
+  const krwSharedOut = entries.filter(e => e.type === 'out' && (e.scope || 'personal') === 'shared').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+  const krwPersonalOut = entries.filter(e => e.type === 'out' && (e.scope || 'personal') === 'personal').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+  const krwSharedIn = entries.filter(e => e.type === 'in' && (e.scope || 'personal') === 'shared').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+  const krwPersonalIn = entries.filter(e => e.type === 'in' && (e.scope || 'personal') === 'personal').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
+  const currentCats = form.type === 'out' ? outCats : inCats;
+  const openAdd = type => {
+    const cats = type === 'out' ? outCats : inCats;
+    setForm({
+      type,
+      amount: '',
+      cat: cats[0] || '',
+      note: '',
+      date: '',
+      currency: 'KRW',
+      scope: 'personal'
+    });
+    setEditIdx(null);
+    setDelConfirm(false);
+    setAddingCat(false);
+    setNewCatVal('');
+    setAddOpen(true);
+  };
+  const openAddWithAmount = (type, amount) => {
+    const cats = type === 'out' ? outCats : inCats;
+    setForm({
+      type,
+      amount: String(Math.round(amount)),
+      cat: cats[0] || '',
+      note: '',
+      date: '',
+      currency: 'KRW',
+      scope: 'personal'
+    });
+    setEditIdx(null);
+    setDelConfirm(false);
+    setAddingCat(false);
+    setNewCatVal('');
+    setAddOpen(true);
+  };
+  const openEdit = idx => {
+    const e = entries[idx];
+    setForm({
+      type: e.type,
+      amount: String(e.amount),
+      cat: e.cat,
+      note: e.note || '',
+      date: e.date || '',
+      currency: e.currency || 'KRW',
+      scope: e.scope || 'personal'
+    });
+    setEditIdx(idx);
+    setDelConfirm(false);
+    setAddingCat(false);
+    setNewCatVal('');
+    setAddOpen(true);
+  };
+  const addCustomCat = () => {
+    const name = newCatVal.trim();
+    if (!name) return;
+    const key = form.type === 'out' ? 'outCats' : 'inCats';
+    const cur = form.type === 'out' ? outCats : inCats;
+    if (cur.includes(name)) {
+      setForm(f => ({
+        ...f,
+        cat: name
+      }));
+      setAddingCat(false);
+      setNewCatVal('');
+      return;
+    }
+    const next = [...cur, name];
+    onEditBudget({
+      [key]: next
+    });
+    setForm(f => ({
+      ...f,
+      cat: name
+    }));
+    setAddingCat(false);
+    setNewCatVal('');
+  };
+  const saveEntry = () => {
+    const amt = parseFloat(form.amount);
+    if (!amt || isNaN(amt)) return;
+    const cur = form.currency || 'KRW';
+    const entry = {
+      id: editIdx !== null ? entries[editIdx].id : Date.now().toString(),
+      type: form.type,
+      amount: amt,
+      cat: form.cat,
+      note: form.note,
+      currency: cur,
+      scope: form.scope || 'shared',
+      date: form.date || new Date().toISOString().slice(0, 10)
+    };
+    const updated = editIdx !== null ? entries.map((e, i) => i === editIdx ? entry : e) : [...entries, entry];
+    onEditBudget({
+      entries: updated
+    });
+    setAddOpen(false);
+  };
+  const deleteEntry = () => {
+    onEditBudget({
+      entries: entries.filter((_, i) => i !== editIdx)
+    });
+    setAddOpen(false);
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      minHeight: '100vh',
+      paddingBottom: 110
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))',
+      paddingLeft: 24,
+      paddingRight: 24,
+      paddingBottom: 12
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase'
+    }
+  }, "Travel Budget"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 4,
+      fontFamily: SERIF,
+      fontSize: 38,
+      color: COLORS.ink,
+      letterSpacing: '-0.02em'
+    }
+  }, "Budget.")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '0 16px 14px',
+      background: COLORS.ink,
+      borderRadius: 20,
+      padding: '20px 22px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.45)',
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uCD1D \uC218\uC785 (\u20A9 \uD658\uC0B0)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 28,
+      color: '#7EC88A',
+      letterSpacing: '-0.02em',
+      lineHeight: 1
+    }
+  }, fmtAmt(Math.round(krwTotalIn), 'KRW'))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: 'rgba(255,255,255,0.45)',
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uCD1D \uC9C0\uCD9C (\u20A9 \uD658\uC0B0)"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 28,
+      color: '#E88A7E',
+      letterSpacing: '-0.02em',
+      lineHeight: 1
+    }
+  }, fmtAmt(Math.round(krwTotalOut), 'KRW')))), Object.keys(byCurrency).length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      paddingTop: 14,
+      borderTop: '1px solid rgba(255,255,255,0.1)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 7
+    }
+  }, Object.entries(byCurrency).map(([cur, {
+    out,
+    inc
+  }]) => /*#__PURE__*/React.createElement("div", {
+    key: cur,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.08em',
+      width: 38,
+      flexShrink: 0
+    }
+  }, cur), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 14
+    }
+  }, out > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.65)'
+    }
+  }, "\uC9C0\uCD9C ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#E88A7E'
+    }
+  }, fmtAmt(out, cur))), inc > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 12,
+      color: 'rgba(255,255,255,0.65)'
+    }
+  }, "\uC218\uC785 ", /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: '#7EC88A'
+    }
+  }, fmtAmt(inc, cur))))))), hasShared && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      paddingTop: 14,
+      borderTop: '1px solid rgba(255,255,255,0.1)',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10
+    }
+  }, (krwSharedOut > 0 || krwPersonalOut > 0) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 24
+    }
+  }, krwSharedOut > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'flex-end',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.1em',
+      marginBottom: 3
+    }
+  }, "\uACF5\uB3D9 \uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)'
+    }
+  }, fmtAmt(Math.round(krwSharedOut), 'KRW'))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSplitOpen(true),
+    style: {
+      marginBottom: 1,
+      padding: '3px 7px',
+      border: '1px solid rgba(255,255,255,0.2)',
+      borderRadius: 8,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: MONO,
+      fontSize: 9,
+      color: 'rgba(255,255,255,0.55)',
+      letterSpacing: '0.05em'
+    }
+  }, "\xF7N")), krwPersonalOut > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.1em',
+      marginBottom: 3
+    }
+  }, "\uAC1C\uC778 \uC9C0\uCD9C"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)'
+    }
+  }, fmtAmt(Math.round(krwPersonalOut), 'KRW')))), (krwSharedIn > 0 || krwPersonalIn > 0) && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 24
+    }
+  }, krwSharedIn > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.1em',
+      marginBottom: 3
+    }
+  }, "\uACF5\uB3D9 \uC218\uC785"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)'
+    }
+  }, fmtAmt(Math.round(krwSharedIn), 'KRW'))), krwPersonalIn > 0 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9,
+      color: 'rgba(255,255,255,0.4)',
+      letterSpacing: '0.1em',
+      marginBottom: 3
+    }
+  }, "\uAC1C\uC778 \uC218\uC785"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 13,
+      color: 'rgba(255,255,255,0.75)'
+    }
+  }, fmtAmt(Math.round(krwPersonalIn), 'KRW')))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px 16px',
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => openAdd('in'),
+    style: {
+      flex: 1,
+      padding: '12px 0',
+      background: COLORS.card,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 14,
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: COLORS.ink,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 14,
+    color: COLORS.ink,
+    stroke: 2.5
+  }), " \uC218\uC785 \uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => openAdd('out'),
+    style: {
+      flex: 1,
+      padding: '12px 0',
+      background: COLORS.accent,
+      border: 'none',
+      borderRadius: 14,
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "minus",
+    size: 14,
+    color: "#fff",
+    stroke: 2.5
+  }), " \uC9C0\uCD9C \uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCalcOpen(true),
+    style: {
+      width: 46,
+      padding: '12px 0',
+      background: COLORS.card,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 14,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "calculator",
+    size: 16,
+    color: COLORS.ink,
+    stroke: 1.8
+  }))), entries.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '60px 0',
+      textAlign: 'center'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.ink,
+      marginBottom: 8
+    }
+  }, "\uC544\uC9C1 \uAE30\uB85D\uC774 \uC5C6\uC5B4\uC694"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.mute
+    }
+  }, "\uC5EC\uD589 \uC218\uC785\uACFC \uC9C0\uCD9C\uC744 \uAE30\uB85D\uD574 \uBCF4\uC138\uC694")) : (() => {
+    const indexed = [...entries].map((e, i) => ({
+      ...e,
+      _i: i
+    })).reverse();
+    const personal = indexed.filter(e => (e.scope || 'personal') === 'personal');
+    const shared = indexed.filter(e => (e.scope || 'personal') === 'shared');
+    const renderEntry = e => /*#__PURE__*/React.createElement("div", {
+      key: e.id || e._i,
+      onClick: () => openEdit(e._i),
+      style: {
+        background: COLORS.card,
+        borderRadius: 14,
+        padding: '13px 16px',
+        marginBottom: 8,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        flexShrink: 0,
+        background: e.type === 'in' ? 'rgba(126,200,138,0.15)' : 'rgba(232,138,126,0.12)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: e.type === 'in' ? 'plus' : 'minus',
+      size: 15,
+      color: e.type === 'in' ? '#3A9B4C' : '#C14F2E',
+      stroke: 2.5
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13.5,
+        fontWeight: 500,
+        color: COLORS.ink
+      }
+    }, e.cat, e.note ? ` · ${e.note}` : ''), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10,
+        color: COLORS.mute,
+        marginTop: 2
+      }
+    }, e.date)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 15,
+        fontWeight: 600,
+        textAlign: 'right',
+        flexShrink: 0,
+        color: e.type === 'in' ? '#3A9B4C' : COLORS.ink
+      }
+    }, e.type === 'in' ? '+' : '-', fmtAmt(e.amount, e.currency || 'KRW')));
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 16px'
+      }
+    }, personal.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, hasShared && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute,
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        padding: '4px 4px 8px'
+      }
+    }, "\uAC1C\uC778"), personal.map(renderEntry)), shared.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: '#4F6BED',
+        letterSpacing: '0.1em',
+        textTransform: 'uppercase',
+        padding: '4px 4px 8px',
+        marginTop: personal.length > 0 ? 8 : 0
+      }
+    }, "\uACF5\uB3D9"), shared.map(renderEntry)));
+  })(), addOpen && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 200,
+      background: 'rgba(0,0,0,0.38)'
+    },
+    onClick: () => setAddOpen(false)
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      padding: '20px 18px',
+      paddingBottom: 'calc(24px + env(safe-area-inset-bottom,0px))'
+    },
+    onClick: e => e.stopPropagation(),
+    onTouchStart: e => {
+      sheetTouchY.current = e.touches[0].clientY;
+    },
+    onTouchEnd: e => {
+      if (e.changedTouches[0].clientY - (sheetTouchY.current || 0) > 80) setAddOpen(false);
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2,
+      margin: '-10px auto 14px'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8,
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      display: 'flex',
+      gap: 6,
+      background: COLORS.softer,
+      borderRadius: 14,
+      padding: 4
+    }
+  }, [{
+    v: 'in',
+    label: '수입'
+  }, {
+    v: 'out',
+    label: '지출'
+  }].map(({
+    v,
+    label
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => {
+      const cats = v === 'out' ? outCats : inCats;
+      setForm(f => ({
+        ...f,
+        type: v,
+        cat: cats[0] || ''
+      }));
+    },
+    style: {
+      flex: 1,
+      padding: '9px 0',
+      border: 'none',
+      borderRadius: 10,
+      cursor: 'pointer',
+      background: form.type === v ? COLORS.card : 'transparent',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: form.type === v ? COLORS.ink : COLORS.mute
+    }
+  }, label))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 4,
+      background: COLORS.softer,
+      borderRadius: 14,
+      padding: 4
+    }
+  }, [{
+    v: 'personal',
+    label: '개인'
+  }, {
+    v: 'shared',
+    label: '공동'
+  }].map(({
+    v,
+    label
+  }) => /*#__PURE__*/React.createElement("button", {
+    key: v,
+    onClick: () => setForm(f => ({
+      ...f,
+      scope: v
+    })),
+    style: {
+      padding: '9px 12px',
+      border: 'none',
+      borderRadius: 10,
+      cursor: 'pointer',
+      background: (form.scope || 'personal') === v ? COLORS.card : 'transparent',
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: (form.scope || 'personal') === v ? COLORS.ink : COLORS.mute
+    }
+  }, label)))), /*#__PURE__*/React.createElement("input", {
+    type: "text",
+    inputMode: "decimal",
+    value: (() => {
+      if (!form.amount) return '';
+      const parts = form.amount.split('.');
+      const intStr = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+      return parts.length > 1 ? intStr + '.' + parts[1] : intStr;
+    })(),
+    onChange: e => {
+      const raw = e.target.value.replace(/[^0-9.]/g, '');
+      const dotCount = (raw.match(/\./g) || []).length;
+      if (dotCount <= 1) setForm(f => ({
+        ...f,
+        amount: raw
+      }));
+    },
+    placeholder: "\uAE08\uC561",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '13px 16px',
+      marginBottom: 12,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: MONO,
+      fontSize: 24,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 12
+    }
+  }, addingCat ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    autoFocus: true,
+    value: newCatVal,
+    onChange: e => setNewCatVal(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter') addCustomCat();
+      if (e.key === 'Escape') {
+        setAddingCat(false);
+        setNewCatVal('');
+      }
+    },
+    placeholder: "\uC0C8 \uD56D\uBAA9 \uC774\uB984",
+    style: {
+      flex: 1,
+      padding: '11px 14px',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: addCustomCat,
+    style: {
+      padding: '11px 16px',
+      border: 'none',
+      borderRadius: 12,
+      background: COLORS.ink,
+      color: '#fff',
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      cursor: 'pointer'
+    }
+  }, "\uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setAddingCat(false);
+      setNewCatVal('');
+    },
+    style: {
+      padding: '11px 12px',
+      border: 'none',
+      borderRadius: 12,
+      background: COLORS.softer,
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13,
+      cursor: 'pointer'
+    }
+  }, "\uCDE8\uC18C")) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("select", {
+    value: form.cat,
+    onChange: e => setForm(f => ({
+      ...f,
+      cat: e.target.value
+    })),
+    style: {
+      flex: 1,
+      padding: '11px 14px',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      outline: 'none',
+      appearance: 'none',
+      WebkitAppearance: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 14px center'
+    }
+  }, currentCats.map(c => /*#__PURE__*/React.createElement("option", {
+    key: c,
+    value: c
+  }, c))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddingCat(true),
+    style: {
+      padding: '11px 14px',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 14,
+    color: COLORS.mute,
+    stroke: 2
+  })))), /*#__PURE__*/React.createElement("select", {
+    value: form.currency || 'KRW',
+    onChange: e => setForm(f => ({
+      ...f,
+      currency: e.target.value
+    })),
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '11px 14px',
+      marginBottom: 12,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: MONO,
+      fontSize: 13,
+      color: COLORS.ink,
+      outline: 'none',
+      appearance: 'none',
+      WebkitAppearance: 'none',
+      backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
+      backgroundRepeat: 'no-repeat',
+      backgroundPosition: 'right 14px center'
+    }
+  }, [['KRW', '₩  KRW — 한국 원'], ['USD', '$  USD — 미국 달러'], ['EUR', '€  EUR — 유로'], ['JPY', '¥  JPY — 일본 엔'], ['CNY', '¥  CNY — 중국 위안'], ['HKD', 'HK$  HKD — 홍콩 달러'], ['TWD', 'NT$  TWD — 대만 달러'], ['SGD', 'S$  SGD — 싱가포르 달러'], ['THB', '฿  THB — 태국 바트'], ['VND', '₫  VND — 베트남 동'], ['PHP', '₱  PHP — 필리핀 페소'], ['IDR', 'Rp  IDR — 인도네시아 루피아'], ['MYR', 'RM  MYR — 말레이시아 링깃'], ['INR', '₹  INR — 인도 루피'], ['AUD', 'A$  AUD — 호주 달러'], ['NZD', 'NZ$  NZD — 뉴질랜드 달러'], ['GBP', '£  GBP — 영국 파운드'], ['CHF', 'Fr  CHF — 스위스 프랑'], ['SEK', 'kr  SEK — 스웨덴 크로나'], ['NOK', 'kr  NOK — 노르웨이 크로네'], ['DKK', 'kr  DKK — 덴마크 크로네'], ['CAD', 'C$  CAD — 캐나다 달러'], ['MXN', '$  MXN — 멕시코 페소'], ['BRL', 'R$  BRL — 브라질 헤알'], ['AED', 'AED — UAE 디르함'], ['SAR', 'SAR — 사우디 리얄'], ['TRY', '₺  TRY — 터키 리라'], ['CZK', 'Kč  CZK — 체코 코루나'], ['HUF', 'Ft  HUF — 헝가리 포린트'], ['PLN', 'zł  PLN — 폴란드 즐로티']].map(([code, label]) => /*#__PURE__*/React.createElement("option", {
+    key: code,
+    value: code
+  }, label))), /*#__PURE__*/React.createElement("input", {
+    value: form.note,
+    onChange: e => setForm(f => ({
+      ...f,
+      note: e.target.value
+    })),
+    placeholder: "\uBA54\uBAA8 (\uC120\uD0DD)",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '11px 16px',
+      marginBottom: 10,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("input", {
+    type: "date",
+    value: form.date,
+    onChange: e => setForm(f => ({
+      ...f,
+      date: e.target.value
+    })),
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      padding: '11px 16px',
+      marginBottom: 16,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, editIdx !== null && !delConfirm && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setDelConfirm(true),
+    style: {
+      padding: '13px 18px',
+      border: 'none',
+      borderRadius: 14,
+      background: COLORS.softer,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.mute,
+      cursor: 'pointer'
+    }
+  }, "\uC0AD\uC81C"), editIdx !== null && delConfirm && /*#__PURE__*/React.createElement("button", {
+    onClick: deleteEntry,
+    style: {
+      padding: '13px 18px',
+      border: 'none',
+      borderRadius: 14,
+      background: '#C14F2E',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: 'pointer'
+    }
+  }, "\uD655\uC778"), /*#__PURE__*/React.createElement("button", {
+    onClick: saveEntry,
+    style: {
+      flex: 1,
+      padding: '13px 0',
+      border: 'none',
+      borderRadius: 14,
+      background: COLORS.accent,
+      fontFamily: SANS,
+      fontSize: 15,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: 'pointer'
+    }
+  }, editIdx !== null ? '수정' : '저장')))), /*#__PURE__*/React.createElement(BudgetCalcSheet, {
+    open: calcOpen,
+    onClose: () => setCalcOpen(false),
+    onEnter: (type, amount) => openAddWithAmount(type, amount)
+  }), /*#__PURE__*/React.createElement(SplitSheet, {
+    open: splitOpen,
+    onClose: () => setSplitOpen(false),
+    totalKrw: Math.round(krwSharedOut),
+    defaultN: Math.max(2, (trip.members || []).length),
+    onEnter: (type, amount) => openAddWithAmount(type, amount)
   }));
 }
 
@@ -7419,6 +9813,7 @@ function TabBar({
   setTab,
   visible,
   editing,
+  canEdit,
   onToggleEdit
 }) {
   const tabs = [{
@@ -7437,26 +9832,30 @@ function TabBar({
     id: 'prep',
     icon: 'user',
     label: '준비'
+  }, {
+    id: 'budget',
+    icon: 'wallet',
+    label: '여비'
   }];
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
       left: 14,
       right: 14,
-      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
+      bottom: 'max(calc(env(safe-area-inset-bottom, 0px) - 28px), 0px)',
       zIndex: 30,
       background: 'rgba(255,255,255,0.88)',
       backdropFilter: 'blur(20px) saturate(180%)',
       WebkitBackdropFilter: 'blur(20px) saturate(180%)',
       borderRadius: 26,
-      padding: '9px 10px 11px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
+      padding: '12px 10px 14px',
       border: `0.5px solid ${COLORS.line}`,
       display: 'flex',
       gap: 2,
       alignItems: 'center',
-      transition: 'opacity 0.25s ease',
+      transition: 'opacity 0.25s ease, transform 0.25s ease',
       opacity: visible ? 1 : 0,
+      transform: visible ? 'translateY(0)' : 'translateY(80px)',
       pointerEvents: visible ? 'auto' : 'none'
     }
   }, tabs.map(t => /*#__PURE__*/React.createElement("button", {
@@ -7494,17 +9893,19 @@ function TabBar({
     }
   }), /*#__PURE__*/React.createElement("button", {
     onClick: onToggleEdit,
+    disabled: !canEdit && !editing,
     style: {
       width: 40,
       height: 40,
       borderRadius: 20,
       border: 'none',
-      cursor: 'pointer',
+      cursor: canEdit ? 'pointer' : 'default',
       background: editing ? COLORS.accent : 'transparent',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      flexShrink: 0
+      flexShrink: 0,
+      opacity: !canEdit && !editing ? 0.3 : 1
     }
   }, /*#__PURE__*/React.createElement(Icon, {
     name: editing ? 'check' : 'edit',
@@ -7799,68 +10200,175 @@ function LoginScreen({
   }, displayErr));
 }
 
-// ─── Companion Sheet ──────────────────────────────────────────
-function CompanionSheet({
+// ─── Profile + Companion Manager Sheet ───────────────────────
+function ProfileSheet({
   open,
   onClose,
   authUser,
   userData,
-  onUserDataUpdate,
-  trips
+  trips,
+  onUserDataUpdate
 }) {
-  const [tripCompanions, setTripCompanions] = React.useState({});
-  const [expandedInvite, setExpandedInvite] = React.useState(null);
-  const [inviteEmail, setInviteEmail] = React.useState('');
-  const [inviteMsg, setInviteMsg] = React.useState('');
-  const [inviting, setInviting] = React.useState(false);
   const [pendingInvites, setPendingInvites] = React.useState([]);
+  const [tripData, setTripData] = React.useState({});
+  const [loading, setLoading] = React.useState(false);
+  const [inviteEmail, setInviteEmail] = React.useState({});
+  const [inviteMsg, setInviteMsg] = React.useState({});
+  const [inviting, setInviting] = React.useState(null);
+  const [removing, setRemoving] = React.useState(null);
+  const [toggling, setToggling] = React.useState(null);
+  const [inviteOpen, setInviteOpen] = React.useState({});
+  const myUid = authUser?.uid;
   const tripIds = (trips || []).map(t => t.id).join(',');
   React.useEffect(() => {
-    if (!open || !userData) return;
-    (trips || []).forEach(t => {
-      fbGetTripCompanions(t.id, authUser.uid).then(members => {
-        setTripCompanions(prev => ({
-          ...prev,
-          [t.id]: members
-        }));
-      });
-    });
+    if (!open || !authUser) return;
+    document.body.style.overflow = 'hidden';
     const unsub = fbListenInvites(authUser.uid, setPendingInvites);
-    return unsub;
-  }, [open, tripIds]);
-  React.useEffect(() => {
-    if (open) {
-      document.body.style.overflow = 'hidden';
-      return () => {
-        document.body.style.overflow = '';
+    setLoading(true);
+    Promise.all((trips || []).map(async t => {
+      const companions = await fbGetTripCompanions(t.id, authUser.uid).catch(() => []);
+      return {
+        id: t.id,
+        companions,
+        permissions: t.permissions || {}
       };
-    }
-  }, [open]);
+    })).then(results => {
+      const map = {};
+      results.forEach(r => {
+        map[r.id] = {
+          companions: r.companions,
+          permissions: r.permissions
+        };
+      });
+      setTripData(map);
+      setLoading(false);
+    });
+    return () => {
+      unsub();
+      document.body.style.overflow = '';
+    };
+  }, [open, tripIds, authUser?.uid]);
+  const isOwnerOf = t => {
+    const perms = tripData[t.id]?.permissions || t.permissions || {};
+    return perms[myUid] === 'owner' || Object.keys(perms).length === 0;
+  };
   const handleInvite = async (tripId, tripTitle) => {
-    if (!inviteEmail.trim()) return;
-    setInviting(true);
-    setInviteMsg('');
-    const res = await fbSendTripInvite(userData, inviteEmail, tripId, tripTitle);
-    setInviting(false);
-    if (res.error) setInviteMsg(res.error);else {
-      setInviteMsg(`${res.toName}님께 초대를 보냈습니다!`);
-      setInviteEmail('');
+    const email = (inviteEmail[tripId] || '').trim();
+    if (!email) return;
+    setInviting(tripId);
+    setInviteMsg(m => ({
+      ...m,
+      [tripId]: ''
+    }));
+    const res = await fbSendTripInvite(userData, email, tripId, tripTitle);
+    setInviting(null);
+    if (res.error) {
+      setInviteMsg(m => ({
+        ...m,
+        [tripId]: res.error
+      }));
+    } else {
+      setInviteMsg(m => ({
+        ...m,
+        [tripId]: `${res.toName}님께 초대를 보냈습니다!`
+      }));
+      setInviteEmail(e => ({
+        ...e,
+        [tripId]: ''
+      }));
+      fbGetTripCompanions(tripId, authUser.uid).then(companions => setTripData(prev => ({
+        ...prev,
+        [tripId]: {
+          ...prev[tripId],
+          companions
+        }
+      })));
     }
+  };
+  const handleRemove = async (tripId, uid, name) => {
+    if (!confirm(`${name}님을 이 여행에서 제거할까요?`)) return;
+    setRemoving(uid);
+    try {
+      await fbRemoveTripMember(tripId, uid);
+      setTripData(prev => ({
+        ...prev,
+        [tripId]: {
+          ...prev[tripId],
+          companions: prev[tripId].companions.filter(c => c.uid !== uid)
+        }
+      }));
+    } catch (e) {
+      alert('제거 실패. 다시 시도해 주세요.');
+    }
+    setRemoving(null);
+  };
+  const handleTogglePerm = async (tripId, uid, curRole) => {
+    const newRole = curRole === 'view' ? 'edit' : 'view';
+    setToggling(uid);
+    try {
+      await fbSetTripPermission(tripId, uid, newRole);
+      setTripData(prev => ({
+        ...prev,
+        [tripId]: {
+          ...prev[tripId],
+          permissions: {
+            ...(prev[tripId]?.permissions || {}),
+            [uid]: newRole
+          }
+        }
+      }));
+    } catch (e) {
+      alert('권한 변경 실패.');
+    }
+    setToggling(null);
   };
   const handleAccept = async inv => {
     const tripId = await fbAcceptTripInvite(inv, authUser.uid);
-    onUserDataUpdate({
+    onUserDataUpdate && onUserDataUpdate({
       ...userData,
-      tripIds: [...(userData.tripIds || []), tripId]
+      tripIds: [...(userData?.tripIds || []), tripId]
     });
     setPendingInvites(p => p.filter(i => i.id !== inv.id));
   };
+  const toggleInvite = tripId => setInviteOpen(o => ({
+    ...o,
+    [tripId]: !o[tripId]
+  }));
   if (!open) return null;
+  const Avatar = ({
+    src,
+    name,
+    size = 44
+  }) => src ? /*#__PURE__*/React.createElement("img", {
+    src: src,
+    style: {
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      objectFit: 'cover',
+      flexShrink: 0
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: size,
+      height: size,
+      borderRadius: size / 2,
+      background: COLORS.softer,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: size * 0.38,
+      color: COLORS.mute,
+      fontWeight: 600
+    }
+  }, (name || '?')[0].toUpperCase());
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
       inset: 0,
-      zIndex: 200,
+      zIndex: 210,
       background: 'rgba(0,0,0,0.4)',
       display: 'flex',
       flexDirection: 'column',
@@ -7872,15 +10380,17 @@ function CompanionSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(24px + env(safe-area-inset-bottom,0px))',
-      maxHeight: '88%',
-      overflowY: 'auto'
+      maxHeight: '90%',
+      display: 'flex',
+      flexDirection: 'column',
+      paddingBottom: 'env(safe-area-inset-bottom,0px)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'center',
-      padding: '10px 0 6px'
+      padding: '10px 0 4px',
+      flexShrink: 0
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -7891,36 +10401,18 @@ function CompanionSheet({
     }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '12px 20px 16px',
+      padding: '12px 20px 14px',
       display: 'flex',
       gap: 14,
       alignItems: 'center',
-      borderBottom: `1px solid ${COLORS.line}`
-    }
-  }, authUser.photoURL ? /*#__PURE__*/React.createElement("img", {
-    src: authUser.photoURL,
-    style: {
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+      borderBottom: `1px solid ${COLORS.line}`,
       flexShrink: 0
     }
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 52,
-      height: 52,
-      borderRadius: 26,
-      background: COLORS.accent,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0,
-      fontFamily: SANS,
-      fontSize: 20,
-      color: '#fff',
-      fontWeight: 600
-    }
-  }, (authUser.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    src: authUser.photoURL,
+    name: authUser.displayName,
+    size: 50
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 0
@@ -7936,7 +10428,7 @@ function CompanionSheet({
       fontFamily: SANS,
       fontSize: 12,
       color: COLORS.mute,
-      marginTop: 2
+      marginTop: 1
     }
   }, authUser.email)), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
@@ -7947,28 +10439,35 @@ function CompanionSheet({
       border: `1px solid ${COLORS.line}`,
       borderRadius: 10,
       padding: '7px 12px',
+      flexShrink: 0,
       background: 'transparent',
       fontFamily: SANS,
       fontSize: 12,
       color: COLORS.mute,
       cursor: 'pointer'
     }
-  }, "\uB85C\uADF8\uC544\uC6C3")), pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "\uB85C\uADF8\uC544\uC6C3")), /*#__PURE__*/React.createElement("div", {
     style: {
-      margin: '14px 16px 0',
+      overflowY: 'auto',
+      flex: 1,
+      padding: '16px 16px 24px'
+    }
+  }, pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
       background: '#FFF8E1',
-      borderRadius: 14,
-      padding: 14
+      borderRadius: 16,
+      padding: '12px 14px',
+      marginBottom: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
       fontSize: 9.5,
-      color: '#B8860B',
+      color: '#A07000',
       letterSpacing: '0.1em',
-      marginBottom: 8
+      marginBottom: 10
     }
-  }, "\uD83D\uDCE9 \uB3D9\uD589 \uCD08\uB300 ", pendingInvites.length, "\uAC74"), pendingInvites.map(inv => /*#__PURE__*/React.createElement("div", {
+  }, "\uCD08\uB300 ", pendingInvites.length, "\uAC74"), pendingInvites.map(inv => /*#__PURE__*/React.createElement("div", {
     key: inv.id,
     style: {
       display: 'flex',
@@ -7976,27 +10475,11 @@ function CompanionSheet({
       gap: 10,
       marginBottom: 8
     }
-  }, inv.fromPhoto ? /*#__PURE__*/React.createElement("img", {
+  }, /*#__PURE__*/React.createElement(Avatar, {
     src: inv.fromPhoto,
-    style: {
-      width: 36,
-      height: 36,
-      borderRadius: 18
-    }
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      background: COLORS.accent,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: SANS,
-      fontSize: 14,
-      color: '#fff'
-    }
-  }, (inv.fromName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    name: inv.fromName,
+    size: 38
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 0
@@ -8010,233 +10493,270 @@ function CompanionSheet({
     }
   }, inv.fromName), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute,
+      marginTop: 1
     }
-  }, inv.tripTitle || inv.fromEmail)), /*#__PURE__*/React.createElement("button", {
+  }, inv.tripTitle || '')), /*#__PURE__*/React.createElement("button", {
     onClick: () => handleAccept(inv),
     style: {
       border: 'none',
-      borderRadius: 10,
-      padding: '6px 12px',
+      borderRadius: 9,
+      padding: '7px 14px',
       cursor: 'pointer',
       background: COLORS.ink,
-      color: COLORS.bg,
+      color: '#fff',
       fontFamily: SANS,
       fontSize: 12,
-      fontWeight: 500
+      fontWeight: 600
     }
   }, "\uC218\uB77D"), /*#__PURE__*/React.createElement("button", {
     onClick: () => fbRejectInvite(inv.id).then(() => setPendingInvites(p => p.filter(i => i.id !== inv.id))),
     style: {
       border: `1px solid ${COLORS.line}`,
-      borderRadius: 10,
-      padding: '6px 10px',
+      borderRadius: 9,
+      padding: '7px 10px',
       cursor: 'pointer',
       background: 'transparent',
       fontFamily: SANS,
       fontSize: 12,
       color: COLORS.mute
     }
-  }, "\uAC70\uC808")))), /*#__PURE__*/React.createElement("div", {
+  }, "\uAC70\uC808")))), loading && /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '12px 16px 0'
-    }
-  }, (trips || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '24px 0',
-      textAlign: 'center',
       fontFamily: SANS,
       fontSize: 13,
-      color: COLORS.mute
+      color: COLORS.mute,
+      textAlign: 'center',
+      padding: '20px 0'
     }
-  }, "\uC5EC\uD589\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.") : (trips || []).map(t => {
-    const members = tripCompanions[t.id] || [];
-    const isExpanded = expandedInvite === t.id;
-    const hasBorder = members.length > 0 || isExpanded;
+  }, "\uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && (trips || []).map(t => {
+    const td = tripData[t.id] || {
+      companions: [],
+      permissions: {}
+    };
+    const perms = td.permissions || t.permissions || {};
+    const iAmOwner = isOwnerOf(t);
+    const showInvite = inviteOpen[t.id];
     return /*#__PURE__*/React.createElement("div", {
       key: t.id,
       style: {
-        marginBottom: 12,
+        marginBottom: 14,
         background: COLORS.card,
-        borderRadius: 16,
-        overflow: 'hidden',
-        border: `1px solid ${COLORS.line}`
+        borderRadius: 18,
+        overflow: 'hidden'
       }
     }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '12px 14px',
-        borderBottom: hasBorder ? `1px solid ${COLORS.line}` : 'none'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1,
-        minWidth: 0
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SERIF,
-        fontSize: 16,
-        color: COLORS.ink
-      }
-    }, t.title || '새 여행'), t.dates && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 9.5,
-        color: COLORS.mute,
-        marginTop: 1
-      }
-    }, t.dates)), /*#__PURE__*/React.createElement("button", {
-      onClick: () => {
-        if (isExpanded) {
-          setExpandedInvite(null);
-          setInviteEmail('');
-          setInviteMsg('');
-        } else {
-          setExpandedInvite(t.id);
-          setInviteEmail('');
-          setInviteMsg('');
-        }
-      },
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: '6px 12px',
-        borderRadius: 20,
-        border: `1px solid ${COLORS.line}`,
-        background: 'transparent',
-        cursor: 'pointer',
-        fontFamily: SANS,
-        fontSize: 12,
-        color: COLORS.mute,
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "plus",
-      size: 12,
-      color: COLORS.mute,
-      stroke: 2.5
-    }), "\uCD08\uB300"))), members.length > 0 && /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '0 14px'
-      }
-    }, members.map((c, ci) => /*#__PURE__*/React.createElement("div", {
-      key: c.uid,
       style: {
         display: 'flex',
         alignItems: 'center',
         gap: 10,
-        padding: '10px 0',
-        borderBottom: ci < members.length - 1 || isExpanded ? `1px solid ${COLORS.line}` : 'none'
+        padding: '13px 14px 12px',
+        borderBottom: `1px solid ${COLORS.line}`
       }
-    }, c.photoURL ? /*#__PURE__*/React.createElement("img", {
-      src: c.photoURL,
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
-        width: 36,
-        height: 36,
-        borderRadius: 18
+        width: 32,
+        height: 32,
+        borderRadius: 9,
+        overflow: 'hidden',
+        flexShrink: 0
       }
-    }) : /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(Photo, {
+      hue: t.hue ?? 25,
+      height: 32,
+      small: true
+    })), /*#__PURE__*/React.createElement("div", {
       style: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        background: COLORS.softer,
+        fontFamily: SANS,
+        fontSize: 14,
+        fontWeight: 600,
+        color: COLORS.ink,
+        flex: 1,
+        minWidth: 0,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, t.title || '여행'), iAmOwner && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9,
+        color: COLORS.accent,
+        letterSpacing: '0.08em',
+        flexShrink: 0
+      }
+    }, "\uB0B4 \uC5EC\uD589")), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '12px 14px'
+      }
+    }, td.companions.length === 0 && !showInvite && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 12.5,
+        color: COLORS.mute,
+        marginBottom: iAmOwner ? 10 : 0
+      }
+    }, "\uC544\uC9C1 \uB3D9\uD589\uC778\uC774 \uC5C6\uC5B4\uC694"), td.companions.map(c => {
+      const role = perms[c.uid] || 'edit';
+      return /*#__PURE__*/React.createElement("div", {
+        key: c.uid,
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 10,
+          marginBottom: 10
+        }
+      }, /*#__PURE__*/React.createElement(Avatar, {
+        src: c.photoURL,
+        name: c.displayName,
+        size: 40
+      }), /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 13,
+          fontWeight: 500,
+          color: COLORS.ink
+        }
+      }, c.displayName), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 11,
+          color: COLORS.mute
+        }
+      }, c.email)), iAmOwner && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+        onClick: () => handleTogglePerm(t.id, c.uid, role),
+        disabled: toggling === c.uid,
+        style: {
+          padding: '4px 10px',
+          borderRadius: 20,
+          cursor: 'pointer',
+          flexShrink: 0,
+          border: `1px solid ${role === 'view' ? COLORS.line : COLORS.ink}`,
+          background: role === 'view' ? 'transparent' : COLORS.ink,
+          color: role === 'view' ? COLORS.mute : '#fff',
+          fontFamily: SANS,
+          fontSize: 11
+        }
+      }, toggling === c.uid ? '…' : role === 'view' ? '보기' : '편집'), /*#__PURE__*/React.createElement("button", {
+        onClick: () => handleRemove(t.id, c.uid, c.displayName),
+        disabled: removing === c.uid,
+        style: {
+          width: 30,
+          height: 30,
+          borderRadius: 15,
+          border: `1px solid ${COLORS.line}`,
+          background: 'transparent',
+          cursor: 'pointer',
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }
+      }, removing === c.uid ? /*#__PURE__*/React.createElement("span", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 10,
+          color: COLORS.mute
+        }
+      }, "\u2026") : /*#__PURE__*/React.createElement(Icon, {
+        name: "minus",
+        size: 12,
+        color: COLORS.mute,
+        stroke: 2
+      }))));
+    }), iAmOwner && !showInvite && /*#__PURE__*/React.createElement("button", {
+      onClick: () => toggleInvite(t.id),
+      style: {
+        width: '100%',
+        padding: '9px 0',
+        border: `1.5px dashed ${COLORS.line}`,
+        borderRadius: 12,
+        background: 'transparent',
+        cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 6,
         fontFamily: SANS,
-        fontSize: 14,
+        fontSize: 12.5,
         color: COLORS.mute
       }
-    }, (c.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "plus",
+      size: 13,
+      color: COLORS.mute,
+      stroke: 2
+    }), " \uB3D9\uD589\uC778 \uCD94\uAC00"), iAmOwner && showInvite && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
-        flex: 1
+        display: 'flex',
+        gap: 6,
+        marginTop: td.companions.length > 0 ? 4 : 0
       }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 13,
-        color: COLORS.ink,
-        fontWeight: 500
-      }
-    }, c.displayName), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 11,
-        color: COLORS.mute
-      }
-    }, c.email)), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 10,
-        color: '#4F6BED'
-      }
-    }, "\uB3D9\uD589\uC911")))), isExpanded && /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '12px 14px 14px'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 12,
-        color: COLORS.mute,
-        marginBottom: 8
-      }
-    }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
-      value: inviteEmail,
-      onChange: e => setInviteEmail(e.target.value),
-      placeholder: "\uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
+    }, /*#__PURE__*/React.createElement("input", {
+      autoFocus: true,
+      value: inviteEmail[t.id] || '',
+      onChange: e => setInviteEmail(v => ({
+        ...v,
+        [t.id]: e.target.value
+      })),
       onKeyDown: e => e.key === 'Enter' && handleInvite(t.id, t.title),
+      placeholder: "\uC774\uBA54\uC77C \uC785\uB825...",
       style: {
-        width: '100%',
-        padding: '11px 13px',
-        borderRadius: 11,
-        border: `1.5px solid ${COLORS.line}`,
+        flex: 1,
+        padding: '9px 12px',
+        borderRadius: 10,
+        border: `1px solid ${COLORS.line}`,
         background: COLORS.bg,
         fontFamily: SANS,
         fontSize: 13,
         color: COLORS.ink,
-        boxSizing: 'border-box',
         outline: 'none'
       }
-    }), inviteMsg && /*#__PURE__*/React.createElement("div", {
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: () => handleInvite(t.id, t.title),
+      disabled: inviting === t.id || !(inviteEmail[t.id] || '').trim(),
+      style: {
+        padding: '9px 14px',
+        borderRadius: 10,
+        border: 'none',
+        cursor: 'pointer',
+        background: (inviteEmail[t.id] || '').trim() ? COLORS.ink : COLORS.softer,
+        color: (inviteEmail[t.id] || '').trim() ? '#fff' : COLORS.mute,
+        fontFamily: SANS,
+        fontSize: 13,
+        fontWeight: 600
+      }
+    }, inviting === t.id ? '…' : '초대'), /*#__PURE__*/React.createElement("button", {
+      onClick: () => toggleInvite(t.id),
+      style: {
+        padding: '9px 10px',
+        borderRadius: 10,
+        border: `1px solid ${COLORS.line}`,
+        background: 'transparent',
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "x",
+      size: 13,
+      color: COLORS.mute,
+      stroke: 2
+    }))), inviteMsg[t.id] && /*#__PURE__*/React.createElement("div", {
       style: {
         marginTop: 6,
         fontFamily: SANS,
-        fontSize: 12,
-        color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B'
+        fontSize: 11.5,
+        color: inviteMsg[t.id].includes('보냈') ? '#2E7D32' : COLORS.accent
       }
-    }, inviteMsg), /*#__PURE__*/React.createElement("button", {
-      onClick: () => handleInvite(t.id, t.title),
-      disabled: inviting || !inviteEmail.trim(),
-      style: {
-        marginTop: 10,
-        width: '100%',
-        padding: '13px',
-        border: 'none',
-        borderRadius: 12,
-        background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
-        color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
-        fontFamily: SANS,
-        fontSize: 13,
-        fontWeight: 500,
-        cursor: 'pointer'
-      }
-    }, inviting ? '보내는 중...' : '초대 보내기')));
+    }, inviteMsg[t.id]))));
   }))));
 }
-
-// ─── App ─────────────────────────────────────────────────────
-// 로컬 캐시 읽기 (로그인 상태면 즉시 앱 표시용)
 function _readCache() {
   if (!localStorage.getItem('tlj_authed')) return null;
   try {
@@ -8286,7 +10806,7 @@ function App() {
   const [activeTripId, setActiveTripId] = React.useState(_nav.activeTripId || null);
   const [userTrips, setUserTrips] = React.useState([]);
   const [tripsLoading, setTripsLoading] = React.useState(false);
-  const [companionOpen, setCompanionOpen] = React.useState(false);
+  const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
   const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -8296,6 +10816,9 @@ function App() {
   const [tab, setTab] = React.useState(_nav.tab || 'home');
   const [dayIdx, setDayIdx] = React.useState(_nav.dayIdx ?? null);
   const [hotelIdx, setHotelIdx] = React.useState(_nav.hotelIdx ?? null);
+  const [slideDir, setSlideDir] = React.useState(null);
+  const [slideKey, setSlideKey] = React.useState(0);
+  const [tabDrag, setTabDrag] = React.useState(null);
   const [openStop, setOpenStop] = React.useState(null);
   const [city, setCity] = React.useState(CITIES[0]);
   const [cityPicker, setCityPicker] = React.useState(false);
@@ -8303,6 +10826,7 @@ function App() {
   const [scrollKey, setScrollKey] = React.useState(0);
   const [editing, setEditing] = React.useState(false);
   const [tabBarVisible, setTabBarVisible] = React.useState(true);
+  const [budgetSheetOpen, setBudgetSheetOpen] = React.useState(false);
   const [saveConfirm, setSaveConfirm] = React.useState(false); // 저장 확인 다이얼로그
   const lastScrollTop = React.useRef(0);
   const savedHomeScrollY = React.useRef(0);
@@ -8312,7 +10836,7 @@ function App() {
   // 편집 버튼 토글 핸들러
   const handleEditToggle = () => {
     if (!editing) {
-      // 편집 시작 — 스냅샷 저장
+      if (!canEdit) return;
       editSnapshot.current = JSON.stringify({
         trip,
         prep
@@ -8522,6 +11046,170 @@ function App() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  // ── Tab swipe + animation hooks (must be before any early returns) ───
+  const TAB_ORDER = ['home', 'map', 'food', 'prep', 'budget'];
+  const tabRef = React.useRef(tab);
+  const swipeBackRef = React.useRef(null);
+  const slideDirRef = React.useRef(null);
+  const tabDragRef = React.useRef(null); // { dir, targetTab, tx, settleComplete }
+  const edgeDragRef = React.useRef(null);
+  const mainContainerRef = React.useRef(null);
+  const dragFlexRef = React.useRef(null); // ref to the flex container for direct DOM update
+  React.useEffect(() => {
+    tabRef.current = tab;
+  }, [tab]);
+  const changeTab = React.useCallback(newTab => {
+    const oldIdx = TAB_ORDER.indexOf(tabRef.current);
+    const newIdx = TAB_ORDER.indexOf(newTab);
+    if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
+      const dir = newIdx > oldIdx ? 'from-right' : 'from-left';
+      slideDirRef.current = dir;
+      setSlideDir(dir);
+      setSlideKey(k => k + 1);
+    }
+    setTab(newTab);
+    setDayIdx(null);
+    setHotelIdx(null);
+    setOpenStop(null);
+    setEditing(false);
+  }, []);
+
+  // Called after CSS transition ends on the drag flex container
+  const handleTabDragEnd = React.useCallback(() => {
+    const d = tabDragRef.current;
+    tabDragRef.current = null;
+    setTabDrag(null); // removes both pages from DOM
+    if (d?.settleComplete) {
+      if (d.targetTab === '__trips__') {
+        setActiveTripId(null);
+        setTrip(null);
+        setEditing(false);
+      } else {
+        setTab(d.targetTab);
+        setDayIdx(null);
+        setHotelIdx(null);
+        setOpenStop(null);
+        setEditing(false);
+      }
+    }
+  }, []);
+
+  // After tabDrag state causes the flex container to render, set its initial transform via DOM
+  React.useLayoutEffect(() => {
+    if (tabDrag && dragFlexRef.current) {
+      const W = window.innerWidth;
+      const tx = tabDragRef.current?.tx || 0;
+      const cTx = tabDrag.dir === 'prev' ? -W + tx : -tx;
+      dragFlexRef.current.style.transition = 'none';
+      dragFlexRef.current.style.transform = `translateX(${cTx}px)`;
+    }
+  }, [tabDrag]);
+  React.useEffect(() => {
+    const el = mainContainerRef.current;
+    if (!el) return;
+    const onTouchStart = e => {
+      if (swipeBackRef.current) return;
+      const touch = e.touches[0];
+      const W = window.innerWidth;
+      const isLeft = touch.clientX <= 60;
+      const isRight = touch.clientX >= W - 60;
+      if (!isLeft && !isRight) return;
+      const idx = TAB_ORDER.indexOf(tabRef.current);
+      let dir, targetTab;
+      if (isLeft) {
+        dir = 'prev';
+        if (idx > 0) targetTab = TAB_ORDER[idx - 1];else if (tabRef.current === 'home') targetTab = '__trips__';else return;
+      } else {
+        dir = 'next';
+        if (idx < TAB_ORDER.length - 1) targetTab = TAB_ORDER[idx + 1];else return;
+      }
+      edgeDragRef.current = {
+        x: touch.clientX,
+        y: touch.clientY,
+        t: Date.now(),
+        dir,
+        targetTab,
+        locked: false
+      };
+    };
+    const onTouchMove = e => {
+      const s = edgeDragRef.current;
+      if (!s) return;
+      const touch = e.touches[0];
+      const adx = touch.clientX - s.x;
+      const ady = Math.abs(touch.clientY - s.y);
+      if (!s.locked) {
+        if (ady > Math.abs(adx) + 5 && ady > 8) {
+          edgeDragRef.current = null;
+          return;
+        }
+        if (s.dir === 'prev' && adx < -5) {
+          edgeDragRef.current = null;
+          return;
+        }
+        if (s.dir === 'next' && adx > 5) {
+          edgeDragRef.current = null;
+          return;
+        }
+        if (Math.abs(adx) < 8) return;
+        s.locked = true;
+        tabDragRef.current = {
+          dir: s.dir,
+          targetTab: s.targetTab,
+          tx: 0,
+          settleComplete: false
+        };
+        setTabDrag({
+          dir: s.dir,
+          targetTab: s.targetTab
+        }); // triggers render of both pages
+        return;
+      }
+      e.preventDefault();
+      const W = window.innerWidth;
+      const raw = s.dir === 'prev' ? adx : -adx;
+      const tx = Math.max(0, Math.min(raw, W));
+      tabDragRef.current.tx = tx;
+      // Direct DOM update — zero React re-renders during drag
+      if (dragFlexRef.current) {
+        const cTx = s.dir === 'prev' ? -W + tx : -tx;
+        dragFlexRef.current.style.transform = `translateX(${cTx}px)`;
+      }
+    };
+    const onTouchEnd = e => {
+      const s = edgeDragRef.current;
+      edgeDragRef.current = null;
+      if (!s || !s.locked || !tabDragRef.current) return;
+      const touch = e.changedTouches[0];
+      const raw = s.dir === 'prev' ? touch.clientX - s.x : -(touch.clientX - s.x);
+      const elapsed = Date.now() - s.t;
+      const W = window.innerWidth;
+      const complete = raw > W * 0.3 || elapsed < 350 && raw > 50;
+      const targetTx = complete ? W : 0;
+      tabDragRef.current.settleComplete = complete;
+      // Trigger CSS transition directly on DOM — no React re-render needed
+      if (dragFlexRef.current) {
+        const cTx = s.dir === 'prev' ? -W + targetTx : -targetTx;
+        dragFlexRef.current.style.transition = 'transform 300ms cubic-bezier(0.25,1,0.35,1)';
+        dragFlexRef.current.style.transform = `translateX(${cTx}px)`;
+      }
+    };
+    el.addEventListener('touchstart', onTouchStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onTouchMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onTouchEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onTouchStart);
+      el.removeEventListener('touchmove', onTouchMove);
+      el.removeEventListener('touchend', onTouchEnd);
+    };
+  }, [changeTab, activeTripId]);
+
   // ── Trip-level actions (Firestore) ────────────────────────
   const editTrip = patch => {
     setTrip(prev => ({
@@ -8680,8 +11368,33 @@ function App() {
       ...days[dayIdx],
       items
     };
+
+    // 숙소 스탑이면 메인 호텔 시간도 역방향 동기화
+    let hotels = trip.hotels;
+    if (draft._hotelRef && draft.time) {
+      const hIdx = (trip.hotels || []).findIndex(h => h.name === draft._hotelRef);
+      if (hIdx >= 0) {
+        const isCheckIn = (draft.title || '').includes('체크인');
+        const isCheckOut = (draft.title || '').includes('체크아웃');
+        if (isCheckIn || isCheckOut) {
+          hotels = [...trip.hotels];
+          hotels[hIdx] = {
+            ...hotels[hIdx],
+            ...(isCheckIn ? {
+              checkinTime: draft.time
+            } : {}),
+            ...(isCheckOut ? {
+              checkoutTime: draft.time
+            } : {})
+          };
+        }
+      }
+    }
     editTrip({
-      days
+      days,
+      ...(hotels !== trip.hotels ? {
+        hotels
+      } : {})
     });
     setOpenStop(null);
   };
@@ -8871,6 +11584,10 @@ function App() {
     }
   };
 
+  // ── Permission check ───────────────────────────────────
+  const myRole = (trip?.permissions || {})[authUser?.uid];
+  const canEdit = myRole !== 'view';
+
   // ── Render ─────────────────────────────────────────────
   let screen, label;
   if (tab === 'home') {
@@ -8912,6 +11629,11 @@ function App() {
     } else {
       screen = /*#__PURE__*/React.createElement(HomeScreen, {
         trip: trip,
+        onBack: () => {
+          setActiveTripId(null);
+          setTrip(null);
+          setEditing(false);
+        },
         onOpenDay: i => {
           savedHomeScrollY.current = window.scrollY;
           setDayIdx(i);
@@ -8937,7 +11659,7 @@ function App() {
         editing: editing,
         setEditing: setEditing,
         userData: userData,
-        onOpenCompanion: () => setCompanionOpen(true),
+        onOpenCompanion: () => setProfileSheetOpen(true),
         onLoadSample: async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const patch = {
@@ -8987,6 +11709,18 @@ function App() {
       setEditing: setEditing
     });
     label = 'Food';
+  } else if (tab === 'budget') {
+    screen = /*#__PURE__*/React.createElement(BudgetScreen, {
+      trip: trip,
+      onEditBudget: b => editTrip({
+        budget: {
+          ...(trip.budget || {}),
+          ...b
+        }
+      }),
+      onSheetChange: setBudgetSheetOpen
+    });
+    label = 'Budget';
   } else {
     screen = /*#__PURE__*/React.createElement(PrepScreen, {
       trip: trip,
@@ -9017,7 +11751,7 @@ function App() {
     loading: tripsLoading,
     userData: userData,
     myUid: authUser?.uid,
-    onOpenCompanion: () => setCompanionOpen(true),
+    onOpenCompanion: () => setProfileSheetOpen(true),
     onSelect: id => {
       const found = userTrips.find(t => t.id === id);
       let tripToShow = found;
@@ -9119,13 +11853,13 @@ function App() {
     userData: userData,
     allTrips: userTrips,
     myUid: authUser?.uid
-  }), /*#__PURE__*/React.createElement(CompanionSheet, {
-    open: companionOpen,
-    onClose: () => setCompanionOpen(false),
+  }), /*#__PURE__*/React.createElement(ProfileSheet, {
+    open: profileSheetOpen,
+    onClose: () => setProfileSheetOpen(false),
     authUser: authUser,
     userData: userData,
-    onUserDataUpdate: ud => setUserData(ud),
-    trips: userTrips
+    trips: userTrips,
+    onUserDataUpdate: ud => setUserData(ud)
   }));
   if (!trip || !trip.days?.length) return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -9187,7 +11921,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v91"))), /*#__PURE__*/React.createElement("button", {
+  }, "v127"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
@@ -9247,52 +11981,130 @@ function App() {
       setDayIdx(null);
     };
   }
+  swipeBackRef.current = swipeBack;
+  const getScreenForTab = targetTabId => {
+    if (!targetTabId || targetTabId === '__trips__') return /*#__PURE__*/React.createElement("div", {
+      style: {
+        minHeight: '100vh',
+        background: COLORS.bg
+      }
+    });
+    switch (targetTabId) {
+      case 'home':
+        return /*#__PURE__*/React.createElement(HomeScreen, {
+          trip: trip,
+          onOpenDay: () => {},
+          onOpenHotel: () => {},
+          city: city,
+          onPickCity: () => {},
+          onEditTrip: () => {},
+          onReorderDays: () => {},
+          onAddDay: () => {},
+          onDeleteDay: () => {},
+          onAddHotel: () => {},
+          onAddHotelFromSearch: () => {},
+          onDeleteHotel: () => {},
+          onReorderHotels: () => {},
+          onConvertInlineHotel: () => {},
+          onAddItemToFirstDay: () => {},
+          editing: false,
+          setEditing: () => {},
+          userData: userData,
+          onOpenCompanion: () => {},
+          onLoadSample: async () => {}
+        });
+      case 'map':
+        return /*#__PURE__*/React.createElement(MapScreen, {
+          trip: trip,
+          onEditItem: () => {}
+        });
+      case 'food':
+        return /*#__PURE__*/React.createElement(FoodScreen, {
+          trip: trip,
+          onEditFood: () => {},
+          editing: false,
+          setEditing: () => {}
+        });
+      case 'prep':
+        return /*#__PURE__*/React.createElement(PrepScreen, {
+          trip: trip,
+          prep: prep,
+          onEditPrep: () => {},
+          editing: false,
+          setEditing: () => {}
+        });
+      case 'budget':
+        return /*#__PURE__*/React.createElement(BudgetScreen, {
+          trip: trip,
+          onEditBudget: () => {}
+        });
+      default:
+        return /*#__PURE__*/React.createElement("div", {
+          style: {
+            minHeight: '100vh',
+            background: COLORS.bg
+          }
+        });
+    }
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: '100vh',
       fontFamily: '-apple-system, system-ui, sans-serif',
       background: '#F5F2EC'
     }
-  }, tab === 'home' && dayIdx === null && hotelIdx === null && /*#__PURE__*/React.createElement("button", {
-    onClick: () => {
-      setActiveTripId(null);
-      setTrip(null);
-      setEditing(false);
-    },
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: mainContainerRef,
     style: {
-      position: 'fixed',
-      top: 'calc(env(safe-area-inset-top) + 14px)',
-      left: 16,
-      zIndex: 300,
-      background: 'transparent',
-      border: 'none',
-      padding: '4px 8px',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      gap: 3,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute
+      overflowX: 'hidden'
     }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "chevron-l",
-    size: 14,
-    color: COLORS.mute,
-    stroke: 2
-  }), "My Trips"), /*#__PURE__*/React.createElement(SwipeBackLayer, {
-    onBack: swipeBack
-  }, screen), /*#__PURE__*/React.createElement(TabBar, {
-    tab: tab,
-    setTab: t => {
-      setTab(t);
-      setDayIdx(null);
-      setHotelIdx(null);
-      setOpenStop(null);
-      setEditing(false);
+  }, tabDrag ?
+  /*#__PURE__*/
+  // transform은 JSX에 없음 — useLayoutEffect + onTouchMove에서 직접 DOM 조작
+  React.createElement("div", {
+    ref: dragFlexRef,
+    style: {
+      display: 'flex',
+      willChange: 'transform'
     },
-    visible: tabBarVisible,
+    onTransitionEnd: handleTabDragEnd
+  }, tabDrag.dir === 'prev' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100vw',
+      minWidth: '100vw',
+      flexShrink: 0,
+      overflow: 'hidden'
+    }
+  }, getScreenForTab(tabDrag.targetTab)), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100vw',
+      minWidth: '100vw',
+      flexShrink: 0,
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement(SwipeBackLayer, {
+    onBack: swipeBack
+  }, screen)), tabDrag.dir === 'next' && /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: '100vw',
+      minWidth: '100vw',
+      flexShrink: 0,
+      overflow: 'hidden'
+    }
+  }, getScreenForTab(tabDrag.targetTab))) : /*#__PURE__*/React.createElement("div", {
+    key: slideKey,
+    style: {
+      animation: slideDir ? `tab${slideDir === 'from-right' ? 'SlideFromRight' : 'SlideFromLeft'} 0.28s cubic-bezier(0.22,1,0.36,1)` : 'none'
+    },
+    onAnimationEnd: () => setSlideDir(null)
+  }, /*#__PURE__*/React.createElement(SwipeBackLayer, {
+    onBack: swipeBack
+  }, screen))), /*#__PURE__*/React.createElement(TabBar, {
+    tab: tab,
+    setTab: changeTab,
+    visible: tabBarVisible && !openStop && !profileSheetOpen && !hotelSheet && !cityPicker && !saveConfirm && !budgetSheetOpen,
     editing: editing,
+    canEdit: canEdit,
     onToggleEdit: handleEditToggle
   }), /*#__PURE__*/React.createElement(StopSheet, {
     open: openStop,
@@ -9311,13 +12123,13 @@ function App() {
     Icon: Icon,
     onPick: pickHotelFromSearch,
     onClose: () => setHotelSheet(null)
-  }), /*#__PURE__*/React.createElement(CompanionSheet, {
-    open: companionOpen,
-    onClose: () => setCompanionOpen(false),
+  }), /*#__PURE__*/React.createElement(ProfileSheet, {
+    open: profileSheetOpen,
+    onClose: () => setProfileSheetOpen(false),
     authUser: authUser,
     userData: userData,
-    onUserDataUpdate: ud => setUserData(ud),
-    trips: userTrips
+    trips: userTrips,
+    onUserDataUpdate: ud => setUserData(ud)
   }), saveConfirm && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',

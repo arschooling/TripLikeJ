@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "triplikej-web",
+      "runtimeExecutable": "/Users/arjungtaeng/Documents/개발/flutter 2/bin/flutter",
+      "runtimeArgs": ["run", "-d", "web-server", "--web-port", "4040", "--no-sound-null-safety"],
+      "port": 4040
+    }
+  ]
+}
