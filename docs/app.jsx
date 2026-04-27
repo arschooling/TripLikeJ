@@ -178,6 +178,7 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
       <div style={{
         position:'absolute', right:0, top:0, bottom:0, width:REVEAL,
         display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+        zIndex:0,
       }}>
         <button onClick={(e)=>{e.stopPropagation(); close(); setTimeout(onEdit,100);}} style={{
           width:46, height:46, borderRadius:23, border:'none', cursor:'pointer',
@@ -194,6 +195,8 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
         transform:`translateX(${x}px)`,
         transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.22,1,0.36,1)',
         willChange:'transform', position:'relative', zIndex:1,
+        background:COLORS.card,
+        WebkitTapHighlightColor:'transparent',
       }}>
         {children}
       </div>
@@ -1435,7 +1438,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v103</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v104</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -5610,7 +5613,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v103</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v104</div>
         </div>
       </div>
       <button onClick={async () => {
