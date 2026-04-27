@@ -3324,7 +3324,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v90")), /*#__PURE__*/React.createElement("button", {
+  }, "v91")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -7441,17 +7441,17 @@ function TabBar({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
-      left: 0,
-      right: 0,
-      bottom: 0,
+      left: 14,
+      right: 14,
+      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)',
       zIndex: 30,
-      background: 'rgba(245,242,236,0.82)',
-      backdropFilter: 'blur(24px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(24px) saturate(180%)',
-      borderRadius: '22px 22px 0 0',
-      padding: '10px 20px 0',
-      paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
-      boxShadow: '0 -0.5px 0 rgba(26,24,22,0.08)',
+      background: 'rgba(255,255,255,0.88)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      borderRadius: 26,
+      padding: '9px 10px 11px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
+      border: `0.5px solid ${COLORS.line}`,
       display: 'flex',
       gap: 2,
       alignItems: 'center',
@@ -9187,7 +9187,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v90"))), /*#__PURE__*/React.createElement("button", {
+  }, "v91"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
