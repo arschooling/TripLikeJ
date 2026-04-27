@@ -3567,7 +3567,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v132")), /*#__PURE__*/React.createElement("button", {
+  }, "v133")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -7047,7 +7047,48 @@ function MapScreen({
   }), true);
   const [openStop, setOpenStop] = React.useState(null);
   const [travelTimes, setTravelTimes] = React.useState({});
+  const [routeTip, setRouteTip] = React.useState(null);
   const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`;
+  const computeRouteTip = (pts, times) => {
+    if (pts.length < 2) return null;
+    // nearest-neighbor TSP (출발점 고정)
+    const dist2 = (a, b) => {
+      const dl = a.pos[0] - b.pos[0],
+        dn = a.pos[1] - b.pos[1];
+      return dl * dl + dn * dn;
+    };
+    const n = pts.length;
+    const visited = Array(n).fill(false);
+    const order = [0];
+    visited[0] = true;
+    for (let step = 1; step < n; step++) {
+      let best = -1,
+        bestD = Infinity;
+      const last = order[order.length - 1];
+      for (let j = 0; j < n; j++) {
+        if (!visited[j]) {
+          const d = dist2(pts[last], pts[j]);
+          if (d < bestD) {
+            bestD = d;
+            best = j;
+          }
+        }
+      }
+      visited[best] = true;
+      order.push(best);
+    }
+    const isOptimal = order.every((v, i) => v === i);
+    const totalTransit = Object.values(times).reduce((s, t) => s + (t.transit || 0), 0);
+    const longestLeg = Object.entries(times).sort((a, b) => (b[1].transit || 0) - (a[1].transit || 0))[0];
+    return {
+      pts,
+      order,
+      isOptimal,
+      totalTransit,
+      longestLeg,
+      times
+    };
+  };
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
     'new york': [40.758, -73.985],
@@ -7063,6 +7104,7 @@ function MapScreen({
   const layers = React.useRef([]);
   React.useEffect(() => {
     setTravelTimes({});
+    setRouteTip(null);
   }, [selDay]);
 
   // 날짜 바뀌면 지도 재초기화
@@ -7175,7 +7217,10 @@ function MapScreen({
                 walk: Math.max(1, Math.round(leg.distance / 83.33))
               };
             });
-            if (!cancelled) setTravelTimes(times);
+            if (!cancelled) {
+              setTravelTimes(times);
+              setRouteTip(computeRouteTip(pts, times));
+            }
           }
         } catch (_) {
           const line = window.L.polyline(pts.map(p => p.pos), {
@@ -7185,6 +7230,7 @@ function MapScreen({
             dashArray: '8 5'
           }).addTo(mapInst.current);
           layers.current.push(line);
+          if (!cancelled) setRouteTip(computeRouteTip(pts, {}));
         }
       }
       if (!cancelled && mapInst.current) mapInst.current.fitBounds(window.L.latLngBounds(pts.map(p => p.pos)), {
@@ -7427,7 +7473,114 @@ function MapScreen({
       }
     })) : null;
     return connector ? [connector, card] : [card];
-  })), /*#__PURE__*/React.createElement(StopSheet, {
+  })), routeTip && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '14px 16px 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 16,
+      padding: '14px 16px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 7,
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 15
+    }
+  }, "\uD83D\uDCA1"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.accent,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase'
+    }
+  }, "Route Tip")), routeTip.totalTransit > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      marginBottom: 8
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 600
+    }
+  }, routeTip.pts.length, "\uAC1C \uC7A5\uC18C"), ' · 총 이동 약 ', /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontWeight: 600
+    }
+  }, fmtMin(routeTip.totalTransit))), routeTip.isOptimal ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute,
+      lineHeight: 1.55
+    }
+  }, "\uD604\uC7AC \uBC29\uBB38 \uC21C\uC11C\uAC00 \uC774\uB3D9 \uAC70\uB9AC \uAE30\uC900\uC73C\uB85C \uD6A8\uC728\uC801\uC785\uB2C8\uB2E4.") : /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      marginBottom: 6,
+      lineHeight: 1.55
+    }
+  }, "\uBC29\uBB38 \uC21C\uC11C\uB97C \uC870\uC815\uD558\uBA74 \uC774\uB3D9 \uAC70\uB9AC\uB97C \uC904\uC77C \uC218 \uC788\uC5B4\uC694."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.bg,
+      borderRadius: 10,
+      padding: '10px 12px',
+      fontFamily: MONO,
+      fontSize: 11,
+      color: COLORS.ink,
+      lineHeight: 1.8,
+      wordBreak: 'break-word'
+    }
+  }, routeTip.order.map((idx, i) => /*#__PURE__*/React.createElement("span", {
+    key: idx
+  }, i > 0 && /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: COLORS.mute
+    }
+  }, " \u2192 "), /*#__PURE__*/React.createElement("span", {
+    style: {
+      color: i === 0 ? COLORS.accent : COLORS.ink
+    }
+  }, routeTip.pts[idx].title))))), routeTip.longestLeg && (() => {
+    const legIdx = parseInt(routeTip.longestLeg[0]) - 1;
+    const from = routeTip.pts[legIdx];
+    const to = routeTip.pts[legIdx + 1];
+    if (!from || !to) return null;
+    const mins = routeTip.longestLeg[1].transit;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 10,
+        paddingTop: 10,
+        borderTop: `1px solid ${COLORS.line}`,
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        lineHeight: 1.55
+      }
+    }, "\uAC00\uC7A5 \uAE34 \uAD6C\uAC04", ' ', /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.ink,
+        fontWeight: 500
+      }
+    }, from.title), ' → ', /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.ink,
+        fontWeight: 500
+      }
+    }, to.title), ` · 약 ${fmtMin(mins)}`);
+  })())), /*#__PURE__*/React.createElement(StopSheet, {
     open: openStop,
     dayHue: day?.hero?.hue ?? 25,
     cityBias: cityBias,
@@ -11900,7 +12053,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v132"))), /*#__PURE__*/React.createElement("button", {
+  }, "v133"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);

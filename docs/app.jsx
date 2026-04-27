@@ -1674,7 +1674,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v132</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v133</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3397,7 +3397,38 @@ function MapScreen({ trip, onEditItem }) {
 
   const [openStop, setOpenStop] = React.useState(null);
   const [travelTimes, setTravelTimes] = React.useState({});
+  const [routeTip, setRouteTip] = React.useState(null);
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
+
+  const computeRouteTip = (pts, times) => {
+    if (pts.length < 2) return null;
+    // nearest-neighbor TSP (출발점 고정)
+    const dist2 = (a, b) => {
+      const dl = a.pos[0]-b.pos[0], dn = a.pos[1]-b.pos[1];
+      return dl*dl + dn*dn;
+    };
+    const n = pts.length;
+    const visited = Array(n).fill(false);
+    const order = [0];
+    visited[0] = true;
+    for (let step = 1; step < n; step++) {
+      let best = -1, bestD = Infinity;
+      const last = order[order.length-1];
+      for (let j = 0; j < n; j++) {
+        if (!visited[j]) {
+          const d = dist2(pts[last], pts[j]);
+          if (d < bestD) { bestD = d; best = j; }
+        }
+      }
+      visited[best] = true;
+      order.push(best);
+    }
+    const isOptimal = order.every((v, i) => v === i);
+    const totalTransit = Object.values(times).reduce((s, t) => s + (t.transit||0), 0);
+    const longestLeg = Object.entries(times)
+      .sort((a,b) => (b[1].transit||0) - (a[1].transit||0))[0];
+    return { pts, order, isOptimal, totalTransit, longestLeg, times };
+  };
 
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
@@ -3410,7 +3441,7 @@ function MapScreen({ trip, onEditItem }) {
   const mapInst = React.useRef(null);
   const layers  = React.useRef([]);
 
-  React.useEffect(() => { setTravelTimes({}); }, [selDay]);
+  React.useEffect(() => { setTravelTimes({}); setRouteTip(null); }, [selDay]);
 
   // 날짜 바뀌면 지도 재초기화
   React.useEffect(() => {
@@ -3507,13 +3538,17 @@ function MapScreen({ trip, onEditItem }) {
                 walk: Math.max(1, Math.round(leg.distance / 83.33)),
               };
             });
-            if (!cancelled) setTravelTimes(times);
+            if (!cancelled) {
+              setTravelTimes(times);
+              setRouteTip(computeRouteTip(pts, times));
+            }
           }
         } catch(_) {
           const line = window.L.polyline(pts.map(p => p.pos), {
             color:'#C14F2E', weight:3, opacity:0.7, dashArray:'8 5',
           }).addTo(mapInst.current);
           layers.current.push(line);
+          if (!cancelled) setRouteTip(computeRouteTip(pts, {}));
         }
       }
       if (!cancelled && mapInst.current)
@@ -3607,6 +3642,69 @@ function MapScreen({ trip, onEditItem }) {
           return connector ? [connector, card] : [card];
         })}
       </div>
+
+      {/* Route Tip 박스 */}
+      {routeTip && (
+        <div style={{ padding:'14px 16px 6px' }}>
+          <div style={{ background:COLORS.card, borderRadius:16, padding:'14px 16px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
+              <span style={{ fontSize:15 }}>💡</span>
+              <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>Route Tip</span>
+            </div>
+
+            {/* 총 이동 시간 */}
+            {routeTip.totalTransit > 0 && (
+              <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginBottom:8 }}>
+                <span style={{ fontWeight:600 }}>{routeTip.pts.length}개 장소</span>
+                {' · 총 이동 약 '}
+                <span style={{ fontWeight:600 }}>{fmtMin(routeTip.totalTransit)}</span>
+              </div>
+            )}
+
+            {/* 최적 여부 */}
+            {routeTip.isOptimal ? (
+              <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, lineHeight:1.55 }}>
+                현재 방문 순서가 이동 거리 기준으로 효율적입니다.
+              </div>
+            ) : (
+              <div>
+                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginBottom:6, lineHeight:1.55 }}>
+                  방문 순서를 조정하면 이동 거리를 줄일 수 있어요.
+                </div>
+                <div style={{ background:COLORS.bg, borderRadius:10, padding:'10px 12px',
+                  fontFamily:MONO, fontSize:11, color:COLORS.ink, lineHeight:1.8, wordBreak:'break-word' }}>
+                  {routeTip.order.map((idx, i) => (
+                    <span key={idx}>
+                      {i > 0 && <span style={{ color:COLORS.mute }}> → </span>}
+                      <span style={{ color: i === 0 ? COLORS.accent : COLORS.ink }}>{routeTip.pts[idx].title}</span>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 가장 긴 구간 */}
+            {routeTip.longestLeg && (() => {
+              const legIdx = parseInt(routeTip.longestLeg[0]) - 1;
+              const from = routeTip.pts[legIdx];
+              const to   = routeTip.pts[legIdx + 1];
+              if (!from || !to) return null;
+              const mins = routeTip.longestLeg[1].transit;
+              return (
+                <div style={{ marginTop:10, paddingTop:10,
+                  borderTop:`1px solid ${COLORS.line}`,
+                  fontFamily:SANS, fontSize:12, color:COLORS.mute, lineHeight:1.55 }}>
+                  가장 긴 구간{' '}
+                  <span style={{ color:COLORS.ink, fontWeight:500 }}>{from.title}</span>
+                  {' → '}
+                  <span style={{ color:COLORS.ink, fontWeight:500 }}>{to.title}</span>
+                  {` · 약 ${fmtMin(mins)}`}
+                </div>
+              );
+            })()}
+          </div>
+        </div>
+      )}
 
       <StopSheet
         open={openStop}
@@ -5888,7 +5986,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v132</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v133</div>
         </div>
       </div>
       <button onClick={async () => {
