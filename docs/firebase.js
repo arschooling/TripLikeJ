@@ -35,7 +35,7 @@ window.fbOnAuth         = (cb)      => { _load().then(() => _fbAuth.onAuthStateC
 window.fbGetOrCreateUser = async (fbUser) => {
   await _load();
   const ref  = _fbDb.collection('users').doc(fbUser.uid);
-  const snap = await ref.get();
+  const snap = await ref.get({ source: 'server' }).catch(() => ref.get());
   if (!snap.exists) {
     const data = {
       displayName : fbUser.displayName || '여행자',
