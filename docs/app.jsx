@@ -37,6 +37,8 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'shop':   return <svg {...p}><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>;
     case 'show':   return <svg {...p}><rect x="2" y="6" width="20" height="14" rx="2"/><path d="m16 2-4 4-4-4"/><path d="M12 12v4"/><path d="M10 14h4"/></svg>;
     case 'bar':    return <svg {...p}><path d="M8 22h8"/><path d="M12 16v6"/><path d="M4 3h16l-8 11z"/></svg>;
+    case 'car':    return <svg {...p}><path d="M5 12L7 7h10l2 5"/><rect x="2" y="12" width="20" height="6" rx="2"/><circle cx="7" cy="21" r="2"/><circle cx="17" cy="21" r="2"/></svg>;
+    case 'bus':    return <svg {...p}><rect x="3" y="3" width="18" height="15" rx="3"/><path d="M3 9h18M7 18v2M17 18v2"/><circle cx="7.5" cy="13.5" r="1.5"/><circle cx="16.5" cy="13.5" r="1.5"/></svg>;
     case 'map':    return <svg {...p}><path d="M3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"/><path d="M9 3v15"/><path d="M15 6v15"/></svg>;
     case 'clock':  return <svg {...p}><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>;
     case 'chevron':return <svg {...p}><path d="m9 6 6 6-6 6"/></svg>;
@@ -67,9 +69,26 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
 };
 
 // ─── Photo placeholder ──────────────────────────────────────
-function Photo({ hue=20, label='', height=180, small=false }) {
+function getPhotoIcon(title='', cat='') {
+  if (cat && CAT_META[cat]) return CAT_META[cat].icon;
+  const t = (title || '').toLowerCase();
+  if (/비행|항공|공항|도착|출발|flight|airport|fly|plane|arrive|depart/.test(t)) return 'flight';
+  if (/호텔|숙소|체크인|체크아웃|hotel|stay|inn|motel|hostel|airbnb/.test(t)) return 'hotel';
+  if (/식사|점심|저녁|아침|밥|라멘|초밥|피자|버거|레스토랑|카페|맛집|브런치|food|eat|lunch|dinner|breakfast|cafe|restaurant|bistro|diner|brunch/.test(t)) return 'food';
+  if (/산책|하이킹|트레킹|걷기|공원|자연|walk|hike|trek|trail|park|garden|nature/.test(t)) return 'walk';
+  if (/전망|뷰|풍경|일몰|일출|노을|야경|view|sunset|sunrise|landscape|overlook|scenery/.test(t)) return 'view';
+  if (/배|선박|크루즈|페리|ferry|boat|cruise|ship/.test(t)) return 'ferry';
+  if (/박물관|미술관|궁|사원|성당|교회|성|탑|기념관|관광|관람|museum|gallery|temple|palace|church|cathedral|monument|landmark|sight|tour/.test(t)) return 'sight';
+  if (/쇼핑|시장|백화점|마트|shop|shopping|market|mall|store|boutique/.test(t)) return 'shop';
+  if (/공연|연극|뮤지컬|콘서트|show|performance|concert|theater|theatre|musical/.test(t)) return 'show';
+  if (/바|술|펍|클럽|나이트|bar|pub|club|nightlife|lounge/.test(t)) return 'bar';
+  return t.trim() ? 'map' : null;
+}
+
+function Photo({ hue=20, label='', height=180, small=false, icon }) {
   const bg=`oklch(0.88 0.035 ${hue})`, bg2=`oklch(0.80 0.045 ${hue})`;
   const ink=`oklch(0.36 0.04 ${hue})`;
+  const iconSz = typeof height === 'number' ? Math.min(Math.round(height * 0.38), 72) : 56;
   return (
     <div style={{
       width:'100%', height,
@@ -79,6 +98,12 @@ function Photo({ hue=20, label='', height=180, small=false }) {
     }}>
       <div style={{ position:'absolute', inset:0,
         background:`radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.35), transparent 60%)` }}/>
+      {icon && !small && (
+        <div style={{ position:'absolute', inset:0,
+          display:'flex', alignItems:'center', justifyContent:'center', opacity:0.28 }}>
+          <Icon name={icon} size={iconSz} color={ink} stroke={1.2}/>
+        </div>
+      )}
       {label && !small && <div style={{
         fontFamily:MONO, fontSize:10, letterSpacing:'0.14em',
         color:ink, opacity:0.72, textTransform:'uppercase', position:'relative',
@@ -621,6 +646,37 @@ function CompactWheel({ items, value, onChange, renderLabel=(x=>x), width=100 })
           }}>{renderLabel(it)}</div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── Time Picker ────────────────────────────────────────────
+function TimeField({ value, onChange }) {
+  const HOURS = Array.from({ length:24 }, (_, i) => i);
+  const MINS  = [0,5,10,15,20,25,30,35,40,45,50,55];
+  const parse = (v) => {
+    const m = (v||'').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return { h:9, mn:0 };
+    const h = parseInt(m[1]) % 24;
+    const raw = parseInt(m[2]);
+    const mn = MINS.reduce((best, x) => Math.abs(x-raw) < Math.abs(best-raw) ? x : best, 0);
+    return { h, mn };
+  };
+  const { h, mn } = parse(value);
+  const emit = (newH, newMn) =>
+    onChange(`${String(newH).padStart(2,'0')}:${String(newMn).padStart(2,'0')}`);
+  return (
+    <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:4, padding:'4px 0' }}>
+      <CompactWheel items={HOURS} value={h}
+        onChange={v => emit(v, mn)}
+        renderLabel={x => String(x).padStart(2,'0')}
+        width={80}/>
+      <div style={{ fontFamily:MONO, fontSize:24, fontWeight:600, color:COLORS.ink,
+        lineHeight:1, userSelect:'none' }}>:</div>
+      <CompactWheel items={MINS} value={mn}
+        onChange={v => emit(h, v)}
+        renderLabel={x => String(x).padStart(2,'0')}
+        width={80}/>
     </div>
   );
 }
@@ -1366,11 +1422,14 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
     catch (e) { setRestoreErr('복원 실패. 다시 시도해 주세요.'); setRestoring(false); }
   };
   return (
-    <div style={{ minHeight:'100vh', background:COLORS.bg,
-      paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
-      <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between',
-        padding:'0 20px 20px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v58</span></div>
+    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100 }}>
+      <div style={{
+        position:'sticky', top:0, zIndex:50, background:COLORS.bg,
+        display:'flex', alignItems:'flex-end', justifyContent:'space-between',
+        paddingTop:'calc(env(safe-area-inset-top, 0px) + 16px)',
+        paddingLeft:20, paddingRight:20, paddingBottom:16,
+      }}>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v86</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -1400,7 +1459,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                     padding:0, margin:0, textAlign:'left', cursor:'pointer',
                     WebkitTapHighlightColor:'transparent',
                   }}>
-                    <Photo hue={hue} label={label} height={130}/>
+                    <Photo hue={hue} label={label} height={130} icon={getPhotoIcon(t.title)}/>
                     <div style={{ padding:'14px 18px 16px', position:'relative' }}>
                       <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
                         {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
@@ -1618,7 +1677,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
         <div style={{ padding:'4px 16px 18px' }}>
           <div style={{ background:COLORS.card, borderRadius:22, overflow:'hidden',
             boxShadow:'0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.05)' }}>
-            <Photo hue={featured.hero?.hue ?? 25} label={featured.hero?.label} height={170}/>
+            <Photo hue={featured.hero?.hue ?? 25} label={featured.hero?.label} height={170} icon={getPhotoIcon(featured.hero?.label || featured.title || '')}/>
             <div style={{ padding:'16px 18px 18px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
@@ -1923,6 +1982,38 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                      onEditDay, onAddItem, onDeleteItem, onReorderItems, editing, setEditing }) {
   const day = trip.days[dayIdx] || { n: dayIdx+1, title:'', date:'', weekday:'', hero:{ hue:25, label:'' }, items:[] };
   const tripYear = extractTripYear(trip);
+  const [travelTimes, setTravelTimes] = React.useState({});
+
+  React.useEffect(() => {
+    const items = day.items || [];
+    const pending = items.reduce((acc, it, i) => {
+      if (i > 0 && it.coords && items[i-1].coords) acc.push(i);
+      return acc;
+    }, []);
+    if (!pending.length) { setTravelTimes({}); return; }
+    let alive = true;
+    const results = {};
+    Promise.all(pending.map(async (i) => {
+      const [lat1, lon1] = items[i-1].coords;
+      const [lat2, lon2] = items[i].coords;
+      try {
+        const r = await (await fetch(
+          `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`
+        )).json();
+        if (r.routes?.[0]) {
+          const { duration, distance } = r.routes[0];
+          results[i] = {
+            drive: Math.max(1, Math.round(duration / 60)),
+            walk: Math.max(1, Math.round(distance / 83.33)),
+          };
+        }
+      } catch(_) {}
+    })).then(() => { if (alive) setTravelTimes(results); });
+    return () => { alive = false; };
+  }, [dayIdx, (day.items||[]).map(it => it.coords ? it.coords.join(',') : '').join('|')]);
+
+  const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
+
   const [done, setDone] = React.useState(() => {
     try { return new Set(JSON.parse(localStorage.getItem('done_' + trip.title + '_' + dayIdx) || '[]')); }
     catch(e) { return new Set(); }
@@ -1939,7 +2030,7 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
   return (
     <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110 }}>
       <div style={{ position:'relative', marginTop:'calc(-1 * env(safe-area-inset-top, 0px))' }}>
-        <Photo hue={day.hero?.hue ?? 25} label={day.hero?.label} height='calc(280px + env(safe-area-inset-top, 0px))'/>
+        <Photo hue={day.hero?.hue ?? 25} label={day.hero?.label} height='calc(280px + env(safe-area-inset-top, 0px))' icon={getPhotoIcon(day.hero?.label || day.title || '')}/>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:180,
           background:'linear-gradient(180deg, rgba(0,0,0,0.28), transparent)' }}/>
         <button onClick={onBack} style={{
@@ -2035,12 +2126,24 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                     width:'100%', background:COLORS.card, borderRadius:14, border:'none', cursor:'pointer',
                     padding:'11px 14px 13px', textAlign:'left', opacity: isDone ? 0.5 : 1,
                   }}>
+                    {travelTimes[i] && (
+                      <div style={{ display:'flex', gap:10, marginBottom:7,
+                        fontFamily:MONO, fontSize:9, color:COLORS.mute, letterSpacing:'0.06em' }}>
+                        <span style={{ display:'flex', gap:3, alignItems:'center' }}>
+                          <Icon name="car" size={11} stroke={1.8}/>
+                          {fmtMin(travelTimes[i].drive)}
+                        </span>
+                        <span style={{ display:'flex', gap:3, alignItems:'center' }}>
+                          <Icon name="walk" size={11} stroke={1.8}/>
+                          {fmtMin(travelTimes[i].walk)}
+                        </span>
+                      </div>
+                    )}
                     <div style={{ display:'flex', gap:6, alignItems:'center',
                       fontFamily:MONO, fontSize:9.5, color:COLORS.mute,
                       letterSpacing:'0.12em', textTransform:'uppercase' }}>
                       <Icon name={meta.icon} size={11} stroke={1.8}/>
                       <span>{meta.label}</span>
-                      {it.duration && (<><span style={{ opacity:0.4 }}>·</span><span>{it.duration}</span></>)}
                       {it.price && (<><span style={{ opacity:0.4 }}>·</span><span>{it.price}</span></>)}
                     </div>
                     <div style={{ marginTop:3, fontFamily:SANS, fontSize:14.5, fontWeight:500,
@@ -2203,7 +2306,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
   return (
     <div style={{ background:COLORS.bg, minHeight:'100%', paddingBottom:110 }}>
       <div style={{ position:'relative', marginTop:'calc(-1 * env(safe-area-inset-top, 0px))' }}>
-        <Photo hue={draft.hue || 25} label={(draft.name || '').toUpperCase().slice(0, 20)} height='calc(240px + env(safe-area-inset-top, 0px))'/>
+        <Photo hue={draft.hue || 25} label={(draft.name || '').toUpperCase().slice(0, 20)} height='calc(240px + env(safe-area-inset-top, 0px))' icon={getPhotoIcon(draft.name || '')}/>
         <div style={{ position:'absolute', top:0, left:0, right:0, height:180,
           background:'linear-gradient(180deg, rgba(0,0,0,0.28), transparent)' }}/>
         <button onClick={onBack} style={{
@@ -2385,12 +2488,16 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
   const [draft, setDraft] = React.useState(open.stop);
+  const committed = React.useRef(open.stop);
   const [sheetY, setSheetY] = React.useState(0);
   const sheetRef = React.useRef(null);
   const sheetYRef = React.useRef(0);
   const dragRef = React.useRef({ active: false, startY: 0, startScrollTop: 0 });
 
-  React.useEffect(() => { setDraft(open.stop); setSheetY(0); sheetYRef.current = 0; setEditing(!!open.editing); }, [open]);
+  React.useEffect(() => {
+    setDraft(open.stop); committed.current = open.stop;
+    setSheetY(0); sheetYRef.current = 0; setEditing(!!open.editing);
+  }, [open]);
 
   // 배경 스크롤 완전 차단
   React.useEffect(() => {
@@ -2420,7 +2527,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
     };
     const onEnd = () => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 100) { onClose(); }
+      if (sheetYRef.current > 160) { onClose(); }
       else { sheetYRef.current = 0; setSheetY(0); }
     };
     el.addEventListener('touchstart', onStart, { passive: true });
@@ -2452,7 +2559,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
         </div>
         {/* 사진 영역 + 수정 버튼 오버레이 */}
         <div style={{ position:'relative' }}>
-          <Photo hue={dayHue} label={(draft.en||'').toUpperCase()} height={180}/>
+          <Photo hue={dayHue} label={(draft.en||'').toUpperCase()} height={180} icon={getPhotoIcon(draft.en || '', draft.cat)}/>
           {!editing && (
             <button onClick={(e) => { e.stopPropagation(); setEditing(true); }} style={{
               position:'absolute', top:12, right:12, zIndex:5,
@@ -2517,7 +2624,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
           <div style={{ marginTop:14, display:'flex', gap:8 }}>
             {editing ? (
               <>
-                <button onClick={() => { onSave(draft); setEditing(false); }} style={{
+                <button onClick={() => { onSave(draft); committed.current = draft; setEditing(false); }} style={{
                   flex:1, background:COLORS.ink, color:COLORS.bg,
                   border:'none', borderRadius:12, padding:'13px',
                   fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
@@ -2525,7 +2632,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
                 }}>
                   <Icon name="save" size={14} color={COLORS.bg} stroke={1.8}/> 저장
                 </button>
-                <button onClick={() => setEditing(false)} style={{
+                <button onClick={() => { setDraft(committed.current); setEditing(false); }} style={{
                   width:80, background:COLORS.card, border:`1px solid ${COLORS.line}`,
                   borderRadius:12, cursor:'pointer',
                   fontFamily:SANS, fontSize:13, color:COLORS.ink,
@@ -2565,21 +2672,24 @@ function LocationField({ value, onChange, cityBias }) {
 
   React.useEffect(() => { setQuery(value || ''); }, [value]);
 
+  const doSearch = async (q) => {
+    if (!q.trim()) { setResults([]); setShow(false); return; }
+    try {
+      const [bLat, bLon] = cityBias || [];
+      const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
+      const j = await (await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en${bias}`
+      )).json();
+      const feats = j?.features || [];
+      setResults(feats);
+      if (feats.length) setShow(true);
+    } catch(_) {}
+  };
+
   React.useEffect(() => {
     clearTimeout(timer.current);
     if (!query.trim()) { setResults([]); setShow(false); return; }
-    timer.current = setTimeout(async () => {
-      try {
-        const [bLat, bLon] = cityBias || [];
-        const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
-        const j = await (await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=en${bias}`
-        )).json();
-        const feats = j?.features || [];
-        setResults(feats);
-        if (feats.length) setShow(true);
-      } catch(_) {}
-    }, 350);
+    timer.current = setTimeout(() => doSearch(query), 350);
   }, [query]);
 
   return (
@@ -2589,13 +2699,20 @@ function LocationField({ value, onChange, cityBias }) {
           onChange={e => { setQuery(e.target.value); onChange(e.target.value, null); }}
           onFocus={() => results.length && setShow(true)}
           onBlur={() => setTimeout(() => setShow(false), 150)}
+          onKeyDown={e => e.key === 'Enter' && doSearch(query)}
           placeholder="위치 검색..."
           style={{ width:'100%', padding:'8px 34px 8px 10px', borderRadius:8,
             border:`1px solid ${COLORS.line}`, background:COLORS.card,
             fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
-        <div style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}>
+        <button
+          type="button"
+          onMouseDown={e => e.preventDefault()}
+          onClick={() => doSearch(query)}
+          style={{ position:'absolute', right:6, top:'50%', transform:'translateY(-50%)',
+            background:'none', border:'none', cursor:'pointer', padding:4,
+            display:'flex', alignItems:'center' }}>
           <Icon name="search" size={13} color={COLORS.mute} stroke={2}/>
-        </div>
+        </button>
       </div>
       {show && results.length > 0 && (
         <div style={{
@@ -2669,8 +2786,11 @@ function EditStopForm({ draft, setDraft, cityBias }) {
     <div style={{ marginTop:10 }}>
       {field('title', '제목')}
       {field('en', '영문명')}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-        {field('time', '시간')}
+      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, alignItems:'end' }}>
+        <label style={{ display:'block', marginTop:10 }}>
+          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>시간</div>
+          <TimeField value={draft.time || '09:00'} onChange={v => setDraft({...draft, time: v})}/>
+        </label>
         {field('cat', '카테고리', 'select')}
       </div>
       {draft.cat === 'hotel' && (
@@ -2693,7 +2813,6 @@ function EditStopForm({ draft, setDraft, cityBias }) {
         />
       </label>
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-        {field('duration', '소요 시간')}
         {field('price', '가격')}
       </div>
       {field('note', '메모', 'textarea')}
@@ -2828,7 +2947,9 @@ function MapScreen({ trip, onEditItem }) {
   const day = trip.days[selDay];
   const { itemProps } = useDragReorder((from, to) => dispatch({ type:'REORDER', from, to }), true);
 
-  const [openStop, setOpenStop] = React.useState(null); // { idx: origIdx, stop: item }
+  const [openStop, setOpenStop] = React.useState(null);
+  const [travelTimes, setTravelTimes] = React.useState({});
+  const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
 
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
@@ -2840,6 +2961,8 @@ function MapScreen({ trip, onEditItem }) {
   const mapDiv  = React.useRef(null);
   const mapInst = React.useRef(null);
   const layers  = React.useRef([]);
+
+  React.useEffect(() => { setTravelTimes({}); }, [selDay]);
 
   // 날짜 바뀌면 지도 재초기화
   React.useEffect(() => {
@@ -2929,6 +3052,14 @@ function MapScreen({ trip, onEditItem }) {
               style: { color:'#C14F2E', weight:3.5, opacity:0.85 },
             }).addTo(mapInst.current);
             layers.current.push(route);
+            const times = {};
+            (rd.routes[0].legs || []).forEach((leg, li) => {
+              times[li + 1] = {
+                transit: Math.max(1, Math.round(leg.duration / 60)),
+                walk: Math.max(1, Math.round(leg.distance / 83.33)),
+              };
+            });
+            if (!cancelled) setTravelTimes(times);
           }
         } catch(_) {
           const line = window.L.polyline(pts.map(p => p.pos), {
@@ -2972,15 +3103,15 @@ function MapScreen({ trip, onEditItem }) {
           Day {String(day.n).padStart(2,'0')} · {day.title}
         </div>
       </div>
-      <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:6 }}>
-        {ordered.map((it, i) => {
+      <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:0 }}>
+        {ordered.flatMap((it, i) => {
           const p = itemProps(i);
-          return (
+          const card = (
             <div key={it.title + i} {...p} style={{
               ...p.style,
               background: p.style?.background || COLORS.card,
               borderRadius:12, display:'flex', gap:10, alignItems:'center',
-              overflow:'hidden',
+              overflow:'hidden', marginBottom:6,
             }}>
               <button onClick={() => setOpenStop({ idx: it._origIdx, stop: it, editing: false })}
                 style={{
@@ -3008,6 +3139,24 @@ function MapScreen({ trip, onEditItem }) {
               </button>
             </div>
           );
+          const connector = travelTimes[i] ? (
+            <div key={`tt-${i}`} style={{
+              display:'flex', justifyContent:'center', alignItems:'center', gap:16,
+              padding:'3px 0 9px',
+              fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.06em',
+            }}>
+              <div style={{ flex:1, height:1, background:COLORS.line, marginLeft:16 }}/>
+              <span style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
+                <Icon name="bus" size={12} stroke={1.8}/>{fmtMin(travelTimes[i].transit)}
+              </span>
+              <span style={{ color:COLORS.line }}>·</span>
+              <span style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
+                <Icon name="walk" size={12} stroke={1.8}/>{fmtMin(travelTimes[i].walk)}
+              </span>
+              <div style={{ flex:1, height:1, background:COLORS.line, marginRight:16 }}/>
+            </div>
+          ) : null;
+          return connector ? [connector, card] : [card];
         })}
       </div>
 
@@ -3275,13 +3424,14 @@ function TabBar({ tab, setTab, visible, editing, onToggleEdit }) {
   ];
   return (
     <div style={{
-      position:'fixed', left:14, right:14, bottom:'env(safe-area-inset-bottom, 0px)', zIndex:30,
-      background:'rgba(255,255,255,0.88)',
-      backdropFilter:'blur(20px) saturate(180%)',
-      WebkitBackdropFilter:'blur(20px) saturate(180%)',
-      borderRadius:26, padding:'9px 10px 11px',
-      boxShadow:'0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
-      border:`0.5px solid ${COLORS.line}`,
+      position:'fixed', left:0, right:0, bottom:0, zIndex:30,
+      background:'rgba(245,242,236,0.82)',
+      backdropFilter:'blur(24px) saturate(180%)',
+      WebkitBackdropFilter:'blur(24px) saturate(180%)',
+      borderRadius:'22px 22px 0 0',
+      padding:'10px 20px 0',
+      paddingBottom:'calc(10px + env(safe-area-inset-bottom, 0px))',
+      boxShadow:'0 -0.5px 0 rgba(26,24,22,0.08)',
       display:'flex', gap:2, alignItems:'center',
       transition:'opacity 0.25s ease',
       opacity: visible ? 1 : 0,
@@ -4321,7 +4471,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v58</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v86</div>
         </div>
       </div>
       <button onClick={async () => {

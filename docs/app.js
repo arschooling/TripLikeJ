@@ -161,6 +161,42 @@ const Icon = ({
       }), /*#__PURE__*/React.createElement("path", {
         d: "M4 3h16l-8 11z"
       }));
+    case 'car':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+        d: "M5 12L7 7h10l2 5"
+      }), /*#__PURE__*/React.createElement("rect", {
+        x: "2",
+        y: "12",
+        width: "20",
+        height: "6",
+        rx: "2"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "7",
+        cy: "21",
+        r: "2"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "17",
+        cy: "21",
+        r: "2"
+      }));
+    case 'bus':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("rect", {
+        x: "3",
+        y: "3",
+        width: "18",
+        height: "15",
+        rx: "3"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M3 9h18M7 18v2M17 18v2"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "7.5",
+        cy: "13.5",
+        r: "1.5"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "16.5",
+        cy: "13.5",
+        r: "1.5"
+      }));
     case 'map':
       return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
         d: "M3 6v15l6-3 6 3 6-3V3l-6 3-6-3z"
@@ -343,15 +379,32 @@ const Icon = ({
 };
 
 // ─── Photo placeholder ──────────────────────────────────────
+function getPhotoIcon(title = '', cat = '') {
+  if (cat && CAT_META[cat]) return CAT_META[cat].icon;
+  const t = (title || '').toLowerCase();
+  if (/비행|항공|공항|도착|출발|flight|airport|fly|plane|arrive|depart/.test(t)) return 'flight';
+  if (/호텔|숙소|체크인|체크아웃|hotel|stay|inn|motel|hostel|airbnb/.test(t)) return 'hotel';
+  if (/식사|점심|저녁|아침|밥|라멘|초밥|피자|버거|레스토랑|카페|맛집|브런치|food|eat|lunch|dinner|breakfast|cafe|restaurant|bistro|diner|brunch/.test(t)) return 'food';
+  if (/산책|하이킹|트레킹|걷기|공원|자연|walk|hike|trek|trail|park|garden|nature/.test(t)) return 'walk';
+  if (/전망|뷰|풍경|일몰|일출|노을|야경|view|sunset|sunrise|landscape|overlook|scenery/.test(t)) return 'view';
+  if (/배|선박|크루즈|페리|ferry|boat|cruise|ship/.test(t)) return 'ferry';
+  if (/박물관|미술관|궁|사원|성당|교회|성|탑|기념관|관광|관람|museum|gallery|temple|palace|church|cathedral|monument|landmark|sight|tour/.test(t)) return 'sight';
+  if (/쇼핑|시장|백화점|마트|shop|shopping|market|mall|store|boutique/.test(t)) return 'shop';
+  if (/공연|연극|뮤지컬|콘서트|show|performance|concert|theater|theatre|musical/.test(t)) return 'show';
+  if (/바|술|펍|클럽|나이트|bar|pub|club|nightlife|lounge/.test(t)) return 'bar';
+  return t.trim() ? 'map' : null;
+}
 function Photo({
   hue = 20,
   label = '',
   height = 180,
-  small = false
+  small = false,
+  icon
 }) {
   const bg = `oklch(0.88 0.035 ${hue})`,
     bg2 = `oklch(0.80 0.045 ${hue})`;
   const ink = `oklch(0.36 0.04 ${hue})`;
+  const iconSz = typeof height === 'number' ? Math.min(Math.round(height * 0.38), 72) : 56;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       width: '100%',
@@ -370,7 +423,21 @@ function Photo({
       inset: 0,
       background: `radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.35), transparent 60%)`
     }
-  }), label && !small && /*#__PURE__*/React.createElement("div", {
+  }), icon && !small && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      inset: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      opacity: 0.28
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: icon,
+    size: iconSz,
+    color: ink,
+    stroke: 1.2
+  })), label && !small && /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: MONO,
       fontSize: 10,
@@ -1316,6 +1383,66 @@ function CompactWheel({
       cursor: 'pointer'
     }
   }, renderLabel(it)))));
+}
+
+// ─── Time Picker ────────────────────────────────────────────
+function TimeField({
+  value,
+  onChange
+}) {
+  const HOURS = Array.from({
+    length: 24
+  }, (_, i) => i);
+  const MINS = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
+  const parse = v => {
+    const m = (v || '').match(/^(\d{1,2}):(\d{2})$/);
+    if (!m) return {
+      h: 9,
+      mn: 0
+    };
+    const h = parseInt(m[1]) % 24;
+    const raw = parseInt(m[2]);
+    const mn = MINS.reduce((best, x) => Math.abs(x - raw) < Math.abs(best - raw) ? x : best, 0);
+    return {
+      h,
+      mn
+    };
+  };
+  const {
+    h,
+    mn
+  } = parse(value);
+  const emit = (newH, newMn) => onChange(`${String(newH).padStart(2, '0')}:${String(newMn).padStart(2, '0')}`);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      padding: '4px 0'
+    }
+  }, /*#__PURE__*/React.createElement(CompactWheel, {
+    items: HOURS,
+    value: h,
+    onChange: v => emit(v, mn),
+    renderLabel: x => String(x).padStart(2, '0'),
+    width: 80
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 24,
+      fontWeight: 600,
+      color: COLORS.ink,
+      lineHeight: 1,
+      userSelect: 'none'
+    }
+  }, ":"), /*#__PURE__*/React.createElement(CompactWheel, {
+    items: MINS,
+    value: mn,
+    onChange: v => emit(h, v),
+    renderLabel: x => String(x).padStart(2, '0'),
+    width: 80
+  }));
 }
 
 // ─── Date Range Picker ───────────────────────────────────────
@@ -2857,15 +2984,21 @@ function TripsScreen({
     style: {
       minHeight: '100vh',
       background: COLORS.bg,
-      paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
       paddingBottom: 100
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
+      position: 'sticky',
+      top: 0,
+      zIndex: 50,
+      background: COLORS.bg,
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
-      padding: '0 20px 20px'
+      paddingTop: 'calc(env(safe-area-inset-top, 0px) + 16px)',
+      paddingLeft: 20,
+      paddingRight: 20,
+      paddingBottom: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -2881,7 +3014,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v58")), /*#__PURE__*/React.createElement("button", {
+  }, "v86")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -2952,7 +3085,8 @@ function TripsScreen({
     }, /*#__PURE__*/React.createElement(Photo, {
       hue: hue,
       label: label,
-      height: 130
+      height: 130,
+      icon: getPhotoIcon(t.title)
     }), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '14px 18px 16px',
@@ -3367,7 +3501,8 @@ function HomeScreen({
   }, /*#__PURE__*/React.createElement(Photo, {
     hue: featured.hero?.hue ?? 25,
     label: featured.hero?.label,
-    height: 170
+    height: 170,
+    icon: getPhotoIcon(featured.hero?.label || featured.title || '')
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '16px 18px 18px'
@@ -4029,6 +4164,43 @@ function DayScreen({
     items: []
   };
   const tripYear = extractTripYear(trip);
+  const [travelTimes, setTravelTimes] = React.useState({});
+  React.useEffect(() => {
+    const items = day.items || [];
+    const pending = items.reduce((acc, it, i) => {
+      if (i > 0 && it.coords && items[i - 1].coords) acc.push(i);
+      return acc;
+    }, []);
+    if (!pending.length) {
+      setTravelTimes({});
+      return;
+    }
+    let alive = true;
+    const results = {};
+    Promise.all(pending.map(async i => {
+      const [lat1, lon1] = items[i - 1].coords;
+      const [lat2, lon2] = items[i].coords;
+      try {
+        const r = await (await fetch(`https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`)).json();
+        if (r.routes?.[0]) {
+          const {
+            duration,
+            distance
+          } = r.routes[0];
+          results[i] = {
+            drive: Math.max(1, Math.round(duration / 60)),
+            walk: Math.max(1, Math.round(distance / 83.33))
+          };
+        }
+      } catch (_) {}
+    })).then(() => {
+      if (alive) setTravelTimes(results);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [dayIdx, (day.items || []).map(it => it.coords ? it.coords.join(',') : '').join('|')]);
+  const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`;
   const [done, setDone] = React.useState(() => {
     try {
       return new Set(JSON.parse(localStorage.getItem('done_' + trip.title + '_' + dayIdx) || '[]'));
@@ -4061,7 +4233,8 @@ function DayScreen({
   }, /*#__PURE__*/React.createElement(Photo, {
     hue: day.hero?.hue ?? 25,
     label: day.hero?.label,
-    height: "calc(280px + env(safe-area-inset-top, 0px))"
+    height: "calc(280px + env(safe-area-inset-top, 0px))",
+    icon: getPhotoIcon(day.hero?.label || day.title || '')
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
@@ -4326,7 +4499,37 @@ function DayScreen({
         textAlign: 'left',
         opacity: isDone ? 0.5 : 1
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }, travelTimes[i] && /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 10,
+        marginBottom: 7,
+        fontFamily: MONO,
+        fontSize: 9,
+        color: COLORS.mute,
+        letterSpacing: '0.06em'
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'flex',
+        gap: 3,
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "car",
+      size: 11,
+      stroke: 1.8
+    }), fmtMin(travelTimes[i].drive)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'flex',
+        gap: 3,
+        alignItems: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "walk",
+      size: 11,
+      stroke: 1.8
+    }), fmtMin(travelTimes[i].walk))), /*#__PURE__*/React.createElement("div", {
       style: {
         display: 'flex',
         gap: 6,
@@ -4341,11 +4544,7 @@ function DayScreen({
       name: meta.icon,
       size: 11,
       stroke: 1.8
-    }), /*#__PURE__*/React.createElement("span", null, meta.label), it.duration && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
-      style: {
-        opacity: 0.4
-      }
-    }, "\xB7"), /*#__PURE__*/React.createElement("span", null, it.duration)), it.price && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    }), /*#__PURE__*/React.createElement("span", null, meta.label), it.price && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
       style: {
         opacity: 0.4
       }
@@ -4643,7 +4842,8 @@ function HotelDetailScreen({
   }, /*#__PURE__*/React.createElement(Photo, {
     hue: draft.hue || 25,
     label: (draft.name || '').toUpperCase().slice(0, 20),
-    height: "calc(240px + env(safe-area-inset-top, 0px))"
+    height: "calc(240px + env(safe-area-inset-top, 0px))",
+    icon: getPhotoIcon(draft.name || '')
   }), /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
@@ -5033,6 +5233,7 @@ function StopSheet({
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
   const [draft, setDraft] = React.useState(open.stop);
+  const committed = React.useRef(open.stop);
   const [sheetY, setSheetY] = React.useState(0);
   const sheetRef = React.useRef(null);
   const sheetYRef = React.useRef(0);
@@ -5043,6 +5244,7 @@ function StopSheet({
   });
   React.useEffect(() => {
     setDraft(open.stop);
+    committed.current = open.stop;
     setSheetY(0);
     sheetYRef.current = 0;
     setEditing(!!open.editing);
@@ -5089,7 +5291,7 @@ function StopSheet({
     };
     const onEnd = () => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 100) {
+      if (sheetYRef.current > 160) {
         onClose();
       } else {
         sheetYRef.current = 0;
@@ -5156,7 +5358,8 @@ function StopSheet({
   }, /*#__PURE__*/React.createElement(Photo, {
     hue: dayHue,
     label: (draft.en || '').toUpperCase(),
-    height: 180
+    height: 180,
+    icon: getPhotoIcon(draft.en || '', draft.cat)
   }), !editing && /*#__PURE__*/React.createElement("button", {
     onClick: e => {
       e.stopPropagation();
@@ -5304,6 +5507,7 @@ function StopSheet({
   }, editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
     onClick: () => {
       onSave(draft);
+      committed.current = draft;
       setEditing(false);
     },
     style: {
@@ -5328,7 +5532,10 @@ function StopSheet({
     color: COLORS.bg,
     stroke: 1.8
   }), " \uC800\uC7A5"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setEditing(false),
+    onClick: () => {
+      setDraft(committed.current);
+      setEditing(false);
+    },
     style: {
       width: 80,
       background: COLORS.card,
@@ -5393,6 +5600,21 @@ function LocationField({
   React.useEffect(() => {
     setQuery(value || '');
   }, [value]);
+  const doSearch = async q => {
+    if (!q.trim()) {
+      setResults([]);
+      setShow(false);
+      return;
+    }
+    try {
+      const [bLat, bLon] = cityBias || [];
+      const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
+      const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en${bias}`)).json();
+      const feats = j?.features || [];
+      setResults(feats);
+      if (feats.length) setShow(true);
+    } catch (_) {}
+  };
   React.useEffect(() => {
     clearTimeout(timer.current);
     if (!query.trim()) {
@@ -5400,16 +5622,7 @@ function LocationField({
       setShow(false);
       return;
     }
-    timer.current = setTimeout(async () => {
-      try {
-        const [bLat, bLon] = cityBias || [];
-        const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
-        const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=5&lang=en${bias}`)).json();
-        const feats = j?.features || [];
-        setResults(feats);
-        if (feats.length) setShow(true);
-      } catch (_) {}
-    }, 350);
+    timer.current = setTimeout(() => doSearch(query), 350);
   }, [query]);
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5427,6 +5640,7 @@ function LocationField({
     },
     onFocus: () => results.length && setShow(true),
     onBlur: () => setTimeout(() => setShow(false), 150),
+    onKeyDown: e => e.key === 'Enter' && doSearch(query),
     placeholder: "\uC704\uCE58 \uAC80\uC0C9...",
     style: {
       width: '100%',
@@ -5439,13 +5653,21 @@ function LocationField({
       color: COLORS.ink,
       boxSizing: 'border-box'
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onMouseDown: e => e.preventDefault(),
+    onClick: () => doSearch(query),
     style: {
       position: 'absolute',
-      right: 10,
+      right: 6,
       top: '50%',
       transform: 'translateY(-50%)',
-      pointerEvents: 'none'
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      padding: 4,
+      display: 'flex',
+      alignItems: 'center'
     }
   }, /*#__PURE__*/React.createElement(Icon, {
     name: "search",
@@ -5608,9 +5830,30 @@ function EditStopForm({
     style: {
       display: 'grid',
       gridTemplateColumns: '1fr 1fr',
-      gap: 10
+      gap: 10,
+      alignItems: 'end'
     }
-  }, field('time', '시간'), field('cat', '카테고리', 'select')), draft.cat === 'hotel' && /*#__PURE__*/React.createElement("button", {
+  }, /*#__PURE__*/React.createElement("label", {
+    style: {
+      display: 'block',
+      marginTop: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uC2DC\uAC04"), /*#__PURE__*/React.createElement(TimeField, {
+    value: draft.time || '09:00',
+    onChange: v => setDraft({
+      ...draft,
+      time: v
+    })
+  })), field('cat', '카테고리', 'select')), draft.cat === 'hotel' && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowHotelSearch(true),
     style: {
@@ -5665,7 +5908,7 @@ function EditStopForm({
       gridTemplateColumns: '1fr 1fr',
       gap: 10
     }
-  }, field('duration', '소요 시간'), field('price', '가격')), field('note', '메모', 'textarea'), showHotelSearch && /*#__PURE__*/React.createElement(HotelSearchSheet, {
+  }, field('price', '가격')), field('note', '메모', 'textarea'), showHotelSearch && /*#__PURE__*/React.createElement(HotelSearchSheet, {
     COLORS: COLORS,
     SERIF: SERIF,
     SANS: SANS,
@@ -5917,8 +6160,9 @@ function MapScreen({
     from,
     to
   }), true);
-  const [openStop, setOpenStop] = React.useState(null); // { idx: origIdx, stop: item }
-
+  const [openStop, setOpenStop] = React.useState(null);
+  const [travelTimes, setTravelTimes] = React.useState({});
+  const fmtMin = m => m >= 60 ? `${Math.floor(m / 60)}시간${m % 60 ? ` ${m % 60}분` : ''}` : `${m}분`;
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
     'new york': [40.758, -73.985],
@@ -5932,6 +6176,9 @@ function MapScreen({
   const mapDiv = React.useRef(null);
   const mapInst = React.useRef(null);
   const layers = React.useRef([]);
+  React.useEffect(() => {
+    setTravelTimes({});
+  }, [selDay]);
 
   // 날짜 바뀌면 지도 재초기화
   React.useEffect(() => {
@@ -6036,6 +6283,14 @@ function MapScreen({
               }
             }).addTo(mapInst.current);
             layers.current.push(route);
+            const times = {};
+            (rd.routes[0].legs || []).forEach((leg, li) => {
+              times[li + 1] = {
+                transit: Math.max(1, Math.round(leg.duration / 60)),
+                walk: Math.max(1, Math.round(leg.distance / 83.33))
+              };
+            });
+            if (!cancelled) setTravelTimes(times);
           }
         } catch (_) {
           const line = window.L.polyline(pts.map(p => p.pos), {
@@ -6140,11 +6395,11 @@ function MapScreen({
       padding: '0 16px',
       display: 'flex',
       flexDirection: 'column',
-      gap: 6
+      gap: 0
     }
-  }, ordered.map((it, i) => {
+  }, ordered.flatMap((it, i) => {
     const p = itemProps(i);
-    return /*#__PURE__*/React.createElement("div", _extends({
+    const card = /*#__PURE__*/React.createElement("div", _extends({
       key: it.title + i
     }, p, {
       style: {
@@ -6154,7 +6409,8 @@ function MapScreen({
         display: 'flex',
         gap: 10,
         alignItems: 'center',
-        overflow: 'hidden'
+        overflow: 'hidden',
+        marginBottom: 6
       }
     }), /*#__PURE__*/React.createElement("button", {
       onClick: () => setOpenStop({
@@ -6231,6 +6487,61 @@ function MapScreen({
       color: COLORS.accent,
       stroke: 1.8
     })));
+    const connector = travelTimes[i] ? /*#__PURE__*/React.createElement("div", {
+      key: `tt-${i}`,
+      style: {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 16,
+        padding: '3px 0 9px',
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute,
+        letterSpacing: '0.06em'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 1,
+        background: COLORS.line,
+        marginLeft: 16
+      }
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "bus",
+      size: 12,
+      stroke: 1.8
+    }), fmtMin(travelTimes[i].transit)), /*#__PURE__*/React.createElement("span", {
+      style: {
+        color: COLORS.line
+      }
+    }, "\xB7"), /*#__PURE__*/React.createElement("span", {
+      style: {
+        display: 'flex',
+        gap: 4,
+        alignItems: 'center',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "walk",
+      size: 12,
+      stroke: 1.8
+    }), fmtMin(travelTimes[i].walk)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        height: 1,
+        background: COLORS.line,
+        marginRight: 16
+      }
+    })) : null;
+    return connector ? [connector, card] : [card];
   })), /*#__PURE__*/React.createElement(StopSheet, {
     open: openStop,
     dayHue: day?.hero?.hue ?? 25,
@@ -6825,17 +7136,17 @@ function TabBar({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
-      left: 14,
-      right: 14,
-      bottom: 'env(safe-area-inset-bottom, 0px)',
+      left: 0,
+      right: 0,
+      bottom: 0,
       zIndex: 30,
-      background: 'rgba(255,255,255,0.88)',
-      backdropFilter: 'blur(20px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-      borderRadius: 26,
-      padding: '9px 10px 11px',
-      boxShadow: '0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
-      border: `0.5px solid ${COLORS.line}`,
+      background: 'rgba(245,242,236,0.82)',
+      backdropFilter: 'blur(24px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(24px) saturate(180%)',
+      borderRadius: '22px 22px 0 0',
+      padding: '10px 20px 0',
+      paddingBottom: 'calc(10px + env(safe-area-inset-bottom, 0px))',
+      boxShadow: '0 -0.5px 0 rgba(26,24,22,0.08)',
       display: 'flex',
       gap: 2,
       alignItems: 'center',
@@ -8571,7 +8882,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v58"))), /*#__PURE__*/React.createElement("button", {
+  }, "v86"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
