@@ -1672,7 +1672,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v138</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v139</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, flexShrink:0,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3191,6 +3191,7 @@ function LocationField({ value, onChange, cityBias }) {
 
 function EditStopForm({ draft, setDraft, cityBias }) {
   const [showHotelSearch, setShowHotelSearch] = React.useState(false);
+  const [timeOpen, setTimeOpen] = React.useState(false);
   const field = (key, label, type='text') => (
     <label style={{ display:'block', marginTop:10 }}>
       <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
@@ -3223,10 +3224,18 @@ function EditStopForm({ draft, setDraft, cityBias }) {
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, alignItems:'end' }}>
         <label style={{ display:'block', marginTop:10 }}>
           <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>시간</div>
-          <TimeField value={draft.time || '09:00'} onChange={v => setDraft({...draft, time: v})}/>
+          <button type="button" onClick={() => setTimeOpen(true)} style={{
+            width:'100%', padding:'8px 10px', borderRadius:8,
+            border:`1px solid ${COLORS.line}`, background:COLORS.card,
+            fontFamily:MONO, fontSize:14, color:COLORS.ink, cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center',
+          }}>{draft.time || '09:00'}</button>
         </label>
         {field('cat', '카테고리', 'select')}
       </div>
+      <TimeWheelSheet open={timeOpen} value={draft.time || '09:00'}
+        onClose={() => setTimeOpen(false)}
+        onPick={v => { setDraft({...draft, time: v}); setTimeOpen(false); }}/>
       {draft.cat === 'hotel' && (
         <button type="button" onClick={() => setShowHotelSearch(true)} style={{
           marginTop:10, width:'100%', border:'none', cursor:'pointer',
@@ -5655,11 +5664,16 @@ function App() {
     days[dayIdx] = { ...days[dayIdx], items: days[dayIdx].items.filter((_, j) => j !== i) };
     editTrip({ days });
   };
+  const sortByTime = (items) => {
+    const toMin = t => { const m = (t||'').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1]*60 + +m[2] : Infinity; };
+    return [...items].sort((a, b) => toMin(a.time) - toMin(b.time));
+  };
+
   const saveStop = (draft) => {
     const days = [...trip.days];
     const items = [...days[dayIdx].items];
     items[openStop.idx] = draft;
-    days[dayIdx] = { ...days[dayIdx], items };
+    days[dayIdx] = { ...days[dayIdx], items: sortByTime(items) };
 
     // 숙소 스탑이면 메인 호텔 시간도 역방향 동기화
     let hotels = trip.hotels;
@@ -5990,7 +6004,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v138</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v139</div>
         </div>
       </div>
       <button onClick={async () => {

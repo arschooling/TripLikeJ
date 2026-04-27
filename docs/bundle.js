@@ -3864,7 +3864,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v138")), /*#__PURE__*/React.createElement("button", {
+  }, "v139")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -6918,6 +6918,7 @@ function EditStopForm({
   cityBias
 }) {
   const [showHotelSearch, setShowHotelSearch] = React.useState(false);
+  const [timeOpen, setTimeOpen] = React.useState(false);
   const field = (key, label, type = 'text') => /*#__PURE__*/React.createElement("label", {
     style: {
       display: 'block',
@@ -7014,13 +7015,35 @@ function EditStopForm({
       textTransform: 'uppercase',
       marginBottom: 4
     }
-  }, "\uC2DC\uAC04"), /*#__PURE__*/React.createElement(TimeField, {
+  }, "\uC2DC\uAC04"), /*#__PURE__*/React.createElement("button", {
+    type: "button",
+    onClick: () => setTimeOpen(true),
+    style: {
+      width: '100%',
+      padding: '8px 10px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.card,
+      fontFamily: MONO,
+      fontSize: 14,
+      color: COLORS.ink,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, draft.time || '09:00')), field('cat', '카테고리', 'select')), /*#__PURE__*/React.createElement(TimeWheelSheet, {
+    open: timeOpen,
     value: draft.time || '09:00',
-    onChange: v => setDraft({
-      ...draft,
-      time: v
-    })
-  })), field('cat', '카테고리', 'select')), draft.cat === 'hotel' && /*#__PURE__*/React.createElement("button", {
+    onClose: () => setTimeOpen(false),
+    onPick: v => {
+      setDraft({
+        ...draft,
+        time: v
+      });
+      setTimeOpen(false);
+    }
+  }), draft.cat === 'hotel' && /*#__PURE__*/React.createElement("button", {
     type: "button",
     onClick: () => setShowHotelSearch(true),
     style: {
@@ -11805,13 +11828,20 @@ function App() {
       days
     });
   };
+  const sortByTime = items => {
+    const toMin = t => {
+      const m = (t || '').match(/^(\d{1,2}):(\d{2})/);
+      return m ? +m[1] * 60 + +m[2] : Infinity;
+    };
+    return [...items].sort((a, b) => toMin(a.time) - toMin(b.time));
+  };
   const saveStop = draft => {
     const days = [...trip.days];
     const items = [...days[dayIdx].items];
     items[openStop.idx] = draft;
     days[dayIdx] = {
       ...days[dayIdx],
-      items
+      items: sortByTime(items)
     };
 
     // 숙소 스탑이면 메인 호텔 시간도 역방향 동기화
@@ -12366,7 +12396,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v138"))), /*#__PURE__*/React.createElement("button", {
+  }, "v139"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
