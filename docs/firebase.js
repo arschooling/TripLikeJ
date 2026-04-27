@@ -233,6 +233,7 @@ window.fbCreateNewTrip = async (uid, title) => {
   await ref.set({
     title, dates: '', hotel: '', days: [], hotels: [], food: [],
     members: [uid], hue,
+    permissions: { [uid]: 'owner' },
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
   await _fbDb.collection('users').doc(uid).update({
@@ -270,11 +271,18 @@ window.fbAcceptTripInvite = async (invite, myUid) => {
   await _fbDb.collection('invites').doc(invite.id).update({ status: 'accepted' });
   await _fbDb.collection('groups').doc(tripId).update({
     members: firebase.firestore.FieldValue.arrayUnion(myUid),
+    [`permissions.${myUid}`]: invite.role || 'edit',
   });
   await _fbDb.collection('users').doc(myUid).update({
     tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
   });
   return tripId;
+};
+
+window.fbSetTripPermission = async (tripId, uid, role) => {
+  await _fbDb.collection('groups').doc(tripId).update({
+    [`permissions.${uid}`]: role,
+  });
 };
 
 window.fbGetTripCompanions = async (tripId, myUid) => {
