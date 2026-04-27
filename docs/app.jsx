@@ -12,7 +12,7 @@ const SERIF = '"Instrument Serif", Georgia, serif';
 const SANS  = '-apple-system, "SF Pro Text", system-ui, sans-serif';
 const MONO  = '"JetBrains Mono", ui-monospace, monospace';
 // 탭바 위에 시트가 뜨도록 하는 bottom 오프셋
-const SHEET_BOTTOM = 'calc(max(calc(env(safe-area-inset-bottom, 0px) - 28px), 0px) + 64px)';
+const SHEET_BOTTOM = 'calc(env(safe-area-inset-bottom, 0px) + 64px)';
 
 const CAT_META = {
   flight:{icon:'flight',label:'Flight'}, hotel:{icon:'hotel',label:'Stay'},
@@ -1674,7 +1674,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v134</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v135</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -4828,7 +4828,7 @@ function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
   return (
     <div style={{
       position:'fixed', left:14, right:14,
-      bottom:'max(calc(env(safe-area-inset-bottom, 0px) - 28px), 0px)',
+      bottom:0,
       zIndex:30,
       background:'rgba(255,255,255,0.88)',
       backdropFilter:'blur(20px) saturate(180%)',
@@ -5995,7 +5995,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v134</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v135</div>
         </div>
       </div>
       <button onClick={async () => {
