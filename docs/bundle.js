@@ -7382,6 +7382,26 @@ function _readCache() {
     return null;
   }
 }
+
+// Firestore 문서에 누락된 필드를 채워주는 정규화 함수
+function normalizeTrip(data, id) {
+  if (!data) return null;
+  return _objectSpread(_objectSpread({
+    title: '',
+    dates: '',
+    hotel: '',
+    days: [],
+    hotels: [],
+    food: [],
+    members: []
+  }, data), {}, {
+    id: id || data.id,
+    days: Array.isArray(data.days) ? data.days : [],
+    hotels: Array.isArray(data.hotels) ? data.hotels : [],
+    food: Array.isArray(data.food) ? data.food : [],
+    members: Array.isArray(data.members) ? data.members : []
+  });
+}
 function App() {
   var _nav$dayIdx, _nav$hotelIdx, _trip$days$dayIdx$her, _trip$days$dayIdx;
   var _nav = loadNav();
@@ -7400,7 +7420,7 @@ function App() {
     _React$useState102 = _slicedToArray(_React$useState101, 2),
     userData = _React$useState102[0],
     setUserData = _React$useState102[1];
-  var _React$useState103 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.trip) || null),
+  var _React$useState103 = React.useState(normalizeTrip(_cache === null || _cache === void 0 ? void 0 : _cache.trip)),
     _React$useState104 = _slicedToArray(_React$useState103, 2),
     trip = _React$useState104[0],
     setTrip = _React$useState104[1];
@@ -7589,7 +7609,9 @@ function App() {
     var tripIds = userData.tripIds || [userData.groupId];
     setTripsLoading(true);
     fbLoadTrips(tripIds).then(function (trips) {
-      setUserTrips(trips);
+      setUserTrips(trips.map(function (t) {
+        return normalizeTrip(t, t.id);
+      }));
       setTripsLoading(false);
     })["catch"](function () {
       return setTripsLoading(false);
@@ -7602,9 +7624,10 @@ function App() {
     if (!activeTripId) return;
     groupCreateRef.current = false;
     // userTrips에 이미 있는 데이터로 즉시 표시, Firestore는 실시간 업데이트용
-    var cached = userTrips.find(function (t) {
+    var rawCached = userTrips.find(function (t) {
       return t.id === activeTripId;
     });
+    var cached = normalizeTrip(rawCached, activeTripId);
     if (cached) {
       tripRef.current = cached;
       setTrip(cached);
@@ -7625,10 +7648,11 @@ function App() {
         });
         return;
       }
+      var normalized = normalizeTrip(data, activeTripId);
       setTrip(function (prev) {
-        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
-        tripRef.current = data;
-        return data;
+        if (JSON.stringify(prev) === JSON.stringify(normalized)) return prev;
+        tripRef.current = normalized;
+        return normalized;
       });
     });
   }, [activeTripId]);

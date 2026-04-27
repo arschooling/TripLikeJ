@@ -3113,6 +3113,21 @@ function _readCache() {
   } catch(e) { return null; }
 }
 
+// Firestore 문서에 누락된 필드를 채워주는 정규화 함수
+function normalizeTrip(data, id) {
+  if (!data) return null;
+  return {
+    title: '', dates: '', hotel: '',
+    days: [], hotels: [], food: [], members: [],
+    ...data,
+    id: id || data.id,
+    days:    Array.isArray(data.days)    ? data.days    : [],
+    hotels:  Array.isArray(data.hotels)  ? data.hotels  : [],
+    food:    Array.isArray(data.food)    ? data.food    : [],
+    members: Array.isArray(data.members) ? data.members : [],
+  };
+}
+
 function App() {
   const _nav   = loadNav();
   const _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
@@ -3121,7 +3136,7 @@ function App() {
   const [authState, setAuthState]   = React.useState(_cache?.userData ? 'in' : 'loading');
   const [authUser, setAuthUser]     = React.useState(null);
   const [userData, setUserData]     = React.useState(_cache?.userData || null);
-  const [trip, setTrip]             = React.useState(_cache?.trip     || null);
+  const [trip, setTrip]             = React.useState(normalizeTrip(_cache?.trip));
   const [prep, setPrep]             = React.useState(_cache?.prep     || { checklist:[], docs:[], pack:[] });
   const [activeTripId, setActiveTripId] = React.useState(null);
   const [userTrips, setUserTrips]       = React.useState([]);
@@ -3221,7 +3236,7 @@ function App() {
     const tripIds = userData.tripIds || [userData.groupId];
     setTripsLoading(true);
     fbLoadTrips(tripIds)
-      .then(trips => { setUserTrips(trips); setTripsLoading(false); })
+      .then(trips => { setUserTrips(trips.map(t => normalizeTrip(t, t.id))); setTripsLoading(false); })
       .catch(() => setTripsLoading(false));
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
 
@@ -3231,7 +3246,8 @@ function App() {
     if (!activeTripId) return;
     groupCreateRef.current = false;
     // userTrips에 이미 있는 데이터로 즉시 표시, Firestore는 실시간 업데이트용
-    const cached = userTrips.find(t => t.id === activeTripId);
+    const rawCached = userTrips.find(t => t.id === activeTripId);
+    const cached = normalizeTrip(rawCached, activeTripId);
     if (cached) { tripRef.current = cached; setTrip(cached); } else setTrip(null);
     return fbListenGroup(activeTripId, (data) => {
       if (data === null) {
@@ -3244,10 +3260,11 @@ function App() {
         });
         return;
       }
+      const normalized = normalizeTrip(data, activeTripId);
       setTrip(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(data)) return prev;
-        tripRef.current = data;
-        return data;
+        if (JSON.stringify(prev) === JSON.stringify(normalized)) return prev;
+        tripRef.current = normalized;
+        return normalized;
       });
     });
   }, [activeTripId]);
