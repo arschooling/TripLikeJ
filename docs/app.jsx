@@ -3284,15 +3284,23 @@ function App() {
     // userTrips에 이미 있는 데이터로 즉시 표시, Firestore는 실시간 업데이트용
     const rawCached = userTrips.find(t => t.id === activeTripId);
     const cached = normalizeTrip(rawCached, activeTripId);
-    if (cached) { tripRef.current = cached; setTrip(cached); } else setTrip(null);
+    if (cached) { tripRef.current = cached; setTrip(cached); }
+    // else: onSelect already set trip — don't overwrite with null here
+    // If there's truly nothing, fetch directly from Firestore as fallback
+    if (!cached && !tripRef.current) {
+      fbLoadTrips([activeTripId]).then(trips => {
+        if (trips && trips.length) {
+          const t = normalizeTrip(trips[0], activeTripId);
+          tripRef.current = t;
+          setTrip(t);
+        }
+      }).catch(() => {});
+    }
     return fbListenGroup(activeTripId, (data) => {
       if (data === null) return; // 문서 없음 또는 오류 — 기존 데이터 보호
       const normalized = normalizeTrip(data, activeTripId);
-      setTrip(prev => {
-        if (JSON.stringify(prev) === JSON.stringify(normalized)) return prev;
-        tripRef.current = normalized;
-        return normalized;
-      });
+      tripRef.current = normalized;
+      setTrip(normalized);
     });
   }, [activeTripId]);
 
