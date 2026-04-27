@@ -5559,10 +5559,20 @@ function MapScreen({
       layers.current = [];
       if (!ordered.length || !mapInst.current) return;
       const city = trip.title || 'New York';
+      const CITY_BIAS = {
+        'new york': [40.758, -73.985],
+        'paris': [48.856, 2.352],
+        'london': [51.507, -0.127],
+        'tokyo': [35.690, 139.692],
+        'seoul': [37.563, 126.997],
+        'los angeles': [34.052, -118.244]
+      };
+      const [bLat, bLon] = CITY_BIAS[city.toLowerCase()] || [];
+      const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
       const geocode = async query => {
         if (GEO_CACHE[query]) return GEO_CACHE[query];
         try {
-          const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en`)).json();
+          const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en${bias}`)).json();
           const f = j?.features?.[0];
           if (f) {
             const [lon, lat] = f.geometry.coordinates;
@@ -5572,36 +5582,40 @@ function MapScreen({
         } catch (_) {}
         return null;
       };
+      const delay = ms => new Promise(r => setTimeout(r, ms));
       const pts = [];
-      for (const s of ordered) {
+      for (let si = 0; si < ordered.length; si++) {
         if (cancelled) return;
-        const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter(Boolean);
+        const s = ordered[si];
+        const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter((q, i, a) => q && a.indexOf(q) === i);
         let pos = null;
         for (const q of queries) {
           if (cancelled) return;
           pos = await geocode(q);
           if (pos) break;
+          await delay(80);
         }
-        if (pos) pts.push({
-          pos,
-          title: s.title
-        });
+        if (pos) {
+          pts.push({
+            pos,
+            title: s.title
+          });
+          if (!cancelled && mapInst.current) {
+            const num = pts.length;
+            const m = window.L.marker(pos, {
+              icon: window.L.divIcon({
+                className: '',
+                html: `<div style="width:26px;height:26px;border-radius:50%;background:#C14F2E;color:#fff;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">${num}</div>`,
+                iconSize: [26, 26],
+                iconAnchor: [13, 13]
+              })
+            }).addTo(mapInst.current).bindPopup(`<b>${s.title}</b>`);
+            layers.current.push(m);
+          }
+        }
+        if (si < ordered.length - 1) await delay(120);
       }
       if (cancelled || !mapInst.current || !pts.length) return;
-      pts.forEach(({
-        pos,
-        title
-      }, i) => {
-        const m = window.L.marker(pos, {
-          icon: window.L.divIcon({
-            className: '',
-            html: `<div style="width:26px;height:26px;border-radius:50%;background:#C14F2E;color:#fff;display:flex;align-items:center;justify-content:center;font-family:monospace;font-size:11px;font-weight:700;border:2.5px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.3)">${i + 1}</div>`,
-            iconSize: [26, 26],
-            iconAnchor: [13, 13]
-          })
-        }).addTo(mapInst.current).bindPopup(`<b>${title}</b>`);
-        layers.current.push(m);
-      });
       if (pts.length > 1) {
         try {
           const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
