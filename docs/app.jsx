@@ -2631,7 +2631,7 @@ function MapScreen({ trip }) {
     if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; }
     layers.current = [];
     const map = window.L.map(mapDiv.current, { zoomControl:true, attributionControl:false });
-    window.L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom:19, subdomains:'abcd' }).addTo(map);
+    window.L.tileLayer('https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png', { maxZoom:20 }).addTo(map);
     map.setView([40.7128, -74.006], 12);
     mapInst.current = map;
     return () => { if (mapInst.current) { mapInst.current.remove(); mapInst.current = null; } };
@@ -2653,10 +2653,14 @@ function MapScreen({ trip }) {
         if (GEO_CACHE[query]) return GEO_CACHE[query];
         try {
           const j = await (await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`,
-            { headers: { 'User-Agent': 'TripLikeJ/1.0 (travel planner app)', 'Accept-Language': 'en' } }
+            `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en`
           )).json();
-          if (j && j[0]) { GEO_CACHE[query] = [+j[0].lat, +j[0].lon]; return GEO_CACHE[query]; }
+          const f = j?.features?.[0];
+          if (f) {
+            const [lon, lat] = f.geometry.coordinates;
+            GEO_CACHE[query] = [lat, lon];
+            return GEO_CACHE[query];
+          }
         } catch(_) {}
         return null;
       };
