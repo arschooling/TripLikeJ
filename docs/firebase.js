@@ -13,9 +13,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const _fbAuth = firebase.auth();
 const _fbDb   = firebase.firestore();
-// 오프라인 퍼시스턴스: IndexedDB에 캐시 → 이후 로드 시 네트워크 없이 즉시 응답
-_fbDb.enablePersistence({ synchronizeTabs: true })
-  .catch(e => console.warn('persistence:', e.code));
 _fbAuth.getRedirectResult().catch(e => console.warn('redirect:', e.code));
 
 function _load() { return Promise.resolve(); }
