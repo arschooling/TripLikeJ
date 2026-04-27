@@ -5366,7 +5366,7 @@ function StopSheet({
     style: {
       position: 'fixed',
       inset: 0,
-      zIndex: 100,
+      zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',

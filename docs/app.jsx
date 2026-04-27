@@ -2409,7 +2409,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:100,
+    <div style={{ position:'fixed', inset:0, zIndex:1000,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
       background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
       <div ref={sheetRef} onClick={(e)=>e.stopPropagation()}
