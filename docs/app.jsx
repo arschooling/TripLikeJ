@@ -1266,6 +1266,15 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
                       userData, onOpenCompanion, onLoadSample }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
+  const [sampleLoading, setSampleLoading] = React.useState(false);
+  const [sampleErr, setSampleErr] = React.useState('');
+  const handleLoadSample = async () => {
+    if (!onLoadSample || sampleLoading) return;
+    setSampleLoading(true); setSampleErr('');
+    try { await onLoadSample(); }
+    catch (e) { setSampleErr('저장 실패. 네트워크 확인 후 다시 시도해 주세요.'); }
+    finally { setSampleLoading(false); }
+  };
   const { itemProps: dayDragProps, isTouchDragging: isDayDragging } = useDragReorder(onReorderDays, editing);
   const { itemProps: hotelDragProps, isTouchDragging: isHotelDragging } = useDragReorder(onReorderHotels, editing);
   const featured = trip.days[0];
@@ -1485,21 +1494,28 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, city, onPickCity,
             </SwipeableRow>
           );
         })}
-        {trip.days.length === 0 && onLoadSample && (
-          <div style={{ margin:'8px 0 4px', padding:'24px 20px', background:COLORS.card,
-            borderRadius:16, textAlign:'center' }}>
-            <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, marginBottom:6 }}>
-              New York
+        {(() => {
+          const hasItems = trip.days.some(d => d.items?.length > 0);
+          if ((trip.days.length === 0 || !hasItems) && onLoadSample) return (
+            <div style={{ margin:'8px 0 4px', padding:'24px 20px', background:COLORS.card,
+              borderRadius:16, textAlign:'center' }}>
+              <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, marginBottom:6 }}>
+                New York
+              </div>
+              <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:12 }}>
+                일정 데이터를 불러옵니다
+              </div>
+              {sampleErr && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.accent, marginBottom:10 }}>{sampleErr}</div>}
+              <button onClick={handleLoadSample} disabled={sampleLoading} style={{
+                padding:'11px 24px', background: sampleLoading ? COLORS.mute : COLORS.ink,
+                border:'none', borderRadius:12,
+                color:COLORS.bg, fontFamily:SANS, fontSize:13, fontWeight:500, cursor: sampleLoading ? 'default' : 'pointer',
+                opacity: sampleLoading ? 0.7 : 1,
+              }}>{sampleLoading ? '불러오는 중...' : '뉴욕 일정 불러오기'}</button>
             </div>
-            <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:16 }}>
-              10일 샘플 일정으로 앱을 미리 살펴보세요
-            </div>
-            <button onClick={onLoadSample} style={{
-              padding:'11px 24px', background:COLORS.ink, border:'none', borderRadius:12,
-              color:COLORS.bg, fontFamily:SANS, fontSize:13, fontWeight:500, cursor:'pointer',
-            }}>뉴욕 샘플 불러오기</button>
-          </div>
-        )}
+          );
+          return null;
+        })()}
         {!editing && (
           <button onClick={onAddDay} style={{
             padding:'16px 12px', background:'transparent',
@@ -3567,14 +3583,18 @@ function App() {
         userData={userData} onOpenCompanion={() => setCompanionOpen(true)}
         onLoadSample={async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
-          await window.fbSaveGroup(activeTripId, {
-            title: def.title || '내 여행',
-            dates: def.dates || '',
-            hotel: def.hotel || '',
-            days: def.days || [],
+          const patch = {
+            title : def.title  || '내 여행',
+            dates : def.dates  || '',
+            hotel : def.hotel  || '',
+            days  : def.days   || [],
             hotels: def.hotels || [],
-            food: def.food || [],
-          });
+            food  : def.food   || [],
+          };
+          // Firestore에 저장 (실패 시 오류를 그대로 throw → HomeScreen에서 처리)
+          await window.fbSaveGroup(activeTripId, patch);
+          // 리스너를 기다리지 않고 로컬 상태 즉시 업데이트
+          setTrip(prev => normalizeTrip({ ...prev, ...patch }, activeTripId));
         }}/>;
       label = 'Home';
     }
