@@ -1702,7 +1702,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:72, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v153</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v154</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5485,9 +5485,6 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
 function ProfileSheet({ open, onClose, authUser, onAddCompanion, onViewCompanions }) {
   if (!open || !authUser) return null;
 
-  const myUid = authUser?.uid;
-  const tripIds = (trips||[]).map(t=>t.id).join(',');
-
   return (
     <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.4)',
       display:'flex', flexDirection:'column', justifyContent:'flex-end' }} onClick={onClose}>
@@ -6266,7 +6263,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v153</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v154</div>
         </div>
       </div>
       <button onClick={async () => {
