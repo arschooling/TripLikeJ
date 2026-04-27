@@ -5558,18 +5558,35 @@ function MapScreen({
       });
       layers.current = [];
       if (!ordered.length || !mapInst.current) return;
+      const city = trip.title || 'New York';
+      const geocode = async query => {
+        if (GEO_CACHE[query]) return GEO_CACHE[query];
+        try {
+          const j = await (await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`, {
+            headers: {
+              'User-Agent': 'TripLikeJ/1.0 (travel planner app)',
+              'Accept-Language': 'en'
+            }
+          })).json();
+          if (j && j[0]) {
+            GEO_CACHE[query] = [+j[0].lat, +j[0].lon];
+            return GEO_CACHE[query];
+          }
+        } catch (_) {}
+        return null;
+      };
       const pts = [];
       for (const s of ordered) {
         if (cancelled) return;
-        const k = `${s.title} ${s.loc}, New York`;
-        if (!GEO_CACHE[k]) {
-          try {
-            const j = await (await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(k)}&format=json&limit=1&countrycodes=us`)).json();
-            if (j[0]) GEO_CACHE[k] = [+j[0].lat, +j[0].lon];
-          } catch (_) {}
+        const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter(Boolean);
+        let pos = null;
+        for (const q of queries) {
+          if (cancelled) return;
+          pos = await geocode(q);
+          if (pos) break;
         }
-        if (GEO_CACHE[k]) pts.push({
-          pos: GEO_CACHE[k],
+        if (pos) pts.push({
+          pos,
           title: s.title
         });
       }
