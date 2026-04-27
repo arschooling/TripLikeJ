@@ -5481,14 +5481,197 @@ function EditStopForm({
 // ─── Geocoding cache ─────────────────────────────────────────
 const GEO_CACHE = {};
 
+// ─── Place search sheet ───────────────────────────────────────
+function PlaceSearchSheet({
+  open,
+  item,
+  cityBias,
+  onClose,
+  onPick
+}) {
+  const [query, setQuery] = React.useState('');
+  const [results, setResults] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const timerRef = React.useRef(null);
+  const inputRef = React.useRef(null);
+  React.useEffect(() => {
+    if (open) {
+      setQuery('');
+      setResults([]);
+      setTimeout(() => inputRef.current?.focus(), 300);
+    }
+  }, [open]);
+  React.useEffect(() => {
+    clearTimeout(timerRef.current);
+    if (!query.trim()) {
+      setResults([]);
+      return;
+    }
+    setLoading(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const [bLat, bLon] = cityBias || [];
+        const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
+        const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en${bias}`)).json();
+        setResults(j?.features || []);
+      } catch (_) {
+        setResults([]);
+      }
+      setLoading(false);
+    }, 350);
+  }, [query]);
+  const formatAddr = props => {
+    const parts = [props.street, props.city || props.county, props.country].filter(Boolean);
+    return parts.join(', ');
+  };
+  return /*#__PURE__*/React.createElement(BottomSheet, {
+    open: open,
+    onClose: onClose,
+    title: "\uC7A5\uC18C \uAC80\uC0C9"
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 16px 12px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      background: COLORS.softer,
+      borderRadius: 12,
+      padding: '10px 14px'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "search",
+    size: 15,
+    color: COLORS.mute,
+    stroke: 2
+  }), /*#__PURE__*/React.createElement("input", {
+    ref: inputRef,
+    value: query,
+    onChange: e => setQuery(e.target.value),
+    placeholder: "\uC7A5\uC18C \uC774\uB984\uC73C\uB85C \uAC80\uC0C9...",
+    style: {
+      flex: 1,
+      border: 'none',
+      background: 'transparent',
+      outline: 'none',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink
+    }
+  }), query ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setQuery(''),
+    style: {
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      padding: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "x",
+    size: 13,
+    color: COLORS.mute,
+    stroke: 2
+  })) : null)), loading && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '16px 0',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uAC80\uC0C9 \uC911..."), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 8px 20px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 2
+    }
+  }, results.map((f, i) => {
+    const p = f.properties;
+    const name = p.name || p.street || query;
+    const addr = formatAddr(p);
+    const [lon, lat] = f.geometry.coordinates;
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => onPick({
+        name,
+        addr,
+        coords: [lat, lon]
+      }),
+      style: {
+        display: 'flex',
+        gap: 12,
+        alignItems: 'flex-start',
+        padding: '10px 10px',
+        borderRadius: 10,
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'left',
+        width: '100%'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 2,
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "pin",
+      size: 14,
+      color: COLORS.accent,
+      stroke: 1.8
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13,
+        fontWeight: 500,
+        color: COLORS.ink,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, name), addr ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 11,
+        color: COLORS.mute,
+        marginTop: 2,
+        whiteSpace: 'nowrap',
+        overflow: 'hidden',
+        textOverflow: 'ellipsis'
+      }
+    }, addr) : null));
+  }), !loading && query && results.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '20px 0',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uACB0\uACFC \uC5C6\uC74C")));
+}
+
 // ─── Map ─────────────────────────────────────────────────────
 function MapScreen({
-  trip
+  trip,
+  onEditItem
 }) {
+  const makeOrdered = dayIdx => trip.days[dayIdx].items.map((it, ii) => ({
+    ...it,
+    _origIdx: ii
+  })).filter(it => it.loc);
   const [state, dispatch] = React.useReducer((s, a) => {
     if (a.type === 'DAY') return {
       selDay: a.v,
-      ordered: trip.days[a.v].items.filter(it => it.loc)
+      ordered: makeOrdered(a.v)
     };
     if (a.type === 'REORDER') {
       const o = [...s.ordered];
@@ -5498,10 +5681,21 @@ function MapScreen({
         ordered: o
       };
     }
+    if (a.type === 'UPDATE_ITEM') {
+      const o = [...s.ordered];
+      o[a.idx] = {
+        ...o[a.idx],
+        ...a.patch
+      };
+      return {
+        ...s,
+        ordered: o
+      };
+    }
     return s;
   }, null, () => ({
     selDay: 0,
-    ordered: trip.days[0].items.filter(it => it.loc)
+    ordered: makeOrdered(0)
   }));
   const {
     selDay,
@@ -5515,6 +5709,18 @@ function MapScreen({
     from,
     to
   }), true);
+  const [editingItem, setEditingItem] = React.useState(null); // { dayIdx, itemIdx, item }
+
+  const city = trip.title || 'New York';
+  const CITY_BIAS_MAP = {
+    'new york': [40.758, -73.985],
+    'paris': [48.856, 2.352],
+    'london': [51.507, -0.127],
+    'tokyo': [35.690, 139.692],
+    'seoul': [37.563, 126.997],
+    'los angeles': [34.052, -118.244]
+  };
+  const cityBias = CITY_BIAS_MAP[city.toLowerCase()];
   const mapDiv = React.useRef(null);
   const mapInst = React.useRef(null);
   const layers = React.useRef([]);
@@ -5545,7 +5751,7 @@ function MapScreen({
   }, [selDay]);
 
   // 순서 바뀌면 마커·루트만 업데이트
-  const mapKey = ordered.map(s => s.title).join('|');
+  const mapKey = ordered.map(s => `${s.title}|${s.coords ? s.coords.join(',') : ''}`).join('~');
   React.useEffect(() => {
     if (!window.L) return;
     let cancelled = false;
@@ -5558,16 +5764,7 @@ function MapScreen({
       });
       layers.current = [];
       if (!ordered.length || !mapInst.current) return;
-      const city = trip.title || 'New York';
-      const CITY_BIAS = {
-        'new york': [40.758, -73.985],
-        'paris': [48.856, 2.352],
-        'london': [51.507, -0.127],
-        'tokyo': [35.690, 139.692],
-        'seoul': [37.563, 126.997],
-        'los angeles': [34.052, -118.244]
-      };
-      const [bLat, bLon] = CITY_BIAS[city.toLowerCase()] || [];
+      const [bLat, bLon] = cityBias || [];
       const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
       const geocode = async query => {
         if (GEO_CACHE[query]) return GEO_CACHE[query];
@@ -5587,13 +5784,15 @@ function MapScreen({
       for (let si = 0; si < ordered.length; si++) {
         if (cancelled) return;
         const s = ordered[si];
-        const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter((q, i, a) => q && a.indexOf(q) === i);
-        let pos = null;
-        for (const q of queries) {
-          if (cancelled) return;
-          pos = await geocode(q);
-          if (pos) break;
-          await delay(80);
+        let pos = s.coords || null;
+        if (!pos) {
+          const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter((q, i, a) => q && a.indexOf(q) === i);
+          for (const q of queries) {
+            if (cancelled) return;
+            pos = await geocode(q);
+            if (pos) break;
+            await delay(80);
+          }
         }
         if (pos) {
           pts.push({
@@ -5737,24 +5936,37 @@ function MapScreen({
     }
   }, ordered.map((it, i) => {
     const p = itemProps(i);
-    return /*#__PURE__*/React.createElement("button", _extends({
+    return /*#__PURE__*/React.createElement("div", _extends({
       key: it.title + i
     }, p, {
-      onClick: () => window.open(mapsDirectionsUrl(`${it.title} ${it.loc} New York`), '_blank'),
       style: {
         ...p.style,
         background: p.style?.background || COLORS.card,
         borderRadius: 12,
-        padding: '11px 14px',
-        width: '100%',
         display: 'flex',
         gap: 10,
         alignItems: 'center',
-        cursor: 'pointer',
-        border: 'none',
-        textAlign: 'left'
+        overflow: 'hidden'
       }
-    }), /*#__PURE__*/React.createElement("div", {
+    }), /*#__PURE__*/React.createElement("button", {
+      onClick: () => setEditingItem({
+        orderedIdx: i,
+        origIdx: it._origIdx,
+        item: it
+      }),
+      style: {
+        flex: 1,
+        display: 'flex',
+        gap: 10,
+        alignItems: 'center',
+        padding: '11px 0 11px 14px',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'left',
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
         width: 22,
         height: 22,
@@ -5793,13 +6005,55 @@ function MapScreen({
         overflow: 'hidden',
         textOverflow: 'ellipsis'
       }
-    }, it.loc)), /*#__PURE__*/React.createElement(Icon, {
+    }, it.loc))), /*#__PURE__*/React.createElement("button", {
+      onClick: e => {
+        e.stopPropagation();
+        window.open(mapsDirectionsUrl(`${it.title} ${it.loc} ${city}`), '_blank');
+      },
+      style: {
+        padding: '11px 14px',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
       name: "nav",
-      size: 14,
-      color: COLORS.mute,
+      size: 16,
+      color: COLORS.accent,
       stroke: 1.8
-    }));
-  })));
+    })));
+  })), /*#__PURE__*/React.createElement(PlaceSearchSheet, {
+    open: !!editingItem,
+    item: editingItem?.item,
+    cityBias: cityBias,
+    onClose: () => setEditingItem(null),
+    onPick: ({
+      name,
+      addr,
+      coords
+    }) => {
+      const {
+        orderedIdx,
+        origIdx
+      } = editingItem;
+      const loc = addr ? `${name}, ${addr}` : name;
+      GEO_CACHE[loc] = coords;
+      dispatch({
+        type: 'UPDATE_ITEM',
+        idx: orderedIdx,
+        patch: {
+          loc,
+          coords
+        }
+      });
+      if (onEditItem) onEditItem(selDay, origIdx, {
+        loc,
+        coords
+      });
+      setEditingItem(null);
+    }
+  }));
 }
 
 // ─── Food ───────────────────────────────────────────────────
@@ -7897,8 +8151,21 @@ function App() {
       label = 'Home';
     }
   } else if (tab === 'map') {
+    const editMapItem = (dayIdx, itemIdx, patch) => {
+      const days = trip.days.map((d, di) => di !== dayIdx ? d : {
+        ...d,
+        items: d.items.map((it, ii) => ii !== itemIdx ? it : {
+          ...it,
+          ...patch
+        })
+      });
+      editTrip({
+        days
+      });
+    };
     screen = /*#__PURE__*/React.createElement(MapScreen, {
-      trip: trip
+      trip: trip,
+      onEditItem: editMapItem
     });
     label = 'Map';
   } else if (tab === 'food') {
