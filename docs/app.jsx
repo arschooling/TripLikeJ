@@ -1168,7 +1168,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
       paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between',
         padding:'0 20px 20px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v55</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v56</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3705,31 +3705,49 @@ function App() {
     </>
   );
 
-  if (!trip) return (
-    <div style={{ minHeight:'100vh', background:COLORS.bg, display:'flex', flexDirection:'column',
+  if (!trip || !(trip.days?.length)) return (
+    <div style={{ minHeight:'100vh', background:'#1a1a1a', display:'flex', flexDirection:'column',
       alignItems:'center', justifyContent:'center', gap:16, padding:24 }}>
-      <button onClick={() => { setActiveTripId(null); setEditing(false); }} style={{
+      <button onClick={() => { setActiveTripId(null); setTrip(null); setEditing(false); }} style={{
         position:'fixed', top:'calc(env(safe-area-inset-top) + 14px)', left:16,
         background:'transparent', border:'none', padding:'4px 8px', cursor:'pointer',
         display:'flex', alignItems:'center', gap:3,
-        fontFamily:SANS, fontSize:13, color:COLORS.mute,
+        fontFamily:SANS, fontSize:15, color:'#fff',
       }}>
-        <Icon name="chevron-left" size={14} color={COLORS.mute} stroke={2}/>My Trips
+        ← My Trips
       </button>
-      <div style={{ background:'#C0392B', borderRadius:12, padding:'16px 20px', maxWidth:300, textAlign:'center' }}>
-        <div style={{ fontFamily:MONO, fontSize:13, color:'#fff', lineHeight:2 }}>
-          <div>tripId: {activeTripId || 'none'}</div>
-          <div>trips: {userTrips.length} / found: {userTrips.find(t=>t.id===activeTripId) ? 'O days='+( userTrips.find(t=>t.id===activeTripId)?.days?.length||0) : 'X'}</div>
+      <div style={{ background:'#C0392B', borderRadius:16, padding:'20px 24px', maxWidth:320, textAlign:'center', width:'100%' }}>
+        <div style={{ fontFamily:MONO, fontSize:14, color:'#fff', lineHeight:2.2 }}>
+          <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>일정 없음</div>
+          <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
+          <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
+          <div>userTrips: {userTrips.length}개</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v56</div>
         </div>
       </div>
-      <button onClick={() => fbLoadTrips([activeTripId]).then(ts => { if(ts[0]){ const t=normalizeTrip(ts[0],activeTripId); tripRef.current=t; setTrip(t); } })} style={{
-        padding:'14px 28px', background:'#C0392B', border:'none', borderRadius:12,
-        color:'#fff', fontFamily:SANS, fontSize:15, fontWeight:600, cursor:'pointer',
-      }}>일정 불러오기</button>
-      <div style={{ width:28, height:28, border:`3px solid ${COLORS.accent}`,
-        borderTopColor:'transparent', borderRadius:'50%',
-        animation:'spin 0.8s linear infinite' }}/>
-      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      <button onClick={async () => {
+        try {
+          const ts = await fbLoadTrips([activeTripId]);
+          if (ts?.[0] && (ts[0].days||[]).length > 0) {
+            const t = normalizeTrip(ts[0], activeTripId);
+            tripRef.current = t; setTrip(t); return;
+          }
+          const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+          const patch = { title: def.title||'New York', dates: def.dates||'', hotel: def.hotel||'',
+            days: def.days||[], hotels: def.hotels||[], food: def.food||[] };
+          await fbSaveGroup(activeTripId, patch);
+          const restored = normalizeTrip({ ...patch }, activeTripId);
+          tripRef.current = restored; setTrip(restored);
+        } catch(e) {
+          const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+          const restored = normalizeTrip({ ...def }, activeTripId);
+          tripRef.current = restored; setTrip(restored);
+        }
+      }} style={{
+        padding:'16px 32px', background:'#C0392B', border:'none', borderRadius:14,
+        color:'#fff', fontFamily:SANS, fontSize:16, fontWeight:700, cursor:'pointer',
+        width:'100%', maxWidth:280,
+      }}>일정 불러오기 / 복원</button>
     </div>
   );
 
