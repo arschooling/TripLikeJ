@@ -296,1468 +296,7 @@ window.TRIP_DEFAULT = {
     { cat: '☕ Dessert',  name: "Ralph's Coffee",           detail: '말차 라떼',                                              price: '$',       note: '랄프로렌 플래그십 내부' },
   ],
 };
-// Drag-and-drop reorder + hotel search
-// Exposes: useDragReorder, HotelSearchSheet
 
-// ─── Drag reorder hook ──────────────────────────────────────
-// Touch long-press to drag + HTML5 drag for desktop.
-// onReorder(fromIdx, toIdx) called on drop.
-function useDragReorder(onReorder, enabled = true) {
-  // HTML5 (desktop)
-  const [dragIdx, setDragIdx] = React.useState(null);
-  const [overIdx, setOverIdx] = React.useState(null);
-
-  // Touch long-press drag
-  const [td, setTd] = React.useState(null); // {from,to,dy,startY,itemH}
-  const tdRef = React.useRef(null);
-  const timerRef = React.useRef(null);
-  const elRefs = React.useRef({});
-  React.useEffect(() => {
-    tdRef.current = td;
-  }, [td]);
-
-  // Prevent body scroll while touch-dragging
-  React.useEffect(() => {
-    if (!td) return;
-    const stop = e => e.preventDefault();
-    document.addEventListener('touchmove', stop, {
-      passive: false
-    });
-    return () => document.removeEventListener('touchmove', stop);
-  }, [!!td]);
-  const containerProps = {};
-  const itemProps = idx => {
-    // Touch handlers — always active regardless of `enabled`
-    const onTouchStart = e => {
-      const startY = e.touches[0].clientY;
-      timerRef.current = setTimeout(() => {
-        const el = elRefs.current[idx];
-        const itemH = el ? el.getBoundingClientRect().height : 64;
-        if (window.navigator?.vibrate) window.navigator.vibrate(14);
-        setTd({
-          from: idx,
-          to: idx,
-          dy: 0,
-          startY,
-          itemH
-        });
-      }, 430);
-    };
-    const onTouchMove = e => {
-      clearTimeout(timerRef.current);
-      const d = tdRef.current;
-      if (!d) return;
-      const dy = e.touches[0].clientY - d.startY;
-      const count = Object.keys(elRefs.current).length;
-      const steps = Math.round(dy / d.itemH);
-      const to = Math.max(0, Math.min(count - 1, d.from + steps));
-      setTd(prev => prev ? {
-        ...prev,
-        dy,
-        to
-      } : null);
-    };
-    const onTouchEnd = () => {
-      clearTimeout(timerRef.current);
-      timerRef.current = null;
-      const d = tdRef.current;
-      if (d) {
-        if (d.from !== d.to) onReorder(d.from, d.to);
-        setTd(null);
-      }
-    };
-
-    // Visual style
-    let style = {};
-    let isDragSource = false;
-    let isDropTarget = false;
-    if (td) {
-      const {
-        from,
-        to,
-        dy,
-        itemH
-      } = td;
-      if (idx === from) {
-        isDragSource = true;
-        style = {
-          transform: `translateY(${dy}px) scale(1.035)`,
-          transition: 'transform 0s, box-shadow 0.15s, opacity 0.15s',
-          zIndex: 50,
-          opacity: 0.88,
-          position: 'relative',
-          boxShadow: '0 16px 40px rgba(0,0,0,0.24), 0 4px 8px rgba(0,0,0,0.12)'
-        };
-      } else {
-        let shift = 0;
-        if (from < to && idx > from && idx <= to) shift = -itemH;
-        else if (from > to && idx >= to && idx < from) shift = itemH;
-        isDropTarget = from !== to && idx === to;
-        style = {
-          transform: `translateY(${shift}px)`,
-          // 더 자연스러운 스프링 모션
-          transition: 'transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1)',
-          position: 'relative',
-        };
-      }
-    } else if (enabled) {
-      style = {
-        opacity: dragIdx === idx ? 0.35 : 1,
-        transition: 'opacity 0.15s, transform 0.15s',
-        transform: overIdx === idx && dragIdx !== idx ? 'translateY(-2px)' : 'none'
-      };
-    }
-
-    // HTML5 drag (desktop, gated by enabled)
-    const html5 = !enabled ? {} : {
-      draggable: true,
-      onDragStart: e => {
-        setDragIdx(idx);
-        e.dataTransfer.effectAllowed = 'move';
-        try {
-          e.dataTransfer.setData('text/plain', String(idx));
-        } catch (_) {}
-        const el = e.currentTarget;
-        if (el && e.dataTransfer.setDragImage) e.dataTransfer.setDragImage(el, 20, 20);
-      },
-      onDragOver: e => {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-        if (overIdx !== idx) setOverIdx(idx);
-      },
-      onDragEnter: e => {
-        e.preventDefault();
-        setOverIdx(idx);
-      },
-      onDrop: e => {
-        e.preventDefault();
-        const from = dragIdx,
-          to = idx;
-        setDragIdx(null);
-        setOverIdx(null);
-        if (from == null || from === to) return;
-        onReorder(from, to);
-      },
-      onDragEnd: () => {
-        setDragIdx(null);
-        setOverIdx(null);
-      }
-    };
-    return {
-      ref: el => {
-        elRefs.current[idx] = el;
-      },
-      onTouchStart,
-      onTouchMove,
-      onTouchEnd,
-      ...html5,
-      style,
-      'data-drag-over': !td && enabled && overIdx === idx && dragIdx !== null && dragIdx !== idx,
-      'data-drag-source': isDragSource,
-      'data-drop-target': isDropTarget,
-    };
-  };
-  return {
-    containerProps,
-    itemProps,
-    dragIdx: td ? td.from : dragIdx,
-    overIdx: td ? td.to : overIdx,
-    isTouchDragging: !!td,
-  };
-}
-
-// ─── Drag handle component ──────────────────────────────────
-function DragHandle({
-  size = 18,
-  color = '#7A756D'
-}) {
-  return /*#__PURE__*/React.createElement("svg", {
-    width: size,
-    height: size,
-    viewBox: "0 0 24 24",
-    fill: color,
-    style: {
-      cursor: 'grab'
-    }
-  }, /*#__PURE__*/React.createElement("circle", {
-    cx: "9",
-    cy: "6",
-    r: "1.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "15",
-    cy: "6",
-    r: "1.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "9",
-    cy: "12",
-    r: "1.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "15",
-    cy: "12",
-    r: "1.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "9",
-    cy: "18",
-    r: "1.4"
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "15",
-    cy: "18",
-    r: "1.4"
-  }));
-}
-
-// ─── Sample hotel database (since we can't hit a real API) ──
-// Would normally be Booking.com / Google Places API.
-const SAMPLE_HOTELS = [{
-  name: 'Kimpton Theta New York',
-  area: 'Times Square',
-  stars: 4,
-  price: '$289',
-  tags: ['boutique', 'central']
-}, {
-  name: 'The Manhattan at Times Square',
-  area: 'Times Square',
-  stars: 3,
-  price: '$199',
-  tags: ['classic', 'central']
-}, {
-  name: 'The Standard High Line',
-  area: 'Meatpacking',
-  stars: 4,
-  price: '$359',
-  tags: ['design', 'views']
-}, {
-  name: 'Ace Hotel New York',
-  area: 'NoMad',
-  stars: 4,
-  price: '$329',
-  tags: ['design', 'lobby']
-}, {
-  name: 'The Hoxton, Williamsburg',
-  area: 'Brooklyn',
-  stars: 4,
-  price: '$269',
-  tags: ['brooklyn', 'design']
-}, {
-  name: 'citizenM New York Times Square',
-  area: 'Times Square',
-  stars: 4,
-  price: '$259',
-  tags: ['modern', 'compact']
-}, {
-  name: 'Moxy Times Square',
-  area: 'Times Square',
-  stars: 3,
-  price: '$229',
-  tags: ['rooftop', 'young']
-}, {
-  name: 'The Ludlow Hotel',
-  area: 'Lower East Side',
-  stars: 4,
-  price: '$389',
-  tags: ['lounge', 'trendy']
-}, {
-  name: '1 Hotel Central Park',
-  area: 'Midtown',
-  stars: 5,
-  price: '$549',
-  tags: ['eco', 'luxe']
-}, {
-  name: 'Park Hyatt New York',
-  area: 'Midtown West',
-  stars: 5,
-  price: '$899',
-  tags: ['luxe', 'spa']
-}, {
-  name: 'Pod 51 Hotel',
-  area: 'Midtown East',
-  stars: 3,
-  price: '$159',
-  tags: ['budget', 'pod']
-}, {
-  name: 'Yotel New York',
-  area: "Hell's Kitchen",
-  stars: 3,
-  price: '$189',
-  tags: ['compact', 'tech']
-}, {
-  name: 'The Bowery Hotel',
-  area: 'East Village',
-  stars: 4,
-  price: '$449',
-  tags: ['boutique', 'classic']
-}, {
-  name: 'NoMad Hotel',
-  area: 'NoMad',
-  stars: 5,
-  price: '$519',
-  tags: ['library', 'luxe']
-}, {
-  name: 'Arlo SoHo',
-  area: 'SoHo',
-  stars: 3,
-  price: '$239',
-  tags: ['design', 'views']
-}, {
-  name: 'The Beekman, A Thompson Hotel',
-  area: 'Financial District',
-  stars: 5,
-  price: '$479',
-  tags: ['historic', 'luxe']
-}];
-
-// Simulated "found in email/calendar" hotels — matching the trip dates
-const MAILBOX_HOTELS = [{
-  name: 'Kimpton Theta New York',
-  area: 'Times Square',
-  checkin: 'May 4, 2025',
-  checkout: 'May 13, 2025',
-  confirmation: 'BK-8471293',
-  source: 'Booking.com 예약 확인 · 2025-03-18',
-  price: '$289/박 × 9박'
-}];
-
-// ─── Hotel search sheet ─────────────────────────────────────
-function HotelSearchSheet({
-  COLORS,
-  SERIF,
-  SANS,
-  MONO,
-  Icon,
-  onPick,
-  onClose
-}) {
-  const [q, setQ] = React.useState('');
-  const [tab, setTab] = React.useState('search'); // search | mailbox
-  const [scanning, setScanning] = React.useState(false);
-  const [found, setFound] = React.useState(null);
-  const filtered = SAMPLE_HOTELS.filter(h => !q || h.name.toLowerCase().includes(q.toLowerCase()) || h.area.toLowerCase().includes(q.toLowerCase()) || h.tags.some(t => t.includes(q.toLowerCase())));
-  const scanMailbox = () => {
-    setScanning(true);
-    setFound(null);
-    // Simulate scan
-    const steps = ['이메일 스캔 중…', '캘린더 이벤트 확인 중…', '예약 확인 메일 분석 중…', '일정과 매칭 중…'];
-    let i = 0;
-    const t = setInterval(() => {
-      i++;
-      if (i >= steps.length) {
-        clearInterval(t);
-        setScanning(false);
-        setFound(MAILBOX_HOTELS);
-      }
-    }, 600);
-  };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'fixed',
-      inset: 0,
-      zIndex: 110,
-      background: 'rgba(0,0,0,0.35)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end'
-    },
-    onClick: onClose
-  }, /*#__PURE__*/React.createElement("div", {
-    onClick: e => e.stopPropagation(),
-    style: {
-      background: COLORS.bg,
-      borderRadius: '22px 22px 0 0',
-      maxHeight: '90%',
-      display: 'flex',
-      flexDirection: 'column'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'center',
-      padding: '8px 0 4px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 4,
-      background: COLORS.line,
-      borderRadius: 2
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '6px 20px 8px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 24,
-      color: COLORS.ink,
-      flex: 1,
-      whiteSpace: 'nowrap'
-    }
-  }, "\uD638\uD154 \uAC80\uC0C9"), /*#__PURE__*/React.createElement("button", {
-    onClick: onClose,
-    style: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      border: 'none',
-      background: COLORS.card,
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "x",
-    size: 14,
-    color: COLORS.mute,
-    stroke: 2
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px 10px',
-      display: 'flex',
-      gap: 6
-    }
-  }, [{
-    id: 'search',
-    label: '검색'
-  }, {
-    id: 'mailbox',
-    label: '이메일·캘린더에서 찾기'
-  }].map(t => /*#__PURE__*/React.createElement("button", {
-    key: t.id,
-    onClick: () => setTab(t.id),
-    style: {
-      flex: 1,
-      border: 'none',
-      borderRadius: 10,
-      padding: '9px 10px',
-      background: tab === t.id ? COLORS.ink : COLORS.card,
-      color: tab === t.id ? COLORS.bg : COLORS.ink,
-      fontFamily: SANS,
-      fontSize: 12,
-      fontWeight: 500,
-      cursor: 'pointer'
-    }
-  }, t.label))), tab === 'search' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px 10px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 10,
-      padding: '10px 12px',
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "search",
-    size: 14,
-    color: COLORS.mute,
-    stroke: 1.8
-  }), /*#__PURE__*/React.createElement("input", {
-    autoFocus: true,
-    value: q,
-    onChange: e => setQ(e.target.value),
-    placeholder: "\uD638\uD154\uBA85, \uC9C0\uC5ED, \uC2A4\uD0C0\uC77C",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      flex: 1,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.ink
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflow: 'auto',
-      padding: '0 16px 40px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      overflow: 'hidden'
-    }
-  }, filtered.map((h, i) => /*#__PURE__*/React.createElement("button", {
-    key: i,
-    onClick: () => {
-      onPick(h.name + ' (' + h.area + ')');
-      onClose();
-    },
-    style: {
-      width: '100%',
-      border: 'none',
-      background: 'transparent',
-      padding: '12px 14px',
-      textAlign: 'left',
-      cursor: 'pointer',
-      borderBottom: i < filtered.length - 1 ? `1px solid ${COLORS.line}` : 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      alignItems: 'baseline',
-      justifyContent: 'space-between'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 13.5,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, h.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10.5,
-      color: COLORS.accent,
-      flexShrink: 0
-    }
-  }, h.price)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 3,
-      fontFamily: SANS,
-      fontSize: 11.5,
-      color: COLORS.mute,
-      display: 'flex',
-      gap: 6,
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "pin",
-    size: 11,
-    stroke: 1.8
-  }), /*#__PURE__*/React.createElement("span", null, h.area), /*#__PURE__*/React.createElement("span", {
-    style: {
-      opacity: 0.4
-    }
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, '★'.repeat(h.stars), '☆'.repeat(5 - h.stars))))), filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: 20,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute,
-      textAlign: 'center'
-    }
-  }, "\uACB0\uACFC \uC5C6\uC74C")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      padding: '10px 12px',
-      background: COLORS.softer,
-      borderRadius: 10,
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      lineHeight: 1.45
-    }
-  }, "\uD83D\uDCA1 \uC2E4\uC81C \uC571\uC5D0\uC11C\uB294 Booking.com\xB7Expedia\xB7Google Places API\uC5D0\uC11C \uC2E4\uC2DC\uAC04 \uAC00\uACA9\uACFC \uAC00\uC6A9 \uAC1D\uC2E4\uC744 \uAC00\uC838\uC635\uB2C8\uB2E4."))) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflow: 'auto',
-      padding: '0 16px 40px'
-    }
-  }, !scanning && !found && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      padding: 18
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      color: COLORS.ink,
-      lineHeight: 1.3
-    }
-  }, "\uC774\uBA54\uC77C\uACFC \uCE98\uB9B0\uB354\uC5D0\uC11C \uD638\uD154 \uC608\uC57D\uC744 \uC790\uB3D9\uC73C\uB85C \uCC3E\uC544\uB4DC\uB824\uC694"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontFamily: SANS,
-      fontSize: 12.5,
-      color: COLORS.mute,
-      lineHeight: 1.5
-    }
-  }, "\uC5EC\uD589 \uAE30\uAC04(May 4\u201313, 2025)\uC5D0 \uB9DE\uB294 \uD638\uD154 \uC608\uC57D \uD655\uC778 \uBA54\uC77C\uC744 \uC2A4\uCE94\uD569\uB2C8\uB2E4. Booking.com, Agoda, Expedia \uB4F1\uC758 \uD655\uC778 \uBA54\uC77C\uACFC \uAD6C\uAE00 \uCE98\uB9B0\uB354 \uC774\uBCA4\uD2B8\uB97C \uBD84\uC11D\uD574\uC694."), /*#__PURE__*/React.createElement("button", {
-    onClick: scanMailbox,
-    style: {
-      marginTop: 14,
-      width: '100%',
-      border: 'none',
-      cursor: 'pointer',
-      background: COLORS.ink,
-      color: COLORS.bg,
-      borderRadius: 12,
-      padding: '13px',
-      fontFamily: SANS,
-      fontSize: 14,
-      fontWeight: 500,
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "search",
-    size: 14,
-    color: COLORS.bg,
-    stroke: 1.8
-  }), "\uC2A4\uCE94 \uC2DC\uC791"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 12,
-      display: 'flex',
-      gap: 6,
-      flexWrap: 'wrap'
-    }
-  }, ['Gmail', 'Outlook', 'Google Calendar', 'Apple Calendar'].map(s => /*#__PURE__*/React.createElement("span", {
-    key: s,
-    style: {
-      padding: '4px 8px',
-      borderRadius: 6,
-      background: COLORS.softer,
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.04em'
-    }
-  }, s))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 14,
-      padding: '10px 12px',
-      background: COLORS.softer,
-      borderRadius: 10,
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      lineHeight: 1.45
-    }
-  }, "\u26A0\uFE0F \uC774 \uB370\uBAA8\uC5D0\uC11C\uB294 \uC0D8\uD50C \uB370\uC774\uD130\uB97C \uBC18\uD658\uD574\uC694. \uC2E4\uC81C \uAD6C\uD604 \uC2DC OAuth\uB85C Gmail\xB7Google Calendar API\uC5D0 \uC811\uADFC\uD569\uB2C8\uB2E4.")), scanning && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      padding: 24,
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'inline-block',
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      border: `2.5px solid ${COLORS.line}`,
-      borderTopColor: COLORS.accent,
-      animation: 'spin 0.8s linear infinite'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 14,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.ink
-    }
-  }, "\uBA54\uC77C\uD568 \uC2A4\uCE94 \uC911\u2026"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.08em'
-    }
-  }, "GMAIL \xB7 CALENDAR \xB7 BOOKING CONFIRMATIONS"), /*#__PURE__*/React.createElement("style", null, `@keyframes spin { to { transform: rotate(360deg); } }`)), found && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '4px 4px 10px',
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.accent,
-      letterSpacing: '0.12em'
-    }
-  }, "\u2713 ", found.length, "\uAC1C \uC608\uC57D \uBC1C\uACAC"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8
-    }
-  }, found.map((h, i) => /*#__PURE__*/React.createElement("button", {
-    key: i,
-    onClick: () => {
-      onPick(h.name + ' (' + h.area + ')');
-      onClose();
-    },
-    style: {
-      background: COLORS.card,
-      border: 'none',
-      borderRadius: 14,
-      padding: '14px 16px',
-      textAlign: 'left',
-      cursor: 'pointer'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10,
-      alignItems: 'flex-start'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      background: COLORS.softer,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "hotel",
-    size: 18,
-    color: COLORS.ink,
-    stroke: 1.8
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 14,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, h.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 2,
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute
-    }
-  }, h.area), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      display: 'grid',
-      gridTemplateColumns: '86px 1fr',
-      gap: '3px 10px',
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.04em'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "CHECK-IN"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.checkin), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "CHECKOUT"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.checkout), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "\uC608\uC57D\uBC88\uD638"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.confirmation), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "\uC694\uAE08"), "    ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.price)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontFamily: SANS,
-      fontSize: 10.5,
-      color: COLORS.mute,
-      fontStyle: 'italic'
-    }
-  }, "\uCD9C\uCC98: ", h.source))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      padding: '8px 10px',
-      background: COLORS.softer,
-      borderRadius: 8,
-      fontFamily: SANS,
-      fontSize: 11.5,
-      color: COLORS.ink,
-      textAlign: 'center',
-      fontWeight: 500
-    }
-  }, "\uC774 \uD638\uD154\uB85C \uC124\uC815\uD558\uAE30 \u2192"))))))));
-}
-Object.assign(window, {
-  useDragReorder,
-  DragHandle,
-  HotelSearchSheet
-});
-// iOS.jsx — Simplified iOS 26 (Liquid Glass) device frame
-// Based on the iOS 26 UI Kit + Figma status bar spec. No assets, no deps.
-// Exports: IOSDevice, IOSStatusBar, IOSNavBar, IOSGlassPill, IOSList, IOSListRow, IOSKeyboard
-
-// ─────────────────────────────────────────────────────────────
-// Status bar
-// ─────────────────────────────────────────────────────────────
-function IOSStatusBar({
-  dark = false,
-  time = '9:41'
-}) {
-  const c = dark ? '#fff' : '#000';
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 154,
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: '21px 24px 19px',
-      boxSizing: 'border-box',
-      position: 'relative',
-      zIndex: 20,
-      width: '100%'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      height: 22,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingTop: 1.5
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontFamily: '-apple-system, "SF Pro", system-ui',
-      fontWeight: 590,
-      fontSize: 17,
-      lineHeight: '22px',
-      color: c
-    }
-  }, time)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      height: 22,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      gap: 7,
-      paddingTop: 1,
-      paddingRight: 1
-    }
-  }, /*#__PURE__*/React.createElement("svg", {
-    width: "19",
-    height: "12",
-    viewBox: "0 0 19 12"
-  }, /*#__PURE__*/React.createElement("rect", {
-    x: "0",
-    y: "7.5",
-    width: "3.2",
-    height: "4.5",
-    rx: "0.7",
-    fill: c
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "4.8",
-    y: "5",
-    width: "3.2",
-    height: "7",
-    rx: "0.7",
-    fill: c
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "9.6",
-    y: "2.5",
-    width: "3.2",
-    height: "9.5",
-    rx: "0.7",
-    fill: c
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "14.4",
-    y: "0",
-    width: "3.2",
-    height: "12",
-    rx: "0.7",
-    fill: c
-  })), /*#__PURE__*/React.createElement("svg", {
-    width: "17",
-    height: "12",
-    viewBox: "0 0 17 12"
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M8.5 3.2C10.8 3.2 12.9 4.1 14.4 5.6L15.5 4.5C13.7 2.7 11.2 1.5 8.5 1.5C5.8 1.5 3.3 2.7 1.5 4.5L2.6 5.6C4.1 4.1 6.2 3.2 8.5 3.2Z",
-    fill: c
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M8.5 6.8C9.9 6.8 11.1 7.3 12 8.2L13.1 7.1C11.8 5.9 10.2 5.1 8.5 5.1C6.8 5.1 5.2 5.9 3.9 7.1L5 8.2C5.9 7.3 7.1 6.8 8.5 6.8Z",
-    fill: c
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "8.5",
-    cy: "10.5",
-    r: "1.5",
-    fill: c
-  })), /*#__PURE__*/React.createElement("svg", {
-    width: "27",
-    height: "13",
-    viewBox: "0 0 27 13"
-  }, /*#__PURE__*/React.createElement("rect", {
-    x: "0.5",
-    y: "0.5",
-    width: "23",
-    height: "12",
-    rx: "3.5",
-    stroke: c,
-    strokeOpacity: "0.35",
-    fill: "none"
-  }), /*#__PURE__*/React.createElement("rect", {
-    x: "2",
-    y: "2",
-    width: "20",
-    height: "9",
-    rx: "2",
-    fill: c
-  }), /*#__PURE__*/React.createElement("path", {
-    d: "M25 4.5V8.5C25.8 8.2 26.5 7.2 26.5 6.5C26.5 5.8 25.8 4.8 25 4.5Z",
-    fill: c,
-    fillOpacity: "0.4"
-  }))));
-}
-
-// ─────────────────────────────────────────────────────────────
-// Liquid glass pill — blur + tint + shine
-// ─────────────────────────────────────────────────────────────
-function IOSGlassPill({
-  children,
-  dark = false,
-  style = {}
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: 44,
-      minWidth: 44,
-      borderRadius: 9999,
-      position: 'relative',
-      overflow: 'hidden',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      boxShadow: dark ? '0 2px 6px rgba(0,0,0,0.35), 0 6px 16px rgba(0,0,0,0.2)' : '0 1px 3px rgba(0,0,0,0.07), 0 3px 10px rgba(0,0,0,0.06)',
-      ...style
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      borderRadius: 9999,
-      backdropFilter: 'blur(12px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-      background: dark ? 'rgba(120,120,128,0.28)' : 'rgba(255,255,255,0.5)'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      borderRadius: 9999,
-      boxShadow: dark ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15), inset -1px -1px 1px rgba(255,255,255,0.08)' : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
-      border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'relative',
-      zIndex: 1,
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 4px'
-    }
-  }, children));
-}
-
-// ─────────────────────────────────────────────────────────────
-// Navigation bar — glass pills + large title
-// ─────────────────────────────────────────────────────────────
-function IOSNavBar({
-  title = 'Title',
-  dark = false,
-  trailingIcon = true
-}) {
-  const muted = dark ? 'rgba(255,255,255,0.6)' : '#404040';
-  const text = dark ? '#fff' : '#000';
-  const pillIcon = content => /*#__PURE__*/React.createElement(IOSGlassPill, {
-    dark: dark
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 36,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, content));
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 10,
-      paddingTop: 62,
-      paddingBottom: 10,
-      position: 'relative',
-      zIndex: 5
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'space-between',
-      padding: '0 16px'
-    }
-  }, pillIcon(/*#__PURE__*/React.createElement("svg", {
-    width: "12",
-    height: "20",
-    viewBox: "0 0 12 20",
-    fill: "none",
-    style: {
-      marginLeft: -1
-    }
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M10 2L2 10l8 8",
-    stroke: muted,
-    strokeWidth: "2.5",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  }))), trailingIcon && pillIcon(/*#__PURE__*/React.createElement("svg", {
-    width: "22",
-    height: "6",
-    viewBox: "0 0 22 6"
-  }, /*#__PURE__*/React.createElement("circle", {
-    cx: "3",
-    cy: "3",
-    r: "2.5",
-    fill: muted
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "11",
-    cy: "3",
-    r: "2.5",
-    fill: muted
-  }), /*#__PURE__*/React.createElement("circle", {
-    cx: "19",
-    cy: "3",
-    r: "2.5",
-    fill: muted
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px',
-      fontFamily: '-apple-system, system-ui',
-      fontSize: 34,
-      fontWeight: 700,
-      lineHeight: '41px',
-      color: text,
-      letterSpacing: 0.4
-    }
-  }, title));
-}
-
-// ─────────────────────────────────────────────────────────────
-// Grouped list (inset card, r:26) + row (52px)
-// ─────────────────────────────────────────────────────────────
-function IOSListRow({
-  title,
-  detail,
-  icon,
-  chevron = true,
-  isLast = false,
-  dark = false
-}) {
-  const text = dark ? '#fff' : '#000';
-  const sec = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
-  const ter = dark ? 'rgba(235,235,245,0.3)' : 'rgba(60,60,67,0.3)';
-  const sep = dark ? 'rgba(84,84,88,0.65)' : 'rgba(60,60,67,0.12)';
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      minHeight: 52,
-      padding: '0 16px',
-      position: 'relative',
-      fontFamily: '-apple-system, system-ui',
-      fontSize: 17,
-      letterSpacing: -0.43
-    }
-  }, icon && /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 30,
-      height: 30,
-      borderRadius: 7,
-      background: icon,
-      marginRight: 12,
-      flexShrink: 0
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      color: text
-    }
-  }, title), detail && /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: sec,
-      marginRight: 6
-    }
-  }, detail), chevron && /*#__PURE__*/React.createElement("svg", {
-    width: "8",
-    height: "14",
-    viewBox: "0 0 8 14",
-    style: {
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement("path", {
-    d: "M1 1l6 6-6 6",
-    stroke: ter,
-    strokeWidth: "2",
-    fill: "none",
-    strokeLinecap: "round",
-    strokeLinejoin: "round"
-  })), !isLast && /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      bottom: 0,
-      right: 0,
-      left: icon ? 58 : 16,
-      height: 0.5,
-      background: sep
-    }
-  }));
-}
-function IOSList({
-  header,
-  children,
-  dark = false
-}) {
-  const hc = dark ? 'rgba(235,235,245,0.6)' : 'rgba(60,60,67,0.6)';
-  const bg = dark ? '#1C1C1E' : '#fff';
-  return /*#__PURE__*/React.createElement("div", null, header && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: '-apple-system, system-ui',
-      fontSize: 13,
-      color: hc,
-      textTransform: 'uppercase',
-      padding: '8px 36px 6px',
-      letterSpacing: -0.08
-    }
-  }, header), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: bg,
-      borderRadius: 26,
-      margin: '0 16px',
-      overflow: 'hidden'
-    }
-  }, children));
-}
-
-// ─────────────────────────────────────────────────────────────
-// Device frame
-// ─────────────────────────────────────────────────────────────
-function IOSDevice({
-  children,
-  width = 402,
-  height = 874,
-  dark = false,
-  title,
-  keyboard = false
-}) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      width,
-      height,
-      borderRadius: 48,
-      overflow: 'hidden',
-      position: 'relative',
-      background: dark ? '#000' : '#F2F2F7',
-      boxShadow: '0 40px 80px rgba(0,0,0,0.18), 0 0 0 1px rgba(0,0,0,0.12)',
-      fontFamily: '-apple-system, system-ui, sans-serif',
-      WebkitFontSmoothing: 'antialiased'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      top: 11,
-      left: '50%',
-      transform: 'translateX(-50%)',
-      width: 126,
-      height: 37,
-      borderRadius: 24,
-      background: '#000',
-      zIndex: 50
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      zIndex: 10
-    }
-  }, /*#__PURE__*/React.createElement(IOSStatusBar, {
-    dark: dark
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column'
-    }
-  }, title !== undefined && /*#__PURE__*/React.createElement(IOSNavBar, {
-    title: title,
-    dark: dark
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflow: 'auto'
-    }
-  }, children), keyboard && /*#__PURE__*/React.createElement(IOSKeyboard, {
-    dark: dark
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      zIndex: 60,
-      height: 34,
-      display: 'flex',
-      justifyContent: 'center',
-      alignItems: 'flex-end',
-      paddingBottom: 8,
-      pointerEvents: 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 139,
-      height: 5,
-      borderRadius: 100,
-      background: dark ? 'rgba(255,255,255,0.7)' : 'rgba(0,0,0,0.25)'
-    }
-  })));
-}
-
-// ─────────────────────────────────────────────────────────────
-// Keyboard — iOS 26 liquid glass
-// ─────────────────────────────────────────────────────────────
-function IOSKeyboard({
-  dark = false
-}) {
-  const glyph = dark ? 'rgba(255,255,255,0.7)' : '#595959';
-  const sugg = dark ? 'rgba(255,255,255,0.6)' : '#333';
-  const keyBg = dark ? 'rgba(255,255,255,0.22)' : 'rgba(255,255,255,0.85)';
-
-  // special-key icons
-  const icons = {
-    shift: /*#__PURE__*/React.createElement("svg", {
-      width: "19",
-      height: "17",
-      viewBox: "0 0 19 17"
-    }, /*#__PURE__*/React.createElement("path", {
-      d: "M9.5 1L1 9.5h4.5V16h8V9.5H18L9.5 1z",
-      fill: glyph
-    })),
-    del: /*#__PURE__*/React.createElement("svg", {
-      width: "23",
-      height: "17",
-      viewBox: "0 0 23 17"
-    }, /*#__PURE__*/React.createElement("path", {
-      d: "M7 1h13a2 2 0 012 2v11a2 2 0 01-2 2H7l-6-7.5L7 1z",
-      fill: "none",
-      stroke: glyph,
-      strokeWidth: "1.6",
-      strokeLinejoin: "round"
-    }), /*#__PURE__*/React.createElement("path", {
-      d: "M10 5l7 7M17 5l-7 7",
-      stroke: glyph,
-      strokeWidth: "1.6",
-      strokeLinecap: "round"
-    })),
-    ret: /*#__PURE__*/React.createElement("svg", {
-      width: "20",
-      height: "14",
-      viewBox: "0 0 20 14"
-    }, /*#__PURE__*/React.createElement("path", {
-      d: "M18 1v6H4m0 0l4-4M4 7l4 4",
-      fill: "none",
-      stroke: "#fff",
-      strokeWidth: "1.8",
-      strokeLinecap: "round",
-      strokeLinejoin: "round"
-    }))
-  };
-  const key = (content, {
-    w,
-    flex,
-    ret,
-    fs = 25,
-    k
-  } = {}) => /*#__PURE__*/React.createElement("div", {
-    key: k,
-    style: {
-      height: 42,
-      borderRadius: 8.5,
-      flex: flex ? 1 : undefined,
-      width: w,
-      minWidth: 0,
-      background: ret ? '#08f' : keyBg,
-      boxShadow: '0 1px 0 rgba(0,0,0,0.075)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: '-apple-system, "SF Compact", system-ui',
-      fontSize: fs,
-      fontWeight: 458,
-      color: ret ? '#fff' : glyph
-    }
-  }, content);
-  const row = (keys, pad = 0) => /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 6.5,
-      justifyContent: 'center',
-      padding: `0 ${pad}px`
-    }
-  }, keys.map(l => key(l, {
-    flex: true,
-    k: l
-  })));
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'relative',
-      zIndex: 15,
-      borderRadius: 27,
-      overflow: 'hidden',
-      padding: '11px 0 2px',
-      display: 'flex',
-      flexDirection: 'column',
-      alignItems: 'center',
-      boxShadow: dark ? '0 -2px 20px rgba(0,0,0,0.09)' : '0 -1px 6px rgba(0,0,0,0.018), 0 -3px 20px rgba(0,0,0,0.012)'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      borderRadius: 27,
-      backdropFilter: 'blur(12px) saturate(180%)',
-      WebkitBackdropFilter: 'blur(12px) saturate(180%)',
-      background: dark ? 'rgba(120,120,128,0.14)' : 'rgba(255,255,255,0.25)'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'absolute',
-      inset: 0,
-      borderRadius: 27,
-      boxShadow: dark ? 'inset 1.5px 1.5px 1px rgba(255,255,255,0.15)' : 'inset 1.5px 1.5px 1px rgba(255,255,255,0.7), inset -1px -1px 1px rgba(255,255,255,0.4)',
-      border: dark ? '0.5px solid rgba(255,255,255,0.15)' : '0.5px solid rgba(0,0,0,0.06)',
-      pointerEvents: 'none'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 20,
-      alignItems: 'center',
-      padding: '8px 22px 13px',
-      width: '100%',
-      boxSizing: 'border-box',
-      position: 'relative'
-    }
-  }, ['"The"', 'the', 'to'].map((w, i) => /*#__PURE__*/React.createElement(React.Fragment, {
-    key: i
-  }, i > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 1,
-      height: 25,
-      background: '#ccc',
-      opacity: 0.3
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      textAlign: 'center',
-      fontFamily: '-apple-system, system-ui',
-      fontSize: 17,
-      color: sugg,
-      letterSpacing: -0.43,
-      lineHeight: '22px'
-    }
-  }, w)))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 13,
-      padding: '0 6.5px',
-      width: '100%',
-      boxSizing: 'border-box',
-      position: 'relative'
-    }
-  }, row(['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p']), row(['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'], 20), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 14.25,
-      alignItems: 'center'
-    }
-  }, key(icons.shift, {
-    w: 45,
-    k: 'shift'
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 6.5,
-      flex: 1
-    }
-  }, ['z', 'x', 'c', 'v', 'b', 'n', 'm'].map(l => key(l, {
-    flex: true,
-    k: l
-  }))), key(icons.del, {
-    w: 45,
-    k: 'del'
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 6,
-      alignItems: 'center'
-    }
-  }, key('ABC', {
-    w: 92.25,
-    fs: 18,
-    k: 'abc'
-  }), key('', {
-    flex: true,
-    k: 'space'
-  }), key(icons.ret, {
-    w: 92.25,
-    ret: true,
-    k: 'ret'
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      height: 56,
-      width: '100%',
-      position: 'relative'
-    }
-  }));
-}
-Object.assign(window, {
-  IOSDevice,
-  IOSStatusBar,
-  IOSNavBar,
-  IOSGlassPill,
-  IOSList,
-  IOSListRow,
-  IOSKeyboard
-});
 function _extends() { return _extends = Object.assign ? Object.assign.bind() : function (n) { for (var e = 1; e < arguments.length; e++) { var t = arguments[e]; for (var r in t) ({}).hasOwnProperty.call(t, r) && (n[r] = t[r]); } return n; }, _extends.apply(null, arguments); }
 // NYC Travel App — restructured
 // - Trips list (top level) -> pick a trip -> Home
@@ -2034,6 +573,34 @@ const Icon = ({
     case 'x':
       return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
         d: "M18 6 6 18M6 6l12 12"
+      }));
+    case 'share':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("circle", {
+        cx: "18",
+        cy: "5",
+        r: "3"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "6",
+        cy: "12",
+        r: "3"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "18",
+        cy: "19",
+        r: "3"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"
+      }));
+    case 'users':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+        d: "M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"
+      }), /*#__PURE__*/React.createElement("circle", {
+        cx: "9",
+        cy: "7",
+        r: "4"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M23 21v-2a4 4 0 0 0-3-3.87"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M16 3.13a4 4 0 0 1 0 7.75"
       }));
     case 'save':
       return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
@@ -2963,152 +1530,6 @@ function DatePickerSheet({
   }, "\uC774 \uB2EC \uB2EC\uB825 \uBCF4\uAE30"))) : /*#__PURE__*/React.createElement(Calendar, null));
 }
 
-// ─── Date Range Picker (시작~종료 한 달력에서 선택) ──────────
-function DateRangePickerSheet({ open, startValue, endValue, onClose, onPick }) {
-  const parseIso = s => {
-    const m = (s || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
-    return m ? { y: +m[1], mo: +m[2] - 1, d: +m[3] } : null;
-  };
-  const toIso = o => o ? `${o.y}-${String(o.mo + 1).padStart(2, '0')}-${String(o.d).padStart(2, '0')}` : null;
-  const cmp = (a, b) => { // -1 | 0 | 1
-    if (!a || !b) return 0;
-    if (a.y !== b.y) return a.y < b.y ? -1 : 1;
-    if (a.mo !== b.mo) return a.mo < b.mo ? -1 : 1;
-    return a.d < b.d ? -1 : a.d > b.d ? 1 : 0;
-  };
-  const today = new Date();
-  const initStart = parseIso(startValue);
-  const initView = initStart || { y: today.getFullYear(), mo: today.getMonth() };
-  const [view, setView] = React.useState({ y: initView.y, mo: initView.mo });
-  const [rangeStart, setRangeStart] = React.useState(parseIso(startValue));
-  const [rangeEnd,   setRangeEnd]   = React.useState(parseIso(endValue));
-  const [step, setStep] = React.useState('start'); // 'start' | 'end'
-
-  React.useEffect(() => {
-    if (open) {
-      const s = parseIso(startValue);
-      setRangeStart(s);
-      setRangeEnd(parseIso(endValue));
-      setView(s ? { y: s.y, mo: s.mo } : { y: today.getFullYear(), mo: today.getMonth() });
-      setStep('start');
-    }
-  }, [open]);
-
-  const MONTH_KR = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
-  const DOW = ['일','월','화','수','목','금','토'];
-
-  const prevMonth = () => {
-    let { y, mo } = view; mo--; if (mo < 0) { mo = 11; y--; }
-    setView({ y, mo });
-  };
-  const nextMonth = () => {
-    let { y, mo } = view; mo++; if (mo > 11) { mo = 0; y++; }
-    setView({ y, mo });
-  };
-
-  const handleDay = (d) => {
-    const tapped = { y: view.y, mo: view.mo, d };
-    if (step === 'start') {
-      setRangeStart(tapped); setRangeEnd(null); setStep('end');
-    } else {
-      if (cmp(tapped, rangeStart) < 0) {
-        // 시작보다 앞 → 새 시작으로
-        setRangeStart(tapped); setRangeEnd(null);
-      } else {
-        setRangeEnd(tapped); setStep('start');
-      }
-    }
-  };
-
-  const confirm = () => {
-    if (!rangeStart) { onClose(); return; }
-    onPick(toIso(rangeStart), toIso(rangeEnd));
-    onClose();
-  };
-
-  const isInRange = (d) => {
-    const cell = { y: view.y, mo: view.mo, d };
-    if (!rangeStart || !rangeEnd) return false;
-    return cmp(cell, rangeStart) > 0 && cmp(cell, rangeEnd) < 0;
-  };
-  const isStart = (d) => rangeStart && rangeStart.y === view.y && rangeStart.mo === view.mo && rangeStart.d === d;
-  const isEnd   = (d) => rangeEnd   && rangeEnd.y   === view.y && rangeEnd.mo   === view.mo && rangeEnd.d   === d;
-
-  const firstDow = new Date(view.y, view.mo, 1).getDay();
-  const daysInMo = new Date(view.y, view.mo + 1, 0).getDate();
-  const cells = [];
-  for (let i = 0; i < firstDow; i++) cells.push(null);
-  for (let d = 1; d <= daysInMo; d++) cells.push(d);
-
-  const fmtIso = o => o ? `${o.mo + 1}/${o.d}` : '?';
-  const hint = step === 'start' ? '시작일을 선택하세요' : (rangeStart ? `${fmtIso(rangeStart)} → 종료일을 선택하세요` : '');
-
-  return /*#__PURE__*/React.createElement(BottomSheet, { open, onClose, title: '여행 날짜', onConfirm: confirm },
-    // 힌트 + 선택된 범위 표시
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '4px 20px 10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
-    },
-      /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 12, color: COLORS.mute } }, hint),
-      rangeStart && rangeEnd && /*#__PURE__*/React.createElement("span", {
-        style: { fontFamily: MONO, fontSize: 11, color: COLORS.accent }
-      }, fmtIso(rangeStart) + ' — ' + fmtIso(rangeEnd))
-    ),
-    // 월 헤더
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '0 16px 6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }
-    },
-      /*#__PURE__*/React.createElement("button", {
-        onClick: prevMonth,
-        style: { width: 30, height: 30, borderRadius: 15, border: 'none', cursor: 'pointer', background: COLORS.card, display: 'flex', alignItems: 'center', justifyContent: 'center' }
-      }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron-l', size: 14, color: COLORS.ink, stroke: 2 })),
-      /*#__PURE__*/React.createElement("span", { style: { fontFamily: SERIF, fontSize: 17, color: COLORS.ink } },
-        view.y + '년 ' + MONTH_KR[view.mo]),
-      /*#__PURE__*/React.createElement("button", {
-        onClick: nextMonth,
-        style: { width: 30, height: 30, borderRadius: 15, border: 'none', cursor: 'pointer', background: COLORS.card, display: 'flex', alignItems: 'center', justifyContent: 'center' }
-      }, /*#__PURE__*/React.createElement(Icon, { name: 'chevron', size: 14, color: COLORS.ink, stroke: 2 }))
-    ),
-    // 요일 헤더
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '0 14px 2px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }
-    }, DOW.map((w, i) => /*#__PURE__*/React.createElement("div", {
-      key: i,
-      style: { textAlign: 'center', fontFamily: MONO, fontSize: 9.5, letterSpacing: '0.08em',
-        color: i === 0 ? COLORS.accent : i === 6 ? 'oklch(60% 0.06 250)' : COLORS.mute, padding: '4px 0' }
-    }, w))),
-    // 날짜 그리드
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '0 8px 14px', display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)' }
-    }, cells.map((d, i) => {
-      if (d === null) return /*#__PURE__*/React.createElement("div", { key: i });
-      const sel = isStart(d) || isEnd(d);
-      const inRange = isInRange(d);
-      const dow = (firstDow + d - 1) % 7;
-      const isToday = today.getFullYear() === view.y && today.getMonth() === view.mo && today.getDate() === d;
-      const isStartDay = isStart(d), isEndDay = isEnd(d);
-      return /*#__PURE__*/React.createElement("div", {
-        key: i,
-        style: {
-          position: 'relative',
-          background: inRange ? 'oklch(90% 0.04 50)' : 'transparent',
-          borderRadius: isStartDay ? '50% 0 0 50%' : isEndDay ? '0 50% 50% 0' : 0,
-        }
-      }, /*#__PURE__*/React.createElement("button", {
-        onClick: () => handleDay(d),
-        style: {
-          width: '100%', aspectRatio: '1/1', border: 'none', cursor: 'pointer',
-          borderRadius: '50%', background: sel ? COLORS.ink : 'transparent',
-          color: sel ? '#fff' : dow === 0 ? COLORS.accent : COLORS.ink,
-          fontFamily: SANS, fontSize: 13, fontWeight: sel ? 600 : 400,
-          position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }
-      }, d, isToday && !sel && /*#__PURE__*/React.createElement("span", {
-        style: { position: 'absolute', bottom: 3, width: 3, height: 3, borderRadius: '50%', background: COLORS.accent }
-      })));
-    }))
-  );
-}
-
 // ─── Wheel column (scroll-snap) ──────────────────────────────
 function WheelColumn({
   items,
@@ -3305,22 +1726,31 @@ function useFxRate() {
     // Try several free USD→KRW feeds in sequence; first success wins.
     const sources = [{
       url: 'https://api.frankfurter.app/latest?from=USD&to=KRW',
-      parse: j => ({
-        rate: j?.rates?.KRW,
-        ts: j?.date
-      })
+      parse: j => {
+        var _j$rates;
+        return {
+          rate: j === null || j === void 0 || (_j$rates = j.rates) === null || _j$rates === void 0 ? void 0 : _j$rates.KRW,
+          ts: j === null || j === void 0 ? void 0 : j.date
+        };
+      }
     }, {
       url: 'https://open.er-api.com/v6/latest/USD',
-      parse: j => ({
-        rate: j?.rates?.KRW,
-        ts: j?.time_last_update_utc?.slice(0, 16)
-      })
+      parse: j => {
+        var _j$rates2, _j$time_last_update_u;
+        return {
+          rate: j === null || j === void 0 || (_j$rates2 = j.rates) === null || _j$rates2 === void 0 ? void 0 : _j$rates2.KRW,
+          ts: j === null || j === void 0 || (_j$time_last_update_u = j.time_last_update_utc) === null || _j$time_last_update_u === void 0 ? void 0 : _j$time_last_update_u.slice(0, 16)
+        };
+      }
     }, {
       url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
-      parse: j => ({
-        rate: j?.usd?.krw,
-        ts: j?.date
-      })
+      parse: j => {
+        var _j$usd;
+        return {
+          rate: j === null || j === void 0 || (_j$usd = j.usd) === null || _j$usd === void 0 ? void 0 : _j$usd.krw,
+          ts: j === null || j === void 0 ? void 0 : j.date
+        };
+      }
     }];
     const tryNext = i => {
       if (i >= sources.length) {
@@ -3717,6 +2147,446 @@ function CityPicker({
   })))))));
 }
 
+// ─── TRIPS SCREEN (top level) ───────────────────────────────
+// ─── Trip Card with swipe-to-reveal share/delete ─────────────
+function TripSwipeCard({
+  children,
+  onShare,
+  onDelete,
+  wrapStyle = {}
+}) {
+  const [x, setX] = React.useState(0);
+  const [open, setOpen] = React.useState(false);
+  const startRef = React.useRef(null);
+  const dragging = React.useRef(false);
+  const xRef = React.useRef(0);
+  const REVEAL = 144;
+  const DELETE_EXTRA = 72;
+  const close = () => {
+    setX(0);
+    xRef.current = 0;
+    setOpen(false);
+  };
+  const onTouchStart = e => {
+    startRef.current = {
+      x: e.touches[0].clientX,
+      y: e.touches[0].clientY
+    };
+    dragging.current = false;
+  };
+  const onTouchMove = e => {
+    if (!startRef.current) return;
+    const dx = e.touches[0].clientX - startRef.current.x;
+    const dy = Math.abs(e.touches[0].clientY - startRef.current.y);
+    if (!dragging.current) {
+      if (Math.abs(dx) < 18) return;
+      if (dy > Math.abs(dx) * 0.55) {
+        startRef.current = null;
+        return;
+      }
+      dragging.current = true;
+    }
+    const base = open ? -REVEAL : 0;
+    const raw = base + dx;
+    const clamped = open ? Math.max(-(REVEAL + DELETE_EXTRA + 16), Math.min(0, raw)) : Math.max(-REVEAL, Math.min(0, raw));
+    xRef.current = clamped;
+    setX(clamped);
+  };
+  const onTouchEnd = () => {
+    if (!startRef.current || !dragging.current) {
+      startRef.current = null;
+      return;
+    }
+    startRef.current = null;
+    dragging.current = false;
+    const cur = xRef.current;
+    if (cur < -(REVEAL + DELETE_EXTRA / 2)) {
+      close();
+      setTimeout(() => onDelete(), 260);
+    } else if (cur < -REVEAL / 2) {
+      xRef.current = -REVEAL;
+      setX(-REVEAL);
+      setOpen(true);
+    } else {
+      close();
+    }
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      overflow: 'hidden',
+      ...wrapStyle
+    },
+    onTouchStart: onTouchStart,
+    onTouchMove: onTouchMove,
+    onTouchEnd: onTouchEnd
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      right: 0,
+      top: 0,
+      bottom: 0,
+      width: REVEAL,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      close();
+      setTimeout(onShare, 100);
+    },
+    style: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      border: 'none',
+      cursor: 'pointer',
+      background: '#4F6BED',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "share",
+    size: 18,
+    color: "#fff",
+    stroke: 2
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      close();
+      setTimeout(onDelete, 100);
+    },
+    style: {
+      width: 50,
+      height: 50,
+      borderRadius: 25,
+      border: 'none',
+      cursor: 'pointer',
+      background: '#B5451B',
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 18,
+    color: "#fff",
+    stroke: 2
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      transform: `translateX(${x}px)`,
+      transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.25,1,0.5,1)',
+      background: COLORS.card
+    }
+  }, children));
+}
+
+// ─── Share Trip Sheet ─────────────────────────────────────────
+function ShareTripSheet({
+  open,
+  onClose,
+  trip,
+  userData
+}) {
+  const [email, setEmail] = React.useState('');
+  const [msg, setMsg] = React.useState('');
+  const [sending, setSending] = React.useState(false);
+  React.useEffect(() => {
+    if (!open) {
+      setEmail('');
+      setMsg('');
+    }
+  }, [open]);
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
+  const handleSend = async () => {
+    if (!email.trim() || !trip) return;
+    setSending(true);
+    setMsg('');
+    const res = await fbSendTripInvite(userData, email, trip.id, trip.title);
+    setSending(false);
+    if (res.error) setMsg(res.error);else {
+      setMsg(`${res.toName}님께 초대를 보냈습니다!`);
+      setEmail('');
+    }
+  };
+  if (!open || !trip) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 400,
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      padding: '0 20px calc(28px + env(safe-area-inset-bottom,0px))'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.accent,
+      letterSpacing: '0.14em',
+      marginBottom: 4
+    }
+  }, "SHARE TRIP"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.ink,
+      marginBottom: 16
+    }
+  }, trip.title), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute,
+      marginBottom: 12
+    }
+  }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
+    value: email,
+    onChange: e => setEmail(e.target.value),
+    placeholder: "\uC0C1\uB300\uBC29 \uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
+    onKeyDown: e => e.key === 'Enter' && handleSend(),
+    autoFocus: true,
+    style: {
+      width: '100%',
+      padding: '13px 14px',
+      borderRadius: 14,
+      border: `1.5px solid ${COLORS.line}`,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      boxSizing: 'border-box',
+      outline: 'none'
+    }
+  }), msg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: msg.includes('보냈') ? COLORS.accent : '#C0392B'
+    }
+  }, msg), /*#__PURE__*/React.createElement("button", {
+    onClick: handleSend,
+    disabled: sending || !email.trim(),
+    style: {
+      marginTop: 14,
+      width: '100%',
+      padding: '15px',
+      border: 'none',
+      borderRadius: 14,
+      background: email.trim() ? COLORS.ink : COLORS.softer,
+      color: email.trim() ? COLORS.bg : COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: 'pointer'
+    }
+  }, sending ? '보내는 중...' : '초대 보내기')));
+}
+function TripsScreen({
+  trips,
+  onSelect,
+  onAdd,
+  onShare,
+  onDelete,
+  loading,
+  userData,
+  onOpenCompanion,
+  myUid
+}) {
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      minHeight: '100vh',
+      background: COLORS.bg,
+      paddingTop: 'calc(env(safe-area-inset-top) + 64px)',
+      paddingBottom: 100
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenCompanion,
+    style: {
+      position: 'fixed',
+      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      right: 16,
+      zIndex: 300,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      background: userData !== null && userData !== void 0 && userData.photoURL ? 'transparent' : COLORS.softer,
+      border: `2px solid ${COLORS.line}`,
+      padding: 0,
+      cursor: 'pointer',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
+    }
+  }, userData !== null && userData !== void 0 && userData.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: userData.photoURL,
+    alt: "profile",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 18,
+    color: COLORS.mute
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 24px 32px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 30,
+      color: COLORS.ink
+    }
+  }, "My Trips")), loading ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: 60,
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 14
+    }
+  }, "\uB85C\uB529 \uC911...") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px',
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, trips.map(t => {
+    var _t$days, _t$days2, _t$title;
+    const hue = ((_t$days = t.days) === null || _t$days === void 0 || (_t$days = _t$days[0]) === null || _t$days === void 0 || (_t$days = _t$days.hero) === null || _t$days === void 0 ? void 0 : _t$days.hue) ?? 25;
+    const label = ((_t$days2 = t.days) === null || _t$days2 === void 0 || (_t$days2 = _t$days2[0]) === null || _t$days2 === void 0 || (_t$days2 = _t$days2.hero) === null || _t$days2 === void 0 ? void 0 : _t$days2.label) || ((_t$title = t.title) === null || _t$title === void 0 ? void 0 : _t$title.toUpperCase()) || 'TRIP';
+    const isShared = Array.isArray(t.members) && t.members.length > 0 && t.members[0] !== myUid;
+    return /*#__PURE__*/React.createElement(TripSwipeCard, {
+      key: t.id,
+      onShare: () => onShare(t),
+      onDelete: () => onDelete(t.id),
+      wrapStyle: {
+        borderRadius: 20,
+        border: `1px solid ${COLORS.line}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      onClick: () => onSelect(t.id),
+      style: {
+        cursor: 'pointer'
+      }
+    }, /*#__PURE__*/React.createElement(Photo, {
+      hue: hue,
+      label: label,
+      height: 130
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '14px 18px 16px',
+        position: 'relative'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10,
+        color: COLORS.accent,
+        letterSpacing: '0.14em'
+      }
+    }, (t.days || []).length, " DAYS", t.dates ? ' · ' + t.dates : ''), /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 4,
+        fontFamily: SERIF,
+        fontSize: 28,
+        lineHeight: 1.1,
+        color: COLORS.ink,
+        letterSpacing: '-0.015em'
+      }
+    }, t.title || '새 여행'), isShared && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        top: 14,
+        right: 16,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        background: '#EEF2FF',
+        borderRadius: 20,
+        padding: '4px 10px'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "users",
+      size: 11,
+      color: "#4F6BED",
+      stroke: 2
+    }), /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 10,
+        color: '#4F6BED',
+        fontWeight: 500
+      }
+    }, "\uACF5\uC720\uB428")))));
+  }), /*#__PURE__*/React.createElement("button", {
+    onClick: onAdd,
+    style: {
+      marginTop: 4,
+      padding: '18px 16px',
+      background: 'transparent',
+      border: `1.5px dashed ${COLORS.line}`,
+      borderRadius: 20,
+      color: COLORS.mute,
+      cursor: 'pointer',
+      display: 'flex',
+      gap: 8,
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: 13.5
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "plus",
+    size: 15,
+    color: COLORS.mute,
+    stroke: 2
+  }), "\uC0C8 \uC5EC\uD589 \uCD94\uAC00")));
+}
+
 // ─── 날짜 변환 유틸 (앱 전역) ─────────────────────────────────
 const MONTH_NAMES_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const WEEKDAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -3771,7 +2641,7 @@ function HomeScreen({
   onOpenCompanion
 }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
-  const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
+  const [datePicker, setDatePicker] = React.useState(null); // 'start' | 'end' | null
   const {
     itemProps: dayDragProps,
     isTouchDragging: isDayDragging
@@ -3785,10 +2655,11 @@ function HomeScreen({
 
   // trip.dates 파싱: "May 4 — May 13, 2025"
   const parseTripDates = () => {
+    var _parts$, _parts$2;
     const str = trip.dates || '';
     const parts = str.split(/\s*[—–-]\s*/);
-    const startStr = parts[0]?.trim() || '';
-    const endStr = parts[1]?.trim() || '';
+    const startStr = ((_parts$ = parts[0]) === null || _parts$ === void 0 ? void 0 : _parts$.trim()) || '';
+    const endStr = ((_parts$2 = parts[1]) === null || _parts$2 === void 0 ? void 0 : _parts$2.trim()) || '';
     // 연도가 없으면 tripYear 붙이기
     const addYear = s => /\d{4}/.test(s) ? s : s ? `${s}, ${tripYear}` : '';
     return {
@@ -3797,46 +2668,43 @@ function HomeScreen({
     };
   };
   const handlePickStart = iso => {
-    const { startIso } = parseTripDates();
-    if (!iso) return;
-    // 날짜 diff 계산 (시작일이 없으면 days/hotels 이동 없이 dates만 업데이트)
-    const diffDays = (startIso && startIso !== iso)
-      ? Math.round((new Date(iso + 'T12:00:00') - new Date(startIso + 'T12:00:00')) / 86400000)
-      : 0;
-    const shiftIso = (dateStr) => {
-      if (!dateStr) return dateStr;
-      // "May 4, 2025 · 15:00" 형태 처리
-      const timePart = dateStr.includes(' · ') ? dateStr.slice(dateStr.indexOf(' · ')) : '';
-      const datePart = timePart ? dateStr.slice(0, dateStr.indexOf(' · ')) : dateStr;
-      const dIso = dayDateToIso(datePart, tripYear);
-      if (!dIso) return dateStr;
-      const newIso = new Date(new Date(dIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10);
-      return isoToDayDate(newIso) + timePart;
-    };
-    const shiftedDays = diffDays === 0 ? trip.days : (trip.days || []).map(d => ({
-      ...d,
-      date: shiftIso(d.date) || d.date,
-      weekday: (() => { const s = dayDateToIso(d.date, tripYear); return s ? isoToWeekday(new Date(new Date(s + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : d.weekday; })()
-    }));
-    const shiftedHotels = diffDays === 0 ? trip.hotels : (trip.hotels || []).map(h => ({
-      ...h,
-      checkin:  shiftIso(h.checkin),
-      checkout: shiftIso(h.checkout),
-    }));
-    const { endIso } = parseTripDates();
-    const newStart = isoToDayDate(iso);
-    const newEnd = endIso ? isoToDayDate(new Date(new Date(endIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : '';
-    onEditTrip({
-      days: shiftedDays,
-      hotels: shiftedHotels,
-      dates: newEnd ? `${newStart} — ${newEnd}` : newStart
-    });
-  };
-  const handlePickEnd = iso => {
     const {
       startIso
     } = parseTripDates();
-    const newStart = startIso ? isoToDayDate(startIso) : trip.dates?.split(/[—–-]/)[0]?.trim() || '';
+    // 날짜 diff 계산해서 모든 일정 날짜 이동
+    if (startIso && iso && startIso !== iso) {
+      const oldMs = new Date(startIso + 'T12:00:00').getTime();
+      const newMs = new Date(iso + 'T12:00:00').getTime();
+      const diffDays = Math.round((newMs - oldMs) / 86400000);
+      const shiftedDays = (trip.days || []).map(d => {
+        const dIso = dayDateToIso(d.date, tripYear);
+        if (!dIso) return d;
+        const shifted = new Date(new Date(dIso + 'T12:00:00').getTime() + diffDays * 86400000);
+        const newIso = shifted.toISOString().slice(0, 10);
+        return {
+          ...d,
+          date: isoToDayDate(newIso),
+          weekday: isoToWeekday(newIso)
+        };
+      });
+      // trip.dates 새 시작일로 업데이트
+      const {
+        endIso
+      } = parseTripDates();
+      const newStart = isoToDayDate(iso);
+      const newEnd = endIso ? isoToDayDate(new Date(new Date(endIso + 'T12:00:00').getTime() + diffDays * 86400000).toISOString().slice(0, 10)) : '';
+      onEditTrip({
+        days: shiftedDays,
+        dates: newEnd ? `${newStart} — ${newEnd}` : newStart
+      });
+    }
+  };
+  const handlePickEnd = iso => {
+    var _trip$dates;
+    const {
+      startIso
+    } = parseTripDates();
+    const newStart = startIso ? isoToDayDate(startIso) : ((_trip$dates = trip.dates) === null || _trip$dates === void 0 || (_trip$dates = _trip$dates.split(/[—–-]/)[0]) === null || _trip$dates === void 0 ? void 0 : _trip$dates.trim()) || '';
     onEditTrip({
       dates: `${newStart} — ${isoToDayDate(iso)}`
     });
@@ -3852,48 +2720,43 @@ function HomeScreen({
       paddingBottom: 110,
       position: 'relative'
     }
-  },
-  /* ── 네비게이션 헤더 ── */
-  /*#__PURE__*/React.createElement("div", {
+  }, onOpenCompanion && /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenCompanion,
     style: {
-      position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10,
-      paddingTop: 'env(safe-area-inset-top)',
-      background: COLORS.bg,
+      position: 'absolute',
+      top: 'calc(14px + env(safe-area-inset-top,0px))',
+      right: 16,
+      zIndex: 10,
+      width: 38,
+      height: 38,
+      borderRadius: 19,
+      background: userData !== null && userData !== void 0 && userData.photoURL ? 'transparent' : COLORS.softer,
+      border: `2px solid ${COLORS.line}`,
+      padding: 0,
+      cursor: 'pointer',
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      boxShadow: '0 1px 6px rgba(0,0,0,0.10)'
     }
-  },
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: 52, display: 'flex', alignItems: 'center',
-        justifyContent: 'space-between', padding: '0 16px 0 8px',
-      }
-    },
-      onBack
-        ? /*#__PURE__*/React.createElement("button", {
-            onClick: onBack,
-            style: { background: 'transparent', border: 'none', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: 2, padding: '4px 8px 4px 4px' }
-          },
-            /*#__PURE__*/React.createElement(Icon, { name: 'chevron-left', size: 18, color: COLORS.mute, stroke: 2 }),
-            /*#__PURE__*/React.createElement("span", { style: { fontFamily: SANS, fontSize: 14, color: COLORS.mute } }, "My Trips")
-          )
-        : /*#__PURE__*/React.createElement("div", null),
-      onOpenCompanion && /*#__PURE__*/React.createElement("button", {
-        onClick: onOpenCompanion,
-        style: {
-          width: 38, height: 38, borderRadius: 19,
-          background: userData?.photoURL ? 'transparent' : COLORS.softer,
-          border: `2px solid ${COLORS.line}`, padding: 0, cursor: 'pointer',
-          overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-        }
-      },
-        userData?.photoURL
-          ? /*#__PURE__*/React.createElement("img", { src: userData.photoURL, alt: "profile", style: { width: '100%', height: '100%', objectFit: 'cover' } })
-          : /*#__PURE__*/React.createElement(Icon, { name: "user", size: 18, color: COLORS.mute })
-      )
-    )
-  ),
-  /*#__PURE__*/React.createElement("div", { style: { paddingTop: 'calc(52px + env(safe-area-inset-top, 0px))' } }), /*#__PURE__*/React.createElement("div", {
+  }, userData !== null && userData !== void 0 && userData.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: userData.photoURL,
+    alt: "profile",
+    style: {
+      width: '100%',
+      height: '100%',
+      objectFit: 'cover'
+    }
+  }) : /*#__PURE__*/React.createElement(Icon, {
+    name: "user",
+    size: 18,
+    color: COLORS.mute
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingTop: 'calc(16px + env(safe-area-inset-top, 0px))'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '10px 24px 18px'
     }
@@ -3937,7 +2800,7 @@ function HomeScreen({
       flexWrap: 'wrap'
     }
   }, editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDateRangeOpen(true),
+    onClick: () => setDatePicker('start'),
     style: {
       border: `1.5px solid ${COLORS.line}`,
       borderRadius: 8,
@@ -3962,7 +2825,7 @@ function HomeScreen({
       fontSize: 13
     }
   }, "\u2014"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setDateRangeOpen(true),
+    onClick: () => setDatePicker('end'),
     style: {
       border: `1.5px solid ${COLORS.line}`,
       borderRadius: 8,
@@ -4589,15 +3452,24 @@ function HomeScreen({
   }, /*#__PURE__*/React.createElement(FxCard, null), /*#__PURE__*/React.createElement(TimezoneCard, {
     city: city,
     onClick: onPickCity
-  })), /*#__PURE__*/React.createElement(DateRangePickerSheet, {
-    open: dateRangeOpen,
-    startValue: startIso,
-    endValue: endIso,
-    onClose: () => setDateRangeOpen(false),
-    onPick: (newStart, newEnd) => {
-      if (newStart) handlePickStart(newStart);
-      if (newEnd) handlePickEnd(newEnd);
-      setDateRangeOpen(false);
+  })), /*#__PURE__*/React.createElement(DatePickerSheet, {
+    open: datePicker === 'start',
+    title: "\uC2DC\uC791 \uB0A0\uC9DC",
+    value: startIso,
+    onClose: () => setDatePicker(null),
+    onPick: iso => {
+      handlePickStart(iso);
+      setDatePicker(null);
+    }
+  }), /*#__PURE__*/React.createElement(DatePickerSheet, {
+    open: datePicker === 'end',
+    title: "\uC885\uB8CC \uB0A0\uC9DC",
+    value: endIso,
+    minDate: startIso,
+    onClose: () => setDatePicker(null),
+    onPick: iso => {
+      handlePickEnd(iso);
+      setDatePicker(null);
     }
   }));
 }
@@ -6460,6 +5332,7 @@ function PrepScreen({
   editing,
   setEditing
 }) {
+  var _trip$days$, _trip$days;
   const totalStops = trip.days.reduce((s, d) => s + d.items.length, 0);
   const prep = prepProp || trip.prep || {
     checklist: [],
@@ -6469,8 +5342,8 @@ function PrepScreen({
 
   // ── D-day 계산 ─────────────────────────────────────────────
   const tripYear = extractTripYear(trip);
-  const firstDate = trip.days[0]?.date || '';
-  const lastDate = trip.days[trip.days.length - 1]?.date || '';
+  const firstDate = ((_trip$days$ = trip.days[0]) === null || _trip$days$ === void 0 ? void 0 : _trip$days$.date) || '';
+  const lastDate = ((_trip$days = trip.days[trip.days.length - 1]) === null || _trip$days === void 0 ? void 0 : _trip$days.date) || '';
   const parseDate = s => {
     if (!s) return null;
     const iso = dayDateToIso(s, tripYear);
@@ -6806,28 +5679,26 @@ function TabBar({
   }];
   return /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'fixed', left: 0, right: 0, bottom: 0, zIndex: 30,
-      display: 'flex', flexDirection: 'column', alignItems: 'stretch',
+      position: 'fixed',
+      left: 14,
+      right: 14,
+      bottom: 'env(safe-area-inset-bottom, 0px)',
+      zIndex: 30,
+      background: 'rgba(255,255,255,0.88)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+      borderRadius: 26,
+      padding: '9px 10px 11px',
+      boxShadow: '0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
+      border: `0.5px solid ${COLORS.line}`,
+      display: 'flex',
+      gap: 2,
+      alignItems: 'center',
       transition: 'opacity 0.25s ease',
       opacity: visible ? 1 : 0,
-      pointerEvents: visible ? 'auto' : 'none',
+      pointerEvents: visible ? 'auto' : 'none'
     }
-  },
-    /*#__PURE__*/React.createElement("div", {
-      style: { padding: '0 14px 8px' }
-    },
-      /*#__PURE__*/React.createElement("div", {
-        style: {
-          background: 'rgba(255,255,255,0.88)',
-          backdropFilter: 'blur(20px) saturate(180%)',
-          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-          borderRadius: 26,
-          padding: '9px 10px 11px',
-          boxShadow: '0 2px 6px rgba(0,0,0,0.04), 0 10px 30px rgba(0,0,0,0.08)',
-          border: `0.5px solid ${COLORS.line}`,
-          display: 'flex', gap: 2, alignItems: 'center',
-        }
-      }, tabs.map(t => /*#__PURE__*/React.createElement("button", {
+  }, tabs.map(t => /*#__PURE__*/React.createElement("button", {
     key: t.id,
     onClick: () => setTab(t.id),
     style: {
@@ -6879,16 +5750,7 @@ function TabBar({
     size: 17,
     color: editing ? '#fff' : COLORS.mute,
     stroke: 1.8
-  })))
-),
-/*#__PURE__*/React.createElement("div", {
-  style: {
-    height: 'env(safe-area-inset-bottom, 0px)',
-    backdropFilter: 'blur(20px) saturate(180%)',
-    WebkitBackdropFilter: 'blur(20px) saturate(180%)',
-    background: 'rgba(255,255,255,0)',
-  }
-}));
+  })));
 }
 
 // ─── APP ───────────────────────────────────────────────────
@@ -7010,7 +5872,9 @@ function TakeoffIcon() {
     width: "47",
     height: "47",
     viewBox: "0 0 24 24",
-    style: { display: 'block' }
+    style: {
+      display: 'block'
+    }
   }, /*#__PURE__*/React.createElement("rect", {
     x: "2.5",
     y: "20.1",
@@ -7180,22 +6044,29 @@ function CompanionSheet({
   onClose,
   authUser,
   userData,
-  onUserDataUpdate
+  onUserDataUpdate,
+  trips
 }) {
-  const [tab, setTab] = React.useState('companions'); // 'companions' | 'invite'
+  const [tripCompanions, setTripCompanions] = React.useState({});
+  const [expandedInvite, setExpandedInvite] = React.useState(null);
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [inviteMsg, setInviteMsg] = React.useState('');
   const [inviting, setInviting] = React.useState(false);
-  const [companions, setCompanions] = React.useState([]);
   const [pendingInvites, setPendingInvites] = React.useState([]);
+  const tripIds = (trips || []).map(t => t.id).join(',');
   React.useEffect(() => {
     if (!open || !userData) return;
-    fbGetCompanions(userData.groupId, authUser.uid).then(setCompanions);
+    (trips || []).forEach(t => {
+      fbGetTripCompanions(t.id, authUser.uid).then(members => {
+        setTripCompanions(prev => ({
+          ...prev,
+          [t.id]: members
+        }));
+      });
+    });
     const unsub = fbListenInvites(authUser.uid, setPendingInvites);
     return unsub;
-  }, [open, userData?.groupId]);
-
-  // 배경 스크롤 잠금
+  }, [open, tripIds]);
   React.useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -7204,11 +6075,11 @@ function CompanionSheet({
       };
     }
   }, [open]);
-  const handleInvite = async () => {
+  const handleInvite = async (tripId, tripTitle) => {
     if (!inviteEmail.trim()) return;
     setInviting(true);
     setInviteMsg('');
-    const res = await fbSendInvite(userData, inviteEmail);
+    const res = await fbSendTripInvite(userData, inviteEmail, tripId, tripTitle);
     setInviting(false);
     if (res.error) setInviteMsg(res.error);else {
       setInviteMsg(`${res.toName}님께 초대를 보냈습니다!`);
@@ -7216,24 +6087,14 @@ function CompanionSheet({
     }
   };
   const handleAccept = async inv => {
-    const newGroupId = await fbAcceptInvite(inv, authUser.uid);
+    const tripId = await fbAcceptTripInvite(inv, authUser.uid);
     onUserDataUpdate({
       ...userData,
-      groupId: newGroupId
+      tripIds: [...(userData.tripIds || []), tripId]
     });
     setPendingInvites(p => p.filter(i => i.id !== inv.id));
   };
-  const handleLeave = async () => {
-    if (!confirm('동행인 그룹에서 나가시겠습니까? 나만의 개인 일정으로 분리됩니다.')) return;
-    await fbLeaveGroup(userData);
-    onUserDataUpdate({
-      ...userData,
-      groupId: authUser.uid
-    });
-    onClose();
-  };
   if (!open) return null;
-  const isInGroup = userData?.groupId !== authUser?.uid;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
@@ -7331,27 +6192,7 @@ function CompanionSheet({
       color: COLORS.mute,
       cursor: 'pointer'
     }
-  }, "\uB85C\uADF8\uC544\uC6C3")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      padding: '12px 16px 0',
-      gap: 8
-    }
-  }, [['companions', '동행인'], ['invite', '초대하기']].map(([id, label]) => /*#__PURE__*/React.createElement("button", {
-    key: id,
-    onClick: () => setTab(id),
-    style: {
-      padding: '7px 16px',
-      borderRadius: 20,
-      border: 'none',
-      cursor: 'pointer',
-      background: tab === id ? COLORS.ink : COLORS.card,
-      color: tab === id ? COLORS.bg : COLORS.mute,
-      fontFamily: SANS,
-      fontSize: 12,
-      fontWeight: tab === id ? 600 : 400
-    }
-  }, label))), pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+  }, "\uB85C\uADF8\uC544\uC6C3")), pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       margin: '14px 16px 0',
       background: '#FFF8E1',
@@ -7412,7 +6253,7 @@ function CompanionSheet({
       fontSize: 11,
       color: COLORS.mute
     }
-  }, inv.fromEmail)), /*#__PURE__*/React.createElement("button", {
+  }, inv.tripTitle || inv.fromEmail)), /*#__PURE__*/React.createElement("button", {
     onClick: () => handleAccept(inv),
     style: {
       border: 'none',
@@ -7437,11 +6278,11 @@ function CompanionSheet({
       fontSize: 12,
       color: COLORS.mute
     }
-  }, "\uAC70\uC808")))), tab === 'companions' && /*#__PURE__*/React.createElement("div", {
+  }, "\uAC70\uC808")))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '14px 16px 0'
+      padding: '12px 16px 0'
     }
-  }, companions.length === 0 ? /*#__PURE__*/React.createElement("div", {
+  }, (trips || []).length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '24px 0',
       textAlign: 'center',
@@ -7449,127 +6290,188 @@ function CompanionSheet({
       fontSize: 13,
       color: COLORS.mute
     }
-  }, "\uC544\uC9C1 \uB3D9\uD589\uC778\uC774 \uC5C6\uC5B4\uC694.", /*#__PURE__*/React.createElement("br", null), /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 12
-    }
-  }, "\uCD08\uB300\uD558\uAE30 \uD0ED\uC5D0\uC11C \uC774\uBA54\uC77C\uB85C \uCD08\uB300\uD574\uBCF4\uC138\uC694.")) : companions.map(c => /*#__PURE__*/React.createElement("div", {
-    key: c.uid,
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 12,
-      padding: '10px 0',
-      borderBottom: `1px solid ${COLORS.line}`
-    }
-  }, c.photoURL ? /*#__PURE__*/React.createElement("img", {
-    src: c.photoURL,
-    style: {
-      width: 40,
-      height: 40,
-      borderRadius: 20
-    }
-  }) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 40,
-      height: 40,
-      borderRadius: 20,
-      background: COLORS.softer,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      fontFamily: SANS,
-      fontSize: 16,
-      color: COLORS.mute
-    }
-  }, (c.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 14,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, c.displayName), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute
-    }
-  }, c.email)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.accent
-    }
-  }, "\uB3D9\uD589\uC911"))), isInGroup && /*#__PURE__*/React.createElement("button", {
-    onClick: handleLeave,
-    style: {
-      marginTop: 20,
-      width: '100%',
-      padding: '13px',
-      border: `1.5px solid ${COLORS.line}`,
-      borderRadius: 14,
-      background: 'transparent',
-      cursor: 'pointer',
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute
-    }
-  }, "\uADF8\uB8F9\uC5D0\uC11C \uB098\uAC00\uAE30")), tab === 'invite' && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '16px 16px 0'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 13,
+  }, "\uC5EC\uD589\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.") : (trips || []).map(t => {
+    const members = tripCompanions[t.id] || [];
+    const isExpanded = expandedInvite === t.id;
+    const hasBorder = members.length > 0 || isExpanded;
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.id,
+      style: {
+        marginBottom: 12,
+        background: COLORS.card,
+        borderRadius: 16,
+        overflow: 'hidden',
+        border: `1px solid ${COLORS.line}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '12px 14px',
+        borderBottom: hasBorder ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SERIF,
+        fontSize: 16,
+        color: COLORS.ink
+      }
+    }, t.title || '새 여행'), t.dates && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute,
+        marginTop: 1
+      }
+    }, t.dates)), /*#__PURE__*/React.createElement("button", {
+      onClick: () => {
+        if (isExpanded) {
+          setExpandedInvite(null);
+          setInviteEmail('');
+          setInviteMsg('');
+        } else {
+          setExpandedInvite(t.id);
+          setInviteEmail('');
+          setInviteMsg('');
+        }
+      },
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
+        padding: '6px 12px',
+        borderRadius: 20,
+        border: `1px solid ${COLORS.line}`,
+        background: 'transparent',
+        cursor: 'pointer',
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "plus",
+      size: 12,
       color: COLORS.mute,
-      marginBottom: 12
-    }
-  }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
-    value: inviteEmail,
-    onChange: e => setInviteEmail(e.target.value),
-    placeholder: "\uC0C1\uB300\uBC29 \uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
-    onKeyDown: e => e.key === 'Enter' && handleInvite(),
-    style: {
-      width: '100%',
-      padding: '12px 14px',
-      borderRadius: 12,
-      border: `1.5px solid ${COLORS.line}`,
-      background: COLORS.card,
-      fontFamily: SANS,
-      fontSize: 14,
-      color: COLORS.ink,
-      boxSizing: 'border-box'
-    }
-  }), inviteMsg && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontFamily: SANS,
-      fontSize: 12,
-      color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B'
-    }
-  }, inviteMsg), /*#__PURE__*/React.createElement("button", {
-    onClick: handleInvite,
-    disabled: inviting || !inviteEmail.trim(),
-    style: {
-      marginTop: 12,
-      width: '100%',
-      padding: '14px',
-      border: 'none',
-      borderRadius: 14,
-      background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
-      color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
-      fontFamily: SANS,
-      fontSize: 14,
-      fontWeight: 500,
-      cursor: 'pointer'
-    }
-  }, inviting ? '보내는 중...' : '초대 보내기'))));
+      stroke: 2.5
+    }), "\uCD08\uB300"))), members.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 14px'
+      }
+    }, members.map((c, ci) => /*#__PURE__*/React.createElement("div", {
+      key: c.uid,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        padding: '10px 0',
+        borderBottom: ci < members.length - 1 || isExpanded ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, c.photoURL ? /*#__PURE__*/React.createElement("img", {
+      src: c.photoURL,
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 18
+      }
+    }) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        background: COLORS.softer,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: SANS,
+        fontSize: 14,
+        color: COLORS.mute
+      }
+    }, (c.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.ink,
+        fontWeight: 500
+      }
+    }, c.displayName), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 11,
+        color: COLORS.mute
+      }
+    }, c.email)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10,
+        color: '#4F6BED'
+      }
+    }, "\uB3D9\uD589\uC911")))), isExpanded && /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '12px 14px 14px'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        marginBottom: 8
+      }
+    }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
+      value: inviteEmail,
+      onChange: e => setInviteEmail(e.target.value),
+      placeholder: "\uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
+      onKeyDown: e => e.key === 'Enter' && handleInvite(t.id, t.title),
+      style: {
+        width: '100%',
+        padding: '11px 13px',
+        borderRadius: 11,
+        border: `1.5px solid ${COLORS.line}`,
+        background: COLORS.bg,
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.ink,
+        boxSizing: 'border-box',
+        outline: 'none'
+      }
+    }), inviteMsg && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 6,
+        fontFamily: SANS,
+        fontSize: 12,
+        color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B'
+      }
+    }, inviteMsg), /*#__PURE__*/React.createElement("button", {
+      onClick: () => handleInvite(t.id, t.title),
+      disabled: inviting || !inviteEmail.trim(),
+      style: {
+        marginTop: 10,
+        width: '100%',
+        padding: '13px',
+        border: 'none',
+        borderRadius: 12,
+        background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
+        color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
+        fontFamily: SANS,
+        fontSize: 13,
+        fontWeight: 500,
+        cursor: 'pointer'
+      }
+    }, inviting ? '보내는 중...' : '초대 보내기')));
+  }))));
 }
 
 // ─── App ─────────────────────────────────────────────────────
@@ -7578,122 +6480,33 @@ function _readCache() {
   if (!localStorage.getItem('tlj_authed')) return null;
   try {
     return {
-      userData:  JSON.parse(localStorage.getItem('tlj_userData')  || 'null'),
-      trip:      JSON.parse(localStorage.getItem('tlj_trip')      || 'null'),
-      prep:      JSON.parse(localStorage.getItem('tlj_prep')      || 'null'),
-      userTrips: JSON.parse(localStorage.getItem('tlj_userTrips') || 'null'),
+      userData: JSON.parse(localStorage.getItem('tlj_userData') || 'null'),
+      trip: JSON.parse(localStorage.getItem('tlj_trip') || 'null'),
+      prep: JSON.parse(localStorage.getItem('tlj_prep') || 'null')
     };
   } catch (e) {
     return null;
   }
 }
-function TripsScreen({ trips, onSelect, onAdd, loading, userData, onOpenCompanion, authUser, tripsError }) {
-  return /*#__PURE__*/React.createElement("div", {
-    style: { minHeight: '100vh', background: COLORS.bg,
-      paddingTop: 'calc(env(safe-area-inset-top) + 72px)', paddingBottom: 100 }
-  },
-    /* ── 상단 헤더 ── */
-    /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'fixed', top: 0, left: 0, right: 0, zIndex: 300,
-        paddingTop: 'env(safe-area-inset-top)',
-        background: COLORS.bg,
-        borderBottom: '1px solid ' + COLORS.line,
-      }
-    },
-      /*#__PURE__*/React.createElement("div", {
-        style: {
-          height: 56, display: 'flex', alignItems: 'center',
-          justifyContent: 'space-between', padding: '0 20px',
-        }
-      },
-        /*#__PURE__*/React.createElement("span", {
-          style: { fontFamily: SERIF, fontSize: 26, color: COLORS.ink, letterSpacing: '-0.02em', lineHeight: 1 }
-        }, "My Trips"),
-        /*#__PURE__*/React.createElement("button", {
-          onClick: onOpenCompanion,
-          style: {
-            width: 38, height: 38, borderRadius: 19,
-            background: userData && userData.photoURL ? 'transparent' : COLORS.softer,
-            border: '2px solid ' + COLORS.line, padding: 0, cursor: 'pointer', overflow: 'hidden',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 1px 4px rgba(0,0,0,0.08)',
-          }
-        },
-          userData && userData.photoURL
-            ? /*#__PURE__*/React.createElement("img", { src: userData.photoURL, alt: "profile", style: { width: '100%', height: '100%', objectFit: 'cover' } })
-            : /*#__PURE__*/React.createElement(Icon, { name: "user", size: 18, color: COLORS.mute })
-        )
-      )
-    ),
-    /*#__PURE__*/React.createElement("div", {
-        style: { padding: '0 16px', display: 'flex', flexDirection: 'column', gap: 12 }
-      },
-      trips.length === 0 && loading
-        ? /*#__PURE__*/React.createElement("div", {
-            style: { textAlign: 'center', padding: 60, color: COLORS.mute, fontFamily: SANS, fontSize: 14 }
-          }, "불러오는 중...")
-        : trips.map(function(t) {
-            const hue = (t.days && t.days[0] && t.days[0].hero) ? (t.days[0].hero.hue || 25) : 25;
-            const label = (t.days && t.days[0] && t.days[0].hero && t.days[0].hero.label)
-              ? t.days[0].hero.label
-              : (t.title ? t.title.toUpperCase() : 'TRIP');
-            return /*#__PURE__*/React.createElement("div", {
-              key: t.id, onClick: function() { onSelect(t.id); },
-              style: { background: COLORS.card, borderRadius: 20, overflow: 'hidden',
-                cursor: 'pointer', border: '1px solid ' + COLORS.line }
-            },
-              /*#__PURE__*/React.createElement(Photo, { hue: hue, label: label, height: 130 }),
-              /*#__PURE__*/React.createElement("div", { style: { padding: '14px 18px 16px' } },
-                /*#__PURE__*/React.createElement("div", {
-                  style: { fontFamily: MONO, fontSize: 10, color: COLORS.accent, letterSpacing: '0.14em' }
-                }, (t.days || []).length + ' DAYS' + (t.dates ? ' · ' + t.dates : '')),
-                /*#__PURE__*/React.createElement("div", {
-                  style: { marginTop: 4, fontFamily: SERIF, fontSize: 28, lineHeight: 1.1, color: COLORS.ink, letterSpacing: '-0.015em' }
-                }, t.title || '새 여행')
-              )
-            );
-          }),
-          /*#__PURE__*/React.createElement("button", {
-            onClick: onAdd,
-            style: { marginTop: 4, padding: '18px 16px', background: 'transparent',
-              border: '1.5px dashed ' + COLORS.line, borderRadius: 20, color: COLORS.mute, cursor: 'pointer',
-              display: 'flex', gap: 8, alignItems: 'center', justifyContent: 'center',
-              fontFamily: SANS, fontSize: 13.5 }
-          },
-            /*#__PURE__*/React.createElement(Icon, { name: 'plus', size: 15, color: COLORS.mute, stroke: 2 }),
-            "새 여행 추가"
-          )
-        )
-  );
-}
-
 function App() {
   const _nav = loadNav();
   const _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
 
   // ── Firebase auth + data state ─────────────────────────────
-  const [authState, setAuthState] = React.useState(_cache?.userData ? 'in' : 'loading');
+  const [authState, setAuthState] = React.useState(_cache !== null && _cache !== void 0 && _cache.userData ? 'in' : 'loading');
   const [authUser, setAuthUser] = React.useState(null);
-  const [userData, setUserData] = React.useState(_cache?.userData || null);
-  const [trip, setTrip] = React.useState(_cache?.trip || null);
-  const [prep, setPrep] = React.useState(_cache?.prep || {
+  const [userData, setUserData] = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.userData) || null);
+  const [trip, setTrip] = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.trip) || null);
+  const [prep, setPrep] = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.prep) || {
     checklist: [],
     docs: [],
     pack: []
   });
-  // 새로고침 후 복원: 로그인 상태일 때만 activeTripId 복원
-  const [activeTripId, setActiveTripId] = React.useState(
-    _cache?.userData && _nav.activeTripId ? _nav.activeTripId : null
-  );
-  const _cachedTrips =
-    (_cache?.userTrips && _cache.userTrips.length > 0)  ? _cache.userTrips :
-    (_cache?.trip && _cache?.userData?.uid)              ? [Object.assign({ id: _cache.userData.uid }, _cache.trip)] :
-    (_cache?.userData?.uid)                              ? [{ id: _cache.userData.uid, title: '내 여행', days: [], dates: '', hotels: [], food: [] }] :
-    [];
-  const [userTrips, setUserTrips] = React.useState(_cachedTrips);
-  const [tripsLoading, setTripsLoading] = React.useState(_cachedTrips.length === 0);
+  const [activeTripId, setActiveTripId] = React.useState(null);
+  const [userTrips, setUserTrips] = React.useState([]);
+  const [tripsLoading, setTripsLoading] = React.useState(false);
   const [companionOpen, setCompanionOpen] = React.useState(false);
+  const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
   const tripRef = React.useRef(null); // for loop-prevention
@@ -7754,9 +6567,6 @@ function App() {
   React.useEffect(() => {
     if (prep) localStorage.setItem('tlj_prep', JSON.stringify(prep));
   }, [prep]);
-  React.useEffect(() => {
-    if (userTrips && userTrips.length > 0) localStorage.setItem('tlj_userTrips', JSON.stringify(userTrips));
-  }, [userTrips]);
 
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(() => {
@@ -7792,54 +6602,41 @@ function App() {
         localStorage.removeItem('tlj_userData');
         localStorage.removeItem('tlj_trip');
         localStorage.removeItem('tlj_prep');
-        localStorage.removeItem('tlj_userTrips');
         setAuthState('out');
       }
     });
   }, []);
 
-
-  // ── 여행 목록 로드 ────────────────────────────────────────
-  const [tripsError, setTripsError] = React.useState('');
+  // ── 여행 목록 로드 ─────────────────────────────────────────
   React.useEffect(() => {
-    var uid = userData?.uid;
-    if (!uid) return;
-    // 캐시에 이미 있으면 로딩 스피너 없이 바로 표시
-    setTripsLoading(prev => _cachedTrips.length > 0 ? false : true);
-    setTripsError('');
-    var unsub = fbListenGroup(uid, function(data) {
+    if (!(userData !== null && userData !== void 0 && userData.uid)) return;
+    const tripIds = userData.tripIds || [userData.groupId];
+    setTripsLoading(true);
+    fbLoadTrips(tripIds).then(trips => {
+      setUserTrips(trips);
       setTripsLoading(false);
-      if (data) {
-        setUserTrips(prev => {
-          const next = [Object.assign({ id: uid }, data)];
-          localStorage.setItem('tlj_userTrips', JSON.stringify(next));
-          return next;
-        });
-        setTripsError('');
-      } else {
-        // Firestore 응답 없어도 캐시가 있으면 유지
-        if (_cachedTrips.length === 0) setTripsError('no-data');
-      }
-    });
-    return unsub;
-  }, [userData?.uid]);
+    }).catch(() => setTripsLoading(false));
+  }, [userData === null || userData === void 0 ? void 0 : userData.uid, JSON.stringify(userData === null || userData === void 0 ? void 0 : userData.tripIds)]);
 
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
   React.useEffect(() => {
     if (!activeTripId) return;
     groupCreateRef.current = false;
-    // setTrip(null) 제거 — 캐시 데이터 유지하며 Firestore 응답 대기
+    setTrip(null);
     return fbListenGroup(activeTripId, data => {
       if (data === null) {
         if (groupCreateRef.current) return;
         groupCreateRef.current = true;
-        // 문서 없으면 빈 여행 생성 (캐시 데이터 있으면 복원)
-        const cached = _cache?.trip;
-        const restoreData = (cached && cached.days && cached.days.length > 0)
-          ? cached
-          : { title: '내 여행', dates: '', days: [], hotels: [], food: [], hotel: '', members: [userData.uid] };
-        fbSaveGroup(activeTripId, restoreData);
+        fbSaveGroup(activeTripId, {
+          title: '새 여행',
+          dates: '',
+          hotel: '',
+          days: [],
+          hotels: [],
+          food: [],
+          members: [userData.uid]
+        });
         return;
       }
       setTrip(prev => {
@@ -7852,12 +6649,14 @@ function App() {
 
   // ── Firestore: private prep listener ──────────────────────
   React.useEffect(() => {
-    if (!authUser?.uid) return;
+    if (!(authUser !== null && authUser !== void 0 && authUser.uid)) return;
     return fbListenPrep(authUser.uid, p => {
+      var _p$checklist, _p$docs, _p$pack;
       // preps 문서가 없거나 비어있으면 TRIP_DEFAULT.prep으로 초기화
-      const hasData = p && (p.checklist?.length || p.docs?.length || p.pack?.length);
+      const hasData = p && (((_p$checklist = p.checklist) === null || _p$checklist === void 0 ? void 0 : _p$checklist.length) || ((_p$docs = p.docs) === null || _p$docs === void 0 ? void 0 : _p$docs.length) || ((_p$pack = p.pack) === null || _p$pack === void 0 ? void 0 : _p$pack.length));
       if (!hasData) {
-        const def = window.TRIP_DEFAULT?.prep || {
+        var _window$TRIP_DEFAULT;
+        const def = ((_window$TRIP_DEFAULT = window.TRIP_DEFAULT) === null || _window$TRIP_DEFAULT === void 0 ? void 0 : _window$TRIP_DEFAULT.prep) || {
           checklist: [],
           docs: [],
           pack: []
@@ -7868,21 +6667,14 @@ function App() {
         setPrep(p);
       }
     });
-  }, [authUser?.uid]);
+  }, [authUser === null || authUser === void 0 ? void 0 : authUser.uid]);
   React.useEffect(() => {
-    saveNav({ tab, dayIdx, hotelIdx, activeTripId, scrollY: window.scrollY });
-  }, [tab, dayIdx, hotelIdx, activeTripId]);
-  // 첫 마운트 시 scrollY 복원 (새로고침 대응)
-  const _didRestoreScroll = React.useRef(false);
-  React.useEffect(() => {
-    if (!_didRestoreScroll.current && _nav.scrollY) {
-      _didRestoreScroll.current = true;
-      requestAnimationFrame(() => {
-        window.scrollTo(0, _nav.scrollY);
-        lastScrollTop.current = _nav.scrollY;
-      });
-    }
-  }, [activeTripId]); // activeTripId 세팅 후 실행
+    saveNav({
+      tab,
+      dayIdx,
+      hotelIdx
+    });
+  }, [tab, dayIdx, hotelIdx]);
   React.useEffect(() => {
     if (navGoingBack.current) {
       // 뒤로가기: 저장된 홈 스크롤 위치 복원
@@ -7892,9 +6684,6 @@ function App() {
         lastScrollTop.current = target;
       });
       navGoingBack.current = false;
-    } else if (_didRestoreScroll.current) {
-      // 첫 마운트 복원 후에는 스크롤 초기화 스킵
-      _didRestoreScroll.current = false;
     } else {
       window.scrollTo(0, 0);
       lastScrollTop.current = 0;
@@ -7903,7 +6692,6 @@ function App() {
     setEditing(false);
   }, [scrollKey, tab, dayIdx, hotelIdx]);
   React.useEffect(() => {
-    let _scrollSaveTimer = null;
     const handleScroll = () => {
       const st = window.scrollY;
       const diff = st - lastScrollTop.current;
@@ -7911,11 +6699,6 @@ function App() {
         setTabBarVisible(diff < 0 || st < 60);
       }
       lastScrollTop.current = st;
-      // scrollY 저장 (throttle 300ms)
-      if (_scrollSaveTimer) clearTimeout(_scrollSaveTimer);
-      _scrollSaveTimer = setTimeout(() => {
-        saveNav({ tab, dayIdx, hotelIdx, activeTripId, scrollY: st });
-      }, 300);
     };
     window.addEventListener('scroll', handleScroll, {
       passive: true
@@ -7933,7 +6716,19 @@ function App() {
   };
   const editPrep = newPrep => {
     setPrep(newPrep);
-    if (authUser?.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
+    if (authUser !== null && authUser !== void 0 && authUser.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
+  };
+  const deleteTrip = async tripId => {
+    const t = userTrips.find(x => x.id === tripId);
+    const isOwner = !(t !== null && t !== void 0 && t.members) || t.members[0] === (userData === null || userData === void 0 ? void 0 : userData.uid);
+    const msg = isOwner ? `"${(t === null || t === void 0 ? void 0 : t.title) || '여행'}"을(를) 삭제할까요?\n삭제하면 복구할 수 없습니다.` : `"${(t === null || t === void 0 ? void 0 : t.title) || '여행'}"에서 나갈까요?`;
+    if (!confirm(msg)) return;
+    await fbDeleteTrip(tripId, userData.uid);
+    setUserTrips(prev => prev.filter(x => x.id !== tripId));
+    setUserData(prev => ({
+      ...prev,
+      tripIds: (prev.tripIds || []).filter(id => id !== tripId)
+    }));
   };
 
   // ── Day actions ────────────────────────────────────────
@@ -8083,7 +6878,7 @@ function App() {
     if (!hotel) return days;
     let result = [...days];
     // Remove any existing items tagged as this hotel (by _hotelRef name)
-    const prevName = prevHotel?.name;
+    const prevName = prevHotel === null || prevHotel === void 0 ? void 0 : prevHotel.name;
     if (prevName) {
       result = result.map(d => ({
         ...d,
@@ -8326,7 +7121,6 @@ function App() {
         editing: editing,
         setEditing: setEditing,
         userData: userData,
-        onBack: dayIdx === null && hotelIdx === null ? function() { setActiveTripId(null); setTrip(null); setEditing(false); } : null,
         onOpenCompanion: () => setCompanionOpen(true)
       });
       label = 'Home';
@@ -8359,10 +7153,11 @@ function App() {
   const dayHue = dayIdx !== null && trip ? trip.days[dayIdx].hero.hue : 30;
 
   // ── Auth gating ───────────────────────────────────────────
-  // 로그인 버튼 누른 후 authState가 'in'이 되면 바로 진행 (Firestore 대기 안 함)
-  const showSplash = loginPending && authState !== 'in';
-  if (showSplash) return /*#__PURE__*/React.createElement(SplashScreen, { visible: true });
-  if (loginPending && authState === 'in') setLoginPending(false);
+  // 로그인 버튼 누른 후 데이터 준비될 때까지 스플래시 표시
+  const showSplash = loginPending && (authState !== 'in' || trip === null);
+  if (showSplash) return /*#__PURE__*/React.createElement(SplashScreen, {
+    visible: true
+  });
   if (authState === 'loading') return null;
   if (authState === 'out') return /*#__PURE__*/React.createElement(LoginScreen, {
     errorMsg: loginError,
@@ -8370,42 +7165,51 @@ function App() {
   });
 
   // ── 여행 목록 화면 ─────────────────────────────────────────
-  if (!activeTripId) return /*#__PURE__*/React.createElement(React.Fragment, null,
-    /*#__PURE__*/React.createElement(TripsScreen, {
-      trips: userTrips,
-      loading: tripsLoading,
-      userData: userData,
-      authUser: authUser,
-      tripsError: tripsError,
-      onOpenCompanion: function() { setCompanionOpen(true); },
-      onSelect: function(id) {
-        setActiveTripId(id);
-        setTab('home');
-        setDayIdx(null);
-        setHotelIdx(null);
-        setEditing(false);
-      },
-      onAdd: async function() {
-        const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
-        if (!title) return;
-        const tripId = await fbCreateNewTrip(userData.uid, title);
-        const newTrip = { id: tripId, title, dates: '', days: [], hotels: [] };
-        setUserTrips(prev => [...prev, newTrip]);
-        setActiveTripId(tripId);
-        setTab('home');
-        setDayIdx(null);
-        setHotelIdx(null);
-      }
-    }),
-    /*#__PURE__*/React.createElement(CompanionSheet, {
-      open: companionOpen,
-      onClose: function() { setCompanionOpen(false); },
-      authUser: authUser,
-      userData: userData,
-      onUserDataUpdate: function(ud) { setUserData(ud); }
-    })
-  );
-
+  if (!activeTripId) return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement(TripsScreen, {
+    trips: userTrips,
+    loading: tripsLoading,
+    userData: userData,
+    myUid: authUser === null || authUser === void 0 ? void 0 : authUser.uid,
+    onOpenCompanion: () => setCompanionOpen(true),
+    onSelect: id => {
+      setActiveTripId(id);
+      setTab('home');
+      setDayIdx(null);
+      setHotelIdx(null);
+      setEditing(false);
+    },
+    onAdd: async () => {
+      const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
+      if (!title) return;
+      const tripId = await fbCreateNewTrip(userData.uid, title);
+      setUserTrips(prev => [...prev, {
+        id: tripId,
+        title,
+        dates: '',
+        days: [],
+        hotels: [],
+        members: [userData.uid]
+      }]);
+      setActiveTripId(tripId);
+      setTab('home');
+      setDayIdx(null);
+      setHotelIdx(null);
+    },
+    onShare: t => setShareTripTarget(t),
+    onDelete: deleteTrip
+  }), /*#__PURE__*/React.createElement(ShareTripSheet, {
+    open: !!shareTripTarget,
+    onClose: () => setShareTripTarget(null),
+    trip: shareTripTarget,
+    userData: userData
+  }), /*#__PURE__*/React.createElement(CompanionSheet, {
+    open: companionOpen,
+    onClose: () => setCompanionOpen(false),
+    authUser: authUser,
+    userData: userData,
+    onUserDataUpdate: ud => setUserData(ud),
+    trips: userTrips
+  }));
   if (!trip) return null;
 
   // Figure out what "back" means in the current state, for swipe-from-edge.
@@ -8414,13 +7218,10 @@ function App() {
     if (hotelIdx !== null) swipeBack = () => {
       navGoingBack.current = true;
       setHotelIdx(null);
-    }; else if (dayIdx !== null) swipeBack = () => {
+    };else if (dayIdx !== null) swipeBack = () => {
       navGoingBack.current = true;
       setDayIdx(null);
-    }; else {
-      // 홈 화면에서 오른쪽 스와이프 → My Trips
-      swipeBack = () => { setActiveTripId(null); setTrip(null); setEditing(false); };
-    }
+    };
   }
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8428,8 +7229,34 @@ function App() {
       fontFamily: '-apple-system, system-ui, sans-serif',
       background: '#F5F2EC'
     }
-  },
-  /*#__PURE__*/React.createElement(SwipeBackLayer, {
+  }, tab === 'home' && dayIdx === null && hotelIdx === null && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setActiveTripId(null);
+      setTrip(null);
+      setEditing(false);
+    },
+    style: {
+      position: 'fixed',
+      top: 'calc(env(safe-area-inset-top) + 14px)',
+      left: 16,
+      zIndex: 300,
+      background: 'transparent',
+      border: 'none',
+      padding: '4px 8px',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 3,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-left",
+    size: 14,
+    color: COLORS.mute,
+    stroke: 2
+  }), "My Trips"), /*#__PURE__*/React.createElement(SwipeBackLayer, {
     onBack: swipeBack
   }, screen), /*#__PURE__*/React.createElement(TabBar, {
     tab: tab,
@@ -8465,7 +7292,8 @@ function App() {
     onClose: () => setCompanionOpen(false),
     authUser: authUser,
     userData: userData,
-    onUserDataUpdate: ud => setUserData(ud)
+    onUserDataUpdate: ud => setUserData(ud),
+    trips: userTrips
   }), saveConfirm && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',

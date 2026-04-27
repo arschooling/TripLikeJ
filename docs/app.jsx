@@ -55,6 +55,8 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'trash':  return <svg {...p}><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>;
     case 'plus':   return <svg {...p}><path d="M12 5v14M5 12h14"/></svg>;
     case 'x':      return <svg {...p}><path d="M18 6 6 18M6 6l12 12"/></svg>;
+    case 'share':  return <svg {...p}><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>;
+    case 'users':  return <svg {...p}><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>;
     case 'save':   return <svg {...p}><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/></svg>;
     case 'refresh':return <svg {...p}><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>;
     case 'globe':  return <svg {...p}><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>;
@@ -850,7 +852,147 @@ function CityPicker({ current, onPick, onClose }) {
 }
 
 // ─── TRIPS SCREEN (top level) ───────────────────────────────
-function TripsScreen({ trips, onSelect, onAdd, loading, userData, onOpenCompanion }) {
+// ─── Trip Card with swipe-to-reveal share/delete ─────────────
+function TripSwipeCard({ children, onShare, onDelete, wrapStyle = {} }) {
+  const [x, setX] = React.useState(0);
+  const [open, setOpen] = React.useState(false);
+  const startRef = React.useRef(null);
+  const dragging = React.useRef(false);
+  const xRef = React.useRef(0);
+  const REVEAL = 144;
+  const DELETE_EXTRA = 72;
+
+  const close = () => { setX(0); xRef.current = 0; setOpen(false); };
+
+  const onTouchStart = (e) => {
+    startRef.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+    dragging.current = false;
+  };
+  const onTouchMove = (e) => {
+    if (!startRef.current) return;
+    const dx = e.touches[0].clientX - startRef.current.x;
+    const dy = Math.abs(e.touches[0].clientY - startRef.current.y);
+    if (!dragging.current) {
+      if (Math.abs(dx) < 18) return;
+      if (dy > Math.abs(dx) * 0.55) { startRef.current = null; return; }
+      dragging.current = true;
+    }
+    const base = open ? -REVEAL : 0;
+    const raw = base + dx;
+    const clamped = open
+      ? Math.max(-(REVEAL + DELETE_EXTRA + 16), Math.min(0, raw))
+      : Math.max(-REVEAL, Math.min(0, raw));
+    xRef.current = clamped;
+    setX(clamped);
+  };
+  const onTouchEnd = () => {
+    if (!startRef.current || !dragging.current) { startRef.current = null; return; }
+    startRef.current = null; dragging.current = false;
+    const cur = xRef.current;
+    if (cur < -(REVEAL + DELETE_EXTRA / 2)) {
+      close();
+      setTimeout(() => onDelete(), 260);
+    } else if (cur < -REVEAL / 2) {
+      xRef.current = -REVEAL; setX(-REVEAL); setOpen(true);
+    } else {
+      close();
+    }
+  };
+
+  return (
+    <div style={{ position:'relative', overflow:'hidden', ...wrapStyle }}
+      onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+      <div style={{
+        position:'absolute', right:0, top:0, bottom:0, width:REVEAL,
+        display:'flex', alignItems:'center', justifyContent:'center', gap:10,
+      }}>
+        <button onClick={(e) => { e.stopPropagation(); close(); setTimeout(onShare, 100); }} style={{
+          width:50, height:50, borderRadius:25, border:'none', cursor:'pointer',
+          background:'#4F6BED', flexShrink:0,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}><Icon name="share" size={18} color="#fff" stroke={2}/></button>
+        <button onClick={(e) => { e.stopPropagation(); close(); setTimeout(onDelete, 100); }} style={{
+          width:50, height:50, borderRadius:25, border:'none', cursor:'pointer',
+          background:'#B5451B', flexShrink:0,
+          display:'flex', alignItems:'center', justifyContent:'center',
+        }}><Icon name="trash" size={18} color="#fff" stroke={2}/></button>
+      </div>
+      <div style={{
+        transform:`translateX(${x}px)`,
+        transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.25,1,0.5,1)',
+        background:COLORS.card,
+      }}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+// ─── Share Trip Sheet ─────────────────────────────────────────
+function ShareTripSheet({ open, onClose, trip, userData }) {
+  const [email, setEmail] = React.useState('');
+  const [msg, setMsg] = React.useState('');
+  const [sending, setSending] = React.useState(false);
+
+  React.useEffect(() => { if (!open) { setEmail(''); setMsg(''); } }, [open]);
+
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = ''; };
+    }
+  }, [open]);
+
+  const handleSend = async () => {
+    if (!email.trim() || !trip) return;
+    setSending(true); setMsg('');
+    const res = await fbSendTripInvite(userData, email, trip.id, trip.title);
+    setSending(false);
+    if (res.error) setMsg(res.error);
+    else { setMsg(`${res.toName}님께 초대를 보냈습니다!`); setEmail(''); }
+  };
+
+  if (!open || !trip) return null;
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:400, background:'rgba(0,0,0,0.4)',
+      display:'flex', flexDirection:'column', justifyContent:'flex-end' }} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:COLORS.bg, borderRadius:'22px 22px 0 0',
+        padding:'0 20px calc(28px + env(safe-area-inset-bottom,0px))',
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+          <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+        </div>
+        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:16 }}>{trip.title}</div>
+        <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:12 }}>
+          상대방이 이 앱에 먼저 가입되어 있어야 합니다.
+        </div>
+        <input
+          value={email} onChange={e => setEmail(e.target.value)}
+          placeholder="상대방 구글 이메일 입력"
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          autoFocus
+          style={{ width:'100%', padding:'13px 14px', borderRadius:14,
+            border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
+            fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+        {msg && (
+          <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
+            color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
+        )}
+        <button onClick={handleSend} disabled={sending || !email.trim()} style={{
+          marginTop:14, width:'100%', padding:'15px', border:'none', borderRadius:14,
+          background: email.trim() ? COLORS.ink : COLORS.softer,
+          color: email.trim() ? COLORS.bg : COLORS.mute,
+          fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+        }}>{sending ? '보내는 중...' : '초대 보내기'}</button>
+      </div>
+    </div>
+  );
+}
+
+function TripsScreen({ trips, onSelect, onAdd, onShare, onDelete, loading, userData, onOpenCompanion, myUid }) {
   return (
     <div style={{ minHeight:'100vh', background:COLORS.bg,
       paddingTop:'calc(env(safe-area-inset-top) + 64px)', paddingBottom:100 }}>
@@ -877,21 +1019,34 @@ function TripsScreen({ trips, onSelect, onAdd, loading, userData, onOpenCompanio
             {trips.map(t => {
               const hue = t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
+              const isShared = Array.isArray(t.members) && t.members.length > 0 && t.members[0] !== myUid;
               return (
-                <div key={t.id} onClick={() => onSelect(t.id)} style={{
-                  background:COLORS.card, borderRadius:20, overflow:'hidden',
-                  cursor:'pointer', border:`1px solid ${COLORS.line}`,
-                }}>
-                  <Photo hue={hue} label={label} height={130}/>
-                  <div style={{ padding:'14px 18px 16px' }}>
-                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
-                      {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
-                    </div>
-                    <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
-                      {t.title || '새 여행'}
+                <TripSwipeCard key={t.id}
+                  onShare={() => onShare(t)}
+                  onDelete={() => onDelete(t.id)}
+                  wrapStyle={{ borderRadius:20, border:`1px solid ${COLORS.line}` }}>
+                  <div onClick={() => onSelect(t.id)} style={{ cursor:'pointer' }}>
+                    <Photo hue={hue} label={label} height={130}/>
+                    <div style={{ padding:'14px 18px 16px', position:'relative' }}>
+                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+                        {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
+                      </div>
+                      <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
+                        {t.title || '새 여행'}
+                      </div>
+                      {isShared && (
+                        <div style={{
+                          position:'absolute', top:14, right:16,
+                          display:'flex', alignItems:'center', gap:4,
+                          background:'#EEF2FF', borderRadius:20, padding:'4px 10px',
+                        }}>
+                          <Icon name="users" size={11} color="#4F6BED" stroke={2}/>
+                          <span style={{ fontFamily:SANS, fontSize:10, color:'#4F6BED', fontWeight:500 }}>공유됨</span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                </TripSwipeCard>
               );
             })}
             <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
@@ -2565,22 +2720,26 @@ function LoginScreen({ errorMsg, onLoginStart }) {
 }
 
 // ─── Companion Sheet ──────────────────────────────────────────
-function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate }) {
-  const [tab, setTab] = React.useState('companions'); // 'companions' | 'invite'
+function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate, trips }) {
+  const [tripCompanions, setTripCompanions] = React.useState({});
+  const [expandedInvite, setExpandedInvite] = React.useState(null);
   const [inviteEmail, setInviteEmail] = React.useState('');
   const [inviteMsg, setInviteMsg] = React.useState('');
   const [inviting, setInviting] = React.useState(false);
-  const [companions, setCompanions] = React.useState([]);
   const [pendingInvites, setPendingInvites] = React.useState([]);
 
+  const tripIds = (trips || []).map(t => t.id).join(',');
   React.useEffect(() => {
     if (!open || !userData) return;
-    fbGetCompanions(userData.groupId, authUser.uid).then(setCompanions);
+    (trips || []).forEach(t => {
+      fbGetTripCompanions(t.id, authUser.uid).then(members => {
+        setTripCompanions(prev => ({ ...prev, [t.id]: members }));
+      });
+    });
     const unsub = fbListenInvites(authUser.uid, setPendingInvites);
     return unsub;
-  }, [open, userData?.groupId]);
+  }, [open, tripIds]);
 
-  // 배경 스크롤 잠금
   React.useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -2588,30 +2747,22 @@ function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate })
     }
   }, [open]);
 
-  const handleInvite = async () => {
+  const handleInvite = async (tripId, tripTitle) => {
     if (!inviteEmail.trim()) return;
     setInviting(true); setInviteMsg('');
-    const res = await fbSendInvite(userData, inviteEmail);
+    const res = await fbSendTripInvite(userData, inviteEmail, tripId, tripTitle);
     setInviting(false);
     if (res.error) setInviteMsg(res.error);
     else { setInviteMsg(`${res.toName}님께 초대를 보냈습니다!`); setInviteEmail(''); }
   };
 
   const handleAccept = async (inv) => {
-    const newGroupId = await fbAcceptInvite(inv, authUser.uid);
-    onUserDataUpdate({ ...userData, groupId: newGroupId });
+    const tripId = await fbAcceptTripInvite(inv, authUser.uid);
+    onUserDataUpdate({ ...userData, tripIds: [...(userData.tripIds || []), tripId] });
     setPendingInvites(p => p.filter(i => i.id !== inv.id));
   };
 
-  const handleLeave = async () => {
-    if (!confirm('동행인 그룹에서 나가시겠습니까? 나만의 개인 일정으로 분리됩니다.')) return;
-    await fbLeaveGroup(userData);
-    onUserDataUpdate({ ...userData, groupId: authUser.uid });
-    onClose();
-  };
-
   if (!open) return null;
-  const isInGroup = userData?.groupId !== authUser?.uid;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.4)',
@@ -2647,19 +2798,7 @@ function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate })
           }}>로그아웃</button>
         </div>
 
-        {/* 탭 */}
-        <div style={{ display:'flex', padding:'12px 16px 0', gap:8 }}>
-          {[['companions','동행인'], ['invite','초대하기']].map(([id, label]) => (
-            <button key={id} onClick={() => setTab(id)} style={{
-              padding:'7px 16px', borderRadius:20, border:'none', cursor:'pointer',
-              background: tab===id ? COLORS.ink : COLORS.card,
-              color: tab===id ? COLORS.bg : COLORS.mute,
-              fontFamily:SANS, fontSize:12, fontWeight: tab===id ? 600 : 400,
-            }}>{label}</button>
-          ))}
-        </div>
-
-        {/* 대기 중인 초대 */}
+        {/* 받은 초대 */}
         {pendingInvites.length > 0 && (
           <div style={{ margin:'14px 16px 0', background:'#FFF8E1', borderRadius:14, padding:14 }}>
             <div style={{ fontFamily:MONO, fontSize:9.5, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
@@ -2675,7 +2814,7 @@ function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate })
                 }
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{inv.fromEmail}</div>
+                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{inv.tripTitle || inv.fromEmail}</div>
                 </div>
                 <button onClick={() => handleAccept(inv)} style={{
                   border:'none', borderRadius:10, padding:'6px 12px', cursor:'pointer',
@@ -2690,69 +2829,89 @@ function CompanionSheet({ open, onClose, authUser, userData, onUserDataUpdate })
           </div>
         )}
 
-        {/* 동행인 탭 */}
-        {tab === 'companions' && (
-          <div style={{ padding:'14px 16px 0' }}>
-            {companions.length === 0 ? (
-              <div style={{ padding:'24px 0', textAlign:'center',
-                fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                아직 동행인이 없어요.<br/>
-                <span style={{ fontSize:12 }}>초대하기 탭에서 이메일로 초대해보세요.</span>
-              </div>
-            ) : (
-              companions.map(c => (
-                <div key={c.uid} style={{ display:'flex', alignItems:'center', gap:12,
-                  padding:'10px 0', borderBottom:`1px solid ${COLORS.line}` }}>
-                  {c.photoURL
-                    ? <img src={c.photoURL} style={{ width:40, height:40, borderRadius:20 }}/>
-                    : <div style={{ width:40, height:40, borderRadius:20, background:COLORS.softer,
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        fontFamily:SANS, fontSize:16, color:COLORS.mute }}>{(c.displayName||'?')[0]}</div>
-                  }
-                  <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500 }}>{c.displayName}</div>
-                    <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{c.email}</div>
-                  </div>
-                  <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent }}>동행중</div>
-                </div>
-              ))
-            )}
-            {isInGroup && (
-              <button onClick={handleLeave} style={{
-                marginTop:20, width:'100%', padding:'13px', border:`1.5px solid ${COLORS.line}`,
-                borderRadius:14, background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:13, color:COLORS.mute,
-              }}>그룹에서 나가기</button>
-            )}
-          </div>
-        )}
-
-        {/* 초대하기 탭 */}
-        {tab === 'invite' && (
-          <div style={{ padding:'16px 16px 0' }}>
-            <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:12 }}>
-              상대방이 이 앱에 먼저 가입되어 있어야 합니다.
+        {/* 여행별 동행인 섹션 */}
+        <div style={{ padding:'12px 16px 0' }}>
+          {(trips || []).length === 0 ? (
+            <div style={{ padding:'24px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+              여행이 없습니다.
             </div>
-            <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
-              placeholder="상대방 구글 이메일 입력"
-              onKeyDown={e => e.key === 'Enter' && handleInvite()}
-              style={{ width:'100%', padding:'12px 14px', borderRadius:12,
-                border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-                fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box' }}/>
-            {inviteMsg && (
-              <div style={{ marginTop:8, fontFamily:SANS, fontSize:12,
-                color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B' }}>
-                {inviteMsg}
+          ) : (trips || []).map(t => {
+            const members = tripCompanions[t.id] || [];
+            const isExpanded = expandedInvite === t.id;
+            const hasBorder = members.length > 0 || isExpanded;
+            return (
+              <div key={t.id} style={{ marginBottom:12, background:COLORS.card,
+                borderRadius:16, overflow:'hidden', border:`1px solid ${COLORS.line}` }}>
+                {/* 여행 헤더 */}
+                <div style={{ padding:'12px 14px', borderBottom: hasBorder ? `1px solid ${COLORS.line}` : 'none' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:SERIF, fontSize:16, color:COLORS.ink }}>{t.title || '새 여행'}</div>
+                      {t.dates && <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, marginTop:1 }}>{t.dates}</div>}
+                    </div>
+                    <button onClick={() => {
+                      if (isExpanded) { setExpandedInvite(null); setInviteEmail(''); setInviteMsg(''); }
+                      else { setExpandedInvite(t.id); setInviteEmail(''); setInviteMsg(''); }
+                    }} style={{
+                      display:'flex', alignItems:'center', gap:4, padding:'6px 12px',
+                      borderRadius:20, border:`1px solid ${COLORS.line}`, background:'transparent',
+                      cursor:'pointer', fontFamily:SANS, fontSize:12, color:COLORS.mute, flexShrink:0,
+                    }}>
+                      <Icon name="plus" size={12} color={COLORS.mute} stroke={2.5}/>초대
+                    </button>
+                  </div>
+                </div>
+
+                {/* 동행인 목록 */}
+                {members.length > 0 && (
+                  <div style={{ padding:'0 14px' }}>
+                    {members.map((c, ci) => (
+                      <div key={c.uid} style={{ display:'flex', alignItems:'center', gap:10,
+                        padding:'10px 0', borderBottom: ci < members.length - 1 || isExpanded ? `1px solid ${COLORS.line}` : 'none' }}>
+                        {c.photoURL
+                          ? <img src={c.photoURL} style={{ width:36, height:36, borderRadius:18 }}/>
+                          : <div style={{ width:36, height:36, borderRadius:18, background:COLORS.softer,
+                              display:'flex', alignItems:'center', justifyContent:'center',
+                              fontFamily:SANS, fontSize:14, color:COLORS.mute }}>{(c.displayName||'?')[0]}</div>
+                        }
+                        <div style={{ flex:1 }}>
+                          <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{c.displayName}</div>
+                          <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{c.email}</div>
+                        </div>
+                        <div style={{ fontFamily:MONO, fontSize:10, color:'#4F6BED' }}>동행중</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* 초대 입력 (펼쳐진 경우) */}
+                {isExpanded && (
+                  <div style={{ padding:'12px 14px 14px' }}>
+                    <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:8 }}>
+                      상대방이 이 앱에 먼저 가입되어 있어야 합니다.
+                    </div>
+                    <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                      placeholder="구글 이메일 입력"
+                      onKeyDown={e => e.key === 'Enter' && handleInvite(t.id, t.title)}
+                      style={{ width:'100%', padding:'11px 13px', borderRadius:11,
+                        border:`1.5px solid ${COLORS.line}`, background:COLORS.bg,
+                        fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+                    {inviteMsg && (
+                      <div style={{ marginTop:6, fontFamily:SANS, fontSize:12,
+                        color: inviteMsg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{inviteMsg}</div>
+                    )}
+                    <button onClick={() => handleInvite(t.id, t.title)} disabled={inviting || !inviteEmail.trim()} style={{
+                      marginTop:10, width:'100%', padding:'13px', border:'none', borderRadius:12,
+                      background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
+                      color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
+                      fontFamily:SANS, fontSize:13, fontWeight:500, cursor:'pointer',
+                    }}>{inviting ? '보내는 중...' : '초대 보내기'}</button>
+                  </div>
+                )}
               </div>
-            )}
-            <button onClick={handleInvite} disabled={inviting || !inviteEmail.trim()} style={{
-              marginTop:12, width:'100%', padding:'14px', border:'none', borderRadius:14,
-              background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
-              color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
-              fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
-            }}>{inviting ? '보내는 중...' : '초대 보내기'}</button>
-          </div>
-        )}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -2785,6 +2944,7 @@ function App() {
   const [userTrips, setUserTrips]       = React.useState([]);
   const [tripsLoading, setTripsLoading] = React.useState(false);
   const [companionOpen, setCompanionOpen] = React.useState(false);
+  const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
   const tripRef = React.useRef(null); // for loop-prevention
@@ -2963,6 +3123,18 @@ function App() {
   const editPrep = (newPrep) => {
     setPrep(newPrep);
     if (authUser?.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
+  };
+
+  const deleteTrip = async (tripId) => {
+    const t = userTrips.find(x => x.id === tripId);
+    const isOwner = !t?.members || t.members[0] === userData?.uid;
+    const msg = isOwner
+      ? `"${t?.title || '여행'}"을(를) 삭제할까요?\n삭제하면 복구할 수 없습니다.`
+      : `"${t?.title || '여행'}"에서 나갈까요?`;
+    if (!confirm(msg)) return;
+    await fbDeleteTrip(tripId, userData.uid);
+    setUserTrips(prev => prev.filter(x => x.id !== tripId));
+    setUserData(prev => ({ ...prev, tripIds: (prev.tripIds || []).filter(id => id !== tripId) }));
   };
 
   // ── Day actions ────────────────────────────────────────
@@ -3212,19 +3384,29 @@ function App() {
         trips={userTrips}
         loading={tripsLoading}
         userData={userData}
+        myUid={authUser?.uid}
         onOpenCompanion={() => setCompanionOpen(true)}
         onSelect={(id) => { setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false); }}
         onAdd={async () => {
           const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
           if (!title) return;
           const tripId = await fbCreateNewTrip(userData.uid, title);
-          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[] }]);
+          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[], members:[userData.uid] }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}
+        onShare={(t) => setShareTripTarget(t)}
+        onDelete={deleteTrip}
+      />
+      <ShareTripSheet
+        open={!!shareTripTarget}
+        onClose={() => setShareTripTarget(null)}
+        trip={shareTripTarget}
+        userData={userData}
       />
       <CompanionSheet open={companionOpen} onClose={() => setCompanionOpen(false)}
-        authUser={authUser} userData={userData} onUserDataUpdate={ud => setUserData(ud)}/>
+        authUser={authUser} userData={userData} onUserDataUpdate={ud => setUserData(ud)}
+        trips={userTrips}/>
     </>
   );
 
@@ -3269,7 +3451,8 @@ function App() {
         onClose={() => setCompanionOpen(false)}
         authUser={authUser}
         userData={userData}
-        onUserDataUpdate={(ud) => setUserData(ud)}/>
+        onUserDataUpdate={(ud) => setUserData(ud)}
+        trips={userTrips}/>
 
       {/* 저장 확인 다이얼로그 */}
       {saveConfirm && ReactDOM.createPortal(
