@@ -1426,7 +1426,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 16px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v89</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v90</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -2524,7 +2524,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
     };
     const onEnd = () => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 160) { onClose(); }
+      if (sheetYRef.current > window.innerHeight * 0.5) { onClose(); }
       else { sheetYRef.current = 0; setSheetY(0); }
     };
     el.addEventListener('touchstart', onStart, { passive: true });
@@ -4468,7 +4468,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v89</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v90</div>
         </div>
       </div>
       <button onClick={async () => {

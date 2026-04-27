@@ -3324,7 +3324,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v89")), /*#__PURE__*/React.createElement("button", {
+  }, "v90")), /*#__PURE__*/React.createElement("button", {
     onClick: onOpenCompanion,
     style: {
       width: 38,
@@ -5597,7 +5597,7 @@ function StopSheet({
     };
     const onEnd = () => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 160) {
+      if (sheetYRef.current > window.innerHeight * 0.5) {
         onClose();
       } else {
         sheetYRef.current = 0;
@@ -9187,7 +9187,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v89"))), /*#__PURE__*/React.createElement("button", {
+  }, "v90"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
