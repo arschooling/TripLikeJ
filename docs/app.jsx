@@ -1168,7 +1168,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
       paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between',
         padding:'0 20px 20px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v56</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v57</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3277,19 +3277,18 @@ function App() {
         // days가 없는 여행은 TRIP_DEFAULT로 자동 복구
         for (let i = 0; i < normalized.length; i++) {
           if ((normalized[i].days || []).length === 0) {
-            try {
-              const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
-              const patch = {
-                title : def.title  || 'New York',
-                dates : def.dates  || '',
-                hotel : def.hotel  || '',
-                days  : def.days   || [],
-                hotels: def.hotels || [],
-                food  : def.food   || [],
-              };
-              await fbSaveGroup(normalized[i].id, patch);
-              normalized[i] = normalizeTrip({ ...normalized[i], ...patch }, normalized[i].id);
-            } catch(e) { console.warn('auto-restore failed', e); }
+            const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+            const patch = {
+              title : def.title  || 'New York',
+              dates : def.dates  || '',
+              hotel : def.hotel  || '',
+              days  : def.days   || [],
+              hotels: def.hotels || [],
+              food  : def.food   || [],
+            };
+            // 로컬 상태 먼저 업데이트 (Firestore 실패해도 화면에 데이터 보임)
+            normalized[i] = normalizeTrip({ ...normalized[i], ...patch }, normalized[i].id);
+            fbSaveGroup(normalized[i].id, patch).catch(e => console.warn('auto-restore save failed', e));
           }
         }
         setUserTrips(normalized);
@@ -3649,16 +3648,30 @@ function App() {
         myUid={authUser?.uid}
         onOpenCompanion={() => setCompanionOpen(true)}
         onSelect={(id) => {
-          // 캐시된 데이터 먼저 표시
           const found = userTrips.find(t => t.id === id);
-          if (found) { tripRef.current = found; setTrip(found); }
+          let tripToShow = found;
+          // days 없으면 TRIP_DEFAULT로 즉시 채워서 표시
+          if (found && !(found.days?.length)) {
+            const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+            tripToShow = normalizeTrip({ ...found,
+              title : def.title  || found.title,
+              dates : def.dates  || '',
+              hotel : def.hotel  || '',
+              days  : def.days   || [],
+              hotels: def.hotels || [],
+              food  : def.food   || [],
+            }, id);
+            fbSaveGroup(id, { title: tripToShow.title, dates: tripToShow.dates,
+              hotel: tripToShow.hotel, days: tripToShow.days,
+              hotels: tripToShow.hotels, food: tripToShow.food }).catch(() => {});
+          }
+          if (tripToShow) { tripRef.current = tripToShow; setTrip(tripToShow); }
           setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false);
-          // Firestore에서 직접 읽어 최신 데이터로 보장
+          // Firestore에서 직접 읽어 최신 데이터로 보장 (days 있을 때만 반영)
           fbLoadTrips([id]).then(trips => {
             if (!trips || !trips.length) return;
             const fresh = normalizeTrip(trips[0], id);
-            tripRef.current = fresh;
-            setTrip(fresh);
+            if (fresh.days?.length) { tripRef.current = fresh; setTrip(fresh); }
           }).catch(() => {});
         }}
         onAdd={async () => {
@@ -3722,7 +3735,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v56</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v57</div>
         </div>
       </div>
       <button onClick={async () => {

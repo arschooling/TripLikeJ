@@ -69,16 +69,28 @@
 <!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->
 <script>
 if('serviceWorker' in navigator) {
-  // controllerchange: 새 SW가 clients.claim()으로 이 페이지를 접수할 때 즉시 발화
-  // statechange보다 iOS Safari에서 더 신뢰성 높음
   var _reloading = false;
-  navigator.serviceWorker.addEventListener('controllerchange', function() {
+  function _doReload() {
     if (_reloading) return;
     _reloading = true;
-    window.location.href = window.location.href;
-  });
+    location.reload();
+  }
+  navigator.serviceWorker.addEventListener('controllerchange', _doReload);
   navigator.serviceWorker.register('./sw.js').then(function(reg) {
     reg.update();
+    // iOS Safari: 새 SW가 waiting 상태에서 활성화되도록 polling
+    function checkWaiting(r) {
+      if (r.waiting) { r.waiting.postMessage({ type: 'SKIP_WAITING' }); }
+    }
+    checkWaiting(reg);
+    reg.addEventListener('updatefound', function() {
+      var newSW = reg.installing;
+      if (!newSW) return;
+      newSW.addEventListener('statechange', function() {
+        if (newSW.state === 'installed') checkWaiting(reg);
+        if (newSW.state === 'activated') _doReload();
+      });
+    });
   });
 }
 </script>

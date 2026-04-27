@@ -1,4 +1,4 @@
-const V = 'tlj-v56';
+const V = 'tlj-v57';
 const CACHE = [
   './', './index.html',
   './react.min.js', './react-dom.min.js',
@@ -18,6 +18,10 @@ self.addEventListener('activate', e => {
       Promise.all(keys.filter(k => k !== V).map(k => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('message', e => {
+  if (e.data?.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
 self.addEventListener('fetch', e => {
