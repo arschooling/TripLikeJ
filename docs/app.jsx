@@ -1465,7 +1465,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(env(safe-area-inset-top, 0px) + 20px)',
         paddingLeft:20, paddingRight:20, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v114</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v115</span></div>
         <button onClick={onOpenCompanion} style={{
           width:38, height:38, borderRadius:19, marginBottom:2,
           background: userData?.photoURL ? 'transparent' : COLORS.softer,
@@ -3841,17 +3841,16 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
 
   React.useEffect(() => { onSheetChange?.(addOpen || editIdx !== null); }, [addOpen, editIdx]);
 
-  // KRW 환산 합계
-  const krwTotalIn  = entries.filter(e=>e.type==='in').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
+  // KRW 환산 합계 (총 금액 표시용)
   const krwTotalOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
 
-  // 통화별 원액 합계 (지출/수입 각각)
-  const byCurrencyOut = {};
-  const byCurrencyIn  = {};
+  // 통화별 수입/지출 원액
+  const byCurrency = {};
   entries.forEach(e => {
     const cur = e.currency || 'KRW';
-    if (e.type==='out') byCurrencyOut[cur] = (byCurrencyOut[cur]||0) + e.amount;
-    else                byCurrencyIn[cur]  = (byCurrencyIn[cur]||0)  + e.amount;
+    if (!byCurrency[cur]) byCurrency[cur] = { out: 0, inc: 0 };
+    if (e.type==='out') byCurrency[cur].out += e.amount;
+    else                byCurrency[cur].inc += e.amount;
   });
 
   // 공동/개인 KRW 합계 (지출 기준)
@@ -3919,38 +3918,35 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
 
       {/* 요약 카드 */}
       <div style={{ margin:'0 16px 14px', background:COLORS.ink, borderRadius:20, padding:'20px 22px' }}>
-        {/* 지출 */}
+        {/* 총 지출 — 원화 환산 합계 */}
         <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.45)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>총 지출 (₩ 환산)</div>
         <div style={{ fontFamily:SERIF, fontSize:36, color:'#E88A7E', letterSpacing:'-0.02em', lineHeight:1 }}>
           {fmtAmt(Math.round(krwTotalOut), 'KRW')}
         </div>
-        {Object.keys(byCurrencyOut).length > 0 && (
-          <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 12px', marginTop:6 }}>
-            {Object.entries(byCurrencyOut).map(([cur, amt]) => (
-              <span key={cur} style={{ fontFamily:MONO, fontSize:11, color:'rgba(255,255,255,0.55)' }}>
-                {fmtAmt(amt, cur)}
-              </span>
+
+        {/* 통화별 수입/지출 */}
+        {Object.keys(byCurrency).length > 0 && (
+          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.1)', display:'flex', flexDirection:'column', gap:7 }}>
+            {Object.entries(byCurrency).map(([cur, { out, inc }]) => (
+              <div key={cur} style={{ display:'flex', alignItems:'center', gap:0 }}>
+                <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.08em', width:38, flexShrink:0 }}>{cur}</div>
+                <div style={{ display:'flex', gap:14 }}>
+                  {out > 0 && (
+                    <span style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.65)' }}>
+                      지출 <span style={{ color:'#E88A7E' }}>{fmtAmt(out, cur)}</span>
+                    </span>
+                  )}
+                  {inc > 0 && (
+                    <span style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.65)' }}>
+                      수입 <span style={{ color:'#7EC88A' }}>{fmtAmt(inc, cur)}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             ))}
           </div>
         )}
-        {/* 수입 */}
-        {krwTotalIn > 0 && (
-          <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.1)' }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.45)', letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>총 수입 (₩ 환산)</div>
-            <div style={{ fontFamily:SERIF, fontSize:28, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1 }}>
-              {fmtAmt(Math.round(krwTotalIn), 'KRW')}
-            </div>
-            {Object.keys(byCurrencyIn).length > 0 && (
-              <div style={{ display:'flex', flexWrap:'wrap', gap:'4px 12px', marginTop:6 }}>
-                {Object.entries(byCurrencyIn).map(([cur, amt]) => (
-                  <span key={cur} style={{ fontFamily:MONO, fontSize:11, color:'rgba(255,255,255,0.55)' }}>
-                    {fmtAmt(amt, cur)}
-                  </span>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
+
         {/* 공동/개인 (공동 내역 있을 때만) */}
         {hasShared && (
           <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.1)', display:'flex', gap:24 }}>
@@ -4436,6 +4432,7 @@ function ProfileSheet({ open, onClose, authUser, userData, trips, onUserDataUpda
   const [inviting, setInviting]             = React.useState(null);
   const [removing, setRemoving]             = React.useState(null);
   const [toggling, setToggling]             = React.useState(null);
+  const [inviteOpen, setInviteOpen]         = React.useState({});
 
   const myUid = authUser?.uid;
   const tripIds = (trips||[]).map(t=>t.id).join(',');
@@ -4512,157 +4509,172 @@ function ProfileSheet({ open, onClose, authUser, userData, trips, onUserDataUpda
     setPendingInvites(p => p.filter(i => i.id !== inv.id));
   };
 
+  const toggleInvite = (tripId) =>
+    setInviteOpen(o => ({ ...o, [tripId]: !o[tripId] }));
+
   if (!open) return null;
+
+  const Avatar = ({ src, name, size=44 }) => src
+    ? <img src={src} style={{ width:size, height:size, borderRadius:size/2, objectFit:'cover', flexShrink:0 }}/>
+    : <div style={{ width:size, height:size, borderRadius:size/2, background:COLORS.softer, flexShrink:0,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        fontFamily:SANS, fontSize:size*0.38, color:COLORS.mute, fontWeight:600 }}>
+        {(name||'?')[0].toUpperCase()}
+      </div>;
+
   return (
     <div style={{ position:'fixed', inset:0, zIndex:210, background:'rgba(0,0,0,0.4)',
       display:'flex', flexDirection:'column', justifyContent:'flex-end' }} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0',
-        maxHeight:'88%', display:'flex', flexDirection:'column',
+        maxHeight:'90%', display:'flex', flexDirection:'column',
         paddingBottom:'env(safe-area-inset-bottom,0px)',
       }}>
-        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px', flexShrink:0 }}>
+        {/* 핸들 */}
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px', flexShrink:0 }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
+
         {/* 프로필 헤더 */}
-        <div style={{ padding:'12px 20px 16px', display:'flex', gap:14, alignItems:'center',
+        <div style={{ padding:'12px 20px 14px', display:'flex', gap:14, alignItems:'center',
           borderBottom:`1px solid ${COLORS.line}`, flexShrink:0 }}>
-          {authUser.photoURL
-            ? <img src={authUser.photoURL} style={{ width:52, height:52, borderRadius:26, objectFit:'cover', flexShrink:0 }}/>
-            : <div style={{ width:52, height:52, borderRadius:26, background:COLORS.accent, flexShrink:0,
-                display:'flex', alignItems:'center', justifyContent:'center',
-                fontFamily:SANS, fontSize:20, color:'#fff', fontWeight:600 }}>
-                {(authUser.displayName||'?')[0]}
-              </div>
-          }
+          <Avatar src={authUser.photoURL} name={authUser.displayName} size={50}/>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{authUser.displayName}</div>
-            <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{authUser.email}</div>
+            <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{authUser.email}</div>
           </div>
           <button onClick={() => { fbSignOut(); onClose(); }} style={{
-            border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px',
+            border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px', flexShrink:0,
             background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute, cursor:'pointer',
           }}>로그아웃</button>
         </div>
+
         {/* 스크롤 영역 */}
-        <div style={{ overflowY:'auto', flex:1, paddingBottom:24 }}>
+        <div style={{ overflowY:'auto', flex:1, padding:'16px 16px 24px' }}>
+
           {/* 받은 초대 */}
           {pendingInvites.length > 0 && (
-            <div style={{ margin:'14px 16px 0', background:'#FFF8E1', borderRadius:14, padding:14 }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
-                📩 동행 초대 {pendingInvites.length}건
+            <div style={{ background:'#FFF8E1', borderRadius:16, padding:'12px 14px', marginBottom:16 }}>
+              <div style={{ fontFamily:MONO, fontSize:9.5, color:'#A07000', letterSpacing:'0.1em', marginBottom:10 }}>
+                초대 {pendingInvites.length}건
               </div>
               {pendingInvites.map(inv => (
                 <div key={inv.id} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8 }}>
-                  {inv.fromPhoto
-                    ? <img src={inv.fromPhoto} style={{ width:34, height:34, borderRadius:17, flexShrink:0 }}/>
-                    : <div style={{ width:34, height:34, borderRadius:17, background:COLORS.accent, flexShrink:0,
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        fontFamily:SANS, fontSize:14, color:'#fff' }}>{(inv.fromName||'?')[0]}</div>
-                  }
+                  <Avatar src={inv.fromPhoto} name={inv.fromName} size={38}/>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
-                    <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{inv.tripTitle||inv.fromEmail}</div>
+                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:1 }}>{inv.tripTitle||''}</div>
                   </div>
                   <button onClick={() => handleAccept(inv)} style={{
-                    border:'none', borderRadius:9, padding:'6px 12px', cursor:'pointer',
-                    background:COLORS.ink, color:COLORS.bg, fontFamily:SANS, fontSize:12, fontWeight:500,
+                    border:'none', borderRadius:9, padding:'7px 14px', cursor:'pointer',
+                    background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:12, fontWeight:600,
                   }}>수락</button>
                   <button onClick={() => fbRejectInvite(inv.id).then(() => setPendingInvites(p=>p.filter(i=>i.id!==inv.id)))} style={{
-                    border:`1px solid ${COLORS.line}`, borderRadius:9, padding:'6px 10px', cursor:'pointer',
+                    border:`1px solid ${COLORS.line}`, borderRadius:9, padding:'7px 10px', cursor:'pointer',
                     background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute,
                   }}>거절</button>
                 </div>
               ))}
             </div>
           )}
-          {/* 여행별 동행인 */}
-          <div style={{ padding:'16px 16px 0' }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:12 }}>
-              COMPANIONS
-            </div>
-            {loading && <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute }}>불러오는 중...</div>}
-            {!loading && (trips||[]).map(t => {
-              const td = tripData[t.id] || { companions:[], permissions:{} };
-              const perms = td.permissions || t.permissions || {};
-              const iAmOwner = isOwnerOf(t);
-              return (
-                <div key={t.id} style={{ marginBottom:16, background:COLORS.card, borderRadius:16, padding:'14px 14px 12px' }}>
-                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
-                    <div style={{ width:28, height:28, borderRadius:8, overflow:'hidden', flexShrink:0 }}>
-                      <Photo hue={t.hue??25} height={28} small/>
-                    </div>
-                    <div style={{ fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, flex:1, minWidth:0 }}>
-                      {t.title||'여행'}
-                    </div>
-                    {iAmOwner && <div style={{ fontFamily:MONO, fontSize:9, color:COLORS.accent }}>내 여행</div>}
+
+          {/* 여행별 동행인 카드 */}
+          {loading && <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, textAlign:'center', padding:'20px 0' }}>불러오는 중...</div>}
+          {!loading && (trips||[]).map(t => {
+            const td      = tripData[t.id] || { companions:[], permissions:{} };
+            const perms   = td.permissions || t.permissions || {};
+            const iAmOwner = isOwnerOf(t);
+            const showInvite = inviteOpen[t.id];
+            return (
+              <div key={t.id} style={{ marginBottom:14, background:COLORS.card, borderRadius:18, overflow:'hidden' }}>
+                {/* 여행 카드 헤더 */}
+                <div style={{ display:'flex', alignItems:'center', gap:10, padding:'13px 14px 12px',
+                  borderBottom:`1px solid ${COLORS.line}` }}>
+                  <div style={{ width:32, height:32, borderRadius:9, overflow:'hidden', flexShrink:0 }}>
+                    <Photo hue={t.hue??25} height={32} small/>
                   </div>
-                  {td.companions.length === 0 && (
-                    <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:10 }}>동행인 없음</div>
+                  <div style={{ fontFamily:SANS, fontSize:14, fontWeight:600, color:COLORS.ink, flex:1, minWidth:0,
+                    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{t.title||'여행'}</div>
+                  {iAmOwner && (
+                    <div style={{ fontFamily:MONO, fontSize:9, color:COLORS.accent, letterSpacing:'0.08em', flexShrink:0 }}>내 여행</div>
                   )}
-                  {td.companions.map((c, ci) => {
+                </div>
+
+                {/* 동행인 목록 */}
+                <div style={{ padding:'12px 14px' }}>
+                  {td.companions.length === 0 && !showInvite && (
+                    <div style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.mute, marginBottom:iAmOwner?10:0 }}>
+                      아직 동행인이 없어요
+                    </div>
+                  )}
+                  {td.companions.map((c) => {
                     const role = perms[c.uid] || 'edit';
                     return (
-                      <div key={c.uid} style={{
-                        display:'flex', alignItems:'center', gap:10,
-                        paddingBottom: ci < td.companions.length-1 ? 10 : 0,
-                        marginBottom: ci < td.companions.length-1 ? 10 : 0,
-                        borderBottom: ci < td.companions.length-1 ? `1px solid ${COLORS.line}` : 'none',
-                      }}>
-                        {c.photoURL
-                          ? <img src={c.photoURL} style={{ width:34, height:34, borderRadius:17, flexShrink:0, objectFit:'cover' }}/>
-                          : <div style={{ width:34, height:34, borderRadius:17, background:COLORS.softer, flexShrink:0,
-                              display:'flex', alignItems:'center', justifyContent:'center',
-                              fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{(c.displayName||'?')[0]}</div>
-                        }
+                      <div key={c.uid} style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
+                        <Avatar src={c.photoURL} name={c.displayName} size={40}/>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink }}>{c.displayName}</div>
-                          <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginTop:1 }}>{c.email}</div>
+                          <div style={{ fontFamily:SANS, fontSize:13, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
+                          <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{c.email}</div>
                         </div>
                         {iAmOwner && (
                           <>
-                            <button onClick={() => handleTogglePerm(t.id, c.uid, role)} disabled={toggling===c.uid} style={{
-                              padding:'4px 10px', borderRadius:20, cursor:'pointer', flexShrink:0,
-                              border:`1px solid ${role==='view' ? COLORS.line : COLORS.ink}`,
-                              background: role==='view' ? 'transparent' : COLORS.ink,
-                              color: role==='view' ? COLORS.mute : COLORS.bg,
-                              fontFamily:SANS, fontSize:11,
-                            }}>
-                              {role==='view' ? '보기' : '편집'}
+                            <button onClick={() => handleTogglePerm(t.id, c.uid, role)} disabled={toggling===c.uid}
+                              style={{ padding:'4px 10px', borderRadius:20, cursor:'pointer', flexShrink:0,
+                                border:`1px solid ${role==='view' ? COLORS.line : COLORS.ink}`,
+                                background: role==='view' ? 'transparent' : COLORS.ink,
+                                color: role==='view' ? COLORS.mute : '#fff',
+                                fontFamily:SANS, fontSize:11 }}>
+                              {toggling===c.uid ? '…' : role==='view' ? '보기' : '편집'}
                             </button>
-                            <button onClick={() => handleRemove(t.id, c.uid, c.displayName)} disabled={removing===c.uid} style={{
-                              width:28, height:28, borderRadius:14, flexShrink:0,
-                              border:`1px solid ${COLORS.line}`, background:'transparent',
-                              display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
-                            }}>
-                              <Icon name="minus" size={12} color={COLORS.mute} stroke={2}/>
+                            <button onClick={() => handleRemove(t.id, c.uid, c.displayName)} disabled={removing===c.uid}
+                              style={{ width:30, height:30, borderRadius:15, border:`1px solid ${COLORS.line}`,
+                                background:'transparent', cursor:'pointer', flexShrink:0,
+                                display:'flex', alignItems:'center', justifyContent:'center' }}>
+                              {removing===c.uid
+                                ? <span style={{ fontFamily:SANS, fontSize:10, color:COLORS.mute }}>…</span>
+                                : <Icon name="minus" size={12} color={COLORS.mute} stroke={2}/>}
                             </button>
                           </>
                         )}
                       </div>
                     );
                   })}
-                  {iAmOwner && (
-                    <div style={{ marginTop:10 }}>
-                      <div style={{ display:'flex', gap:6 }}>
-                        <input
+
+                  {/* 동행인 추가 버튼 / 입력 */}
+                  {iAmOwner && !showInvite && (
+                    <button onClick={() => toggleInvite(t.id)} style={{
+                      width:'100%', padding:'9px 0', border:`1.5px dashed ${COLORS.line}`, borderRadius:12,
+                      background:'transparent', cursor:'pointer',
+                      display:'flex', alignItems:'center', justifyContent:'center', gap:6,
+                      fontFamily:SANS, fontSize:12.5, color:COLORS.mute,
+                    }}>
+                      <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 동행인 추가
+                    </button>
+                  )}
+                  {iAmOwner && showInvite && (
+                    <div>
+                      <div style={{ display:'flex', gap:6, marginTop: td.companions.length > 0 ? 4 : 0 }}>
+                        <input autoFocus
                           value={inviteEmail[t.id]||''}
                           onChange={e => setInviteEmail(v => ({ ...v, [t.id]: e.target.value }))}
                           onKeyDown={e => e.key==='Enter' && handleInvite(t.id, t.title)}
-                          placeholder="이메일로 동행인 초대..."
-                          style={{
-                            flex:1, padding:'9px 12px', borderRadius:10,
+                          placeholder="이메일 입력..."
+                          style={{ flex:1, padding:'9px 12px', borderRadius:10,
                             border:`1px solid ${COLORS.line}`, background:COLORS.bg,
-                            fontFamily:SANS, fontSize:13, color:COLORS.ink, outline:'none',
-                          }}
-                        />
+                            fontFamily:SANS, fontSize:13, color:COLORS.ink, outline:'none' }}/>
                         <button onClick={() => handleInvite(t.id, t.title)}
                           disabled={inviting===t.id || !(inviteEmail[t.id]||'').trim()} style={{
                           padding:'9px 14px', borderRadius:10, border:'none', cursor:'pointer',
                           background:(inviteEmail[t.id]||'').trim() ? COLORS.ink : COLORS.softer,
-                          color:(inviteEmail[t.id]||'').trim() ? COLORS.bg : COLORS.mute,
-                          fontFamily:SANS, fontSize:13,
-                        }}>초대</button>
+                          color:(inviteEmail[t.id]||'').trim() ? '#fff' : COLORS.mute,
+                          fontFamily:SANS, fontSize:13, fontWeight:600 }}>
+                          {inviting===t.id ? '…' : '초대'}
+                        </button>
+                        <button onClick={() => toggleInvite(t.id)} style={{
+                          padding:'9px 10px', borderRadius:10, border:`1px solid ${COLORS.line}`,
+                          background:'transparent', cursor:'pointer' }}>
+                          <Icon name="x" size={13} color={COLORS.mute} stroke={2}/>
+                        </button>
                       </div>
                       {inviteMsg[t.id] && (
                         <div style={{ marginTop:6, fontFamily:SANS, fontSize:11.5,
@@ -4673,9 +4685,9 @@ function ProfileSheet({ open, onClose, authUser, userData, trips, onUserDataUpda
                     </div>
                   )}
                 </div>
-              );
-            })}
-          </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>
@@ -5783,7 +5795,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v114</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v115</div>
         </div>
       </div>
       <button onClick={async () => {
