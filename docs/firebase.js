@@ -298,3 +298,9 @@ window.fbDeleteTrip = async (tripId, uid) => {
     tripIds: firebase.firestore.FieldValue.arrayRemove(tripId),
   });
 };
+
+window.fbGetUsersById = async (uids) => {
+  if (!uids || !uids.length) return [];
+  const snaps = await Promise.all(uids.map(uid => _fbDb.collection('users').doc(uid).get()));
+  return snaps.filter(s => s.exists).map(s => ({ uid: s.id, ...s.data() }));
+};

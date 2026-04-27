@@ -929,12 +929,13 @@ function TripSwipeCard({ children, onShare, onDelete, wrapStyle = {} }) {
 }
 
 // ─── Share Trip Sheet ─────────────────────────────────────────
-function ShareTripSheet({ open, onClose, trip, userData }) {
-  const [email, setEmail] = React.useState('');
-  const [msg, setMsg] = React.useState('');
-  const [sending, setSending] = React.useState(false);
-
-  React.useEffect(() => { if (!open) { setEmail(''); setMsg(''); } }, [open]);
+function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
+  const [contacts, setContacts]   = React.useState([]);
+  const [selected, setSelected]   = React.useState(new Set());
+  const [email, setEmail]         = React.useState('');
+  const [msg, setMsg]             = React.useState('');
+  const [loading, setLoading]     = React.useState(false);
+  const [sending, setSending]     = React.useState(false);
 
   React.useEffect(() => {
     if (open) {
@@ -943,49 +944,142 @@ function ShareTripSheet({ open, onClose, trip, userData }) {
     }
   }, [open]);
 
+  React.useEffect(() => {
+    if (!open || !trip) return;
+    setSelected(new Set()); setEmail(''); setMsg('');
+
+    const currentMembers = new Set(trip.members || []);
+    const candidateUids = new Set();
+    (allTrips || []).forEach(t => {
+      (t.members || []).forEach(uid => {
+        if (uid !== myUid && !currentMembers.has(uid)) candidateUids.add(uid);
+      });
+    });
+
+    if (!candidateUids.size) { setContacts([]); return; }
+    setLoading(true);
+    window.fbGetUsersById([...candidateUids])
+      .then(users => { setContacts(users); setLoading(false); })
+      .catch(() => { setContacts([]); setLoading(false); });
+  }, [open, trip && trip.id]);
+
+  const toggleSelect = (uid) => {
+    setSelected(prev => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      return next;
+    });
+  };
+
   const handleSend = async () => {
-    if (!email.trim() || !trip) return;
+    if (!trip) return;
+    const hasEmail = email.trim().length > 0;
+    if (!selected.size && !hasEmail) return;
     setSending(true); setMsg('');
-    const res = await fbSendTripInvite(userData, email, trip.id, trip.title);
+
+    const results = [];
+    for (const uid of selected) {
+      const c = contacts.find(x => x.uid === uid);
+      if (c?.email) results.push(await fbSendTripInvite(userData, c.email, trip.id, trip.title));
+    }
+    if (hasEmail) results.push(await fbSendTripInvite(userData, email.trim(), trip.id, trip.title));
+
     setSending(false);
-    if (res.error) setMsg(res.error);
-    else { setMsg(`${res.toName}님께 초대를 보냈습니다!`); setEmail(''); }
+    const errors = results.filter(r => r.error);
+    const ok     = results.filter(r => r.success);
+    if (ok.length) {
+      setMsg(`${ok.map(r => r.toName).join(', ')}님께 초대를 보냈습니다!`);
+      setSelected(new Set()); setEmail('');
+    } else if (errors.length) {
+      setMsg(errors[0].error);
+    }
   };
 
   if (!open || !trip) return null;
+  const canSend = selected.size > 0 || email.trim().length > 0;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:400, background:'rgba(0,0,0,0.4)',
       display:'flex', flexDirection:'column', justifyContent:'flex-end' }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
+      <div onClick={e => e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0',
         padding:'0 20px calc(28px + env(safe-area-inset-bottom,0px))',
+        maxHeight:'80vh', display:'flex', flexDirection:'column',
       }}>
-        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px', flexShrink:0 }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
-        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:16 }}>{trip.title}</div>
-        <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:12 }}>
-          상대방이 이 앱에 먼저 가입되어 있어야 합니다.
+        <div style={{ flexShrink:0 }}>
+          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
+          <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:16 }}>{trip.title}</div>
         </div>
-        <input
-          value={email} onChange={e => setEmail(e.target.value)}
-          placeholder="상대방 구글 이메일 입력"
-          onKeyDown={e => e.key === 'Enter' && handleSend()}
-          autoFocus
-          style={{ width:'100%', padding:'13px 14px', borderRadius:14,
-            border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-            fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
-        {msg && (
-          <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
-            color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
-        )}
-        <button onClick={handleSend} disabled={sending || !email.trim()} style={{
-          marginTop:14, width:'100%', padding:'15px', border:'none', borderRadius:14,
-          background: email.trim() ? COLORS.ink : COLORS.softer,
-          color: email.trim() ? COLORS.bg : COLORS.mute,
-          fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+
+        <div style={{ flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
+          {loading ? (
+            <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>불러오는 중...</div>
+          ) : contacts.length > 0 ? (
+            <>
+              <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+                textTransform:'uppercase', marginBottom:8 }}>이전 동행인</div>
+              {contacts.map(c => {
+                const isSel = selected.has(c.uid);
+                return (
+                  <div key={c.uid} onClick={() => toggleSelect(c.uid)} style={{
+                    display:'flex', alignItems:'center', gap:12,
+                    padding:'10px 12px', borderRadius:14, marginBottom:6,
+                    background: isSel ? '#EEF2FF' : COLORS.card,
+                    border:`1.5px solid ${isSel ? '#4F6BED' : 'transparent'}`,
+                    cursor:'pointer',
+                  }}>
+                    {c.photoURL
+                      ? <img src={c.photoURL} alt="" style={{ width:38, height:38, borderRadius:'50%', objectFit:'cover', flexShrink:0 }}/>
+                      : <div style={{ width:38, height:38, borderRadius:'50%', background:'#C8C3B8', flexShrink:0,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          fontFamily:SANS, fontSize:15, color:'#fff', fontWeight:600 }}>
+                          {(c.displayName||'?')[0].toUpperCase()}
+                        </div>
+                    }
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500,
+                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
+                      <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                        overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
+                    </div>
+                    <div style={{ width:22, height:22, borderRadius:'50%', flexShrink:0,
+                      border:`2px solid ${isSel ? '#4F6BED' : COLORS.line}`,
+                      background: isSel ? '#4F6BED' : 'transparent',
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      {isSel && <Icon name="check" size={12} color="#fff" stroke={3}/>}
+                    </div>
+                  </div>
+                );
+              })}
+              <div style={{ height:16 }}/>
+            </>
+          ) : null}
+
+          <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+            textTransform:'uppercase', marginBottom:8 }}>
+            {contacts.length > 0 ? '새로운 동행인' : '동행인 초대'}
+          </div>
+          <input
+            value={email} onChange={e => setEmail(e.target.value)}
+            placeholder="구글 이메일 입력"
+            onKeyDown={e => e.key === 'Enter' && handleSend()}
+            style={{ width:'100%', padding:'13px 14px', borderRadius:14,
+              border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
+              fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+          {msg && (
+            <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
+              color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
+          )}
+        </div>
+
+        <button onClick={handleSend} disabled={sending || !canSend} style={{
+          flexShrink:0, marginTop:14, width:'100%', padding:'15px', border:'none', borderRadius:14,
+          background: canSend ? COLORS.ink : COLORS.softer,
+          color: canSend ? COLORS.bg : COLORS.mute,
+          fontFamily:SANS, fontSize:14, fontWeight:500, cursor: canSend ? 'pointer' : 'default',
         }}>{sending ? '보내는 중...' : '초대 보내기'}</button>
       </div>
     </div>
@@ -3403,6 +3497,8 @@ function App() {
         onClose={() => setShareTripTarget(null)}
         trip={shareTripTarget}
         userData={userData}
+        allTrips={userTrips}
+        myUid={authUser?.uid}
       />
       <CompanionSheet open={companionOpen} onClose={() => setCompanionOpen(false)}
         authUser={authUser} userData={userData} onUserDataUpdate={ud => setUserData(ud)}
@@ -3410,7 +3506,23 @@ function App() {
     </>
   );
 
-  if (!trip) return null;
+  if (!trip) return (
+    <div style={{ minHeight:'100vh', background:COLORS.bg, display:'flex', flexDirection:'column',
+      alignItems:'center', justifyContent:'center', gap:16 }}>
+      <button onClick={() => { setActiveTripId(null); setEditing(false); }} style={{
+        position:'fixed', top:'calc(env(safe-area-inset-top) + 14px)', left:16,
+        background:'transparent', border:'none', padding:'4px 8px', cursor:'pointer',
+        display:'flex', alignItems:'center', gap:3,
+        fontFamily:SANS, fontSize:13, color:COLORS.mute,
+      }}>
+        <Icon name="chevron-left" size={14} color={COLORS.mute} stroke={2}/>My Trips
+      </button>
+      <div style={{ width:28, height:28, border:`3px solid ${COLORS.accent}`,
+        borderTopColor:'transparent', borderRadius:'50%',
+        animation:'spin 0.8s linear infinite' }}/>
+      <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+    </div>
+  );
 
   // Figure out what "back" means in the current state, for swipe-from-edge.
   let swipeBack = null;
