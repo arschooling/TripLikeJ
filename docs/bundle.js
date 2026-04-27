@@ -2987,7 +2987,7 @@ function TripsScreen(_ref17) {
     style: {
       minHeight: '100vh',
       background: COLORS.bg,
-      paddingTop: 'calc(env(safe-area-inset-top) + 64px)',
+      paddingTop: 'calc(env(safe-area-inset-top) + 16px)',
       paddingBottom: 100
     }
   }, /*#__PURE__*/React.createElement("div", {

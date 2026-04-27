@@ -1159,7 +1159,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
 function TripsScreen({ trips, onSelect, onAdd, onShare, onDelete, loading, userData, onOpenCompanion, myUid }) {
   return (
     <div style={{ minHeight:'100vh', background:COLORS.bg,
-      paddingTop:'calc(env(safe-area-inset-top) + 64px)', paddingBottom:100 }}>
+      paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
       <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between',
         padding:'0 20px 20px' }}>
         <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips</div>
