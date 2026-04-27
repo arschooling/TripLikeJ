@@ -1161,7 +1161,15 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
   );
 }
 
-function TripsScreen({ trips, onSelect, onAdd, onShare, onDelete, loading, userData, onOpenCompanion, myUid }) {
+function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid }) {
+  const [restoring, setRestoring] = React.useState(false);
+  const [restoreErr, setRestoreErr] = React.useState('');
+  const handleRestore = async () => {
+    if (restoring || !onRestore) return;
+    setRestoring(true); setRestoreErr('');
+    try { await onRestore(); }
+    catch (e) { setRestoreErr('복원 실패. 다시 시도해 주세요.'); setRestoring(false); }
+  };
   return (
     <div style={{ minHeight:'100vh', background:COLORS.bg,
       paddingTop:'calc(env(safe-area-inset-top) + 16px)', paddingBottom:100 }}>
@@ -1217,6 +1225,22 @@ function TripsScreen({ trips, onSelect, onAdd, onShare, onDelete, loading, userD
                 </TripSwipeCard>
               );
             })}
+            {trips.length === 0 && onRestore && (
+              <div style={{ padding:'28px 20px', background:COLORS.card, borderRadius:20,
+                border:`1px solid ${COLORS.line}`, textAlign:'center', marginBottom:4 }}>
+                <div style={{ fontFamily:SERIF, fontSize:24, color:COLORS.ink, marginBottom:6 }}>New York</div>
+                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:18 }}>
+                  10일 뉴욕 일정을 복원합니다
+                </div>
+                {restoreErr && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.accent, marginBottom:10 }}>{restoreErr}</div>}
+                <button onClick={handleRestore} disabled={restoring} style={{
+                  padding:'12px 28px', background: restoring ? COLORS.mute : COLORS.ink,
+                  border:'none', borderRadius:12, color:COLORS.bg,
+                  fontFamily:SANS, fontSize:13, fontWeight:500,
+                  cursor: restoring ? 'default' : 'pointer', opacity: restoring ? 0.7 : 1,
+                }}>{restoring ? '복원 중...' : '뉴욕 일정 복원하기'}</button>
+              </div>
+            )}
             <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
               border:`1.5px dashed ${COLORS.line}`, borderRadius:20, color:COLORS.mute, cursor:'pointer',
               display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:13.5 }}>
@@ -3628,6 +3652,25 @@ function App() {
           setUserTrips(prev => [...prev, { id: tripId, title, dates:'', days:[], hotels:[], members:[userData.uid], hue }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
+        }}
+        onRestore={async () => {
+          const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+          const patch = {
+            title : def.title  || 'New York',
+            dates : def.dates  || '',
+            hotel : def.hotel  || '',
+            days  : def.days   || [],
+            hotels: def.hotels || [],
+            food  : def.food   || [],
+          };
+          const hue = def.days?.[0]?.hero?.hue ?? 25;
+          const { tripId } = await window.fbCreateNewTrip(userData.uid, patch.title);
+          await window.fbSaveGroup(tripId, patch);
+          const newTrip = normalizeTrip({ ...patch, members:[userData.uid], hue }, tripId);
+          setUserTrips(prev => [...prev, newTrip]);
+          setActiveTripId(tripId);
+          setTrip(newTrip);
+          setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false);
         }}
         onShare={(t) => setShareTripTarget(t)}
         onDelete={deleteTrip}
