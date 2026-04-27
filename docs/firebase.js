@@ -333,3 +333,30 @@ window.fbGetGmailToken = async () => {
   const result = await _fbAuth.signInWithPopup(provider);
   return result.credential.accessToken;
 };
+
+// ─── Global contacts ──────────────────────────────────────────
+window.fbAddContact = async (myUid, contactEmail) => {
+  const toUser = await fbSearchUser(contactEmail);
+  if (!toUser) return { error: '가입된 사용자가 없습니다.' };
+  if (toUser.uid === myUid) return { error: '자기 자신은 추가할 수 없습니다.' };
+  await _fbDb.collection('users').doc(myUid).update({
+    contacts: firebase.firestore.FieldValue.arrayUnion(toUser.uid),
+  });
+  await _fbDb.collection('users').doc(toUser.uid).update({
+    contacts: firebase.firestore.FieldValue.arrayUnion(myUid),
+  }).catch(() => {});
+  return { success: true, toName: toUser.displayName };
+};
+
+window.fbGetContacts = async (uid) => {
+  const snap = await _fbDb.collection('users').doc(uid).get();
+  const ids = snap.data()?.contacts || [];
+  if (!ids.length) return [];
+  return window.fbGetUsersById(ids);
+};
+
+window.fbRemoveContact = async (myUid, contactUid) => {
+  await _fbDb.collection('users').doc(myUid).update({
+    contacts: firebase.firestore.FieldValue.arrayRemove(contactUid),
+  });
+};
