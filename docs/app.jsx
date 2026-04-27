@@ -930,6 +930,7 @@ function TripSwipeCard({ children, onShare, onDelete, wrapStyle = {} }) {
 
 // ─── Share Trip Sheet ─────────────────────────────────────────
 function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
+  const [memberProfiles, setMemberProfiles] = React.useState([]);
   const [contacts, setContacts]   = React.useState([]);
   const [selected, setSelected]   = React.useState(new Set());
   const [email, setEmail]         = React.useState('');
@@ -947,8 +948,11 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
   React.useEffect(() => {
     if (!open || !trip) return;
     setSelected(new Set()); setEmail(''); setMsg('');
+    setMemberProfiles([]); setContacts([]);
 
     const currentMembers = new Set(trip.members || []);
+    const memberUids = [...currentMembers].filter(uid => uid !== myUid);
+
     const candidateUids = new Set();
     (allTrips || []).forEach(t => {
       (t.members || []).forEach(uid => {
@@ -956,11 +960,15 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
       });
     });
 
-    if (!candidateUids.size) { setContacts([]); return; }
     setLoading(true);
-    window.fbGetUsersById([...candidateUids])
-      .then(users => { setContacts(users); setLoading(false); })
-      .catch(() => { setContacts([]); setLoading(false); });
+    Promise.all([
+      memberUids.length ? window.fbGetUsersById(memberUids) : Promise.resolve([]),
+      candidateUids.size ? window.fbGetUsersById([...candidateUids]) : Promise.resolve([]),
+    ]).then(([members, candidates]) => {
+      setMemberProfiles(members);
+      setContacts(candidates);
+      setLoading(false);
+    }).catch(() => setLoading(false));
   }, [open, trip && trip.id]);
 
   const toggleSelect = (uid) => {
@@ -1017,7 +1025,40 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
         <div style={{ flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
           {loading ? (
             <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>불러오는 중...</div>
-          ) : contacts.length > 0 ? (
+          ) : (
+            <>
+              {memberProfiles.length > 0 && (
+                <>
+                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+                    textTransform:'uppercase', marginBottom:8 }}>현재 동행인</div>
+                  {memberProfiles.map(c => (
+                    <div key={c.uid} style={{
+                      display:'flex', alignItems:'center', gap:12,
+                      padding:'10px 12px', borderRadius:14, marginBottom:6,
+                      background:COLORS.card,
+                    }}>
+                      {c.photoURL
+                        ? <img src={c.photoURL} alt="" style={{ width:38, height:38, borderRadius:'50%', objectFit:'cover', flexShrink:0 }}/>
+                        : <div style={{ width:38, height:38, borderRadius:'50%', background:'#C8C3B8', flexShrink:0,
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                            fontFamily:SANS, fontSize:15, color:'#fff', fontWeight:600 }}>
+                            {(c.displayName||'?')[0].toUpperCase()}
+                          </div>
+                      }
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500,
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
+                        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
+                      </div>
+                      <div style={{ fontFamily:SANS, fontSize:11, color:'#4F6BED', fontWeight:500,
+                        background:'#EEF2FF', borderRadius:20, padding:'3px 9px', flexShrink:0 }}>동행중</div>
+                    </div>
+                  ))}
+                  <div style={{ height:16 }}/>
+                </>
+              )}
+              {contacts.length > 0 ? (
             <>
               <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
                 textTransform:'uppercase', marginBottom:8 }}>이전 동행인</div>
@@ -1072,6 +1113,8 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
           {msg && (
             <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
               color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
+          )}
+            </>
           )}
         </div>
 

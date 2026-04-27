@@ -2126,28 +2126,32 @@ function ShareTripSheet(_ref12) {
     myUid = _ref12.myUid;
   var _React$useState35 = React.useState([]),
     _React$useState36 = _slicedToArray(_React$useState35, 2),
-    contacts = _React$useState36[0],
-    setContacts = _React$useState36[1];
-  var _React$useState37 = React.useState(new Set()),
+    memberProfiles = _React$useState36[0],
+    setMemberProfiles = _React$useState36[1];
+  var _React$useState37 = React.useState([]),
     _React$useState38 = _slicedToArray(_React$useState37, 2),
-    selected = _React$useState38[0],
-    setSelected = _React$useState38[1];
-  var _React$useState39 = React.useState(''),
+    contacts = _React$useState38[0],
+    setContacts = _React$useState38[1];
+  var _React$useState39 = React.useState(new Set()),
     _React$useState40 = _slicedToArray(_React$useState39, 2),
-    email = _React$useState40[0],
-    setEmail = _React$useState40[1];
+    selected = _React$useState40[0],
+    setSelected = _React$useState40[1];
   var _React$useState41 = React.useState(''),
     _React$useState42 = _slicedToArray(_React$useState41, 2),
-    msg = _React$useState42[0],
-    setMsg = _React$useState42[1];
-  var _React$useState43 = React.useState(false),
+    email = _React$useState42[0],
+    setEmail = _React$useState42[1];
+  var _React$useState43 = React.useState(''),
     _React$useState44 = _slicedToArray(_React$useState43, 2),
-    loading = _React$useState44[0],
-    setLoading = _React$useState44[1];
+    msg = _React$useState44[0],
+    setMsg = _React$useState44[1];
   var _React$useState45 = React.useState(false),
     _React$useState46 = _slicedToArray(_React$useState45, 2),
-    sending = _React$useState46[0],
-    setSending = _React$useState46[1];
+    loading = _React$useState46[0],
+    setLoading = _React$useState46[1];
+  var _React$useState47 = React.useState(false),
+    _React$useState48 = _slicedToArray(_React$useState47, 2),
+    sending = _React$useState48[0],
+    setSending = _React$useState48[1];
   React.useEffect(function () {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -2161,24 +2165,28 @@ function ShareTripSheet(_ref12) {
     setSelected(new Set());
     setEmail('');
     setMsg('');
+    setMemberProfiles([]);
+    setContacts([]);
     var currentMembers = new Set(trip.members || []);
+    var memberUids = _toConsumableArray(currentMembers).filter(function (uid) {
+      return uid !== myUid;
+    });
     var candidateUids = new Set();
     (allTrips || []).forEach(function (t) {
       (t.members || []).forEach(function (uid) {
         if (uid !== myUid && !currentMembers.has(uid)) candidateUids.add(uid);
       });
     });
-    if (!candidateUids.size) {
-      setContacts([]);
-      return;
-    }
     setLoading(true);
-    window.fbGetUsersById(_toConsumableArray(candidateUids)).then(function (users) {
-      setContacts(users);
+    Promise.all([memberUids.length ? window.fbGetUsersById(memberUids) : Promise.resolve([]), candidateUids.size ? window.fbGetUsersById(_toConsumableArray(candidateUids)) : Promise.resolve([])]).then(function (_ref13) {
+      var _ref14 = _slicedToArray(_ref13, 2),
+        members = _ref14[0],
+        candidates = _ref14[1];
+      setMemberProfiles(members);
+      setContacts(candidates);
       setLoading(false);
     }).catch(function () {
-      setContacts([]);
-      setLoading(false);
+      return setLoading(false);
     });
   }, [open, trip && trip.id]);
   var toggleSelect = function toggleSelect(uid) {
@@ -2189,7 +2197,7 @@ function ShareTripSheet(_ref12) {
     });
   };
   var handleSend = /*#__PURE__*/function () {
-    var _ref13 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
+    var _ref15 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee() {
       var hasEmail, results, _iterator, _step, _loop, errors, ok, _t2, _t3;
       return _regenerator().w(function (_context2) {
         while (1) switch (_context2.p = _context2.n) {
@@ -2289,7 +2297,7 @@ function ShareTripSheet(_ref12) {
       }, _callee, null, [[3, 7, 8, 9]]);
     }));
     return function handleSend() {
-      return _ref13.apply(this, arguments);
+      return _ref15.apply(this, arguments);
     };
   }();
   if (!open || !trip) return null;
@@ -2364,7 +2372,93 @@ function ShareTripSheet(_ref12) {
       fontSize: 13,
       color: COLORS.mute
     }
-  }, "\uBD88\uB7EC\uC624\uB294 \uC911...") : contacts.length > 0 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+  }, "\uBD88\uB7EC\uC624\uB294 \uC911...") : /*#__PURE__*/React.createElement(React.Fragment, null, memberProfiles.length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute,
+      letterSpacing: '0.08em',
+      textTransform: 'uppercase',
+      marginBottom: 8
+    }
+  }, "\uD604\uC7AC \uB3D9\uD589\uC778"), memberProfiles.map(function (c) {
+    return /*#__PURE__*/React.createElement("div", {
+      key: c.uid,
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '10px 12px',
+        borderRadius: 14,
+        marginBottom: 6,
+        background: COLORS.card
+      }
+    }, c.photoURL ? /*#__PURE__*/React.createElement("img", {
+      src: c.photoURL,
+      alt: "",
+      style: {
+        width: 38,
+        height: 38,
+        borderRadius: '50%',
+        objectFit: 'cover',
+        flexShrink: 0
+      }
+    }) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 38,
+        height: 38,
+        borderRadius: '50%',
+        background: '#C8C3B8',
+        flexShrink: 0,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontFamily: SANS,
+        fontSize: 15,
+        color: '#fff',
+        fontWeight: 600
+      }
+    }, (c.displayName || '?')[0].toUpperCase()), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 14,
+        color: COLORS.ink,
+        fontWeight: 500,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, c.displayName), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        overflow: 'hidden',
+        textOverflow: 'ellipsis',
+        whiteSpace: 'nowrap'
+      }
+    }, c.email)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 11,
+        color: '#4F6BED',
+        fontWeight: 500,
+        background: '#EEF2FF',
+        borderRadius: 20,
+        padding: '3px 9px',
+        flexShrink: 0
+      }
+    }, "\uB3D9\uD589\uC911"));
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      height: 16
+    }
+  })), contacts.length > 0 ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SANS,
       fontSize: 11,
@@ -2499,7 +2593,7 @@ function ShareTripSheet(_ref12) {
       fontSize: 13,
       color: msg.includes('보냈') ? COLORS.accent : '#C0392B'
     }
-  }, msg)), /*#__PURE__*/React.createElement("button", {
+  }, msg))), /*#__PURE__*/React.createElement("button", {
     onClick: handleSend,
     disabled: sending || !canSend,
     style: {
@@ -2518,16 +2612,16 @@ function ShareTripSheet(_ref12) {
     }
   }, sending ? '보내는 중...' : '초대 보내기')));
 }
-function TripsScreen(_ref14) {
-  var trips = _ref14.trips,
-    onSelect = _ref14.onSelect,
-    onAdd = _ref14.onAdd,
-    _onShare = _ref14.onShare,
-    _onDelete = _ref14.onDelete,
-    loading = _ref14.loading,
-    userData = _ref14.userData,
-    onOpenCompanion = _ref14.onOpenCompanion,
-    myUid = _ref14.myUid;
+function TripsScreen(_ref16) {
+  var trips = _ref16.trips,
+    onSelect = _ref16.onSelect,
+    onAdd = _ref16.onAdd,
+    _onShare = _ref16.onShare,
+    _onDelete = _ref16.onDelete,
+    loading = _ref16.loading,
+    userData = _ref16.userData,
+    onOpenCompanion = _ref16.onOpenCompanion,
+    myUid = _ref16.myUid;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       minHeight: '100vh',
@@ -2724,35 +2818,35 @@ function isoToWeekday(iso) {
 }
 
 // ─── Home ───────────────────────────────────────────────────
-function HomeScreen(_ref15) {
-  var trip = _ref15.trip,
-    onOpenDay = _ref15.onOpenDay,
-    onOpenHotel = _ref15.onOpenHotel,
-    city = _ref15.city,
-    onPickCity = _ref15.onPickCity,
-    onEditTrip = _ref15.onEditTrip,
-    onReorderDays = _ref15.onReorderDays,
-    onAddDay = _ref15.onAddDay,
-    onDeleteDay = _ref15.onDeleteDay,
-    onBack = _ref15.onBack,
-    onAddHotel = _ref15.onAddHotel,
-    onAddHotelFromSearch = _ref15.onAddHotelFromSearch,
-    onDeleteHotel = _ref15.onDeleteHotel,
-    onReorderHotels = _ref15.onReorderHotels,
-    onConvertInlineHotel = _ref15.onConvertInlineHotel,
-    onAddItemToFirstDay = _ref15.onAddItemToFirstDay,
-    editing = _ref15.editing,
-    setEditing = _ref15.setEditing,
-    userData = _ref15.userData,
-    onOpenCompanion = _ref15.onOpenCompanion;
-  var _React$useState47 = React.useState(false),
-    _React$useState48 = _slicedToArray(_React$useState47, 2),
-    editingTitle = _React$useState48[0],
-    setEditingTitle = _React$useState48[1];
-  var _React$useState49 = React.useState(null),
+function HomeScreen(_ref17) {
+  var trip = _ref17.trip,
+    onOpenDay = _ref17.onOpenDay,
+    onOpenHotel = _ref17.onOpenHotel,
+    city = _ref17.city,
+    onPickCity = _ref17.onPickCity,
+    onEditTrip = _ref17.onEditTrip,
+    onReorderDays = _ref17.onReorderDays,
+    onAddDay = _ref17.onAddDay,
+    onDeleteDay = _ref17.onDeleteDay,
+    onBack = _ref17.onBack,
+    onAddHotel = _ref17.onAddHotel,
+    onAddHotelFromSearch = _ref17.onAddHotelFromSearch,
+    onDeleteHotel = _ref17.onDeleteHotel,
+    onReorderHotels = _ref17.onReorderHotels,
+    onConvertInlineHotel = _ref17.onConvertInlineHotel,
+    onAddItemToFirstDay = _ref17.onAddItemToFirstDay,
+    editing = _ref17.editing,
+    setEditing = _ref17.setEditing,
+    userData = _ref17.userData,
+    onOpenCompanion = _ref17.onOpenCompanion;
+  var _React$useState49 = React.useState(false),
     _React$useState50 = _slicedToArray(_React$useState49, 2),
-    datePicker = _React$useState50[0],
-    setDatePicker = _React$useState50[1]; // 'start' | 'end' | null
+    editingTitle = _React$useState50[0],
+    setEditingTitle = _React$useState50[1];
+  var _React$useState51 = React.useState(null),
+    _React$useState52 = _slicedToArray(_React$useState51, 2),
+    datePicker = _React$useState52[0],
+    setDatePicker = _React$useState52[1]; // 'start' | 'end' | null
   var _useDragReorder = useDragReorder(onReorderDays, editing),
     dayDragProps = _useDragReorder.itemProps,
     isDayDragging = _useDragReorder.isTouchDragging;
@@ -3613,30 +3707,30 @@ function HomeScreen(_ref15) {
 }
 
 // ─── Day screen ─────────────────────────────────────────────
-function DayScreen(_ref16) {
-  var trip = _ref16.trip,
-    dayIdx = _ref16.dayIdx,
-    onBack = _ref16.onBack,
-    onOpenStop = _ref16.onOpenStop,
-    onNavDay = _ref16.onNavDay,
-    onEditDay = _ref16.onEditDay,
-    onAddItem = _ref16.onAddItem,
-    onDeleteItem = _ref16.onDeleteItem,
-    onReorderItems = _ref16.onReorderItems,
-    editing = _ref16.editing,
-    setEditing = _ref16.setEditing;
+function DayScreen(_ref18) {
+  var trip = _ref18.trip,
+    dayIdx = _ref18.dayIdx,
+    onBack = _ref18.onBack,
+    onOpenStop = _ref18.onOpenStop,
+    onNavDay = _ref18.onNavDay,
+    onEditDay = _ref18.onEditDay,
+    onAddItem = _ref18.onAddItem,
+    onDeleteItem = _ref18.onDeleteItem,
+    onReorderItems = _ref18.onReorderItems,
+    editing = _ref18.editing,
+    setEditing = _ref18.setEditing;
   var day = trip.days[dayIdx];
   var tripYear = extractTripYear(trip);
-  var _React$useState51 = React.useState(function () {
+  var _React$useState53 = React.useState(function () {
       try {
         return new Set(JSON.parse(localStorage.getItem('done_' + trip.title + '_' + dayIdx) || '[]'));
       } catch (e) {
         return new Set();
       }
     }),
-    _React$useState52 = _slicedToArray(_React$useState51, 2),
-    done = _React$useState52[0],
-    setDone = _React$useState52[1];
+    _React$useState54 = _slicedToArray(_React$useState53, 2),
+    done = _React$useState54[0],
+    setDone = _React$useState54[1];
   var toggle = function toggle(i) {
     return setDone(function (s) {
       var n = new Set(s);
@@ -3645,14 +3739,14 @@ function DayScreen(_ref16) {
       return n;
     });
   };
-  var _React$useState53 = React.useState(false),
-    _React$useState54 = _slicedToArray(_React$useState53, 2),
-    editingTitle = _React$useState54[0],
-    setEditingTitle = _React$useState54[1];
   var _React$useState55 = React.useState(false),
     _React$useState56 = _slicedToArray(_React$useState55, 2),
-    datePickerOpen = _React$useState56[0],
-    setDatePickerOpen = _React$useState56[1];
+    editingTitle = _React$useState56[0],
+    setEditingTitle = _React$useState56[1];
+  var _React$useState57 = React.useState(false),
+    _React$useState58 = _slicedToArray(_React$useState57, 2),
+    datePickerOpen = _React$useState58[0],
+    setDatePickerOpen = _React$useState58[1];
   var _useDragReorder3 = useDragReorder(onReorderItems, editing),
     itemDragProps = _useDragReorder3.itemProps;
   return /*#__PURE__*/React.createElement("div", {
@@ -4159,17 +4253,17 @@ function DayScreen(_ref16) {
 }
 
 // ─── Hotel Detail page ──────────────────────────────────────
-function HotelDetailScreen(_ref17) {
-  var hotel = _ref17.hotel,
-    onBack = _ref17.onBack,
-    onEdit = _ref17.onEdit,
-    onOpenSearch = _ref17.onOpenSearch,
-    editing = _ref17.editing,
-    setEditing = _ref17.setEditing;
-  var _React$useState57 = React.useState(hotel),
-    _React$useState58 = _slicedToArray(_React$useState57, 2),
-    draft = _React$useState58[0],
-    setDraft = _React$useState58[1];
+function HotelDetailScreen(_ref19) {
+  var hotel = _ref19.hotel,
+    onBack = _ref19.onBack,
+    onEdit = _ref19.onEdit,
+    onOpenSearch = _ref19.onOpenSearch,
+    editing = _ref19.editing,
+    setEditing = _ref19.setEditing;
+  var _React$useState59 = React.useState(hotel),
+    _React$useState60 = _slicedToArray(_React$useState59, 2),
+    draft = _React$useState60[0],
+    setDraft = _React$useState60[1];
   React.useEffect(function () {
     return setDraft(hotel);
   }, [hotel]);
@@ -4201,10 +4295,10 @@ function HotelDetailScreen(_ref17) {
     if (!m) return iso;
     return "".concat(MONTHS[parseInt(m[2], 10) - 1], " ").concat(parseInt(m[3], 10));
   };
-  var _React$useState59 = React.useState(null),
-    _React$useState60 = _slicedToArray(_React$useState59, 2),
-    pickerOpen = _React$useState60[0],
-    setPickerOpen = _React$useState60[1]; // {key, type}
+  var _React$useState61 = React.useState(null),
+    _React$useState62 = _slicedToArray(_React$useState61, 2),
+    pickerOpen = _React$useState62[0],
+    setPickerOpen = _React$useState62[1]; // {key, type}
 
   var field = function field(key, label, placeholder) {
     var type = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'text';
@@ -4679,24 +4773,24 @@ function HotelDetailScreen(_ref17) {
 }
 
 // ─── Stop sheet (unchanged except pulls editing from open) ─
-function StopSheet(_ref18) {
-  var open = _ref18.open,
-    dayHue = _ref18.dayHue,
-    onClose = _ref18.onClose,
-    onSave = _ref18.onSave;
+function StopSheet(_ref20) {
+  var open = _ref20.open,
+    dayHue = _ref20.dayHue,
+    onClose = _ref20.onClose,
+    onSave = _ref20.onSave;
   if (!open) return null;
-  var _React$useState61 = React.useState(!!open.editing),
-    _React$useState62 = _slicedToArray(_React$useState61, 2),
-    editing = _React$useState62[0],
-    setEditing = _React$useState62[1];
-  var _React$useState63 = React.useState(open.stop),
+  var _React$useState63 = React.useState(!!open.editing),
     _React$useState64 = _slicedToArray(_React$useState63, 2),
-    draft = _React$useState64[0],
-    setDraft = _React$useState64[1];
-  var _React$useState65 = React.useState(0),
+    editing = _React$useState64[0],
+    setEditing = _React$useState64[1];
+  var _React$useState65 = React.useState(open.stop),
     _React$useState66 = _slicedToArray(_React$useState65, 2),
-    sheetY = _React$useState66[0],
-    setSheetY = _React$useState66[1];
+    draft = _React$useState66[0],
+    setDraft = _React$useState66[1];
+  var _React$useState67 = React.useState(0),
+    _React$useState68 = _slicedToArray(_React$useState67, 2),
+    sheetY = _React$useState68[0],
+    setSheetY = _React$useState68[1];
   var sheetTouchStart = React.useRef(null);
   var sheetScrollTop = React.useRef(0);
   var sheetRef = React.useRef(null);
@@ -5024,13 +5118,13 @@ function StopSheet(_ref18) {
     stroke: 1.8
   })))))));
 }
-function EditStopForm(_ref19) {
-  var draft = _ref19.draft,
-    setDraft = _ref19.setDraft;
-  var _React$useState67 = React.useState(false),
-    _React$useState68 = _slicedToArray(_React$useState67, 2),
-    showHotelSearch = _React$useState68[0],
-    setShowHotelSearch = _React$useState68[1];
+function EditStopForm(_ref21) {
+  var draft = _ref21.draft,
+    setDraft = _ref21.setDraft;
+  var _React$useState69 = React.useState(false),
+    _React$useState70 = _slicedToArray(_React$useState69, 2),
+    showHotelSearch = _React$useState70[0],
+    setShowHotelSearch = _React$useState70[1];
   var field = function field(key, label) {
     var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'text';
     return /*#__PURE__*/React.createElement("label", {
@@ -5081,10 +5175,10 @@ function EditStopForm(_ref19) {
         color: COLORS.ink,
         boxSizing: 'border-box'
       }
-    }, Object.entries(CAT_META).map(function (_ref20) {
-      var _ref21 = _slicedToArray(_ref20, 2),
-        k = _ref21[0],
-        v = _ref21[1];
+    }, Object.entries(CAT_META).map(function (_ref22) {
+      var _ref23 = _slicedToArray(_ref22, 2),
+        k = _ref23[0],
+        v = _ref23[1];
       return /*#__PURE__*/React.createElement("option", {
         key: k,
         value: k
@@ -5173,12 +5267,12 @@ function EditStopForm(_ref19) {
 }
 
 // ─── Map ────────────────────────────────────────────────────
-function MapScreen(_ref22) {
-  var trip = _ref22.trip;
-  var _React$useState69 = React.useState(0),
-    _React$useState70 = _slicedToArray(_React$useState69, 2),
-    selectedDay = _React$useState70[0],
-    setSelectedDay = _React$useState70[1];
+function MapScreen(_ref24) {
+  var trip = _ref24.trip;
+  var _React$useState71 = React.useState(0),
+    _React$useState72 = _slicedToArray(_React$useState71, 2),
+    selectedDay = _React$useState72[0],
+    setSelectedDay = _React$useState72[1];
   var day = trip.days[selectedDay];
   var places = day.items.filter(function (it) {
     return it.loc;
@@ -5343,11 +5437,11 @@ function MapScreen(_ref22) {
 }
 
 // ─── Food ───────────────────────────────────────────────────
-function FoodScreen(_ref23) {
-  var trip = _ref23.trip,
-    onEditFood = _ref23.onEditFood,
-    editing = _ref23.editing,
-    setEditing = _ref23.setEditing;
+function FoodScreen(_ref25) {
+  var trip = _ref25.trip,
+    onEditFood = _ref25.onEditFood,
+    editing = _ref25.editing,
+    setEditing = _ref25.setEditing;
   var grouped = {};
   (trip.food || []).forEach(function (f, idx) {
     (grouped[f.cat] = grouped[f.cat] || []).push(_objectSpread(_objectSpread({}, f), {}, {
@@ -5411,10 +5505,10 @@ function FoodScreen(_ref23) {
       flexDirection: 'column',
       gap: 18
     }
-  }, Object.entries(grouped).map(function (_ref24) {
-    var _ref25 = _slicedToArray(_ref24, 2),
-      cat = _ref25[0],
-      items = _ref25[1];
+  }, Object.entries(grouped).map(function (_ref26) {
+    var _ref27 = _slicedToArray(_ref26, 2),
+      cat = _ref27[0],
+      items = _ref27[1];
     return /*#__PURE__*/React.createElement("div", {
       key: cat
     }, /*#__PURE__*/React.createElement("div", {
@@ -5576,13 +5670,13 @@ function FoodScreen(_ref23) {
 }
 
 // ─── Prep (editable lists) ─────────────────────────────────
-function PrepScreen(_ref26) {
+function PrepScreen(_ref28) {
   var _trip$days$, _trip$days;
-  var trip = _ref26.trip,
-    prepProp = _ref26.prep,
-    onEditPrep = _ref26.onEditPrep,
-    editing = _ref26.editing,
-    setEditing = _ref26.setEditing;
+  var trip = _ref28.trip,
+    prepProp = _ref28.prep,
+    onEditPrep = _ref28.onEditPrep,
+    editing = _ref28.editing,
+    setEditing = _ref28.setEditing;
   var totalStops = trip.days.reduce(function (s, d) {
     return s + d.items.length;
   }, 0);
@@ -5623,9 +5717,9 @@ function PrepScreen(_ref26) {
       ddayColor = COLORS.mute;
     }
   }
-  var Section = function Section(_ref27) {
-    var sectionKey = _ref27.sectionKey,
-      title = _ref27.title;
+  var Section = function Section(_ref29) {
+    var sectionKey = _ref29.sectionKey,
+      title = _ref29.title;
     var items = prep[sectionKey] || [];
     var _useDragReorder4 = useDragReorder(function (from, to) {
         var list = _toConsumableArray(items);
@@ -5905,12 +5999,12 @@ function PrepScreen(_ref26) {
 }
 
 // ─── Tab bar (no edit toggle) ──────────────────────────────
-function TabBar(_ref28) {
-  var tab = _ref28.tab,
-    setTab = _ref28.setTab,
-    visible = _ref28.visible,
-    editing = _ref28.editing,
-    onToggleEdit = _ref28.onToggleEdit;
+function TabBar(_ref30) {
+  var tab = _ref30.tab,
+    setTab = _ref30.setTab,
+    visible = _ref30.visible,
+    editing = _ref30.editing,
+    onToggleEdit = _ref30.onToggleEdit;
   var tabs = [{
     id: 'home',
     icon: 'sight',
@@ -6026,20 +6120,20 @@ function saveNav(state) {
 
 // ─── Splash Screen (로그인 후 로딩 중 표시) ──────────────────
 var SPLASH_PLACES = ['✈ New York', '🗼 Paris', '🗾 Tokyo', '🌉 San Francisco', '🏝 Bali', '🎡 London'];
-function SplashScreen(_ref29) {
-  var visible = _ref29.visible;
-  var _React$useState71 = React.useState(0),
-    _React$useState72 = _slicedToArray(_React$useState71, 2),
-    idx = _React$useState72[0],
-    setIdx = _React$useState72[1];
+function SplashScreen(_ref31) {
+  var visible = _ref31.visible;
   var _React$useState73 = React.useState(0),
     _React$useState74 = _slicedToArray(_React$useState73, 2),
-    animKey = _React$useState74[0],
-    setAnimKey = _React$useState74[1];
-  var _React$useState75 = React.useState(false),
+    idx = _React$useState74[0],
+    setIdx = _React$useState74[1];
+  var _React$useState75 = React.useState(0),
     _React$useState76 = _slicedToArray(_React$useState75, 2),
-    hiding = _React$useState76[0],
-    setHiding = _React$useState76[1];
+    animKey = _React$useState76[0],
+    setAnimKey = _React$useState76[1];
+  var _React$useState77 = React.useState(false),
+    _React$useState78 = _slicedToArray(_React$useState77, 2),
+    hiding = _React$useState78[0],
+    setHiding = _React$useState78[1];
   React.useEffect(function () {
     var t = setInterval(function () {
       setIdx(function (i) {
@@ -6180,19 +6274,19 @@ function TakeoffIcon() {
 }
 
 // ─── Login Screen ────────────────────────────────────────────
-function LoginScreen(_ref30) {
-  var errorMsg = _ref30.errorMsg,
-    onLoginStart = _ref30.onLoginStart;
-  var _React$useState77 = React.useState(false),
-    _React$useState78 = _slicedToArray(_React$useState77, 2),
-    loading = _React$useState78[0],
-    setLoading = _React$useState78[1];
-  var _React$useState79 = React.useState(''),
+function LoginScreen(_ref32) {
+  var errorMsg = _ref32.errorMsg,
+    onLoginStart = _ref32.onLoginStart;
+  var _React$useState79 = React.useState(false),
     _React$useState80 = _slicedToArray(_React$useState79, 2),
-    errLocal = _React$useState80[0],
-    setErrLocal = _React$useState80[1];
+    loading = _React$useState80[0],
+    setLoading = _React$useState80[1];
+  var _React$useState81 = React.useState(''),
+    _React$useState82 = _slicedToArray(_React$useState81, 2),
+    errLocal = _React$useState82[0],
+    setErrLocal = _React$useState82[1];
   var handleLogin = /*#__PURE__*/function () {
-    var _ref31 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
+    var _ref33 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
       var _t4, _t5;
       return _regenerator().w(function (_context3) {
         while (1) switch (_context3.p = _context3.n) {
@@ -6242,7 +6336,7 @@ function LoginScreen(_ref30) {
       }, _callee2, null, [[4, 6], [1, 3]]);
     }));
     return function handleLogin() {
-      return _ref31.apply(this, arguments);
+      return _ref33.apply(this, arguments);
     };
   }();
   var displayErr = errorMsg || errLocal;
@@ -6347,37 +6441,37 @@ function LoginScreen(_ref30) {
 }
 
 // ─── Companion Sheet ──────────────────────────────────────────
-function CompanionSheet(_ref32) {
-  var open = _ref32.open,
-    onClose = _ref32.onClose,
-    authUser = _ref32.authUser,
-    userData = _ref32.userData,
-    onUserDataUpdate = _ref32.onUserDataUpdate,
-    trips = _ref32.trips;
-  var _React$useState81 = React.useState({}),
-    _React$useState82 = _slicedToArray(_React$useState81, 2),
-    tripCompanions = _React$useState82[0],
-    setTripCompanions = _React$useState82[1];
-  var _React$useState83 = React.useState(null),
+function CompanionSheet(_ref34) {
+  var open = _ref34.open,
+    onClose = _ref34.onClose,
+    authUser = _ref34.authUser,
+    userData = _ref34.userData,
+    onUserDataUpdate = _ref34.onUserDataUpdate,
+    trips = _ref34.trips;
+  var _React$useState83 = React.useState({}),
     _React$useState84 = _slicedToArray(_React$useState83, 2),
-    expandedInvite = _React$useState84[0],
-    setExpandedInvite = _React$useState84[1];
-  var _React$useState85 = React.useState(''),
+    tripCompanions = _React$useState84[0],
+    setTripCompanions = _React$useState84[1];
+  var _React$useState85 = React.useState(null),
     _React$useState86 = _slicedToArray(_React$useState85, 2),
-    inviteEmail = _React$useState86[0],
-    setInviteEmail = _React$useState86[1];
+    expandedInvite = _React$useState86[0],
+    setExpandedInvite = _React$useState86[1];
   var _React$useState87 = React.useState(''),
     _React$useState88 = _slicedToArray(_React$useState87, 2),
-    inviteMsg = _React$useState88[0],
-    setInviteMsg = _React$useState88[1];
-  var _React$useState89 = React.useState(false),
+    inviteEmail = _React$useState88[0],
+    setInviteEmail = _React$useState88[1];
+  var _React$useState89 = React.useState(''),
     _React$useState90 = _slicedToArray(_React$useState89, 2),
-    inviting = _React$useState90[0],
-    setInviting = _React$useState90[1];
-  var _React$useState91 = React.useState([]),
+    inviteMsg = _React$useState90[0],
+    setInviteMsg = _React$useState90[1];
+  var _React$useState91 = React.useState(false),
     _React$useState92 = _slicedToArray(_React$useState91, 2),
-    pendingInvites = _React$useState92[0],
-    setPendingInvites = _React$useState92[1];
+    inviting = _React$useState92[0],
+    setInviting = _React$useState92[1];
+  var _React$useState93 = React.useState([]),
+    _React$useState94 = _slicedToArray(_React$useState93, 2),
+    pendingInvites = _React$useState94[0],
+    setPendingInvites = _React$useState94[1];
   var tripIds = (trips || []).map(function (t) {
     return t.id;
   }).join(',');
@@ -6402,7 +6496,7 @@ function CompanionSheet(_ref32) {
     }
   }, [open]);
   var handleInvite = /*#__PURE__*/function () {
-    var _ref33 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(tripId, tripTitle) {
+    var _ref35 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee3(tripId, tripTitle) {
       var res;
       return _regenerator().w(function (_context4) {
         while (1) switch (_context4.n) {
@@ -6430,11 +6524,11 @@ function CompanionSheet(_ref32) {
       }, _callee3);
     }));
     return function handleInvite(_x, _x2) {
-      return _ref33.apply(this, arguments);
+      return _ref35.apply(this, arguments);
     };
   }();
   var handleAccept = /*#__PURE__*/function () {
-    var _ref34 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(inv) {
+    var _ref36 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee4(inv) {
       var tripId;
       return _regenerator().w(function (_context5) {
         while (1) switch (_context5.n) {
@@ -6457,7 +6551,7 @@ function CompanionSheet(_ref32) {
       }, _callee4);
     }));
     return function handleAccept(_x3) {
-      return _ref34.apply(this, arguments);
+      return _ref36.apply(this, arguments);
     };
   }();
   if (!open) return null;
@@ -6882,105 +6976,105 @@ function App() {
   var _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
 
   // ── Firebase auth + data state ─────────────────────────────
-  var _React$useState93 = React.useState(_cache !== null && _cache !== void 0 && _cache.userData ? 'in' : 'loading'),
-    _React$useState94 = _slicedToArray(_React$useState93, 2),
-    authState = _React$useState94[0],
-    setAuthState = _React$useState94[1];
-  var _React$useState95 = React.useState(null),
+  var _React$useState95 = React.useState(_cache !== null && _cache !== void 0 && _cache.userData ? 'in' : 'loading'),
     _React$useState96 = _slicedToArray(_React$useState95, 2),
-    authUser = _React$useState96[0],
-    setAuthUser = _React$useState96[1];
-  var _React$useState97 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.userData) || null),
+    authState = _React$useState96[0],
+    setAuthState = _React$useState96[1];
+  var _React$useState97 = React.useState(null),
     _React$useState98 = _slicedToArray(_React$useState97, 2),
-    userData = _React$useState98[0],
-    setUserData = _React$useState98[1];
-  var _React$useState99 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.trip) || null),
+    authUser = _React$useState98[0],
+    setAuthUser = _React$useState98[1];
+  var _React$useState99 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.userData) || null),
     _React$useState100 = _slicedToArray(_React$useState99, 2),
-    trip = _React$useState100[0],
-    setTrip = _React$useState100[1];
-  var _React$useState101 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.prep) || {
+    userData = _React$useState100[0],
+    setUserData = _React$useState100[1];
+  var _React$useState101 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.trip) || null),
+    _React$useState102 = _slicedToArray(_React$useState101, 2),
+    trip = _React$useState102[0],
+    setTrip = _React$useState102[1];
+  var _React$useState103 = React.useState((_cache === null || _cache === void 0 ? void 0 : _cache.prep) || {
       checklist: [],
       docs: [],
       pack: []
     }),
-    _React$useState102 = _slicedToArray(_React$useState101, 2),
-    prep = _React$useState102[0],
-    setPrep = _React$useState102[1];
-  var _React$useState103 = React.useState(null),
     _React$useState104 = _slicedToArray(_React$useState103, 2),
-    activeTripId = _React$useState104[0],
-    setActiveTripId = _React$useState104[1];
-  var _React$useState105 = React.useState([]),
+    prep = _React$useState104[0],
+    setPrep = _React$useState104[1];
+  var _React$useState105 = React.useState(null),
     _React$useState106 = _slicedToArray(_React$useState105, 2),
-    userTrips = _React$useState106[0],
-    setUserTrips = _React$useState106[1];
-  var _React$useState107 = React.useState(false),
+    activeTripId = _React$useState106[0],
+    setActiveTripId = _React$useState106[1];
+  var _React$useState107 = React.useState([]),
     _React$useState108 = _slicedToArray(_React$useState107, 2),
-    tripsLoading = _React$useState108[0],
-    setTripsLoading = _React$useState108[1];
+    userTrips = _React$useState108[0],
+    setUserTrips = _React$useState108[1];
   var _React$useState109 = React.useState(false),
     _React$useState110 = _slicedToArray(_React$useState109, 2),
-    companionOpen = _React$useState110[0],
-    setCompanionOpen = _React$useState110[1];
-  var _React$useState111 = React.useState(null),
+    tripsLoading = _React$useState110[0],
+    setTripsLoading = _React$useState110[1];
+  var _React$useState111 = React.useState(false),
     _React$useState112 = _slicedToArray(_React$useState111, 2),
-    shareTripTarget = _React$useState112[0],
-    setShareTripTarget = _React$useState112[1];
-  var _React$useState113 = React.useState(''),
+    companionOpen = _React$useState112[0],
+    setCompanionOpen = _React$useState112[1];
+  var _React$useState113 = React.useState(null),
     _React$useState114 = _slicedToArray(_React$useState113, 2),
-    loginError = _React$useState114[0],
-    setLoginError = _React$useState114[1];
-  var _React$useState115 = React.useState(false),
+    shareTripTarget = _React$useState114[0],
+    setShareTripTarget = _React$useState114[1];
+  var _React$useState115 = React.useState(''),
     _React$useState116 = _slicedToArray(_React$useState115, 2),
-    loginPending = _React$useState116[0],
-    setLoginPending = _React$useState116[1]; // 로그인 버튼 누른 후 로딩 중
+    loginError = _React$useState116[0],
+    setLoginError = _React$useState116[1];
+  var _React$useState117 = React.useState(false),
+    _React$useState118 = _slicedToArray(_React$useState117, 2),
+    loginPending = _React$useState118[0],
+    setLoginPending = _React$useState118[1]; // 로그인 버튼 누른 후 로딩 중
   var tripRef = React.useRef(null); // for loop-prevention
 
   // ── UI nav state ───────────────────────────────────────────
-  var _React$useState117 = React.useState(_nav.tab || 'home'),
-    _React$useState118 = _slicedToArray(_React$useState117, 2),
-    tab = _React$useState118[0],
-    _setTab = _React$useState118[1];
-  var _React$useState119 = React.useState((_nav$dayIdx = _nav.dayIdx) !== null && _nav$dayIdx !== void 0 ? _nav$dayIdx : null),
+  var _React$useState119 = React.useState(_nav.tab || 'home'),
     _React$useState120 = _slicedToArray(_React$useState119, 2),
-    dayIdx = _React$useState120[0],
-    setDayIdx = _React$useState120[1];
-  var _React$useState121 = React.useState((_nav$hotelIdx = _nav.hotelIdx) !== null && _nav$hotelIdx !== void 0 ? _nav$hotelIdx : null),
+    tab = _React$useState120[0],
+    _setTab = _React$useState120[1];
+  var _React$useState121 = React.useState((_nav$dayIdx = _nav.dayIdx) !== null && _nav$dayIdx !== void 0 ? _nav$dayIdx : null),
     _React$useState122 = _slicedToArray(_React$useState121, 2),
-    hotelIdx = _React$useState122[0],
-    setHotelIdx = _React$useState122[1];
-  var _React$useState123 = React.useState(null),
+    dayIdx = _React$useState122[0],
+    setDayIdx = _React$useState122[1];
+  var _React$useState123 = React.useState((_nav$hotelIdx = _nav.hotelIdx) !== null && _nav$hotelIdx !== void 0 ? _nav$hotelIdx : null),
     _React$useState124 = _slicedToArray(_React$useState123, 2),
-    openStop = _React$useState124[0],
-    setOpenStop = _React$useState124[1];
-  var _React$useState125 = React.useState(CITIES[0]),
+    hotelIdx = _React$useState124[0],
+    setHotelIdx = _React$useState124[1];
+  var _React$useState125 = React.useState(null),
     _React$useState126 = _slicedToArray(_React$useState125, 2),
-    city = _React$useState126[0],
-    setCity = _React$useState126[1];
-  var _React$useState127 = React.useState(false),
+    openStop = _React$useState126[0],
+    setOpenStop = _React$useState126[1];
+  var _React$useState127 = React.useState(CITIES[0]),
     _React$useState128 = _slicedToArray(_React$useState127, 2),
-    cityPicker = _React$useState128[0],
-    setCityPicker = _React$useState128[1];
-  var _React$useState129 = React.useState(null),
+    city = _React$useState128[0],
+    setCity = _React$useState128[1];
+  var _React$useState129 = React.useState(false),
     _React$useState130 = _slicedToArray(_React$useState129, 2),
-    hotelSheet = _React$useState130[0],
-    setHotelSheet = _React$useState130[1];
-  var _React$useState131 = React.useState(0),
+    cityPicker = _React$useState130[0],
+    setCityPicker = _React$useState130[1];
+  var _React$useState131 = React.useState(null),
     _React$useState132 = _slicedToArray(_React$useState131, 2),
-    scrollKey = _React$useState132[0],
-    setScrollKey = _React$useState132[1];
-  var _React$useState133 = React.useState(false),
+    hotelSheet = _React$useState132[0],
+    setHotelSheet = _React$useState132[1];
+  var _React$useState133 = React.useState(0),
     _React$useState134 = _slicedToArray(_React$useState133, 2),
-    editing = _React$useState134[0],
-    setEditing = _React$useState134[1];
-  var _React$useState135 = React.useState(true),
+    scrollKey = _React$useState134[0],
+    setScrollKey = _React$useState134[1];
+  var _React$useState135 = React.useState(false),
     _React$useState136 = _slicedToArray(_React$useState135, 2),
-    tabBarVisible = _React$useState136[0],
-    setTabBarVisible = _React$useState136[1];
-  var _React$useState137 = React.useState(false),
+    editing = _React$useState136[0],
+    setEditing = _React$useState136[1];
+  var _React$useState137 = React.useState(true),
     _React$useState138 = _slicedToArray(_React$useState137, 2),
-    saveConfirm = _React$useState138[0],
-    setSaveConfirm = _React$useState138[1]; // 저장 확인 다이얼로그
+    tabBarVisible = _React$useState138[0],
+    setTabBarVisible = _React$useState138[1];
+  var _React$useState139 = React.useState(false),
+    _React$useState140 = _slicedToArray(_React$useState139, 2),
+    saveConfirm = _React$useState140[0],
+    setSaveConfirm = _React$useState140[1]; // 저장 확인 다이얼로그
   var lastScrollTop = React.useRef(0);
   var savedHomeScrollY = React.useRef(0);
   var navGoingBack = React.useRef(false);
@@ -7029,7 +7123,7 @@ function App() {
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(function () {
     return fbOnAuth(/*#__PURE__*/function () {
-      var _ref35 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(fbUser) {
+      var _ref37 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee5(fbUser) {
         var fallback;
         return _regenerator().w(function (_context6) {
           while (1) switch (_context6.n) {
@@ -7072,7 +7166,7 @@ function App() {
         }, _callee5);
       }));
       return function (_x4) {
-        return _ref35.apply(this, arguments);
+        return _ref37.apply(this, arguments);
       };
     }());
   }, []);
@@ -7192,7 +7286,7 @@ function App() {
     if (authUser !== null && authUser !== void 0 && authUser.uid) fbSavePrep(authUser.uid, newPrep).catch(console.error);
   };
   var deleteTrip = /*#__PURE__*/function () {
-    var _ref36 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(tripId) {
+    var _ref38 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(tripId) {
       var t, isOwner, msg;
       return _regenerator().w(function (_context7) {
         while (1) switch (_context7.n) {
@@ -7229,7 +7323,7 @@ function App() {
       }, _callee6);
     }));
     return function deleteTrip(_x5) {
-      return _ref36.apply(this, arguments);
+      return _ref38.apply(this, arguments);
     };
   }();
 
