@@ -405,6 +405,12 @@ const Icon = ({
       }), /*#__PURE__*/React.createElement("path", {
         d: "M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h2M8 18h2M12 18h2M16 18h2"
       }));
+    case 'bell':
+      return /*#__PURE__*/React.createElement("svg", p, /*#__PURE__*/React.createElement("path", {
+        d: "M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"
+      }), /*#__PURE__*/React.createElement("path", {
+        d: "M13.73 21a2 2 0 0 1-3.46 0"
+      }));
     default:
       return null;
   }
@@ -496,14 +502,18 @@ function SwipeableRow({
   onDelete,
   disabled,
   isDragging,
-  wrapStyle = {}
+  wrapStyle = {},
+  editIcon,
+  editBg,
+  editLabel,
+  deleteLabel
 }) {
   const [x, setX] = React.useState(0);
   const [open, setOpen] = React.useState(false);
   const startRef = React.useRef(null);
   const dragging = React.useRef(false);
   const xRef = React.useRef(0);
-  const REVEAL = 116;
+  const REVEAL = onEdit ? 104 : 58;
   const DELETE_EXTRA = 72;
   const close = () => {
     setX(0);
@@ -570,38 +580,57 @@ function SwipeableRow({
     onTouchEnd: onTouchEnd
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'absolute',
-      right: 0,
-      top: 0,
-      bottom: 0,
+      display: 'flex',
+      width: `calc(100% + ${REVEAL}px)`,
+      transform: `translateX(${x}px)`,
+      transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.22,1,0.36,1)',
+      willChange: 'transform',
+      WebkitTapHighlightColor: 'transparent'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, children), /*#__PURE__*/React.createElement("div", {
+    style: {
       width: REVEAL,
+      flexShrink: 0,
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      gap: 8,
-      zIndex: 0
+      gap: 8
     }
-  }, /*#__PURE__*/React.createElement("button", {
+  }, onEdit && /*#__PURE__*/React.createElement("button", {
     onClick: e => {
       e.stopPropagation();
       close();
       setTimeout(onEdit, 100);
     },
     style: {
-      width: 46,
-      height: 46,
-      borderRadius: 23,
+      width: editLabel ? 46 : 38,
+      height: editLabel ? 34 : 38,
+      borderRadius: editLabel ? 9 : 19,
       border: 'none',
       cursor: 'pointer',
-      background: '#ffa500',
+      background: editBg || '#ffa500',
       flexShrink: 0,
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      gap: 2
     }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "edit",
-    size: 17,
+  }, editLabel ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 10,
+      fontWeight: 600,
+      color: '#fff'
+    }
+  }, editLabel) : /*#__PURE__*/React.createElement(Icon, {
+    name: editIcon || 'edit',
+    size: 14,
     color: "#fff",
     stroke: 2
   })), /*#__PURE__*/React.createElement("button", {
@@ -611,33 +640,32 @@ function SwipeableRow({
       setTimeout(onDelete, 100);
     },
     style: {
-      width: 46,
-      height: 46,
-      borderRadius: 23,
+      width: deleteLabel ? 46 : 38,
+      height: deleteLabel ? 34 : 38,
+      borderRadius: deleteLabel ? 9 : 19,
       border: 'none',
       cursor: 'pointer',
       background: '#B5451B',
       flexShrink: 0,
       display: 'flex',
+      flexDirection: 'column',
       alignItems: 'center',
-      justifyContent: 'center'
+      justifyContent: 'center',
+      gap: 2
     }
-  }, /*#__PURE__*/React.createElement(Icon, {
+  }, deleteLabel ? /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 10,
+      fontWeight: 600,
+      color: '#fff'
+    }
+  }, deleteLabel) : /*#__PURE__*/React.createElement(Icon, {
     name: "trash",
-    size: 17,
+    size: 14,
     color: "#fff",
     stroke: 2
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      transform: `translateX(${x}px)`,
-      transition: dragging.current ? 'none' : 'transform 0.28s cubic-bezier(0.22,1,0.36,1)',
-      willChange: 'transform',
-      position: 'relative',
-      zIndex: 1,
-      background: COLORS.card,
-      WebkitTapHighlightColor: 'transparent'
-    }
-  }, children));
+  })))));
 }
 
 // ─── Swipe-back edge gesture wrapper ─────────────────────────
@@ -3086,7 +3114,7 @@ function TripSwipeCard({
       borderRadius: 25,
       border: 'none',
       cursor: 'pointer',
-      background: COLORS.accent,
+      background: '#ffa500',
       flexShrink: 0,
       display: 'flex',
       alignItems: 'center',
@@ -3540,7 +3568,9 @@ function TripsScreen({
   loading,
   userData,
   onOpenCompanion,
-  myUid
+  myUid,
+  onOpenNotifs,
+  unreadCount
 }) {
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
@@ -3594,11 +3624,53 @@ function TripsScreen({
     name: "user",
     size: 18,
     color: COLORS.mute
-  })), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenNotifs,
+    style: {
+      position: 'absolute',
+      top: 'calc(18px + env(safe-area-inset-top,0px))',
+      right: 68,
+      zIndex: 10,
+      width: 34,
+      height: 34,
+      borderRadius: 0,
+      background: 'transparent',
+      border: 'none',
+      padding: 0,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bell",
+    size: 20,
+    color: COLORS.ink,
+    stroke: 1.8
+  }), unreadCount > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: 0,
+      right: 0,
+      minWidth: 15,
+      height: 15,
+      borderRadius: 8,
+      background: '#E03C31',
+      padding: '0 3px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: MONO,
+      fontSize: 9,
+      color: '#fff',
+      fontWeight: 700,
+      boxSizing: 'border-box'
+    }
+  }, unreadCount > 9 ? '9+' : unreadCount)), /*#__PURE__*/React.createElement("div", {
     style: {
       paddingTop: 'calc(16px + env(safe-area-inset-top,0px))',
       paddingLeft: 20,
-      paddingRight: 72,
+      paddingRight: 112,
       paddingBottom: 16
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -3615,7 +3687,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v148"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v174"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -3810,6 +3882,7 @@ function HomeScreen({
   trip,
   onOpenDay,
   onOpenHotel,
+  onOpenHotelSheet,
   city,
   onPickCity,
   onEditTrip,
@@ -3827,7 +3900,9 @@ function HomeScreen({
   setEditing,
   userData,
   onOpenCompanion,
-  onLoadSample
+  onLoadSample,
+  onOpenNotifs,
+  unreadCount
 }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
@@ -3991,6 +4066,38 @@ function HomeScreen({
     name: "user",
     size: 18,
     color: COLORS.mute
+  })), onOpenNotifs && /*#__PURE__*/React.createElement("button", {
+    onClick: onOpenNotifs,
+    style: {
+      position: 'absolute',
+      top: 'calc(18px + env(safe-area-inset-top,0px))',
+      right: 68,
+      zIndex: 10,
+      width: 34,
+      height: 34,
+      background: 'transparent',
+      border: 'none',
+      padding: 0,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "bell",
+    size: 20,
+    color: COLORS.ink,
+    stroke: 1.8
+  }), unreadCount > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: 2,
+      right: 2,
+      width: 8,
+      height: 8,
+      borderRadius: 4,
+      background: '#E03C31'
+    }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
       paddingTop: 'calc(52px + env(safe-area-inset-top, 0px))'
@@ -4198,10 +4305,11 @@ function HomeScreen({
     }
   }, trip.days.map((d, i) => {
     const dp = dayDragProps(i);
-    const isDropTarget = dp['data-drop-target'];
-    const isDragSource = dp['data-drag-source'];
-    return /*#__PURE__*/React.createElement(SwipeableRow, {
+    return /*#__PURE__*/React.createElement("div", {
       key: i,
+      ref: dp.ref,
+      style: dp.style || {}
+    }, /*#__PURE__*/React.createElement(SwipeableRow, {
       onEdit: () => onOpenDay(i),
       onDelete: () => onDeleteDay(i),
       disabled: editing,
@@ -4210,7 +4318,6 @@ function HomeScreen({
         borderRadius: 16
       }
     }, /*#__PURE__*/React.createElement("div", {
-      ref: dp.ref,
       onTouchStart: dp.onTouchStart,
       onTouchMove: dp.onTouchMove,
       onTouchEnd: dp.onTouchEnd,
@@ -4218,25 +4325,9 @@ function HomeScreen({
       style: {
         borderRadius: 16,
         cursor: editing ? 'grab' : 'pointer',
-        ...(dp.style || {}),
-        // 드롭 타겟: 카드 모양 고스트 플레이스홀더
-        ...(isDropTarget ? {
-          background: 'transparent',
-          border: `2px dashed ${COLORS.line}`
-        } : {
-          background: COLORS.card,
-          border: 'none'
-        })
+        background: COLORS.card
       }
-    }, isDropTarget ?
-    /*#__PURE__*/
-    // 카드 모양 빈 플레이스홀더 (같은 높이)
-    React.createElement("div", {
-      style: {
-        height: 88,
-        borderRadius: 14
-      }
-    }) : /*#__PURE__*/React.createElement("div", {
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
         padding: 12,
         display: 'flex',
@@ -4334,7 +4425,7 @@ function HomeScreen({
       size: 16,
       color: COLORS.mute,
       stroke: 1.8
-    }))));
+    })))));
   }), (() => {
     const hasItems = trip.days.some(d => d.items?.length > 0);
     if ((trip.days.length === 0 || !hasItems) && onLoadSample) return /*#__PURE__*/React.createElement("div", {
@@ -4426,16 +4517,18 @@ function HomeScreen({
     color: COLORS.mute,
     stroke: 2
   }), " \uC77C\uCC28 \uCD94\uAC00")), (() => {
-    const allHotels = trip.hotels || [];
-    const linkedNames = new Set((trip.days || []).flatMap(d => (d.items || []).filter(it => it._hotelRef).map(it => it._hotelRef)));
-    const hotelList = allHotels.filter(h => linkedNames.has(h.name));
+    const hotelList = (trip.hotels || []).map((h, idx) => ({
+      ...h,
+      _idx: idx
+    })).sort((a, b) => (a.checkin || '') < (b.checkin || '') ? -1 : (a.checkin || '') > (b.checkin || '') ? 1 : 0);
     const total = hotelList.length;
+    const openHotel = idx => onOpenHotelSheet ? onOpenHotelSheet(idx) : onOpenHotel(idx);
     return /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '22px 24px 8px',
         display: 'flex',
         justifyContent: 'space-between',
-        alignItems: 'baseline'
+        alignItems: 'center'
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -4445,12 +4538,36 @@ function HomeScreen({
       }
     }, "\uC219\uC18C"), /*#__PURE__*/React.createElement("div", {
       style: {
+        display: 'flex',
+        gap: 10,
+        alignItems: 'center'
+      }
+    }, !editing && /*#__PURE__*/React.createElement("button", {
+      onClick: () => onOpenHotelSheet ? onOpenHotelSheet('new') : onAddHotel(),
+      style: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        border: 'none',
+        background: COLORS.softer,
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "plus",
+      size: 14,
+      color: COLORS.mute,
+      stroke: 2
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
         fontFamily: MONO,
         fontSize: 10,
         color: COLORS.mute,
         letterSpacing: '0.1em'
       }
-    }, total, " STAYS")), /*#__PURE__*/React.createElement("div", {
+    }, total, " STAYS"))), /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '0 16px',
         display: 'flex',
@@ -4458,17 +4575,23 @@ function HomeScreen({
         gap: 8
       }
     }, hotelList.map((h, i) => {
-      const hp = hotelDragProps(i);
-      return /*#__PURE__*/React.createElement(SwipeableRow, {
-        key: i,
-        onEdit: () => onOpenHotel(i),
-        onDelete: () => onDeleteHotel(i),
+      const hp = hotelDragProps(h._idx);
+      return /*#__PURE__*/React.createElement("div", {
+        key: h._idx,
+        ref: hp.ref,
+        style: hp.style || {}
+      }, /*#__PURE__*/React.createElement(SwipeableRow, {
+        onEdit: () => openHotel(h._idx),
+        onDelete: () => onDeleteHotel(h._idx),
         disabled: editing,
         wrapStyle: {
           borderRadius: 16
         }
-      }, /*#__PURE__*/React.createElement("div", _extends({}, hp, {
-        onClick: () => !editing && onOpenHotel(i),
+      }, /*#__PURE__*/React.createElement("div", {
+        onTouchStart: hp.onTouchStart,
+        onTouchMove: hp.onTouchMove,
+        onTouchEnd: hp.onTouchEnd,
+        onClick: () => !editing && openHotel(h._idx),
         style: {
           background: COLORS.card,
           borderRadius: 16,
@@ -4477,10 +4600,9 @@ function HomeScreen({
           gap: 12,
           alignItems: 'center',
           cursor: editing ? 'grab' : 'pointer',
-          border: hp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
-          ...(hp.style || {})
+          border: hp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none'
         }
-      }), /*#__PURE__*/React.createElement("div", {
+      }, /*#__PURE__*/React.createElement("div", {
         style: {
           width: 64,
           height: 64,
@@ -4544,7 +4666,7 @@ function HomeScreen({
       }), /*#__PURE__*/React.createElement("button", {
         onClick: e => {
           e.stopPropagation();
-          onDeleteHotel(i);
+          onDeleteHotel(h._idx);
         },
         style: {
           width: 26,
@@ -4567,7 +4689,7 @@ function HomeScreen({
         size: 16,
         color: COLORS.mute,
         stroke: 1.8
-      })));
+      }))));
     })));
   })(), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -5146,13 +5268,14 @@ function DayScreen({
       size: 13,
       color: COLORS.accent,
       stroke: 2
-    }))), editing && dp['data-drag-over'] && /*#__PURE__*/React.createElement("div", {
+    }))), dp['data-drag-over'] && /*#__PURE__*/React.createElement("div", {
       style: {
         position: 'absolute',
         inset: -2,
-        border: `2px solid ${COLORS.accent}`,
+        border: `2px dashed rgba(193,79,46,0.45)`,
         borderRadius: 16,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
+        background: 'rgba(193,79,46,0.04)'
       }
     }))));
   }), editing && /*#__PURE__*/React.createElement("button", {
@@ -6138,7 +6261,7 @@ function StopSheet({
     startY: 0,
     startScrollTop: 0
   });
-  const kbh = useKeyboardHeight();
+  const scrollBeforeKbRef = React.useRef(null);
   React.useEffect(() => {
     setDraft(open.stop);
     committed.current = open.stop;
@@ -6210,6 +6333,28 @@ function StopSheet({
       el.removeEventListener('touchend', onEnd);
     };
   }, [open]);
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !sheetRef.current) return;
+    const adjust = () => {
+      const kbh = Math.max(0, window.innerHeight - vv.height);
+      if (kbh > 80) {
+        if (scrollBeforeKbRef.current === null) scrollBeforeKbRef.current = sheetRef.current.scrollTop;
+        const el = document.activeElement;
+        if (!el || el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
+        const rect = el.getBoundingClientRect();
+        const gap = rect.bottom - (vv.height - 12);
+        if (gap > 0) sheetRef.current.scrollTop += gap;
+      } else {
+        if (scrollBeforeKbRef.current !== null) {
+          sheetRef.current.scrollTop = scrollBeforeKbRef.current;
+          scrollBeforeKbRef.current = null;
+        }
+      }
+    };
+    vv.addEventListener('resize', adjust);
+    return () => vv.removeEventListener('resize', adjust);
+  }, [open]);
   const searchQuery = [draft.title, draft.en, draft.loc, 'New York'].filter(Boolean).join(' ');
   return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -6236,7 +6381,7 @@ function StopSheet({
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
       paddingBottom: 40,
-      maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 8}px)` : '92%',
+      maxHeight: '92%',
       overflowY: 'auto',
       overflowX: 'hidden'
     }
@@ -6487,15 +6632,873 @@ function StopSheet({
     size: 16,
     color: COLORS.ink,
     stroke: 1.8
-  })))))), kbh > 0 && /*#__PURE__*/React.createElement("div", {
+  }))))))));
+}
+
+// ─── Hotel Sheet (bottom sheet for add / view / edit hotel) ──
+function HotelSheet({
+  open,
+  onClose,
+  hotel,
+  trip,
+  tripDays,
+  onSave,
+  onDelete
+}) {
+  if (!open) return null;
+  const isNew = !hotel;
+  const blank = {
+    name: '',
+    area: '',
+    address: '',
+    checkin: '',
+    checkinTime: '15:00',
+    checkout: '',
+    checkoutTime: '12:00',
+    nights: '',
+    price: '',
+    phone: '',
+    confirmation: '',
+    note: '',
+    hue: 30
+  };
+  const [editing, setEditing] = React.useState(isNew);
+  const [draft, setDraft] = React.useState(hotel ? {
+    ...hotel
+  } : blank);
+  const committed = React.useRef(draft);
+  const [sheetY, setSheetY] = React.useState(0);
+  const [entered, setEntered] = React.useState(false);
+  const sheetRef = React.useRef(null);
+  const sheetYRef = React.useRef(0);
+  const dragRef = React.useRef({
+    active: false,
+    startY: 0,
+    startScrollTop: 0
+  });
+  const scrollBeforeKbRef = React.useRef(null);
+  const [searchQ, setSearchQ] = React.useState('');
+  const [searchRes, setSearchRes] = React.useState([]);
+  const [showSearch, setShowSearch] = React.useState(false);
+  const [timePicker, setTimePicker] = React.useState(null);
+  const searchTimer = React.useRef(null);
+  const searchFocused = React.useRef(false);
+  React.useEffect(() => {
+    const d = hotel ? {
+      ...hotel
+    } : blank;
+    setDraft(d);
+    committed.current = d;
+    setEditing(isNew);
+    setSheetY(0);
+    sheetYRef.current = 0;
+    setEntered(false);
+    setSearchQ('');
+    setSearchRes([]);
+    setShowSearch(false);
+    setTimePicker(null);
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [open]);
+  React.useEffect(() => {
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, []);
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY,
+        startScrollTop: el.scrollTop
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const {
+        startY,
+        startScrollTop
+      } = dragRef.current;
+      const dy = e.touches[0].clientY - startY;
+      if (startScrollTop > 8 || dy <= 0) {
+        dragRef.current.active = false;
+        return;
+      }
+      e.preventDefault();
+      sheetYRef.current = Math.max(0, dy);
+      setSheetY(sheetYRef.current);
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      const top = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
+      if (top > window.innerHeight / 2) onClose();else {
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [open]);
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !sheetRef.current) return;
+    const adjust = () => {
+      const kbh = Math.max(0, window.innerHeight - vv.height);
+      if (kbh > 80) {
+        if (scrollBeforeKbRef.current === null) scrollBeforeKbRef.current = sheetRef.current.scrollTop;
+        const el = document.activeElement;
+        if (!el || el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA') return;
+        const rect = el.getBoundingClientRect();
+        const gap = rect.bottom - (vv.height - 12);
+        if (gap > 0) sheetRef.current.scrollTop += gap;
+      } else {
+        if (scrollBeforeKbRef.current !== null) {
+          sheetRef.current.scrollTop = scrollBeforeKbRef.current;
+          scrollBeforeKbRef.current = null;
+        }
+      }
+    };
+    vv.addEventListener('resize', adjust);
+    return () => vv.removeEventListener('resize', adjust);
+  }, [open]);
+  React.useEffect(() => {
+    if (!draft.checkin || !draft.checkout) return;
+    const yr = trip ? extractTripYear(trip) : new Date().getFullYear();
+    const a = dayDateToIso(draft.checkin, yr);
+    const b = dayDateToIso(draft.checkout, yr);
+    if (!a || !b) return;
+    const diff = Math.round((new Date(b) - new Date(a)) / 86400000);
+    if (diff > 0) setDraft(prev => ({
+      ...prev,
+      nights: String(diff)
+    }));
+  }, [draft.checkin, draft.checkout]);
+  React.useEffect(() => {
+    clearTimeout(searchTimer.current);
+    if (!searchQ.trim()) {
+      setSearchRes([]);
+      setShowSearch(false);
+      return;
+    }
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=8&lang=en&osm_tag=tourism:hotel`)).json();
+        const feats = j?.features || [];
+        setSearchRes(feats);
+        if (feats.length && searchFocused.current) setShowSearch(true);
+      } catch (_) {}
+    }, 350);
+  }, [searchQ]);
+  const save = () => {
+    onSave(draft);
+    committed.current = {
+      ...draft
+    };
+    setEditing(false);
+  };
+  const hue = draft.hue || 25;
+  const dayOptions = (tripDays || []).map(d => d.date).filter(Boolean);
+  const field = (key, label, placeholder = '') => /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, label), /*#__PURE__*/React.createElement("input", {
+    value: draft[key] || '',
+    onChange: e => setDraft({
+      ...draft,
+      [key]: e.target.value
+    }),
+    placeholder: placeholder,
+    style: {
+      width: '100%',
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }));
+  const dateField = (key, label) => /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, label), dayOptions.length > 0 ? /*#__PURE__*/React.createElement("select", {
+    value: draft[key] || '',
+    onChange: e => setDraft({
+      ...draft,
+      [key]: e.target.value
+    }),
+    style: {
+      width: '100%',
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "\uB0A0\uC9DC \uC120\uD0DD"), dayOptions.map(d => /*#__PURE__*/React.createElement("option", {
+    key: d,
+    value: d
+  }, d))) : /*#__PURE__*/React.createElement("input", {
+    value: draft[key] || '',
+    onChange: e => setDraft({
+      ...draft,
+      [key]: e.target.value
+    }),
+    placeholder: "May 4",
+    style: {
+      width: '100%',
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }));
+  const rows = [draft.area && {
+    icon: 'pin',
+    label: '지역',
+    value: draft.area
+  }, (draft.checkin || draft.checkout) && {
+    icon: 'clock',
+    label: '일정',
+    value: `${draft.checkin || '—'} 체크인  →  ${draft.checkout || '—'} 체크아웃`
+  }, (draft.checkinTime || draft.checkoutTime) && {
+    icon: 'clock',
+    label: '시간',
+    value: `체크인 ${draft.checkinTime || '15:00'}  ·  체크아웃 ${draft.checkoutTime || '12:00'}`
+  }, draft.nights && {
+    icon: 'hotel',
+    label: '박수',
+    value: `${draft.nights}박`
+  }, draft.address && {
+    icon: 'map',
+    label: '주소',
+    value: draft.address
+  }, draft.phone && {
+    icon: 'phone',
+    label: '전화',
+    value: draft.phone
+  }, draft.price && {
+    icon: 'wallet',
+    label: '요금',
+    value: draft.price
+  }, draft.confirmation && {
+    icon: 'book',
+    label: '예약번호',
+    value: draft.confirmation
+  }, draft.note && {
+    icon: 'book',
+    label: '메모',
+    value: draft.note
+  }].filter(Boolean);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: `rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})`
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
     onClick: e => e.stopPropagation(),
     style: {
-      height: kbh,
       background: COLORS.bg,
-      flexShrink: 0,
-      transition: 'height 0.22s ease'
+      borderRadius: '22px 22px 0 0',
+      paddingBottom: 40,
+      maxHeight: '92%',
+      overflowY: 'auto',
+      overflowX: 'hidden'
     }
-  })));
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement(Photo, {
+    hue: hue,
+    label: (draft.name || '').toUpperCase().slice(0, 20),
+    height: 160
+  }), !editing && /*#__PURE__*/React.createElement("button", {
+    onClick: e => {
+      e.stopPropagation();
+      setEditing(true);
+    },
+    style: {
+      position: 'absolute',
+      top: 12,
+      right: 12,
+      zIndex: 5,
+      border: 'none',
+      background: 'rgba(255,255,255,0.92)',
+      borderRadius: 14,
+      padding: '7px 13px',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: 500,
+      color: COLORS.ink,
+      display: 'flex',
+      gap: 5,
+      alignItems: 'center',
+      boxShadow: '0 1px 6px rgba(0,0,0,0.12)'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "edit",
+    size: 12,
+    color: COLORS.ink,
+    stroke: 2
+  }), " \uC218\uC815")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 20px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.accent,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase'
+    }
+  }, "HOTEL", draft.nights ? ` · ${draft.nights}박` : ''), !editing && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 6,
+      fontFamily: SERIF,
+      fontSize: 28,
+      lineHeight: 1.12,
+      color: COLORS.ink
+    }
+  }, draft.name || '새 숙소'), !editing && draft.area && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 4,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute,
+      display: 'flex',
+      gap: 5,
+      alignItems: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "pin",
+    size: 12,
+    stroke: 1.8
+  }), " ", draft.area, draft.rating && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("span", {
+    style: {
+      opacity: 0.4
+    }
+  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, "\u2605 ", draft.rating))), editing ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uC219\uC18C \uC774\uB984"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'relative'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: searchQ !== '' ? searchQ : draft.name || '',
+    onChange: e => {
+      const v = e.target.value;
+      setSearchQ(v);
+      setDraft({
+        ...draft,
+        name: v
+      });
+    },
+    onFocus: () => {
+      searchFocused.current = true;
+      if (searchRes.length) setShowSearch(true);
+    },
+    onBlur: () => {
+      searchFocused.current = false;
+      setTimeout(() => setShowSearch(false), 150);
+    },
+    placeholder: "\uC219\uC18C \uAC80\uC0C9...",
+    style: {
+      width: '100%',
+      padding: '9px 36px 9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      right: 10,
+      top: '50%',
+      transform: 'translateY(-50%)',
+      pointerEvents: 'none'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "search",
+    size: 13,
+    color: COLORS.mute,
+    stroke: 2
+  }))), showSearch && searchRes.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      top: 'calc(100% + 4px)',
+      left: 0,
+      right: 0,
+      zIndex: 50,
+      background: COLORS.bg,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 10,
+      overflow: 'hidden',
+      boxShadow: '0 4px 20px rgba(0,0,0,0.12)'
+    }
+  }, searchRes.map((f, i) => {
+    const p = f.properties;
+    const hName = p.name || '';
+    const city = p.city || p.county || p.state || '';
+    const addr = [p.street, p.housenumber].filter(Boolean).join(' ');
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onMouseDown: e => e.preventDefault(),
+      onClick: () => {
+        setDraft({
+          ...draft,
+          name: hName,
+          area: city,
+          address: addr || hName,
+          phone: p.phone || ''
+        });
+        setSearchQ('');
+        setSearchRes([]);
+        setShowSearch(false);
+      },
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        width: '100%',
+        padding: '9px 12px',
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'left',
+        borderBottom: i < searchRes.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.ink,
+        fontWeight: 500
+      }
+    }, hName), city && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 11.5,
+        color: COLORS.mute,
+        marginTop: 1
+      }
+    }, [addr, city].filter(Boolean).join(', ')));
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '14px 16px'
+    }
+  }, field('area', '지역'), field('address', '주소'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, dateField('checkin', '체크인 날짜'), dateField('checkout', '체크아웃 날짜')), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10,
+      marginBottom: 10
+    }
+  }, ['checkin', 'checkout'].map(k => /*#__PURE__*/React.createElement("div", {
+    key: k
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, k === 'checkin' ? '체크인 시간' : '체크아웃 시간'), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setTimePicker(k),
+    style: {
+      width: '100%',
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      cursor: 'pointer',
+      textAlign: 'left',
+      display: 'flex',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      boxSizing: 'border-box'
+    }
+  }, /*#__PURE__*/React.createElement("span", null, draft[k === 'checkin' ? 'checkinTime' : 'checkoutTime'] || (k === 'checkin' ? '15:00' : '12:00')), /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-d",
+    size: 12,
+    color: COLORS.mute,
+    stroke: 2
+  }))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uBC15\uC218"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: draft.nights ? COLORS.ink : COLORS.mute
+    }
+  }, draft.nights ? `${draft.nights}박` : '날짜 선택 후 자동')), field('price', '요금')), field('phone', '전화'), field('confirmation', '예약번호'), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase',
+      marginBottom: 4
+    }
+  }, "\uBA54\uBAA8"), /*#__PURE__*/React.createElement("textarea", {
+    value: draft.note || '',
+    onChange: e => setDraft({
+      ...draft,
+      note: e.target.value
+    }),
+    rows: 3,
+    style: {
+      width: '100%',
+      padding: '9px 11px',
+      borderRadius: 8,
+      border: `1px solid ${COLORS.line}`,
+      background: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      boxSizing: 'border-box',
+      resize: 'none'
+    }
+  })))) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, rows.map((r, i, arr) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: COLORS.card,
+      padding: '13px 16px',
+      borderTopLeftRadius: i === 0 ? 12 : 0,
+      borderTopRightRadius: i === 0 ? 12 : 0,
+      borderBottomLeftRadius: i === arr.length - 1 ? 12 : 0,
+      borderBottomRightRadius: i === arr.length - 1 ? 12 : 0,
+      display: 'flex',
+      gap: 12,
+      alignItems: 'flex-start',
+      borderBottom: i < arr.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      paddingTop: 2
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: r.icon,
+    size: 15,
+    color: COLORS.mute,
+    stroke: 1.8
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.12em',
+      textTransform: 'uppercase'
+    }
+  }, r.label), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 2,
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.ink,
+      lineHeight: 1.45,
+      whiteSpace: 'pre-wrap'
+    }
+  }, r.value))))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 14,
+      display: 'flex',
+      gap: 8
+    }
+  }, editing ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: save,
+    style: {
+      flex: 1,
+      background: COLORS.ink,
+      color: COLORS.bg,
+      border: 'none',
+      borderRadius: 12,
+      padding: '13px',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: 'pointer',
+      display: 'flex',
+      gap: 6,
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "save",
+    size: 14,
+    color: COLORS.bg,
+    stroke: 1.8
+  }), " \uC800\uC7A5"), !isNew && /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setDraft({
+        ...committed.current
+      });
+      setEditing(false);
+    },
+    style: {
+      width: 80,
+      background: COLORS.card,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink
+    }
+  }, "\uCDE8\uC18C")) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
+    onClick: () => window.open(mapsSearchUrl([draft.name, draft.area].filter(Boolean).join(' ')), '_blank'),
+    style: {
+      flex: 1,
+      background: COLORS.ink,
+      color: COLORS.bg,
+      border: 'none',
+      borderRadius: 12,
+      padding: '13px',
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 500,
+      cursor: 'pointer',
+      display: 'flex',
+      gap: 6,
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "nav",
+    size: 14,
+    color: COLORS.bg,
+    stroke: 1.8
+  }), " \uC9C0\uB3C4"), /*#__PURE__*/React.createElement("button", {
+    onClick: onDelete,
+    style: {
+      width: 60,
+      background: COLORS.card,
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 12,
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "trash",
+    size: 16,
+    color: COLORS.accent,
+    stroke: 1.8
+  })))))), timePicker && /*#__PURE__*/React.createElement("div", {
+    onClick: () => setTimePicker(null),
+    style: {
+      position: 'absolute',
+      inset: 0,
+      background: 'rgba(0,0,0,0.3)',
+      zIndex: 10,
+      display: 'flex',
+      alignItems: 'flex-end',
+      borderRadius: '22px 22px 0 0',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      width: '100%',
+      background: COLORS.bg,
+      borderRadius: '18px 18px 0 0',
+      paddingBottom: 40
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 4px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 20px 10px',
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      textTransform: 'uppercase'
+    }
+  }, timePicker === 'checkin' ? '체크인 시간' : '체크아웃 시간'), (timePicker === 'checkin' ? ['12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00', '19:00'] : ['09:00', '10:00', '11:00', '12:00', '13:00', '14:00']).map(t => {
+    const k = timePicker === 'checkin' ? 'checkinTime' : 'checkoutTime';
+    const sel = draft[k] === t;
+    return /*#__PURE__*/React.createElement("button", {
+      key: t,
+      onClick: () => {
+        setDraft({
+          ...draft,
+          [k]: t
+        });
+        setTimePicker(null);
+      },
+      style: {
+        display: 'flex',
+        width: '100%',
+        padding: '13px 20px',
+        border: 'none',
+        background: sel ? `${COLORS.ink}0f` : 'transparent',
+        fontFamily: SANS,
+        fontSize: 15,
+        color: COLORS.ink,
+        cursor: 'pointer',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderBottom: `1px solid ${COLORS.line}`
+      }
+    }, /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontWeight: sel ? 600 : 400
+      }
+    }, t), sel && /*#__PURE__*/React.createElement(Icon, {
+      name: "check",
+      size: 14,
+      color: COLORS.accent,
+      stroke: 2.5
+    }));
+  })))));
 }
 function LocationField({
   value,
@@ -6505,7 +7508,9 @@ function LocationField({
   const [query, setQuery] = React.useState(value || '');
   const [results, setResults] = React.useState([]);
   const [show, setShow] = React.useState(false);
+  const [focused, setFocused] = React.useState(false);
   const timer = React.useRef(null);
+  const focusedRef = React.useRef(false);
   React.useEffect(() => {
     setQuery(value || '');
   }, [value]);
@@ -6521,7 +7526,7 @@ function LocationField({
       const j = await (await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=5&lang=en${bias}`)).json();
       const feats = j?.features || [];
       setResults(feats);
-      if (feats.length) setShow(true);
+      if (feats.length && focusedRef.current) setShow(true);
     } catch (_) {}
   };
   React.useEffect(() => {
@@ -6547,8 +7552,16 @@ function LocationField({
       setQuery(e.target.value);
       onChange(e.target.value, null);
     },
-    onFocus: () => results.length && setShow(true),
-    onBlur: () => setTimeout(() => setShow(false), 150),
+    onFocus: () => {
+      focusedRef.current = true;
+      setFocused(true);
+      if (results.length) setShow(true);
+    },
+    onBlur: () => {
+      focusedRef.current = false;
+      setFocused(false);
+      setTimeout(() => setShow(false), 150);
+    },
     onKeyDown: e => e.key === 'Enter' && doSearch(query),
     placeholder: "\uC704\uCE58 \uAC80\uC0C9...",
     style: {
@@ -7848,6 +8861,213 @@ function MapScreen({
 }
 
 // ─── Food ───────────────────────────────────────────────────
+function FoodCatItems({
+  catItems,
+  allFood,
+  onEditFood,
+  editing
+}) {
+  const reorder = (from, to) => {
+    const globalFrom = catItems[from].idx;
+    const globalTo = catItems[to].idx;
+    const newFood = [...allFood];
+    newFood.splice(globalTo, 0, newFood.splice(globalFrom, 1)[0]);
+    onEditFood(newFood);
+  };
+  const delFood = globalIdx => onEditFood(allFood.filter((_, i) => i !== globalIdx));
+  const updateFood = (globalIdx, patch) => {
+    const list = [...allFood];
+    list[globalIdx] = {
+      ...list[globalIdx],
+      ...patch
+    };
+    onEditFood(list);
+  };
+  const {
+    itemProps,
+    isTouchDragging
+  } = useDragReorder(reorder, true);
+  return /*#__PURE__*/React.createElement(React.Fragment, null, catItems.map((f, i) => {
+    const dp = itemProps(i);
+    return /*#__PURE__*/React.createElement("div", {
+      key: f.idx,
+      ref: dp.ref,
+      onTouchStart: dp.onTouchStart,
+      onTouchMove: dp.onTouchMove,
+      onTouchEnd: dp.onTouchEnd,
+      style: {
+        position: 'relative',
+        ...(dp.style || {})
+      }
+    }, /*#__PURE__*/React.createElement(SwipeableRow, {
+      onEdit: () => {},
+      onDelete: () => delFood(f.idx),
+      isDragging: isTouchDragging,
+      wrapStyle: {
+        borderBottom: i < catItems.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '12px 14px',
+        position: 'relative'
+      }
+    }, editing ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 4,
+        paddingRight: 32
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      value: f.name,
+      onChange: e => updateFood(f.idx, {
+        name: e.target.value
+      }),
+      placeholder: "\uB9DB\uC9D1 \uC774\uB984",
+      style: {
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 14,
+        fontWeight: 500,
+        color: COLORS.ink,
+        padding: 0,
+        width: '100%'
+      }
+    }), /*#__PURE__*/React.createElement("input", {
+      value: f.detail || '',
+      onChange: e => updateFood(f.idx, {
+        detail: e.target.value
+      }),
+      placeholder: "\uC0C1\uC138 \uC124\uBA85",
+      style: {
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        padding: 0,
+        width: '100%'
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("input", {
+      value: f.price || '',
+      onChange: e => updateFood(f.idx, {
+        price: e.target.value
+      }),
+      placeholder: "\uAC00\uACA9",
+      style: {
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: MONO,
+        fontSize: 11,
+        color: COLORS.accent,
+        padding: 0,
+        width: 60
+      }
+    }), /*#__PURE__*/React.createElement("input", {
+      value: f.note || '',
+      onChange: e => updateFood(f.idx, {
+        note: e.target.value
+      }),
+      placeholder: "\uBA54\uBAA8",
+      style: {
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 11,
+        color: COLORS.mute,
+        padding: 0,
+        flex: 1
+      }
+    }))) : /*#__PURE__*/React.createElement("button", {
+      onClick: () => window.open(mapsSearchUrl(f.name), '_blank'),
+      style: {
+        width: '100%',
+        padding: 0,
+        border: 'none',
+        background: 'transparent',
+        cursor: 'pointer',
+        textAlign: 'left'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'baseline',
+        gap: 8
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 14,
+        color: COLORS.ink,
+        fontWeight: 500
+      }
+    }, f.name), f.price && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10.5,
+        color: COLORS.accent,
+        flexShrink: 0
+      }
+    }, f.price)), f.detail && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 3,
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        lineHeight: 1.4
+      }
+    }, f.detail), f.note && /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginTop: 4,
+        fontFamily: SANS,
+        fontSize: 11,
+        color: COLORS.mute,
+        fontStyle: 'italic',
+        opacity: 0.8
+      }
+    }, "\u2014 ", f.note)), editing && /*#__PURE__*/React.createElement("button", {
+      onClick: () => delFood(f.idx),
+      style: {
+        position: 'absolute',
+        top: 8,
+        right: 8,
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        border: 'none',
+        background: 'rgba(193,79,46,0.12)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 11,
+      color: COLORS.accent,
+      stroke: 2
+    })))), dp['data-drag-over'] && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        border: `2px dashed rgba(193,79,46,0.45)`,
+        pointerEvents: 'none',
+        background: 'rgba(193,79,46,0.04)'
+      }
+    }));
+  }));
+}
 function FoodScreen({
   trip,
   onEditFood,
@@ -8046,166 +9266,12 @@ function FoodScreen({
       borderRadius: 14,
       overflow: 'hidden'
     }
-  }, items.map((f, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
-    key: f.idx,
-    onEdit: () => setEditing(true),
-    onDelete: () => delFood(f.idx),
-    disabled: editing,
-    wrapStyle: {
-      borderBottom: i < items.length - 1 ? `1px solid ${COLORS.line}` : 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '12px 14px',
-      position: 'relative'
-    }
-  }, editing ? /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 4,
-      paddingRight: 32
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: f.name,
-    onChange: e => updateFood(f.idx, {
-      name: e.target.value
-    }),
-    placeholder: "\uB9DB\uC9D1 \uC774\uB984",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: SANS,
-      fontSize: 14,
-      fontWeight: 500,
-      color: COLORS.ink,
-      padding: 0,
-      width: '100%'
-    }
-  }), /*#__PURE__*/React.createElement("input", {
-    value: f.detail || '',
-    onChange: e => updateFood(f.idx, {
-      detail: e.target.value
-    }),
-    placeholder: "\uC0C1\uC138 \uC124\uBA85",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute,
-      padding: 0,
-      width: '100%'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    value: f.price || '',
-    onChange: e => updateFood(f.idx, {
-      price: e.target.value
-    }),
-    placeholder: "\uAC00\uACA9",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: MONO,
-      fontSize: 11,
-      color: COLORS.accent,
-      padding: 0,
-      width: 60
-    }
-  }), /*#__PURE__*/React.createElement("input", {
-    value: f.note || '',
-    onChange: e => updateFood(f.idx, {
-      note: e.target.value
-    }),
-    placeholder: "\uBA54\uBAA8",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      padding: 0,
-      flex: 1
-    }
-  }))) : /*#__PURE__*/React.createElement("button", {
-    onClick: () => window.open(mapsSearchUrl(f.name), '_blank'),
-    style: {
-      width: '100%',
-      padding: 0,
-      border: 'none',
-      background: 'transparent',
-      cursor: 'pointer',
-      textAlign: 'left'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'baseline',
-      gap: 8
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 14,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, f.name), f.price && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10.5,
-      color: COLORS.accent,
-      flexShrink: 0
-    }
-  }, f.price)), f.detail && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 3,
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute,
-      lineHeight: 1.4
-    }
-  }, f.detail), f.note && /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      fontStyle: 'italic',
-      opacity: 0.8
-    }
-  }, "\u2014 ", f.note)), editing && /*#__PURE__*/React.createElement("button", {
-    onClick: () => delFood(f.idx),
-    style: {
-      position: 'absolute',
-      top: 8,
-      right: 8,
-      width: 24,
-      height: 24,
-      borderRadius: 12,
-      border: 'none',
-      background: 'rgba(193,79,46,0.12)',
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "trash",
-    size: 11,
-    color: COLORS.accent,
-    stroke: 2
-  }))))), addSelCat === cat ? /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement(FoodCatItems, {
+    catItems: items,
+    allFood: allFood,
+    onEditFood: onEditFood,
+    editing: editing
+  }), addSelCat === cat ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       alignItems: 'center',
@@ -8375,6 +9441,146 @@ function normalizePrepCats(raw) {
   return {
     cats: result
   };
+}
+function PrepCatItems({
+  ci,
+  cat,
+  cats,
+  save,
+  editing,
+  editingItem,
+  setEditingItem
+}) {
+  const reorder = (from, to) => {
+    const next = cats.map((c, i) => {
+      if (i !== ci) return c;
+      const items = [...c.items];
+      items.splice(to, 0, items.splice(from, 1)[0]);
+      return {
+        ...c,
+        items
+      };
+    });
+    save(next);
+  };
+  const {
+    itemProps,
+    isTouchDragging
+  } = useDragReorder(reorder, true);
+  const deleteItem = ii => {
+    const next = cats.map((c, i) => i !== ci ? c : {
+      ...c,
+      items: c.items.filter((_, j) => j !== ii)
+    });
+    save(next);
+  };
+  const updateItem = (ii, val) => {
+    const next = cats.map((c, i) => i !== ci ? c : {
+      ...c,
+      items: c.items.map((x, j) => j === ii ? val : x)
+    });
+    save(next);
+  };
+  return /*#__PURE__*/React.createElement(React.Fragment, null, (cat.items || []).map((item, ii) => {
+    const isEditingThis = editingItem?.ci === ci && editingItem?.ii === ii;
+    const dp = itemProps(ii);
+    return /*#__PURE__*/React.createElement("div", {
+      key: ii,
+      ref: dp.ref,
+      onTouchStart: dp.onTouchStart,
+      onTouchMove: dp.onTouchMove,
+      onTouchEnd: dp.onTouchEnd,
+      style: {
+        position: 'relative',
+        ...(dp.style || {})
+      }
+    }, /*#__PURE__*/React.createElement(SwipeableRow, {
+      onEdit: () => setEditingItem({
+        ci,
+        ii
+      }),
+      onDelete: () => deleteItem(ii),
+      isDragging: isTouchDragging,
+      wrapStyle: {
+        borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none',
+        borderTopLeftRadius: ii === 0 ? 14 : 0,
+        borderTopRightRadius: ii === 0 ? 14 : 0,
+        borderBottomLeftRadius: ii === cat.items.length - 1 ? 14 : 0,
+        borderBottomRightRadius: ii === cat.items.length - 1 ? 14 : 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12,
+        padding: '12px 14px',
+        background: COLORS.card
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 16,
+        height: 16,
+        borderRadius: 8,
+        border: `1.5px solid ${COLORS.line}`,
+        flexShrink: 0
+      }
+    }), editing || isEditingThis ? /*#__PURE__*/React.createElement("input", {
+      autoFocus: isEditingThis,
+      value: item,
+      onChange: e => updateItem(ii, e.target.value),
+      onBlur: () => {
+        if (isEditingThis) setEditingItem(null);
+      },
+      onKeyDown: e => {
+        if (e.key === 'Enter' || e.key === 'Escape') setEditingItem(null);
+      },
+      style: {
+        flex: 1,
+        border: 'none',
+        outline: 'none',
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 13.5,
+        color: COLORS.ink,
+        padding: 0
+      }
+    }) : /*#__PURE__*/React.createElement("span", {
+      style: {
+        flex: 1,
+        fontFamily: SANS,
+        fontSize: 13.5,
+        color: COLORS.ink
+      }
+    }, item), editing && !isEditingThis && /*#__PURE__*/React.createElement("button", {
+      onClick: () => deleteItem(ii),
+      style: {
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        border: 'none',
+        background: 'rgba(193,79,46,0.12)',
+        cursor: 'pointer',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "trash",
+      size: 11,
+      color: COLORS.accent,
+      stroke: 2
+    })))), dp['data-drag-over'] && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        inset: 0,
+        border: `2px dashed rgba(193,79,46,0.45)`,
+        borderRadius: 0,
+        pointerEvents: 'none',
+        background: 'rgba(193,79,46,0.04)'
+      }
+    }));
+  }));
 }
 function PrepScreen({
   trip,
@@ -8651,8 +9857,7 @@ function PrepScreen({
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
       background: COLORS.card,
-      borderRadius: 14,
-      overflow: 'hidden'
+      borderRadius: 14
     }
   }, (cat.items || []).length === 0 && addInputCat !== ci && /*#__PURE__*/React.createElement("div", {
     style: {
@@ -8661,81 +9866,14 @@ function PrepScreen({
       fontSize: 13,
       color: COLORS.mute
     }
-  }, "\uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694"), (cat.items || []).map((item, ii) => {
-    const isEditingThis = editingItem?.ci === ci && editingItem?.ii === ii;
-    return /*#__PURE__*/React.createElement(SwipeableRow, {
-      key: ii,
-      onEdit: () => setEditingItem({
-        ci,
-        ii
-      }),
-      onDelete: () => deleteItem(ci, ii),
-      wrapStyle: {
-        borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '12px 14px',
-        background: COLORS.card
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 16,
-        height: 16,
-        borderRadius: 8,
-        border: `1.5px solid ${COLORS.line}`,
-        flexShrink: 0
-      }
-    }), editing || isEditingThis ? /*#__PURE__*/React.createElement("input", {
-      autoFocus: isEditingThis,
-      value: item,
-      onChange: e => updateItem(ci, ii, e.target.value),
-      onBlur: () => {
-        if (isEditingThis) setEditingItem(null);
-      },
-      onKeyDown: e => {
-        if (e.key === 'Enter' || e.key === 'Escape') setEditingItem(null);
-      },
-      style: {
-        flex: 1,
-        border: 'none',
-        outline: 'none',
-        background: 'transparent',
-        fontFamily: SANS,
-        fontSize: 13.5,
-        color: COLORS.ink,
-        padding: 0
-      }
-    }) : /*#__PURE__*/React.createElement("span", {
-      style: {
-        flex: 1,
-        fontFamily: SANS,
-        fontSize: 13.5,
-        color: COLORS.ink
-      }
-    }, item), editing && !isEditingThis && /*#__PURE__*/React.createElement("button", {
-      onClick: () => deleteItem(ci, ii),
-      style: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        border: 'none',
-        background: 'rgba(193,79,46,0.12)',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "trash",
-      size: 11,
-      color: COLORS.accent,
-      stroke: 2
-    }))));
+  }, "\uD56D\uBAA9\uC774 \uC5C6\uC5B4\uC694"), /*#__PURE__*/React.createElement(PrepCatItems, {
+    ci: ci,
+    cat: cat,
+    cats: cats,
+    save: save,
+    editing: editing,
+    editingItem: editingItem,
+    setEditingItem: setEditingItem
   }), addInputCat === ci ? /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -9895,17 +11033,24 @@ function BudgetScreen({
         borderRadius: 14,
         overflow: 'hidden'
       }
-    }, byDate[date].map((e, i) => /*#__PURE__*/React.createElement("div", {
+    }, byDate[date].map((e, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
       key: e.id || e._i,
-      onClick: () => openEdit(e._i),
+      onEdit: () => openEdit(e._i),
+      onDelete: () => onEditBudget({
+        entries: entries.filter((_, j) => j !== e._i)
+      }),
+      wrapStyle: {
+        borderBottom: i < byDate[date].length - 1 ? `1px solid ${COLORS.line}` : 'none'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '12px 14px',
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: 12,
-        borderBottom: i < byDate[date].length - 1 ? `1px solid ${COLORS.line}` : 'none'
-      }
+        gap: 12
+      },
+      onClick: () => openEdit(e._i)
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         flex: 1,
@@ -9951,7 +11096,7 @@ function BudgetScreen({
         flexShrink: 0,
         color: e.type === 'in' ? '#3A9B4C' : '#C14F2E'
       }
-    }, e.type === 'in' ? '+' : '-', fmtAmt(e.amount, e.currency || 'KRW'))))))));
+    }, e.type === 'in' ? '+' : '-', fmtAmt(e.amount, e.currency || 'KRW')))))))));
   })(), addOpen && /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
@@ -10721,147 +11866,392 @@ function LoginScreen({
   }, displayErr));
 }
 
-// ─── Profile + Companion Manager Sheet ───────────────────────
-function ProfileSheet({
+// ─── Notifications ───────────────────────────────────────────
+function NotificationsScreen({
+  open,
+  onClose,
+  authUser,
+  notifications
+}) {
+  const [sheetY, setSheetY] = React.useState(0);
+  const [entered, setEntered] = React.useState(false);
+  const sheetRef = React.useRef(null);
+  const sheetYRef = React.useRef(0);
+  const dragRef = React.useRef({
+    active: false,
+    startY: 0,
+    startScrollTop: 0
+  });
+  React.useEffect(() => {
+    setSheetY(0);
+    sheetYRef.current = 0;
+    setEntered(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [open]);
+  React.useEffect(() => {
+    if (!open || !authUser?.uid) return;
+    if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
+  }, [open, authUser?.uid]);
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY,
+        startScrollTop: el.scrollTop
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const {
+        startY,
+        startScrollTop
+      } = dragRef.current;
+      const dy = e.touches[0].clientY - startY;
+      if (startScrollTop > 8 || dy <= 0) {
+        dragRef.current.active = false;
+        return;
+      }
+      e.preventDefault();
+      sheetYRef.current = Math.max(0, dy);
+      setSheetY(sheetYRef.current);
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      const top = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
+      if (top > window.innerHeight / 2) onClose();else {
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [open]);
+  if (!open) return null;
+  const fmtMsg = n => {
+    const name = n.fromName || '누군가';
+    const trip = n.tripTitle ? `"${n.tripTitle}"` : '여행';
+    if (n.type === 'invite_received') return `${name}님이 ${trip}에 초대했습니다.`;
+    if (n.type === 'invite_accepted') return `${name}님이 ${trip} 초대를 수락했습니다.`;
+    if (n.type === 'trip_edited') return `${name}님이 ${trip} 일정을 수정했습니다.`;
+    if (n.type === 'contact_added') return `${name}님이 동행인으로 추가했습니다.`;
+    if (n.type === 'contact_accepted') return `${name}님이 동행인 요청을 수락했습니다.`;
+    return '새 알림';
+  };
+  const fmtTime = ts => {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const diff = (Date.now() - d) / 1000;
+    if (diff < 60) return '방금';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return `${Math.floor(diff / 86400)}일 전`;
+  };
+  const typeColor = type => ({
+    invite_received: '#4F6BED',
+    invite_accepted: '#2E9E5B',
+    trip_edited: '#E07B39',
+    contact_added: '#9B59B6',
+    contact_accepted: '#2E9E5B'
+  })[type] || COLORS.mute;
+  const typeIcon = type => ({
+    invite_received: 'users',
+    invite_accepted: 'check',
+    trip_edited: 'edit',
+    contact_added: 'user',
+    contact_accepted: 'check'
+  })[type] || 'bell';
+  const deleteNotif = id => {
+    if (authUser?.uid && typeof fbDeleteNotification === 'function') fbDeleteNotification(authUser.uid, id).catch(() => {});
+  };
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 1000,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: `rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})`
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+      display: 'flex',
+      flexDirection: 'column'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      paddingBottom: 40,
+      maxHeight: '88%',
+      overflowY: 'auto',
+      overflowX: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '4px 20px 14px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.ink
+    }
+  }, "Notifications"), /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      border: 'none',
+      background: 'none',
+      cursor: 'pointer',
+      padding: 4
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "x",
+    size: 18,
+    color: COLORS.mute,
+    stroke: 2
+  }))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 16px'
+    }
+  }, notifications.length === 0 ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '48px 0',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC54C\uB9BC\uC774 \uC5C6\uC2B5\uB2C8\uB2E4") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, notifications.map(n => {
+    const color = typeColor(n.type);
+    return /*#__PURE__*/React.createElement(SwipeableRow, {
+      key: n.id,
+      onDelete: () => deleteNotif(n.id),
+      deleteLabel: "\uC0AD\uC81C",
+      wrapStyle: {
+        borderRadius: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: n.read ? COLORS.card : `${color}12`,
+        borderRadius: 14,
+        padding: '13px 14px',
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 12,
+        border: `1.5px solid ${n.read ? 'transparent' : color + '30'}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 18,
+        flexShrink: 0,
+        background: `${color}20`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: typeIcon(n.type),
+      size: 16,
+      color: color,
+      stroke: 2
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13.5,
+        color: COLORS.ink,
+        lineHeight: 1.45
+      }
+    }, fmtMsg(n)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 10,
+        color: COLORS.mute,
+        marginTop: 3
+      }
+    }, fmtTime(n.createdAt))), !n.read && /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 7,
+        height: 7,
+        borderRadius: 4,
+        background: color,
+        flexShrink: 0,
+        marginTop: 6
+      }
+    })));
+  }))))));
+}
+
+// ─── Companions ───────────────────────────────────────────────
+function CompanionsScreen({
   open,
   onClose,
   authUser,
   userData,
-  trips,
-  onUserDataUpdate
+  trips
 }) {
-  const [pendingInvites, setPendingInvites] = React.useState([]);
-  const [tripData, setTripData] = React.useState({});
+  const [contacts, setContacts] = React.useState([]);
+  const [sentInvites, setSentInvites] = React.useState([]);
+  const [receivedInvites, setReceivedInvites] = React.useState([]);
+  const [inviteUsers, setInviteUsers] = React.useState({});
+  const [tripCompanions, setTripCompanions] = React.useState({});
   const [loading, setLoading] = React.useState(false);
-  const [inviteEmail, setInviteEmail] = React.useState({});
-  const [inviteMsg, setInviteMsg] = React.useState({});
-  const [inviting, setInviting] = React.useState(null);
   const [removing, setRemoving] = React.useState(null);
-  const [toggling, setToggling] = React.useState(null);
-  const [inviteOpen, setInviteOpen] = React.useState({});
-  const myUid = authUser?.uid;
+  const [addTripFor, setAddTripFor] = React.useState(null);
   const tripIds = (trips || []).map(t => t.id).join(',');
   React.useEffect(() => {
     if (!open || !authUser) return;
     document.body.style.overflow = 'hidden';
-    const unsub = fbListenInvites(authUser.uid, setPendingInvites);
     setLoading(true);
-    Promise.all((trips || []).map(async t => {
-      const companions = await fbGetTripCompanions(t.id, authUser.uid).catch(() => []);
-      return {
-        id: t.id,
-        companions,
-        permissions: t.permissions || {}
-      };
-    })).then(results => {
+    fbGetContacts(authUser.uid).then(setContacts).catch(() => setContacts([]));
+    Promise.all((trips || []).map(t => fbGetTripCompanions(t.id, authUser.uid).then(m => ({
+      id: t.id,
+      members: m
+    })).catch(() => ({
+      id: t.id,
+      members: []
+    })))).then(results => {
       const map = {};
       results.forEach(r => {
-        map[r.id] = {
-          companions: r.companions,
-          permissions: r.permissions
-        };
+        map[r.id] = r.members;
       });
-      setTripData(map);
+      setTripCompanions(map);
       setLoading(false);
     });
+    let unsubSent = () => {};
+    if (typeof fbListenSentInvites === 'function') {
+      unsubSent = fbListenSentInvites(authUser.uid, async invites => {
+        setSentInvites(invites);
+        const uids = [...new Set(invites.map(i => i.toUid).filter(Boolean))];
+        if (uids.length) {
+          fbGetUsersById(uids).then(users => {
+            const m = {};
+            users.forEach(u => {
+              m[u.uid] = u;
+            });
+            setInviteUsers(m);
+          }).catch(() => {});
+        }
+      });
+    }
+
+    // 받은 연락처 요청 리스너
+    let unsubReceived = () => {};
+    if (typeof fbListenInvites === 'function') {
+      unsubReceived = fbListenInvites(authUser.uid, invites => {
+        setReceivedInvites(invites.filter(inv => inv.type === 'contact'));
+      });
+    }
     return () => {
-      unsub();
+      unsubSent();
+      unsubReceived();
       document.body.style.overflow = '';
     };
-  }, [open, tripIds, authUser?.uid]);
-  const isOwnerOf = t => {
-    const perms = tripData[t.id]?.permissions || t.permissions || {};
-    return perms[myUid] === 'owner' || Object.keys(perms).length === 0;
-  };
-  const handleInvite = async (tripId, tripTitle) => {
-    const email = (inviteEmail[tripId] || '').trim();
-    if (!email) return;
-    setInviting(tripId);
-    setInviteMsg(m => ({
-      ...m,
-      [tripId]: ''
-    }));
-    const res = await fbSendTripInvite(userData, email, tripId, tripTitle);
-    setInviting(null);
-    if (res.error) {
-      setInviteMsg(m => ({
-        ...m,
-        [tripId]: res.error
-      }));
-    } else {
-      setInviteMsg(m => ({
-        ...m,
-        [tripId]: `${res.toName}님께 초대를 보냈습니다!`
-      }));
-      setInviteEmail(e => ({
-        ...e,
-        [tripId]: ''
-      }));
-      fbGetTripCompanions(tripId, authUser.uid).then(companions => setTripData(prev => ({
-        ...prev,
-        [tripId]: {
-          ...prev[tripId],
-          companions
-        }
-      })));
-    }
-  };
-  const handleRemove = async (tripId, uid, name) => {
-    if (!confirm(`${name}님을 이 여행에서 제거할까요?`)) return;
-    setRemoving(uid);
+  }, [open, authUser?.uid, tripIds]);
+  if (!open) return null;
+  const removeContact = async (c, skipConfirm = false) => {
+    if (!skipConfirm && !confirm(`${c.displayName}님을 동행인에서 삭제할까요?\n모든 여행에서도 제거됩니다.`)) return;
+    setRemoving(`contact:${c.uid}`);
     try {
-      await fbRemoveTripMember(tripId, uid);
-      setTripData(prev => ({
-        ...prev,
-        [tripId]: {
-          ...prev[tripId],
-          companions: prev[tripId].companions.filter(c => c.uid !== uid)
-        }
-      }));
+      await fbRemoveContact(authUser.uid, c.uid);
+      await Promise.all((trips || []).map(t => (tripCompanions[t.id] || []).some(m => m.uid === c.uid) ? fbRemoveTripMember(t.id, c.uid) : Promise.resolve()));
+      setContacts(prev => prev.filter(x => x.uid !== c.uid));
+      setTripCompanions(prev => {
+        const next = {
+          ...prev
+        };
+        Object.keys(next).forEach(tid => {
+          next[tid] = next[tid].filter(m => m.uid !== c.uid);
+        });
+        return next;
+      });
     } catch (e) {
-      alert('제거 실패. 다시 시도해 주세요.');
+      alert('삭제 실패. 다시 시도해 주세요.');
     }
     setRemoving(null);
   };
-  const handleTogglePerm = async (tripId, uid, curRole) => {
-    const newRole = curRole === 'view' ? 'edit' : 'view';
-    setToggling(uid);
+  const removeFromTrip = async (tripId, uid, displayName) => {
+    if (!confirm(`${displayName}님을 이 여행에서 제거할까요?`)) return;
+    setRemoving(`trip:${tripId}:${uid}`);
     try {
-      await fbSetTripPermission(tripId, uid, newRole);
-      setTripData(prev => ({
+      await fbRemoveTripMember(tripId, uid);
+      setTripCompanions(prev => ({
         ...prev,
-        [tripId]: {
-          ...prev[tripId],
-          permissions: {
-            ...(prev[tripId]?.permissions || {}),
-            [uid]: newRole
-          }
-        }
+        [tripId]: (prev[tripId] || []).filter(m => m.uid !== uid)
       }));
     } catch (e) {
-      alert('권한 변경 실패.');
+      alert('제거 실패.');
     }
-    setToggling(null);
+    setRemoving(null);
   };
-  const handleAccept = async inv => {
-    const tripId = await fbAcceptTripInvite(inv, authUser.uid);
-    onUserDataUpdate && onUserDataUpdate({
-      ...userData,
-      tripIds: [...(userData?.tripIds || []), tripId]
-    });
-    setPendingInvites(p => p.filter(i => i.id !== inv.id));
+  const addToTrip = async (contact, tripId) => {
+    const trip = (trips || []).find(t => t.id === tripId);
+    const res = await fbSendTripInvite({
+      uid: authUser.uid,
+      displayName: authUser.displayName,
+      email: authUser.email,
+      photoURL: authUser.photoURL || ''
+    }, contact.email, tripId, trip?.title || '');
+    if (res.error) {
+      alert(res.error);
+      return;
+    }
+    setAddTripFor(null);
+    alert(`${contact.displayName}님께 초대를 보냈습니다!`);
   };
-  const toggleInvite = tripId => setInviteOpen(o => ({
-    ...o,
-    [tripId]: !o[tripId]
-  }));
-  if (!open) return null;
   const Avatar = ({
-    src,
-    name,
-    size = 44
-  }) => src ? /*#__PURE__*/React.createElement("img", {
-    src: src,
+    u,
+    size = 40
+  }) => u?.photoURL ? /*#__PURE__*/React.createElement("img", {
+    src: u.photoURL,
     style: {
       width: size,
       height: size,
@@ -10880,11 +12270,660 @@ function ProfileSheet({
       alignItems: 'center',
       justifyContent: 'center',
       fontFamily: SANS,
-      fontSize: size * 0.38,
-      color: COLORS.mute,
-      fontWeight: 600
+      fontSize: size * 0.4,
+      color: COLORS.mute
     }
-  }, (name || '?')[0].toUpperCase());
+  }, (u?.displayName || '?')[0]);
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 220,
+      background: COLORS.bg,
+      overflowY: 'auto',
+      paddingBottom: 'calc(32px + env(safe-area-inset-bottom,0px))'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'sticky',
+      top: 0,
+      background: COLORS.bg,
+      zIndex: 5,
+      paddingTop: 'calc(env(safe-area-inset-top,0px) + 14px)',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingBottom: 14,
+      borderBottom: `1px solid ${COLORS.line}`,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      border: 'none',
+      background: COLORS.softer,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-l",
+    size: 17,
+    color: COLORS.ink,
+    stroke: 2
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 22,
+      color: COLORS.ink
+    }
+  }, "Companions")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '16px 16px 0'
+    }
+  }, loading && /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '48px 0',
+      textAlign: 'center',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && /*#__PURE__*/React.createElement(React.Fragment, null, sentInvites.filter(inv => inv.tripId).length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      marginBottom: 10
+    }
+  }, "\uB300\uAE30 \uC911 \xB7 ", sentInvites.filter(inv => inv.tripId).length), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, sentInvites.filter(inv => inv.tripId).map(inv => {
+    const u = inviteUsers[inv.toUid];
+    return /*#__PURE__*/React.createElement(SwipeableRow, {
+      key: inv.id,
+      onEdit: async () => {
+        try {
+          await fbCancelInvite(inv.id);
+          const fromUser = {
+            uid: authUser.uid,
+            displayName: authUser.displayName,
+            email: authUser.email,
+            photoURL: authUser.photoURL || ''
+          };
+          await fbSendTripInvite(fromUser, inv.toEmail, inv.tripId, inv.tripTitle || '');
+        } catch (e) {
+          alert('재신청 실패.');
+        }
+      },
+      editLabel: "\uC7AC\uC2E0\uCCAD",
+      editBg: "#ffa500",
+      onDelete: async () => {
+        if (!confirm('초대를 취소할까요?')) return;
+        try {
+          await fbCancelInvite(inv.id);
+        } catch (e) {
+          alert('취소 실패.');
+        }
+      },
+      deleteLabel: "\uCDE8\uC18C",
+      wrapStyle: {
+        borderRadius: 14
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: COLORS.card,
+        borderRadius: 14,
+        padding: '12px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 12
+      }
+    }, /*#__PURE__*/React.createElement(Avatar, {
+      u: u || {
+        displayName: inv.toEmail
+      }
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 13.5,
+        fontWeight: 500,
+        color: COLORS.ink
+      }
+    }, u?.displayName || inv.toEmail), inv.tripTitle && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 11.5,
+        color: COLORS.mute,
+        marginTop: 1
+      }
+    }, inv.tripTitle)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: '#B8860B',
+        background: '#FFF8E1',
+        borderRadius: 8,
+        padding: '3px 8px'
+      }
+    }, "\uB300\uAE30 \uC911")));
+  }))), receivedInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      marginBottom: 10
+    }
+  }, "\uBC1B\uC740 \uC694\uCCAD \xB7 ", receivedInvites.length), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, receivedInvites.map(inv => /*#__PURE__*/React.createElement("div", {
+    key: inv.id,
+    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      padding: '12px 14px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 12
+    }
+  }, /*#__PURE__*/React.createElement(Avatar, {
+    u: {
+      displayName: inv.fromName,
+      photoURL: inv.fromPhoto
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13.5,
+      fontWeight: 500,
+      color: COLORS.ink
+    }
+  }, inv.fromName || '?'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11.5,
+      color: COLORS.mute,
+      marginTop: 1
+    }
+  }, "\uB3D9\uD589\uC778 \uC694\uCCAD")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 6
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: async () => {
+      await fbAcceptContactInvite(inv, authUser.uid);
+      setReceivedInvites(p => p.filter(i => i.id !== inv.id));
+      fbGetContacts(authUser.uid).then(setContacts).catch(() => {});
+    },
+    style: {
+      border: 'none',
+      borderRadius: 9,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      background: COLORS.ink,
+      color: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: 500
+    }
+  }, "\uC218\uB77D"), /*#__PURE__*/React.createElement("button", {
+    onClick: async () => {
+      await fbRejectInvite(inv.id).catch(() => {});
+      setReceivedInvites(p => p.filter(i => i.id !== inv.id));
+    },
+    style: {
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 9,
+      padding: '6px 10px',
+      cursor: 'pointer',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute
+    }
+  }, "\uAC70\uC808")))))), (() => {
+    const pendingReceivedUids = new Set(receivedInvites.map(inv => inv.fromUid).filter(Boolean));
+    const pendingInvMap = {};
+    sentInvites.filter(inv => inv.type === 'contact' && !inv.tripId).forEach(inv => {
+      pendingInvMap[inv.toUid] = inv;
+    });
+    const displayContacts = contacts.filter(c => !pendingReceivedUids.has(c.uid));
+    const total = displayContacts.length;
+    return /*#__PURE__*/React.createElement("div", {
+      style: {
+        marginBottom: 20
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute,
+        letterSpacing: '0.1em',
+        marginBottom: 10
+      }
+    }, "\uB3D9\uD589\uC778 \xB7 ", total), total === 0 ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '32px 0',
+        textAlign: 'center',
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.mute
+      }
+    }, "\uC544\uC9C1 \uB3D9\uD589\uC778\uC774 \uC5C6\uC5B4\uC694") : /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 8
+      }
+    }, displayContacts.map(c => {
+      const pendingInv = pendingInvMap[c.uid];
+      return /*#__PURE__*/React.createElement(SwipeableRow, {
+        key: c.uid,
+        onEdit: pendingInv ? async () => {
+          try {
+            await fbCancelInvite(pendingInv.id);
+            await fbAddContact(authUser.uid, pendingInv.toEmail);
+          } catch (e) {
+            alert('재신청 실패.');
+          }
+        } : undefined,
+        editLabel: pendingInv ? '재신청' : undefined,
+        editBg: "#ffa500",
+        onDelete: async () => {
+          if (!confirm(`${c.displayName}님을 동행인에서 삭제할까요?\n모든 여행에서도 제거됩니다.`)) return;
+          if (pendingInv) await fbCancelInvite(pendingInv.id).catch(() => {});
+          await removeContact(c, true);
+        },
+        wrapStyle: {
+          borderRadius: 14
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          background: COLORS.card,
+          borderRadius: 14,
+          padding: '12px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12
+        }
+      }, /*#__PURE__*/React.createElement(Avatar, {
+        u: c
+      }), /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 13.5,
+          fontWeight: 500,
+          color: COLORS.ink
+        }
+      }, c.displayName), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 12,
+          color: COLORS.mute,
+          marginTop: 1
+        }
+      }, c.email)), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'flex-end',
+          gap: 4
+        }
+      }, pendingInv && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: MONO,
+          fontSize: 9,
+          color: '#B8860B',
+          background: '#FFF8E1',
+          borderRadius: 6,
+          padding: '2px 6px'
+        }
+      }, "\uBBF8\uC218\uB77D"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          gap: 4,
+          flexWrap: 'wrap',
+          justifyContent: 'flex-end'
+        }
+      }, (trips || []).filter(t => (tripCompanions[t.id] || []).some(m => m.uid === c.uid)).map(t => /*#__PURE__*/React.createElement("div", {
+        key: t.id,
+        style: {
+          fontFamily: MONO,
+          fontSize: 9,
+          color: '#4F6BED',
+          background: '#EEF2FF',
+          borderRadius: 6,
+          padding: '2px 6px'
+        }
+      }, t.title || '여행'))))));
+    })));
+  })(), (trips || []).length > 0 && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      marginBottom: 10
+    }
+  }, "\uC5EC\uD589\uBCC4"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 12
+    }
+  }, (trips || []).map(t => {
+    const members = tripCompanions[t.id] || [];
+    return /*#__PURE__*/React.createElement("div", {
+      key: t.id,
+      style: {
+        background: COLORS.card,
+        borderRadius: 16,
+        border: `1px solid ${COLORS.line}`
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '12px 16px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 36,
+        height: 36,
+        borderRadius: 10,
+        overflow: 'hidden',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Photo, {
+      hue: t.hue ?? 25,
+      height: 36,
+      small: true
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SERIF,
+        fontSize: 15,
+        color: COLORS.ink
+      }
+    }, t.title || '새 여행'), t.dates && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute,
+        marginTop: 1
+      }
+    }, t.dates)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.accent
+      }
+    }, members.length, "\uBA85")), members.length > 0 ? /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 12px 12px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 6
+      }
+    }, members.map(m => /*#__PURE__*/React.createElement(SwipeableRow, {
+      key: m.uid,
+      onDelete: () => removeFromTrip(t.id, m.uid, m.displayName),
+      wrapStyle: {
+        borderRadius: 10
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        background: COLORS.softer,
+        borderRadius: 10,
+        padding: '8px 12px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10
+      }
+    }, /*#__PURE__*/React.createElement(Avatar, {
+      u: m,
+      size: 28
+    }), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        minWidth: 0
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 12.5,
+        fontWeight: 500,
+        color: COLORS.ink
+      }
+    }, m.displayName)), /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9,
+        color: COLORS.mute
+      }
+    }, "\u2190 \uC2A4\uC640\uC774\uD504"))))) : /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '0 16px 12px',
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute
+      }
+    }, "\uB3D9\uD589\uC778 \uC5C6\uC74C"));
+  }))))), addTripFor && /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 300,
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '24px'
+    },
+    onClick: () => setAddTripFor(null)
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: 20,
+      padding: '22px 20px',
+      width: '100%',
+      maxWidth: 320
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 18,
+      color: COLORS.ink,
+      marginBottom: 4
+    }
+  }, addTripFor.displayName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute,
+      marginBottom: 16
+    }
+  }, "\uC5B4\uB290 \uC5EC\uD589\uC5D0 \uCD94\uAC00\uD560\uAE4C\uC694?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 8
+    }
+  }, (trips || []).map(t => {
+    const alreadyIn = (tripCompanions[t.id] || []).some(m => m.uid === addTripFor.uid);
+    return /*#__PURE__*/React.createElement("button", {
+      key: t.id,
+      onClick: () => !alreadyIn && addToTrip(addTripFor, t.id),
+      style: {
+        padding: '11px 14px',
+        borderRadius: 12,
+        cursor: alreadyIn ? 'default' : 'pointer',
+        border: `1.5px solid ${alreadyIn ? COLORS.line : COLORS.ink}`,
+        background: alreadyIn ? COLORS.softer : 'transparent',
+        display: 'flex',
+        alignItems: 'center',
+        gap: 10,
+        textAlign: 'left'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        width: 28,
+        height: 28,
+        borderRadius: 8,
+        overflow: 'hidden',
+        flexShrink: 0
+      }
+    }, /*#__PURE__*/React.createElement(Photo, {
+      hue: t.hue ?? 25,
+      height: 28,
+      small: true
+    })), /*#__PURE__*/React.createElement("div", {
+      style: {
+        flex: 1,
+        fontFamily: SANS,
+        fontSize: 13,
+        color: alreadyIn ? COLORS.mute : COLORS.ink
+      }
+    }, t.title || '여행'), alreadyIn && /*#__PURE__*/React.createElement("span", {
+      style: {
+        fontFamily: MONO,
+        fontSize: 9.5,
+        color: COLORS.mute
+      }
+    }, "\uC774\uBBF8 \uCC38\uC5EC \uC911"));
+  })), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setAddTripFor(null),
+    style: {
+      marginTop: 14,
+      width: '100%',
+      padding: '11px',
+      borderRadius: 12,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uCDE8\uC18C"))));
+}
+function AddCompanionSheet({
+  open,
+  onClose,
+  authUser,
+  userData,
+  trips,
+  onUserDataUpdate,
+  defaultTripId
+}) {
+  const [selTrip, setSelTrip] = React.useState(null);
+  const [inviteEmail, setInviteEmail] = React.useState('');
+  const [inviteMsg, setInviteMsg] = React.useState('');
+  const [inviting, setInviting] = React.useState(false);
+  const [pendingInvites, setPendingInvites] = React.useState([]);
+  React.useEffect(() => {
+    if (!open || !authUser) return;
+    setSelTrip(defaultTripId || null);
+    setInviteEmail('');
+    setInviteMsg('');
+    const unsub = fbListenInvites(authUser.uid, setPendingInvites);
+    return unsub;
+  }, [open]);
+  React.useEffect(() => {
+    if (open) {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = '';
+      };
+    }
+  }, [open]);
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) return;
+    setInviting(true);
+    setInviteMsg('');
+    if (!selTrip) {
+      const res = await fbAddContact(authUser.uid, inviteEmail);
+      setInviting(false);
+      if (res.error) setInviteMsg(res.error);else {
+        setInviteMsg(`${res.toName}님이 동행인으로 추가되었습니다!`);
+        setInviteEmail('');
+      }
+      return;
+    }
+    const trip = (trips || []).find(t => t.id === selTrip);
+    await fbAddContact(authUser.uid, inviteEmail).catch(() => {});
+    const res = await fbSendTripInvite({
+      uid: authUser.uid,
+      displayName: authUser.displayName,
+      email: authUser.email,
+      photoURL: authUser.photoURL || ''
+    }, inviteEmail, selTrip, trip?.title || '');
+    setInviting(false);
+    if (res.error) setInviteMsg(res.error);else {
+      setInviteMsg(`${res.toName}님께 초대를 보냈습니다!`);
+      setInviteEmail('');
+    }
+  };
+  const handleAccept = async inv => {
+    if (inv.type === 'contact') {
+      await fbAcceptContactInvite(inv, authUser.uid);
+      setPendingInvites(p => p.filter(i => i.id !== inv.id));
+      return;
+    }
+    const tripId = await fbAcceptTripInvite(inv, authUser.uid);
+    onUserDataUpdate({
+      ...userData,
+      tripIds: [...(userData.tripIds || []), tripId]
+    });
+    setPendingInvites(p => p.filter(i => i.id !== inv.id));
+  };
+  if (!open) return null;
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
@@ -10901,16 +12940,251 @@ function ProfileSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      maxHeight: '90%',
-      display: 'flex',
-      flexDirection: 'column',
-      paddingBottom: 'env(safe-area-inset-bottom,0px)'
+      paddingBottom: 'calc(28px + env(safe-area-inset-bottom,0px))',
+      maxHeight: '88%',
+      overflowY: 'auto'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       justifyContent: 'center',
-      padding: '10px 0 4px',
+      padding: '10px 0 6px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '6px 20px 16px',
+      borderBottom: `1px solid ${COLORS.line}`
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SERIF,
+      fontSize: 24,
+      color: COLORS.ink
+    }
+  }, "\uB3D9\uD589\uC778 \uCD94\uAC00"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12.5,
+      color: COLORS.mute,
+      marginTop: 4
+    }
+  }, "\uC774\uBA54\uC77C\uB85C \uB3D9\uD589\uC778\uC744 \uCD94\uAC00\uD574\uC694")), pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      margin: '14px 16px 0',
+      background: '#FFF8E1',
+      borderRadius: 14,
+      padding: 14
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: '#B8860B',
+      letterSpacing: '0.1em',
+      marginBottom: 8
+    }
+  }, "\uD83D\uDCE9 \uB3D9\uD589 \uCD08\uB300 ", pendingInvites.length, "\uAC74"), pendingInvites.map(inv => /*#__PURE__*/React.createElement("div", {
+    key: inv.id,
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 10,
+      marginBottom: 8
+    }
+  }, inv.fromPhoto ? /*#__PURE__*/React.createElement("img", {
+    src: inv.fromPhoto,
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 17
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      background: COLORS.accent,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: '#fff'
+    }
+  }, (inv.fromName || '?')[0]), /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1,
+      minWidth: 0
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      fontWeight: 500
+    }
+  }, inv.fromName), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute
+    }
+  }, inv.type === 'contact' ? '동행인 요청' : inv.tripTitle || inv.fromEmail)), /*#__PURE__*/React.createElement("button", {
+    onClick: () => handleAccept(inv),
+    style: {
+      border: 'none',
+      borderRadius: 9,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      background: COLORS.ink,
+      color: COLORS.bg,
+      fontFamily: SANS,
+      fontSize: 12,
+      fontWeight: 500
+    }
+  }, "\uC218\uB77D"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => fbRejectInvite(inv.id).then(() => setPendingInvites(p => p.filter(i => i.id !== inv.id))),
+    style: {
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 9,
+      padding: '6px 10px',
+      cursor: 'pointer',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute
+    }
+  }, "\uAC70\uC808")))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '16px 16px 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      marginBottom: 8
+    }
+  }, "\uC5EC\uD589 \uC120\uD0DD (\uC120\uD0DD\uC0AC\uD56D)"), /*#__PURE__*/React.createElement("select", {
+    value: selTrip || '',
+    onChange: e => setSelTrip(e.target.value || null),
+    style: {
+      width: '100%',
+      padding: '11px 14px',
+      borderRadius: 12,
+      border: `1.5px solid ${COLORS.line}`,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.ink,
+      boxSizing: 'border-box'
+    }
+  }, /*#__PURE__*/React.createElement("option", {
+    value: ""
+  }, "\uC5EC\uD589 \uC5C6\uC774 \uB3D9\uD589\uC778 \uCD94\uAC00"), (trips || []).map(t => /*#__PURE__*/React.createElement("option", {
+    key: t.id,
+    value: t.id
+  }, t.title || '여행'))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 16,
+      fontFamily: MONO,
+      fontSize: 9.5,
+      color: COLORS.mute,
+      letterSpacing: '0.1em',
+      marginBottom: 8
+    }
+  }, "\uC774\uBA54\uC77C\uB85C \uCD08\uB300"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      marginBottom: 10
+    }
+  }, "\uC0C1\uB300\uBC29\uC774 \uC774 \uC571\uC5D0 \uBA3C\uC800 \uAC00\uC785\uB418\uC5B4 \uC788\uC5B4\uC57C \uD569\uB2C8\uB2E4."), /*#__PURE__*/React.createElement("input", {
+    value: inviteEmail,
+    onChange: e => setInviteEmail(e.target.value),
+    placeholder: "\uAD6C\uAE00 \uC774\uBA54\uC77C \uC785\uB825",
+    onKeyDown: e => e.key === 'Enter' && handleInvite(),
+    style: {
+      width: '100%',
+      padding: '12px 14px',
+      borderRadius: 12,
+      border: `1.5px solid ${COLORS.line}`,
+      background: COLORS.card,
+      fontFamily: SANS,
+      fontSize: 13.5,
+      color: COLORS.ink,
+      boxSizing: 'border-box',
+      outline: 'none'
+    }
+  }), inviteMsg && /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 8,
+      fontFamily: SANS,
+      fontSize: 12,
+      color: inviteMsg.includes('추가') || inviteMsg.includes('보냈') ? '#2E7D32' : COLORS.accent
+    }
+  }, inviteMsg), /*#__PURE__*/React.createElement("button", {
+    onClick: handleInvite,
+    disabled: inviting || !inviteEmail.trim(),
+    style: {
+      marginTop: 12,
+      width: '100%',
+      padding: '14px',
+      border: 'none',
+      borderRadius: 14,
+      background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
+      color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      cursor: 'pointer'
+    }
+  }, inviting ? '처리 중...' : selTrip ? '초대 보내기' : '동행인 추가'))));
+}
+function ProfileSheet({
+  open,
+  onClose,
+  authUser,
+  trips,
+  onAddCompanion,
+  onViewCompanions
+}) {
+  if (!open || !authUser) return null;
+  return /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 200,
+      background: 'rgba(0,0,0,0.4)',
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      maxHeight: '88%',
+      display: 'flex',
+      flexDirection: 'column',
+      paddingBottom: 'calc(24px + env(safe-area-inset-bottom,0px))'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px',
       flexShrink: 0
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -10922,18 +13196,38 @@ function ProfileSheet({
     }
   })), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '12px 20px 14px',
+      padding: '12px 20px 16px',
       display: 'flex',
       gap: 14,
       alignItems: 'center',
       borderBottom: `1px solid ${COLORS.line}`,
       flexShrink: 0
     }
-  }, /*#__PURE__*/React.createElement(Avatar, {
+  }, authUser.photoURL ? /*#__PURE__*/React.createElement("img", {
     src: authUser.photoURL,
-    name: authUser.displayName,
-    size: 50
-  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      objectFit: 'cover',
+      flexShrink: 0
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 52,
+      height: 52,
+      borderRadius: 26,
+      background: COLORS.accent,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: SANS,
+      fontSize: 20,
+      color: '#fff',
+      fontWeight: 600
+    }
+  }, (authUser.displayName || '?')[0]), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 0
@@ -10949,7 +13243,7 @@ function ProfileSheet({
       fontFamily: SANS,
       fontSize: 12,
       color: COLORS.mute,
-      marginTop: 1
+      marginTop: 2
     }
   }, authUser.email)), /*#__PURE__*/React.createElement("button", {
     onClick: () => {
@@ -10960,7 +13254,6 @@ function ProfileSheet({
       border: `1px solid ${COLORS.line}`,
       borderRadius: 10,
       padding: '7px 12px',
-      flexShrink: 0,
       background: 'transparent',
       fontFamily: SANS,
       fontSize: 12,
@@ -10971,36 +13264,36 @@ function ProfileSheet({
     style: {
       overflowY: 'auto',
       flex: 1,
-      padding: '16px 16px 24px'
-    }
-  }, pendingInvites.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: '#FFF8E1',
-      borderRadius: 16,
-      padding: '12px 14px',
-      marginBottom: 16
+      padding: '14px 16px'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: MONO,
-      fontSize: 9.5,
-      color: '#A07000',
-      letterSpacing: '0.1em',
-      marginBottom: 10
-    }
-  }, "\uCD08\uB300 ", pendingInvites.length, "\uAC74"), pendingInvites.map(inv => /*#__PURE__*/React.createElement("div", {
-    key: inv.id,
-    style: {
+      background: COLORS.card,
+      borderRadius: 14,
+      border: `1px solid ${COLORS.line}`,
+      padding: '14px 16px',
       display: 'flex',
       alignItems: 'center',
-      gap: 10,
-      marginBottom: 8
+      gap: 12,
+      marginBottom: 10
     }
-  }, /*#__PURE__*/React.createElement(Avatar, {
-    src: inv.fromPhoto,
-    name: inv.fromName,
-    size: 38
-  }), /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      background: COLORS.softer,
+      flexShrink: 0,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "users",
+    size: 18,
+    color: COLORS.mute,
+    stroke: 1.8
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       flex: 1,
       minWidth: 0
@@ -11008,275 +13301,55 @@ function ProfileSheet({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.ink,
-      fontWeight: 500
+      fontSize: 14,
+      fontWeight: 500,
+      color: COLORS.ink
     }
-  }, inv.fromName), /*#__PURE__*/React.createElement("div", {
+  }, "\uB3D9\uD589\uC778"), /*#__PURE__*/React.createElement("div", {
     style: {
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      marginTop: 1
-    }
-  }, inv.tripTitle || '')), /*#__PURE__*/React.createElement("button", {
-    onClick: () => handleAccept(inv),
-    style: {
-      border: 'none',
-      borderRadius: 9,
-      padding: '7px 14px',
-      cursor: 'pointer',
-      background: COLORS.ink,
-      color: '#fff',
       fontFamily: SANS,
-      fontSize: 12,
-      fontWeight: 600
+      fontSize: 11.5,
+      color: COLORS.mute,
+      marginTop: 2
     }
-  }, "\uC218\uB77D"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => fbRejectInvite(inv.id).then(() => setPendingInvites(p => p.filter(i => i.id !== inv.id))),
+  }, "\uD568\uAED8\uD558\uB294 \uC5EC\uD589 \uCE5C\uAD6C")), /*#__PURE__*/React.createElement("div", {
     style: {
+      display: 'flex',
+      gap: 8,
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onClose();
+      setTimeout(onViewCompanions, 100);
+    },
+    style: {
+      padding: '7px 13px',
+      borderRadius: 10,
       border: `1px solid ${COLORS.line}`,
-      borderRadius: 9,
-      padding: '7px 10px',
-      cursor: 'pointer',
       background: 'transparent',
+      cursor: 'pointer',
       fontFamily: SANS,
       fontSize: 12,
-      color: COLORS.mute
+      color: COLORS.ink
     }
-  }, "\uAC70\uC808")))), loading && /*#__PURE__*/React.createElement("div", {
+  }, "\uBCF4\uAE30"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      onClose();
+      setTimeout(() => onAddCompanion(null), 100);
+    },
     style: {
+      padding: '7px 13px',
+      borderRadius: 10,
+      border: 'none',
+      background: COLORS.ink,
+      cursor: 'pointer',
       fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute,
-      textAlign: 'center',
-      padding: '20px 0'
+      fontSize: 12,
+      fontWeight: 600,
+      color: '#fff'
     }
-  }, "\uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && (trips || []).map(t => {
-    const td = tripData[t.id] || {
-      companions: [],
-      permissions: {}
-    };
-    const perms = td.permissions || t.permissions || {};
-    const iAmOwner = isOwnerOf(t);
-    const showInvite = inviteOpen[t.id];
-    return /*#__PURE__*/React.createElement("div", {
-      key: t.id,
-      style: {
-        marginBottom: 14,
-        background: COLORS.card,
-        borderRadius: 18,
-        overflow: 'hidden'
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '13px 14px 12px',
-        borderBottom: `1px solid ${COLORS.line}`
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        width: 32,
-        height: 32,
-        borderRadius: 9,
-        overflow: 'hidden',
-        flexShrink: 0
-      }
-    }, /*#__PURE__*/React.createElement(Photo, {
-      hue: t.hue ?? 25,
-      height: 32,
-      small: true
-    })), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 14,
-        fontWeight: 600,
-        color: COLORS.ink,
-        flex: 1,
-        minWidth: 0,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, t.title || '여행'), iAmOwner && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 9,
-        color: COLORS.accent,
-        letterSpacing: '0.08em',
-        flexShrink: 0
-      }
-    }, "\uB0B4 \uC5EC\uD589")), /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '12px 14px'
-      }
-    }, td.companions.length === 0 && !showInvite && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 12.5,
-        color: COLORS.mute,
-        marginBottom: iAmOwner ? 10 : 0
-      }
-    }, "\uC544\uC9C1 \uB3D9\uD589\uC778\uC774 \uC5C6\uC5B4\uC694"), td.companions.map(c => {
-      const role = perms[c.uid] || 'edit';
-      return /*#__PURE__*/React.createElement("div", {
-        key: c.uid,
-        style: {
-          display: 'flex',
-          alignItems: 'center',
-          gap: 10,
-          marginBottom: 10
-        }
-      }, /*#__PURE__*/React.createElement(Avatar, {
-        src: c.photoURL,
-        name: c.displayName,
-        size: 40
-      }), /*#__PURE__*/React.createElement("div", {
-        style: {
-          flex: 1,
-          minWidth: 0
-        }
-      }, /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontFamily: SANS,
-          fontSize: 13,
-          fontWeight: 500,
-          color: COLORS.ink
-        }
-      }, c.displayName), /*#__PURE__*/React.createElement("div", {
-        style: {
-          fontFamily: SANS,
-          fontSize: 11,
-          color: COLORS.mute
-        }
-      }, c.email)), iAmOwner && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("button", {
-        onClick: () => handleTogglePerm(t.id, c.uid, role),
-        disabled: toggling === c.uid,
-        style: {
-          padding: '4px 10px',
-          borderRadius: 20,
-          cursor: 'pointer',
-          flexShrink: 0,
-          border: `1px solid ${role === 'view' ? COLORS.line : COLORS.ink}`,
-          background: role === 'view' ? 'transparent' : COLORS.ink,
-          color: role === 'view' ? COLORS.mute : '#fff',
-          fontFamily: SANS,
-          fontSize: 11
-        }
-      }, toggling === c.uid ? '…' : role === 'view' ? '보기' : '편집'), /*#__PURE__*/React.createElement("button", {
-        onClick: () => handleRemove(t.id, c.uid, c.displayName),
-        disabled: removing === c.uid,
-        style: {
-          width: 30,
-          height: 30,
-          borderRadius: 15,
-          border: `1px solid ${COLORS.line}`,
-          background: 'transparent',
-          cursor: 'pointer',
-          flexShrink: 0,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center'
-        }
-      }, removing === c.uid ? /*#__PURE__*/React.createElement("span", {
-        style: {
-          fontFamily: SANS,
-          fontSize: 10,
-          color: COLORS.mute
-        }
-      }, "\u2026") : /*#__PURE__*/React.createElement(Icon, {
-        name: "minus",
-        size: 12,
-        color: COLORS.mute,
-        stroke: 2
-      }))));
-    }), iAmOwner && !showInvite && /*#__PURE__*/React.createElement("button", {
-      onClick: () => toggleInvite(t.id),
-      style: {
-        width: '100%',
-        padding: '9px 0',
-        border: `1.5px dashed ${COLORS.line}`,
-        borderRadius: 12,
-        background: 'transparent',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        fontFamily: SANS,
-        fontSize: 12.5,
-        color: COLORS.mute
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "plus",
-      size: 13,
-      color: COLORS.mute,
-      stroke: 2
-    }), " \uB3D9\uD589\uC778 \uCD94\uAC00"), iAmOwner && showInvite && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        gap: 6,
-        marginTop: td.companions.length > 0 ? 4 : 0
-      }
-    }, /*#__PURE__*/React.createElement("input", {
-      autoFocus: true,
-      value: inviteEmail[t.id] || '',
-      onChange: e => setInviteEmail(v => ({
-        ...v,
-        [t.id]: e.target.value
-      })),
-      onKeyDown: e => e.key === 'Enter' && handleInvite(t.id, t.title),
-      placeholder: "\uC774\uBA54\uC77C \uC785\uB825...",
-      style: {
-        flex: 1,
-        padding: '9px 12px',
-        borderRadius: 10,
-        border: `1px solid ${COLORS.line}`,
-        background: COLORS.bg,
-        fontFamily: SANS,
-        fontSize: 13,
-        color: COLORS.ink,
-        outline: 'none'
-      }
-    }), /*#__PURE__*/React.createElement("button", {
-      onClick: () => handleInvite(t.id, t.title),
-      disabled: inviting === t.id || !(inviteEmail[t.id] || '').trim(),
-      style: {
-        padding: '9px 14px',
-        borderRadius: 10,
-        border: 'none',
-        cursor: 'pointer',
-        background: (inviteEmail[t.id] || '').trim() ? COLORS.ink : COLORS.softer,
-        color: (inviteEmail[t.id] || '').trim() ? '#fff' : COLORS.mute,
-        fontFamily: SANS,
-        fontSize: 13,
-        fontWeight: 600
-      }
-    }, inviting === t.id ? '…' : '초대'), /*#__PURE__*/React.createElement("button", {
-      onClick: () => toggleInvite(t.id),
-      style: {
-        padding: '9px 10px',
-        borderRadius: 10,
-        border: `1px solid ${COLORS.line}`,
-        background: 'transparent',
-        cursor: 'pointer'
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "x",
-      size: 13,
-      color: COLORS.mute,
-      stroke: 2
-    }))), inviteMsg[t.id] && /*#__PURE__*/React.createElement("div", {
-      style: {
-        marginTop: 6,
-        fontFamily: SANS,
-        fontSize: 11.5,
-        color: inviteMsg[t.id].includes('보냈') ? '#2E7D32' : COLORS.accent
-      }
-    }, inviteMsg[t.id]))));
-  }))));
+  }, "\uCD94\uAC00"))))));
 }
 function _readCache() {
   if (!localStorage.getItem('tlj_authed')) return null;
@@ -11328,6 +13401,11 @@ function App() {
   const [userTrips, setUserTrips] = React.useState([]);
   const [tripsLoading, setTripsLoading] = React.useState(false);
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
+  const [addCompanionOpen, setAddCompanionOpen] = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
+  const [companionsScreenOpen, setCompanionsScreenOpen] = React.useState(false);
+  const [notifOpen, setNotifOpen] = React.useState(false);
+  const [notifs, setNotifs] = React.useState([]);
+  const notifyTripEditTimer = React.useRef(null);
   const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -11342,6 +13420,7 @@ function App() {
   const [openStop, setOpenStop] = React.useState(null);
   const [city, setCity] = React.useState(CITIES[0]);
   const [hotelSheet, setHotelSheet] = React.useState(null);
+  const [hotelDetailSheet, setHotelDetailSheet] = React.useState(null); // null=closed, 'new'=add, number=idx
   const [scrollKey, setScrollKey] = React.useState(0);
   const [editing, setEditing] = React.useState(false);
   const [tabBarVisible, setTabBarVisible] = React.useState(true);
@@ -11430,6 +13509,20 @@ function App() {
       }
     });
   }, []);
+
+  // ── 알림 리스너 ────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!authUser?.uid || typeof fbListenNotifications !== 'function') return;
+    const CUTOFF = 30 * 24 * 60 * 60 * 1000;
+    if (typeof fbPruneOldNotifications === 'function') fbPruneOldNotifications(authUser.uid).catch(() => {});
+    return fbListenNotifications(authUser.uid, all => {
+      const now = Date.now();
+      setNotifs(all.filter(n => {
+        const ts = n.createdAt?.toDate ? n.createdAt.toDate() : new Date(n.createdAt || 0);
+        return now - ts.getTime() < CUTOFF;
+      }));
+    });
+  }, [authUser?.uid]);
 
   // ── 여행 목록 로드 ─────────────────────────────────────────
   React.useEffect(() => {
@@ -11596,6 +13689,13 @@ function App() {
       ...patch
     }));
     if (activeTripId) fbSaveGroup(activeTripId, patch).catch(console.error);
+    // 동행인에게 일정 수정 알림 (60초 디바운스)
+    if (activeTripId && authUser && typeof fbNotifyTripEdit === 'function') {
+      clearTimeout(notifyTripEditTimer.current);
+      notifyTripEditTimer.current = setTimeout(() => {
+        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', trip?.title || '').catch(() => {});
+      }, 60000);
+    }
   };
   const editPrep = newPrep => {
     setPrep(newPrep);
@@ -11997,9 +14097,44 @@ function App() {
     }
   };
 
+  // ── HotelDetailSheet actions ───────────────────────────
+  const saveHotelDetailSheet = draft => {
+    if (hotelDetailSheet === 'new') {
+      const newHotel = {
+        hue: 30,
+        ...draft
+      };
+      const hotels = [...(trip.hotels || []), newHotel];
+      const days = syncHotelToDays(trip.days, newHotel, null);
+      editTrip({
+        hotels,
+        days
+      });
+    } else if (typeof hotelDetailSheet === 'number') {
+      const hotels = [...(trip.hotels || [])];
+      const prev = hotels[hotelDetailSheet];
+      const next = {
+        ...prev,
+        ...draft
+      };
+      hotels[hotelDetailSheet] = next;
+      const days = syncHotelToDays(trip.days, next, prev);
+      editTrip({
+        hotels,
+        days
+      });
+    }
+    setHotelDetailSheet(null);
+  };
+  const deleteHotelDetailSheet = () => {
+    if (typeof hotelDetailSheet === 'number') deleteHotel(hotelDetailSheet);
+    setHotelDetailSheet(null);
+  };
+
   // ── Permission check ───────────────────────────────────
   const myRole = (trip?.permissions || {})[authUser?.uid];
   const canEdit = myRole !== 'view';
+  const unreadCount = notifs.filter(n => !n.read).length;
 
   // ── Render ─────────────────────────────────────────────
   let screen, label;
@@ -12057,6 +14192,7 @@ function App() {
           setHotelIdx(i);
           setScrollKey(k => k + 1);
         },
+        onOpenHotelSheet: i => setHotelDetailSheet(i),
         city: city,
         onPickCity: setCity,
         onEditTrip: editTrip,
@@ -12073,6 +14209,8 @@ function App() {
         setEditing: setEditing,
         userData: userData,
         onOpenCompanion: () => setProfileSheetOpen(true),
+        onOpenNotifs: () => setNotifOpen(true),
+        unreadCount: unreadCount,
         onLoadSample: async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const patch = {
@@ -12165,6 +14303,8 @@ function App() {
     userData: userData,
     myUid: authUser?.uid,
     onOpenCompanion: () => setProfileSheetOpen(true),
+    onOpenNotifs: () => setNotifOpen(true),
+    unreadCount: unreadCount,
     onSelect: id => {
       const found = userTrips.find(t => t.id === id);
       let tripToShow = found;
@@ -12270,9 +14410,31 @@ function App() {
     open: profileSheetOpen,
     onClose: () => setProfileSheetOpen(false),
     authUser: authUser,
+    trips: userTrips,
+    onAddCompanion: tripId => setAddCompanionOpen(tripId || false),
+    onViewCompanions: () => {
+      setProfileSheetOpen(false);
+      setCompanionsScreenOpen(true);
+    }
+  }), /*#__PURE__*/React.createElement(AddCompanionSheet, {
+    open: addCompanionOpen !== null,
+    onClose: () => setAddCompanionOpen(null),
+    authUser: authUser,
     userData: userData,
     trips: userTrips,
+    defaultTripId: addCompanionOpen || null,
     onUserDataUpdate: ud => setUserData(ud)
+  }), /*#__PURE__*/React.createElement(CompanionsScreen, {
+    open: companionsScreenOpen,
+    onClose: () => setCompanionsScreenOpen(false),
+    authUser: authUser,
+    userData: userData,
+    trips: userTrips
+  }), /*#__PURE__*/React.createElement(NotificationsScreen, {
+    open: notifOpen,
+    onClose: () => setNotifOpen(false),
+    authUser: authUser,
+    notifications: notifs
   }));
   if (!trip || !trip.days?.length) return /*#__PURE__*/React.createElement("div", {
     style: {
@@ -12334,7 +14496,7 @@ function App() {
       marginTop: 4,
       opacity: 0.8
     }
-  }, "v148"))), /*#__PURE__*/React.createElement("button", {
+  }, "v162"))), /*#__PURE__*/React.createElement("button", {
     onClick: async () => {
       try {
         const ts = await fbLoadTrips([activeTripId]);
@@ -12416,7 +14578,7 @@ function App() {
   }, screen))), /*#__PURE__*/React.createElement(TabBar, {
     tab: tab,
     setTab: changeTab,
-    visible: tabBarVisible && !openStop && !profileSheetOpen && !hotelSheet && !saveConfirm && !budgetSheetOpen,
+    visible: tabBarVisible && !openStop && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen,
     editing: editing,
     canEdit: canEdit,
     onToggleEdit: handleEditToggle
@@ -12425,6 +14587,14 @@ function App() {
     dayHue: dayHue,
     onClose: () => setOpenStop(null),
     onSave: saveStop
+  }), /*#__PURE__*/React.createElement(HotelSheet, {
+    open: hotelDetailSheet !== null,
+    onClose: () => setHotelDetailSheet(null),
+    hotel: typeof hotelDetailSheet === 'number' ? trip?.hotels?.[hotelDetailSheet] || null : null,
+    trip: trip,
+    tripDays: trip?.days,
+    onSave: saveHotelDetailSheet,
+    onDelete: deleteHotelDetailSheet
   }), hotelSheet !== null && /*#__PURE__*/React.createElement(HotelSearchSheet, {
     COLORS: COLORS,
     SERIF: SERIF,
@@ -12437,9 +14607,31 @@ function App() {
     open: profileSheetOpen,
     onClose: () => setProfileSheetOpen(false),
     authUser: authUser,
+    trips: userTrips,
+    onAddCompanion: tripId => setAddCompanionOpen(tripId || false),
+    onViewCompanions: () => {
+      setProfileSheetOpen(false);
+      setCompanionsScreenOpen(true);
+    }
+  }), /*#__PURE__*/React.createElement(AddCompanionSheet, {
+    open: addCompanionOpen !== null,
+    onClose: () => setAddCompanionOpen(null),
+    authUser: authUser,
     userData: userData,
     trips: userTrips,
+    defaultTripId: addCompanionOpen || null,
     onUserDataUpdate: ud => setUserData(ud)
+  }), /*#__PURE__*/React.createElement(CompanionsScreen, {
+    open: companionsScreenOpen,
+    onClose: () => setCompanionsScreenOpen(false),
+    authUser: authUser,
+    userData: userData,
+    trips: userTrips
+  }), /*#__PURE__*/React.createElement(NotificationsScreen, {
+    open: notifOpen,
+    onClose: () => setNotifOpen(false),
+    authUser: authUser,
+    notifications: notifs
   }), saveConfirm && ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',

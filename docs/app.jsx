@@ -128,7 +128,7 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
   const startRef = React.useRef(null);
   const dragging = React.useRef(false);
   const xRef = React.useRef(0);
-  const REVEAL = onEdit ? 124 : 70;
+  const REVEAL = onEdit ? 104 : 58;
   const DELETE_EXTRA = 72;
 
   const close = () => { setX(0); xRef.current = 0; setOpen(false); };
@@ -194,27 +194,27 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
         }}>
           {onEdit && (
             <button onClick={(e)=>{e.stopPropagation(); close(); setTimeout(onEdit,100);}} style={{
-              width: editLabel ? 54 : 46, height: editLabel ? 38 : 46,
-              borderRadius: editLabel ? 10 : 23,
+              width: editLabel ? 46 : 38, height: editLabel ? 34 : 38,
+              borderRadius: editLabel ? 9 : 19,
               border:'none', cursor:'pointer',
               background: editBg || '#ffa500', flexShrink:0,
               display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
             }}>
               {editLabel
-                ? <span style={{ fontFamily:SANS, fontSize:11, fontWeight:600, color:'#fff' }}>{editLabel}</span>
-                : <Icon name={editIcon||'edit'} size={17} color="#fff" stroke={2}/>}
+                ? <span style={{ fontFamily:SANS, fontSize:10, fontWeight:600, color:'#fff' }}>{editLabel}</span>
+                : <Icon name={editIcon||'edit'} size={14} color="#fff" stroke={2}/>}
             </button>
           )}
           <button onClick={(e)=>{e.stopPropagation(); close(); setTimeout(onDelete,100);}} style={{
-            width: deleteLabel ? 54 : 46, height: deleteLabel ? 38 : 46,
-            borderRadius: deleteLabel ? 10 : 23,
+            width: deleteLabel ? 46 : 38, height: deleteLabel ? 34 : 38,
+            borderRadius: deleteLabel ? 9 : 19,
             border:'none', cursor:'pointer',
             background:'#B5451B', flexShrink:0,
             display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
           }}>
             {deleteLabel
-              ? <span style={{ fontFamily:SANS, fontSize:11, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
-              : <Icon name="trash" size={17} color="#fff" stroke={2}/>}
+              ? <span style={{ fontFamily:SANS, fontSize:10, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
+              : <Icon name="trash" size={14} color="#fff" stroke={2}/>}
           </button>
         </div>
       </div>
@@ -1739,7 +1739,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v168</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v174</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2058,29 +2058,16 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:8 }}>
         {trip.days.map((d, i) => {
           const dp = dayDragProps(i);
-          const isDropTarget = dp['data-drop-target'];
-          const isDragSource = dp['data-drag-source'];
           return (
-            <SwipeableRow key={i} onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} isDragging={isDayDragging} wrapStyle={{ borderRadius:16 }}>
-            <div ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
+            <div key={i} ref={dp.ref} style={dp.style || {}}>
+            <SwipeableRow onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} isDragging={isDayDragging} wrapStyle={{ borderRadius:16 }}>
+            <div onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
               onClick={() => !editing && !isDayDragging && onOpenDay(i)} style={{
               borderRadius:16,
               cursor: editing ? 'grab' : 'pointer',
-              ...(dp.style || {}),
-              // 드롭 타겟: 카드 모양 고스트 플레이스홀더
-              ...(isDropTarget ? {
-                background: 'transparent',
-                border: `2px dashed ${COLORS.line}`,
-              } : {
-                background: COLORS.card,
-                border: 'none',
-              }),
+              background: COLORS.card,
             }}>
-              {isDropTarget ? (
-                // 카드 모양 빈 플레이스홀더 (같은 높이)
-                <div style={{ height:88, borderRadius:14 }}/>
-              ) : (
-                <div style={{ padding:12, display:'flex', gap:12, alignItems:'center' }}>
+              <div style={{ padding:12, display:'flex', gap:12, alignItems:'center' }}>
                   <div style={{ width:64, height:64, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
                     <Photo hue={d.hero?.hue ?? 25} height={64} small/>
                   </div>
@@ -2119,9 +2106,9 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     <Icon name="chevron" size={16} color={COLORS.mute} stroke={1.8}/>
                   )}
                 </div>
-              )}
             </div>
             </SwipeableRow>
+            </div>
           );
         })}
         {(() => {
@@ -2200,13 +2187,13 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               {hotelList.map((h, i) => {
                 const hp = hotelDragProps(h._idx);
                 return (
-                  <SwipeableRow key={h._idx} onEdit={() => openHotel(h._idx)} onDelete={() => onDeleteHotel(h._idx)} disabled={editing} wrapStyle={{ borderRadius:16 }}>
-                  <div {...hp} onClick={() => !editing && openHotel(h._idx)} style={{
+                  <div key={h._idx} ref={hp.ref} style={hp.style || {}}>
+                  <SwipeableRow onEdit={() => openHotel(h._idx)} onDelete={() => onDeleteHotel(h._idx)} disabled={editing} wrapStyle={{ borderRadius:16 }}>
+                  <div onTouchStart={hp.onTouchStart} onTouchMove={hp.onTouchMove} onTouchEnd={hp.onTouchEnd} onClick={() => !editing && openHotel(h._idx)} style={{
                     background:COLORS.card, borderRadius:16, padding:12,
                     display:'flex', gap:12, alignItems:'center',
                     cursor: editing ? 'grab' : 'pointer',
                     border: hp['data-drag-over'] ? `2px solid ${COLORS.accent}` : 'none',
-                    ...(hp.style || {}),
                   }}>
                     <div style={{ width:64, height:64, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
                       <Photo hue={h.hue ?? 25} height={64} small/>
@@ -2241,6 +2228,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     )}
                   </div>
                   </SwipeableRow>
+                  </div>
                 );
               })}
       </div>
@@ -3012,7 +3000,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   const sheetRef = React.useRef(null);
   const sheetYRef = React.useRef(0);
   const dragRef = React.useRef({ active: false, startY: 0, startScrollTop: 0 });
-  const kbh = useKeyboardHeight();
+  const scrollBeforeKbRef = React.useRef(null);
 
   React.useEffect(() => {
     setDraft(open.stop); committed.current = open.stop;
@@ -3061,6 +3049,30 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
     };
   }, [open]);
 
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !sheetRef.current) return;
+    const adjust = () => {
+      const kbh = Math.max(0, window.innerHeight - vv.height);
+      if (kbh > 80) {
+        if (scrollBeforeKbRef.current === null)
+          scrollBeforeKbRef.current = sheetRef.current.scrollTop;
+        const el = document.activeElement;
+        if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
+        const rect = el.getBoundingClientRect();
+        const gap = rect.bottom - (vv.height - 12);
+        if (gap > 0) sheetRef.current.scrollTop += gap;
+      } else {
+        if (scrollBeforeKbRef.current !== null) {
+          sheetRef.current.scrollTop = scrollBeforeKbRef.current;
+          scrollBeforeKbRef.current = null;
+        }
+      }
+    };
+    vv.addEventListener('resize', adjust);
+    return () => vv.removeEventListener('resize', adjust);
+  }, [open]);
+
   const searchQuery = [draft.title, draft.en, draft.loc, 'New York'].filter(Boolean).join(' ');
 
   return (
@@ -3077,7 +3089,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
         style={{
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
           paddingBottom:40,
-          maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 8}px)` : '92%',
+          maxHeight: '92%',
           overflowY:'auto', overflowX:'hidden',
         }}>
         {/* 드래그 핸들 */}
@@ -3188,20 +3200,16 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
         </div>
       </div>
       {/* 시트 하단 ~ 키보드 상단 사이 검은 배경 가리기 */}
-      {kbh > 0 && <div onClick={e=>e.stopPropagation()} style={{
-        height: kbh, background: COLORS.bg, flexShrink: 0,
-        transition: 'height 0.22s ease',
-      }}/>}
       </div>{/* wrapper 닫기 */}
     </div>
   );
 }
 
 // ─── Hotel Sheet (bottom sheet for add / view / edit hotel) ──
-function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
+function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete }) {
   if (!open) return null;
   const isNew = !hotel;
-  const blank = { name:'', area:'', address:'', checkin:'', checkinTime:'15:00', checkout:'', checkoutTime:'12:00', nights:'1', price:'', phone:'', confirmation:'', note:'', hue:30 };
+  const blank = { name:'', area:'', address:'', checkin:'', checkinTime:'15:00', checkout:'', checkoutTime:'12:00', nights:'', price:'', phone:'', confirmation:'', note:'', hue:30 };
   const [editing, setEditing] = React.useState(isNew);
   const [draft, setDraft] = React.useState(hotel ? { ...hotel } : blank);
   const committed = React.useRef(draft);
@@ -3210,7 +3218,13 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
   const sheetRef = React.useRef(null);
   const sheetYRef = React.useRef(0);
   const dragRef = React.useRef({ active:false, startY:0, startScrollTop:0 });
-  const kbh = useKeyboardHeight();
+  const scrollBeforeKbRef = React.useRef(null);
+  const [searchQ, setSearchQ] = React.useState('');
+  const [searchRes, setSearchRes] = React.useState([]);
+  const [showSearch, setShowSearch] = React.useState(false);
+  const [timePicker, setTimePicker] = React.useState(null);
+  const searchTimer = React.useRef(null);
+  const searchFocused = React.useRef(false);
 
   React.useEffect(() => {
     const d = hotel ? { ...hotel } : blank;
@@ -3218,6 +3232,7 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
     setEditing(isNew);
     setSheetY(0); sheetYRef.current = 0;
     setEntered(false);
+    setSearchQ(''); setSearchRes([]); setShowSearch(false); setTimePicker(null);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
 
@@ -3250,6 +3265,55 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
     el.addEventListener('touchend', onEnd, { passive:true });
     return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); el.removeEventListener('touchend', onEnd); };
   }, [open]);
+
+  React.useEffect(() => {
+    const vv = window.visualViewport;
+    if (!vv || !sheetRef.current) return;
+    const adjust = () => {
+      const kbh = Math.max(0, window.innerHeight - vv.height);
+      if (kbh > 80) {
+        if (scrollBeforeKbRef.current === null)
+          scrollBeforeKbRef.current = sheetRef.current.scrollTop;
+        const el = document.activeElement;
+        if (!el || (el.tagName !== 'INPUT' && el.tagName !== 'TEXTAREA')) return;
+        const rect = el.getBoundingClientRect();
+        const gap = rect.bottom - (vv.height - 12);
+        if (gap > 0) sheetRef.current.scrollTop += gap;
+      } else {
+        if (scrollBeforeKbRef.current !== null) {
+          sheetRef.current.scrollTop = scrollBeforeKbRef.current;
+          scrollBeforeKbRef.current = null;
+        }
+      }
+    };
+    vv.addEventListener('resize', adjust);
+    return () => vv.removeEventListener('resize', adjust);
+  }, [open]);
+
+  React.useEffect(() => {
+    if (!draft.checkin || !draft.checkout) return;
+    const yr = trip ? extractTripYear(trip) : new Date().getFullYear();
+    const a = dayDateToIso(draft.checkin, yr);
+    const b = dayDateToIso(draft.checkout, yr);
+    if (!a || !b) return;
+    const diff = Math.round((new Date(b) - new Date(a)) / 86400000);
+    if (diff > 0) setDraft(prev => ({ ...prev, nights: String(diff) }));
+  }, [draft.checkin, draft.checkout]);
+
+  React.useEffect(() => {
+    clearTimeout(searchTimer.current);
+    if (!searchQ.trim()) { setSearchRes([]); setShowSearch(false); return; }
+    searchTimer.current = setTimeout(async () => {
+      try {
+        const j = await (await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=8&lang=en&osm_tag=tourism:hotel`
+        )).json();
+        const feats = j?.features || [];
+        setSearchRes(feats);
+        if (feats.length && searchFocused.current) setShowSearch(true);
+      } catch(_) {}
+    }, 350);
+  }, [searchQ]);
 
   const save = () => { onSave(draft); committed.current = { ...draft }; setEditing(false); };
   const hue = draft.hue || 25;
@@ -3300,10 +3364,10 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
       background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
       <div style={{ transform:`translateY(${entered ? sheetY : window.innerHeight}px)`,
         transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-        display:'flex', flexDirection:'column' }}>
+        display:'flex', flexDirection:'column', position:'relative' }}>
         <div ref={sheetRef} onClick={e => e.stopPropagation()}
           style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0', paddingBottom:40,
-            maxHeight: kbh > 0 ? `calc(100vh - ${kbh + 8}px)` : '92%',
+            maxHeight: '92%',
             overflowY:'auto', overflowX:'hidden' }}>
           <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
             <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
@@ -3326,12 +3390,7 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
             <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
               HOTEL{draft.nights ? ` · ${draft.nights}박` : ''}
             </div>
-            {editing ? (
-              <input value={draft.name||''} onChange={e => setDraft({...draft, name:e.target.value})}
-                placeholder="숙소 이름"
-                style={{ marginTop:6, width:'100%', fontFamily:SERIF, fontSize:28, lineHeight:1.12,
-                  color:COLORS.ink, border:'none', outline:'none', background:'transparent', padding:0 }}/>
-            ) : (
+            {!editing && (
               <div style={{ marginTop:6, fontFamily:SERIF, fontSize:28, lineHeight:1.12, color:COLORS.ink }}>
                 {draft.name || '새 숙소'}
               </div>
@@ -3344,29 +3403,94 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
             )}
 
             {editing ? (
-              <div style={{ marginTop:14, background:COLORS.card, borderRadius:14, padding:'14px 16px' }}>
-                {field('area', '지역')}
-                {field('address', '주소')}
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                  {dateField('checkin', '체크인 날짜')}
-                  {dateField('checkout', '체크아웃 날짜')}
+              <div style={{ marginTop:14 }}>
+                <div style={{ position:'relative', marginBottom:10 }}>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>숙소 이름</div>
+                  <div style={{ position:'relative' }}>
+                    <input
+                      value={searchQ !== '' ? searchQ : (draft.name || '')}
+                      onChange={e => { const v=e.target.value; setSearchQ(v); setDraft({...draft, name:v}); }}
+                      onFocus={() => { searchFocused.current=true; if(searchRes.length) setShowSearch(true); }}
+                      onBlur={() => { searchFocused.current=false; setTimeout(()=>setShowSearch(false),150); }}
+                      placeholder="숙소 검색..."
+                      style={{ width:'100%', padding:'9px 36px 9px 11px', borderRadius:8,
+                        border:`1px solid ${COLORS.line}`, background:COLORS.bg,
+                        fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+                    <div style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}>
+                      <Icon name="search" size={13} color={COLORS.mute} stroke={2}/>
+                    </div>
+                  </div>
+                  {showSearch && searchRes.length > 0 && (
+                    <div style={{ position:'absolute', top:'calc(100% + 4px)', left:0, right:0, zIndex:50,
+                      background:COLORS.bg, border:`1px solid ${COLORS.line}`, borderRadius:10,
+                      overflow:'hidden', boxShadow:'0 4px 20px rgba(0,0,0,0.12)' }}>
+                      {searchRes.map((f, i) => {
+                        const p = f.properties;
+                        const hName = p.name || '';
+                        const city = p.city || p.county || p.state || '';
+                        const addr = [p.street, p.housenumber].filter(Boolean).join(' ');
+                        return (
+                          <button key={i}
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => {
+                              setDraft({...draft, name:hName, area:city, address:addr || hName, phone:p.phone||''});
+                              setSearchQ(''); setSearchRes([]); setShowSearch(false);
+                            }}
+                            style={{ display:'flex', flexDirection:'column', width:'100%', padding:'9px 12px',
+                              border:'none', background:'transparent', cursor:'pointer', textAlign:'left',
+                              borderBottom: i < searchRes.length-1 ? `1px solid ${COLORS.line}` : 'none' }}>
+                            <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{hName}</div>
+                            {city && <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:1 }}>{[addr, city].filter(Boolean).join(', ')}</div>}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                  {field('checkinTime', '체크인 시간', '15:00')}
-                  {field('checkoutTime', '체크아웃 시간', '12:00')}
-                </div>
-                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                  {field('nights', '박')}
-                  {field('price', '요금')}
-                </div>
-                {field('phone', '전화')}
-                {field('confirmation', '예약번호')}
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
-                  <textarea value={draft.note||''} onChange={e => setDraft({...draft, note:e.target.value})} rows={3}
-                    style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-                      background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink,
-                      boxSizing:'border-box', resize:'vertical' }}/>
+
+                <div style={{ background:COLORS.card, borderRadius:14, padding:'14px 16px' }}>
+                  {field('area', '지역')}
+                  {field('address', '주소')}
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    {dateField('checkin', '체크인 날짜')}
+                    {dateField('checkout', '체크아웃 날짜')}
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
+                    {['checkin','checkout'].map(k => (
+                      <div key={k}>
+                        <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
+                          {k==='checkin'?'체크인 시간':'체크아웃 시간'}
+                        </div>
+                        <button onClick={()=>setTimePicker(k)} style={{ width:'100%', padding:'9px 11px',
+                          borderRadius:8, border:`1px solid ${COLORS.line}`, background:COLORS.bg,
+                          fontFamily:SANS, fontSize:13, color:COLORS.ink, cursor:'pointer', textAlign:'left',
+                          display:'flex', justifyContent:'space-between', alignItems:'center', boxSizing:'border-box' }}>
+                          <span>{draft[k==='checkin'?'checkinTime':'checkoutTime'] || (k==='checkin'?'15:00':'12:00')}</span>
+                          <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={2}/>
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    <div>
+                      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>박수</div>
+                      <div style={{ padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
+                        background:COLORS.bg, fontFamily:SANS, fontSize:13,
+                        color: draft.nights ? COLORS.ink : COLORS.mute }}>
+                        {draft.nights ? `${draft.nights}박` : '날짜 선택 후 자동'}
+                      </div>
+                    </div>
+                    {field('price', '요금')}
+                  </div>
+                  {field('phone', '전화')}
+                  {field('confirmation', '예약번호')}
+                  <div>
+                    <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
+                    <textarea value={draft.note||''} onChange={e=>setDraft({...draft,note:e.target.value})} rows={3}
+                      style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
+                        background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink,
+                        boxSizing:'border-box', resize:'none' }}/>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -3429,7 +3553,41 @@ function HotelSheet({ open, onClose, hotel, tripDays, onSave, onDelete }) {
             </div>
           </div>
         </div>
-        {kbh > 0 && <div onClick={e => e.stopPropagation()} style={{ height:kbh, background:COLORS.bg, flexShrink:0, transition:'height 0.22s ease' }}/>}
+        {timePicker && (
+          <div onClick={() => setTimePicker(null)} style={{
+            position:'absolute', inset:0, background:'rgba(0,0,0,0.3)', zIndex:10,
+            display:'flex', alignItems:'flex-end', borderRadius:'22px 22px 0 0', overflow:'hidden',
+          }}>
+            <div onClick={e => e.stopPropagation()} style={{
+              width:'100%', background:COLORS.bg, borderRadius:'18px 18px 0 0', paddingBottom:40,
+            }}>
+              <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
+                <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+              </div>
+              <div style={{ padding:'4px 20px 10px', fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+                {timePicker==='checkin'?'체크인 시간':'체크아웃 시간'}
+              </div>
+              {(timePicker==='checkin'
+                ? ['12:00','13:00','14:00','15:00','16:00','17:00','18:00','19:00']
+                : ['09:00','10:00','11:00','12:00','13:00','14:00']
+              ).map(t => {
+                const k = timePicker==='checkin' ? 'checkinTime' : 'checkoutTime';
+                const sel = draft[k] === t;
+                return (
+                  <button key={t} onClick={() => { setDraft({...draft, [k]:t}); setTimePicker(null); }}
+                    style={{ display:'flex', width:'100%', padding:'13px 20px', border:'none',
+                      background: sel ? `${COLORS.ink}0f` : 'transparent',
+                      fontFamily:SANS, fontSize:15, color:COLORS.ink, cursor:'pointer',
+                      alignItems:'center', justifyContent:'space-between',
+                      borderBottom:`1px solid ${COLORS.line}` }}>
+                    <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
+                    {sel && <Icon name="check" size={14} color={COLORS.accent} stroke={2.5}/>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -4432,7 +4590,13 @@ function PrepCatItems({ ci, cat, cats, save, editing, editingItem, setEditingIte
               onEdit={() => setEditingItem({ ci, ii })}
               onDelete={() => deleteItem(ii)}
               isDragging={isTouchDragging}
-              wrapStyle={{ borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none' }}
+              wrapStyle={{
+                borderBottom: ii < cat.items.length - 1 ? `1px solid ${COLORS.line}` : 'none',
+                borderTopLeftRadius: ii === 0 ? 14 : 0,
+                borderTopRightRadius: ii === 0 ? 14 : 0,
+                borderBottomLeftRadius: ii === cat.items.length - 1 ? 14 : 0,
+                borderBottomRightRadius: ii === cat.items.length - 1 ? 14 : 0,
+              }}
             >
               <div style={{ display:'flex', alignItems:'center', gap:12, padding:'12px 14px', background:COLORS.card }}>
                 <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
@@ -4594,7 +4758,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
           </div>
 
           {/* 아이템 목록 */}
-          <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
+          <div style={{ background:COLORS.card, borderRadius:14 }}>
             {(cat.items || []).length === 0 && addInputCat !== ci && (
               <div style={{ padding:'14px 16px', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
                 항목이 없어요
@@ -5539,10 +5703,45 @@ function LoginScreen({ errorMsg, onLoginStart }) {
 
 // ─── Notifications ───────────────────────────────────────────
 function NotificationsScreen({ open, onClose, authUser, notifications }) {
+  const [sheetY, setSheetY]   = React.useState(0);
+  const [entered, setEntered] = React.useState(false);
+  const sheetRef  = React.useRef(null);
+  const sheetYRef = React.useRef(0);
+  const dragRef   = React.useRef({ active:false, startY:0, startScrollTop:0 });
+
+  React.useEffect(() => {
+    setSheetY(0); sheetYRef.current = 0; setEntered(false);
+    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+  }, [open]);
+
   React.useEffect(() => {
     if (!open || !authUser?.uid) return;
     if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
   }, [open, authUser?.uid]);
+
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el) return;
+    const onStart = e => { dragRef.current = { active:true, startY:e.touches[0].clientY, startScrollTop:el.scrollTop }; };
+    const onMove  = e => {
+      if (!dragRef.current.active) return;
+      const { startY, startScrollTop } = dragRef.current;
+      const dy = e.touches[0].clientY - startY;
+      if (startScrollTop > 8 || dy <= 0) { dragRef.current.active = false; return; }
+      e.preventDefault();
+      sheetYRef.current = Math.max(0, dy); setSheetY(sheetYRef.current);
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      const top = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
+      if (top > window.innerHeight / 2) onClose();
+      else { sheetYRef.current = 0; setSheetY(0); }
+    };
+    el.addEventListener('touchstart', onStart, { passive:true });
+    el.addEventListener('touchmove',  onMove,  { passive:false });
+    el.addEventListener('touchend',   onEnd,   { passive:true });
+    return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); el.removeEventListener('touchend', onEnd); };
+  }, [open]);
 
   if (!open) return null;
 
@@ -5583,60 +5782,73 @@ function NotificationsScreen({ open, onClose, authUser, notifications }) {
     contact_accepted: 'check',
   }[type] || 'bell');
 
-  return (
-    <div style={{ position:'fixed', inset:0, zIndex:220, background:COLORS.bg, overflowY:'auto',
-      paddingBottom:'calc(32px + env(safe-area-inset-bottom,0px))' }}>
-      <div style={{
-        position:'sticky', top:0, background:COLORS.bg, zIndex:5,
-        paddingTop:'calc(env(safe-area-inset-top,0px) + 14px)',
-        paddingLeft:16, paddingRight:16, paddingBottom:14,
-        borderBottom:`1px solid ${COLORS.line}`,
-        display:'flex', alignItems:'center', gap:12,
-      }}>
-        <button onClick={onClose} style={{
-          width:36, height:36, borderRadius:18, border:'none', background:COLORS.softer,
-          display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0,
-        }}>
-          <Icon name="chevron-l" size={17} color={COLORS.ink} stroke={2}/>
-        </button>
-        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, flex:1 }}>Notifications</div>
-      </div>
+  const deleteNotif = (id) => {
+    if (authUser?.uid && typeof fbDeleteNotification === 'function')
+      fbDeleteNotification(authUser.uid, id).catch(() => {});
+  };
 
-      <div style={{ padding:'16px' }}>
-        {notifications.length === 0 ? (
-          <div style={{ padding:'64px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-            알림이 없습니다
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:1000,
+      display:'flex', flexDirection:'column', justifyContent:'flex-end',
+      background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
+      <div style={{ transform:`translateY(${entered ? sheetY : window.innerHeight}px)`,
+        transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+        display:'flex', flexDirection:'column' }}>
+        <div ref={sheetRef} onClick={e => e.stopPropagation()}
+          style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0', paddingBottom:40,
+            maxHeight:'88%', overflowY:'auto', overflowX:'hidden' }}>
+          <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+            <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
           </div>
-        ) : (
-          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-            {notifications.map(n => {
-              const color = typeColor(n.type);
-              return (
-                <div key={n.id} style={{
-                  background: n.read ? COLORS.card : `${color}12`,
-                  borderRadius:14, padding:'13px 14px',
-                  display:'flex', alignItems:'flex-start', gap:12,
-                  border:`1.5px solid ${n.read ? 'transparent' : color+'30'}`,
-                }}>
-                  <div style={{
-                    width:36, height:36, borderRadius:18, flexShrink:0,
-                    background:`${color}20`,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
-                  </div>
-                  <div style={{ flex:1, minWidth:0 }}>
-                    <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
-                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
-                  </div>
-                  {!n.read && (
-                    <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
-                  )}
-                </div>
-              );
-            })}
+          <div style={{ padding:'4px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>Notifications</div>
+            <button onClick={onClose} style={{ border:'none', background:'none', cursor:'pointer', padding:4 }}>
+              <Icon name="x" size={18} color={COLORS.mute} stroke={2}/>
+            </button>
           </div>
-        )}
+
+          <div style={{ padding:'0 16px' }}>
+            {notifications.length === 0 ? (
+              <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                알림이 없습니다
+              </div>
+            ) : (
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {notifications.map(n => {
+                  const color = typeColor(n.type);
+                  return (
+                    <SwipeableRow key={n.id}
+                      onDelete={() => deleteNotif(n.id)}
+                      deleteLabel="삭제"
+                      wrapStyle={{ borderRadius:14 }}>
+                      <div style={{
+                        background: n.read ? COLORS.card : `${color}12`,
+                        borderRadius:14, padding:'13px 14px',
+                        display:'flex', alignItems:'flex-start', gap:12,
+                        border:`1.5px solid ${n.read ? 'transparent' : color+'30'}`,
+                      }}>
+                        <div style={{
+                          width:36, height:36, borderRadius:18, flexShrink:0,
+                          background:`${color}20`,
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                        }}>
+                          <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
+                        </div>
+                        <div style={{ flex:1, minWidth:0 }}>
+                          <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
+                          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
+                        </div>
+                        {!n.read && (
+                          <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
+                        )}
+                      </div>
+                    </SwipeableRow>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -5860,12 +6072,14 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
               </div>
             )}
 
-            {/* 동행인 목록 — 미수락(contact invite pending) 포함 */}
+            {/* 동행인 목록 — 받은 요청 대기 중인 사람 제외, 미수락(contact invite pending) 포함 */}
             {(() => {
+              const pendingReceivedUids = new Set(receivedInvites.map(inv => inv.fromUid).filter(Boolean));
               const pendingInvMap = {};
               sentInvites.filter(inv => inv.type === 'contact' && !inv.tripId)
                 .forEach(inv => { pendingInvMap[inv.toUid] = inv; });
-              const total = contacts.length;
+              const displayContacts = contacts.filter(c => !pendingReceivedUids.has(c.uid));
+              const total = displayContacts.length;
               return (
                 <div style={{ marginBottom:20 }}>
                   <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
@@ -5877,7 +6091,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
                     </div>
                   ) : (
                     <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                      {contacts.map(c => {
+                      {displayContacts.map(c => {
                         const pendingInv = pendingInvMap[c.uid];
                         return (
                           <SwipeableRow key={c.uid}
@@ -6374,7 +6588,16 @@ function App() {
   // ── 알림 리스너 ────────────────────────────────────────────
   React.useEffect(() => {
     if (!authUser?.uid || typeof fbListenNotifications !== 'function') return;
-    return fbListenNotifications(authUser.uid, setNotifs);
+    const CUTOFF = 30 * 24 * 60 * 60 * 1000;
+    if (typeof fbPruneOldNotifications === 'function')
+      fbPruneOldNotifications(authUser.uid).catch(() => {});
+    return fbListenNotifications(authUser.uid, (all) => {
+      const now = Date.now();
+      setNotifs(all.filter(n => {
+        const ts = n.createdAt?.toDate ? n.createdAt.toDate() : new Date(n.createdAt || 0);
+        return now - ts.getTime() < CUTOFF;
+      }));
+    });
   }, [authUser?.uid]);
 
   // ── 여행 목록 로드 ─────────────────────────────────────────
@@ -7048,6 +7271,7 @@ function App() {
         open={hotelDetailSheet !== null}
         onClose={() => setHotelDetailSheet(null)}
         hotel={typeof hotelDetailSheet === 'number' ? (trip?.hotels?.[hotelDetailSheet] || null) : null}
+        trip={trip}
         tripDays={trip?.days}
         onSave={saveHotelDetailSheet}
         onDelete={deleteHotelDetailSheet}

@@ -195,8 +195,18 @@ window.fbAcceptInvite = async (invite, myUid) => {
   return invite.groupId;
 };
 
-window.fbRejectInvite = (id) =>
-  _fbDb.collection('invites').doc(id).update({ status:'rejected' });
+window.fbRejectInvite = async (id) => {
+  const invSnap = await _fbDb.collection('invites').doc(id).get();
+  if (invSnap.exists) {
+    const { fromUid, toUid, type } = invSnap.data();
+    if (type === 'contact' && fromUid && toUid) {
+      await _fbDb.collection('users').doc(fromUid).update({
+        contacts: firebase.firestore.FieldValue.arrayRemove(toUid),
+      }).catch(() => {});
+    }
+  }
+  await _fbDb.collection('invites').doc(id).update({ status: 'rejected' });
+};
 
 window.fbGetCompanions = async (groupId, myUid) => {
   const snap = await _fbDb.collection('groups').doc(groupId).get();
@@ -411,9 +421,10 @@ window.fbGetContacts = async (uid) => {
 };
 
 window.fbRemoveContact = async (myUid, contactUid) => {
-  await _fbDb.collection('users').doc(myUid).update({
-    contacts: firebase.firestore.FieldValue.arrayRemove(contactUid),
-  });
+  const batch = _fbDb.batch();
+  batch.update(_fbDb.collection('users').doc(myUid),      { contacts: firebase.firestore.FieldValue.arrayRemove(contactUid) });
+  batch.update(_fbDb.collection('users').doc(contactUid), { contacts: firebase.firestore.FieldValue.arrayRemove(myUid) });
+  await batch.commit();
 };
 
 // ─── Notifications ──────────────────────────────────────────
@@ -427,6 +438,19 @@ window.fbListenNotifications = (uid, cb) =>
   _fbDb.collection('users').doc(uid).collection('notifications')
     .orderBy('createdAt', 'desc').limit(50)
     .onSnapshot(s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+
+window.fbDeleteNotification = (uid, notifId) =>
+  _fbDb.collection('users').doc(uid).collection('notifications').doc(notifId).delete();
+
+window.fbPruneOldNotifications = async (uid) => {
+  const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const snap = await _fbDb.collection('users').doc(uid).collection('notifications')
+    .where('createdAt', '<', cutoff).get();
+  if (snap.empty) return;
+  const batch = _fbDb.batch();
+  snap.docs.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+};
 
 window.fbMarkAllRead = async (uid) => {
   const snap = await _fbDb.collection('users').doc(uid)
