@@ -1689,7 +1689,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
   );
 }
 
-function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount }) {
+function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount, onRefresh }) {
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
   const handleRestore = async () => {
@@ -1698,8 +1698,76 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
     try { await onRestore(); }
     catch (e) { setRestoreErr('복원 실패. 다시 시도해 주세요.'); setRestoring(false); }
   };
+
+  // ── Pull-to-refresh ────────────────────────────────────────
+  const PTR_THRESHOLD = 72;
+  const [ptrPull, setPtrPull] = React.useState(0);   // 0..PTR_THRESHOLD
+  const [ptrRefreshing, setPtrRefreshing] = React.useState(false);
+  const ptrStart = React.useRef(null);
+  const ptrActive = React.useRef(false);
+  const scrollRef = React.useRef(null);
+
+  const ptrOnTouchStart = (e) => {
+    if (ptrRefreshing) return;
+    ptrStart.current = e.touches[0].clientY;
+    ptrActive.current = false;
+  };
+  const ptrOnTouchMove = (e) => {
+    if (ptrRefreshing || ptrStart.current === null) return;
+    const el = scrollRef.current;
+    if (!el) return;
+    const dy = e.touches[0].clientY - ptrStart.current;
+    if (dy <= 0) { ptrActive.current = false; return; }
+    if (!ptrActive.current && el.scrollTop > 0) return;
+    ptrActive.current = true;
+    const pull = Math.min(PTR_THRESHOLD, dy * 0.45);
+    setPtrPull(pull);
+    if (pull > 4) e.preventDefault();
+  };
+  const ptrOnTouchEnd = async () => {
+    if (ptrRefreshing) return;
+    if (ptrPull >= PTR_THRESHOLD - 4 && onRefresh) {
+      setPtrPull(0);
+      setPtrRefreshing(true);
+      try { await onRefresh(); } catch(_) {}
+      setPtrRefreshing(false);
+    } else {
+      setPtrPull(0);
+    }
+    ptrStart.current = null;
+    ptrActive.current = false;
+  };
+
+  const ptrVisible = ptrPull > 0 || ptrRefreshing;
+  const ptrProgress = Math.min(1, ptrPull / (PTR_THRESHOLD - 4));
+  const ptrReady = ptrProgress >= 1;
+
   return (
-    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100, position:'relative' }}>
+    <div ref={scrollRef} onTouchStart={ptrOnTouchStart} onTouchMove={ptrOnTouchMove} onTouchEnd={ptrOnTouchEnd}
+      style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100, position:'relative' }}>
+      {/* PTR 인디케이터 */}
+      {ptrVisible && (
+        <div style={{
+          position:'absolute', top:'calc(env(safe-area-inset-top,0px) + 12px)', left:0, right:0,
+          display:'flex', justifyContent:'center', zIndex:20, pointerEvents:'none',
+          transform:`translateY(${ptrRefreshing ? PTR_THRESHOLD * 0.5 : ptrPull * 0.5}px)`,
+          transition: ptrRefreshing ? 'none' : 'none',
+        }}>
+          <div style={{
+            width:34, height:34, borderRadius:17,
+            background:COLORS.card, border:`1px solid ${COLORS.line}`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            boxShadow:'0 2px 8px rgba(0,0,0,0.10)',
+          }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={ptrReady || ptrRefreshing ? COLORS.accent : COLORS.mute} strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"
+              style={{ animation: ptrRefreshing ? 'ptr-spin 0.8s linear infinite' : 'none',
+                transform: ptrRefreshing ? 'none' : `rotate(${Math.round(ptrProgress * 360)}deg)` }}>
+              <path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/>
+              <path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/>
+            </svg>
+          </div>
+        </div>
+      )}
       {/* 프로필 버튼 */}
       <button onClick={onOpenCompanion} style={{
         position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:20, zIndex:10,
@@ -1739,7 +1807,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v177</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v181</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7200,6 +7268,16 @@ function App() {
         }}
         onShare={(t) => setShareTripTarget(t)}
         onDelete={deleteTrip}
+        onRefresh={async () => {
+          if (!userData?.uid) return;
+          const tripIds = userData.tripIds || [userData.groupId];
+          setTripsLoading(true);
+          try {
+            const trips = await fbLoadTrips(tripIds);
+            setUserTrips(trips.map(t => normalizeTrip(t, t.id)));
+          } catch(_) {}
+          setTripsLoading(false);
+        }}
       />
       <ShareTripSheet
         open={!!shareTripTarget}
