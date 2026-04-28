@@ -178,6 +178,11 @@ window.fbListenInvites = (uid, cb) =>
     .where('toUid','==',uid).where('status','==','pending')
     .onSnapshot(s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))));
 
+window.fbListenSentInvites = (uid, cb) =>
+  _fbDb.collection('invites')
+    .where('fromUid','==',uid).where('status','==','pending')
+    .onSnapshot(s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+
 window.fbAcceptInvite = async (invite, myUid) => {
   await _fbDb.collection('invites').doc(invite.id).update({ status:'accepted' });
   await _fbDb.collection('users').doc(myUid).update({ groupId: invite.groupId });
