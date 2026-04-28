@@ -1739,7 +1739,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v167</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v168</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5646,6 +5646,7 @@ function NotificationsScreen({ open, onClose, authUser, notifications }) {
 function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
   const [contacts, setContacts]         = React.useState([]);
   const [sentInvites, setSentInvites]   = React.useState([]);
+  const [receivedInvites, setReceivedInvites] = React.useState([]);
   const [inviteUsers, setInviteUsers]   = React.useState({});
   const [tripCompanions, setTripCompanions] = React.useState({});
   const [loading, setLoading]           = React.useState(false);
@@ -5671,9 +5672,9 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
       setLoading(false);
     });
 
-    let unsubInvites = () => {};
+    let unsubSent = () => {};
     if (typeof fbListenSentInvites === 'function') {
-      unsubInvites = fbListenSentInvites(authUser.uid, async (invites) => {
+      unsubSent = fbListenSentInvites(authUser.uid, async (invites) => {
         setSentInvites(invites);
         const uids = [...new Set(invites.map(i => i.toUid).filter(Boolean))];
         if (uids.length) {
@@ -5686,7 +5687,15 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
       });
     }
 
-    return () => { unsubInvites(); document.body.style.overflow = ''; };
+    // 받은 연락처 요청 리스너
+    let unsubReceived = () => {};
+    if (typeof fbListenInvites === 'function') {
+      unsubReceived = fbListenInvites(authUser.uid, (invites) => {
+        setReceivedInvites(invites.filter(inv => inv.type === 'contact'));
+      });
+    }
+
+    return () => { unsubSent(); unsubReceived(); document.body.style.overflow = ''; };
   }, [open, authUser?.uid, tripIds]);
 
   if (!open) return null;
@@ -5809,6 +5818,44 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
                       </SwipeableRow>
                     );
                   })}
+                </div>
+              </div>
+            )}
+
+            {/* 받은 요청 */}
+            {receivedInvites.length > 0 && (
+              <div style={{ marginBottom:20 }}>
+                <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                  받은 요청 · {receivedInvites.length}
+                </div>
+                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                  {receivedInvites.map(inv => (
+                    <div key={inv.id} style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px',
+                      display:'flex', alignItems:'center', gap:12 }}>
+                      <Avatar u={{ displayName: inv.fromName, photoURL: inv.fromPhoto }}/>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{inv.fromName || '?'}</div>
+                        <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:1 }}>동행인 요청</div>
+                      </div>
+                      <div style={{ display:'flex', gap:6 }}>
+                        <button onClick={async () => {
+                          await fbAcceptContactInvite(inv, authUser.uid);
+                          setReceivedInvites(p => p.filter(i => i.id !== inv.id));
+                          fbGetContacts(authUser.uid).then(setContacts).catch(() => {});
+                        }} style={{
+                          border:'none', borderRadius:9, padding:'6px 12px', cursor:'pointer',
+                          background:COLORS.ink, color:COLORS.bg, fontFamily:SANS, fontSize:12, fontWeight:500,
+                        }}>수락</button>
+                        <button onClick={async () => {
+                          await fbRejectInvite(inv.id).catch(() => {});
+                          setReceivedInvites(p => p.filter(i => i.id !== inv.id));
+                        }} style={{
+                          border:`1px solid ${COLORS.line}`, borderRadius:9, padding:'6px 10px', cursor:'pointer',
+                          background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                        }}>거절</button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
