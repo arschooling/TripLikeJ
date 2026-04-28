@@ -1717,29 +1717,26 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
       </button>
       {/* 알림 벨 버튼 */}
       <button onClick={onOpenNotifs} style={{
-        position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:66, zIndex:10,
-        width:38, height:38, borderRadius:19,
-        background:COLORS.softer, border:`2px solid ${COLORS.line}`,
+        position:'absolute', top:'calc(18px + env(safe-area-inset-top,0px))', right:68, zIndex:10,
+        width:34, height:34, borderRadius:0,
+        background:'transparent', border:'none',
         padding:0, cursor:'pointer',
         display:'flex', alignItems:'center', justifyContent:'center',
-        boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
       }}>
-        <Icon name="bell" size={17} color={COLORS.ink} stroke={2}/>
+        <Icon name="bell" size={20} color={COLORS.ink} stroke={1.8}/>
         {unreadCount > 0 && (
           <div style={{
-            position:'absolute', top:0, right:0,
-            width:16, height:16, borderRadius:8,
-            background:'#E03C31', border:`2px solid ${COLORS.bg}`,
-            display:'flex', alignItems:'center', justifyContent:'center',
-            fontFamily:MONO, fontSize:8.5, color:'#fff', fontWeight:700,
-          }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
+            position:'absolute', top:2, right:2,
+            width:8, height:8, borderRadius:4,
+            background:'#E03C31',
+          }}/>
         )}
       </button>
       <div style={{
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v163</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v164</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1957,22 +1954,19 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       )}
       {onOpenNotifs && (
         <button onClick={onOpenNotifs} style={{
-          position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:66, zIndex:10,
-          width:38, height:38, borderRadius:19,
-          background:COLORS.softer, border:`2px solid ${COLORS.line}`,
+          position:'absolute', top:'calc(18px + env(safe-area-inset-top,0px))', right:68, zIndex:10,
+          width:34, height:34,
+          background:'transparent', border:'none',
           padding:0, cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center',
-          boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
         }}>
-          <Icon name="bell" size={17} color={COLORS.ink} stroke={2}/>
+          <Icon name="bell" size={20} color={COLORS.ink} stroke={1.8}/>
           {unreadCount > 0 && (
             <div style={{
-              position:'absolute', top:0, right:0,
-              width:16, height:16, borderRadius:8,
-              background:'#E03C31', border:`2px solid ${COLORS.bg}`,
-              display:'flex', alignItems:'center', justifyContent:'center',
-              fontFamily:MONO, fontSize:8.5, color:'#fff', fontWeight:700,
-            }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
+              position:'absolute', top:2, right:2,
+              width:8, height:8, borderRadius:4,
+              background:'#E03C31',
+            }}/>
           )}
         </button>
       )}
