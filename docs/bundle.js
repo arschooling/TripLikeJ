@@ -3985,7 +3985,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v184"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v186"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -12174,15 +12174,25 @@ function NotificationsScreen({
   authUser,
   notifications
 }) {
-  const [entered, setEntered] = React.useState(false);
+  const [visible, setVisible] = React.useState(false); // DOM에 마운트 여부
+  const [entered, setEntered] = React.useState(false); // 슬라이드 인 완료 여부
+
   React.useEffect(() => {
-    if (open) requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));else setEntered(false);
+    if (open) {
+      setVisible(true);
+      requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+    } else {
+      setEntered(false);
+      // 슬라이드 아웃 애니메이션(300ms) 후 언마운트
+      const t = setTimeout(() => setVisible(false), 320);
+      return () => clearTimeout(t);
+    }
   }, [open]);
   React.useEffect(() => {
     if (!open || !authUser?.uid) return;
     if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
   }, [open, authUser?.uid]);
-  if (!open) return null;
+  if (!visible) return null;
   const fmtMsg = n => {
     const name = n.fromName || '누군가';
     const trip = n.tripTitle ? `"${n.tripTitle}"` : '여행';
