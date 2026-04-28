@@ -288,7 +288,11 @@ window.fbAcceptTripInvite = async (invite, myUid) => {
   });
   await _fbDb.collection('users').doc(myUid).update({
     tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
+    contacts: firebase.firestore.FieldValue.arrayUnion(invite.fromUid),
   });
+  await _fbDb.collection('users').doc(invite.fromUid).update({
+    contacts: firebase.firestore.FieldValue.arrayUnion(myUid),
+  }).catch(() => {});
   const mySnap = await _fbDb.collection('users').doc(myUid).get();
   const myData = mySnap.exists ? mySnap.data() : {};
   _fbAddNotification(invite.fromUid, {
@@ -359,19 +363,44 @@ window.fbAddContact = async (myUid, contactEmail) => {
   const toUser = await fbSearchUser(contactEmail);
   if (!toUser) return { error: '가입된 사용자가 없습니다.' };
   if (toUser.uid === myUid) return { error: '자기 자신은 추가할 수 없습니다.' };
+  // 기존 pending contact invite 중복 체크
+  const ex = await _fbDb.collection('invites')
+    .where('fromUid','==',myUid).where('toUid','==',toUser.uid)
+    .where('type','==','contact').where('status','==','pending').get();
+  if (!ex.empty) return { error: '이미 신청을 보냈습니다.' };
+  // 내 연락처에만 단방향 추가 (상대방은 수락 후 추가됨)
+  const mySnap = await _fbDb.collection('users').doc(myUid).get();
+  const myData = mySnap.exists ? mySnap.data() : {};
   await _fbDb.collection('users').doc(myUid).update({
     contacts: firebase.firestore.FieldValue.arrayUnion(toUser.uid),
   });
-  await _fbDb.collection('users').doc(toUser.uid).update({
-    contacts: firebase.firestore.FieldValue.arrayUnion(myUid),
-  }).catch(() => {});
-  const mySnap = await _fbDb.collection('users').doc(myUid).get();
-  const myData = mySnap.exists ? mySnap.data() : {};
+  // 연락처 초대 생성 (대기 중 표시용)
+  await _fbDb.collection('invites').add({
+    fromUid: myUid, fromName: myData.displayName || '', fromPhoto: myData.photoURL || '',
+    toUid: toUser.uid, toEmail: toUser.email,
+    type: 'contact',
+    status: 'pending',
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
   _fbAddNotification(toUser.uid, {
     type: 'contact_added',
     fromUid: myUid, fromName: myData.displayName || '', fromPhoto: myData.photoURL || '',
   }).catch(() => {});
   return { success: true, toName: toUser.displayName };
+};
+
+window.fbAcceptContactInvite = async (invite, myUid) => {
+  await _fbDb.collection('invites').doc(invite.id).update({ status: 'accepted' });
+  // 상대방을 내 연락처에 추가 (상대는 이미 자기 연락처에 나를 추가함)
+  await _fbDb.collection('users').doc(myUid).update({
+    contacts: firebase.firestore.FieldValue.arrayUnion(invite.fromUid),
+  });
+  const mySnap = await _fbDb.collection('users').doc(myUid).get();
+  const myData = mySnap.exists ? mySnap.data() : {};
+  _fbAddNotification(invite.fromUid, {
+    type: 'contact_accepted',
+    fromUid: myUid, fromName: myData.displayName || '', fromPhoto: myData.photoURL || '',
+  }).catch(() => {});
 };
 
 window.fbGetContacts = async (uid) => {

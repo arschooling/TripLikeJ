@@ -1739,7 +1739,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v166</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v167</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5549,10 +5549,11 @@ function NotificationsScreen({ open, onClose, authUser, notifications }) {
   const fmtMsg = (n) => {
     const name = n.fromName || '누군가';
     const trip = n.tripTitle ? `"${n.tripTitle}"` : '여행';
-    if (n.type === 'invite_received') return `${name}님이 ${trip}에 초대했습니다.`;
-    if (n.type === 'invite_accepted') return `${name}님이 ${trip} 초대를 수락했습니다.`;
-    if (n.type === 'trip_edited')     return `${name}님이 ${trip} 일정을 수정했습니다.`;
-    if (n.type === 'contact_added')   return `${name}님이 동행인으로 추가했습니다.`;
+    if (n.type === 'invite_received')  return `${name}님이 ${trip}에 초대했습니다.`;
+    if (n.type === 'invite_accepted')  return `${name}님이 ${trip} 초대를 수락했습니다.`;
+    if (n.type === 'trip_edited')      return `${name}님이 ${trip} 일정을 수정했습니다.`;
+    if (n.type === 'contact_added')    return `${name}님이 동행인으로 추가했습니다.`;
+    if (n.type === 'contact_accepted') return `${name}님이 동행인 요청을 수락했습니다.`;
     return '새 알림';
   };
 
@@ -5567,17 +5568,19 @@ function NotificationsScreen({ open, onClose, authUser, notifications }) {
   };
 
   const typeColor = (type) => ({
-    invite_received: '#4F6BED',
-    invite_accepted: '#2E9E5B',
-    trip_edited:     '#E07B39',
-    contact_added:   '#9B59B6',
+    invite_received:  '#4F6BED',
+    invite_accepted:  '#2E9E5B',
+    trip_edited:      '#E07B39',
+    contact_added:    '#9B59B6',
+    contact_accepted: '#2E9E5B',
   }[type] || COLORS.mute);
 
   const typeIcon = (type) => ({
-    invite_received: 'users',
-    invite_accepted: 'check',
-    trip_edited:     'edit',
-    contact_added:   'user',
+    invite_received:  'users',
+    invite_accepted:  'check',
+    trip_edited:      'edit',
+    contact_added:    'user',
+    contact_accepted: 'check',
   }[type] || 'bell');
 
   return (
@@ -5688,8 +5691,8 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
 
   if (!open) return null;
 
-  const removeContact = async (c) => {
-    if (!confirm(`${c.displayName}님을 동행인에서 삭제할까요?\n모든 여행에서도 제거됩니다.`)) return;
+  const removeContact = async (c, skipConfirm = false) => {
+    if (!skipConfirm && !confirm(`${c.displayName}님을 동행인에서 삭제할까요?\n모든 여행에서도 제거됩니다.`)) return;
     setRemoving(`contact:${c.uid}`);
     try {
       await fbRemoveContact(authUser.uid, c.uid);
@@ -5762,14 +5765,14 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
 
         {!loading && (
           <>
-            {/* 대기 중 */}
-            {sentInvites.length > 0 && (
+            {/* 대기 중 — 여행 초대만 */}
+            {sentInvites.filter(inv => inv.tripId).length > 0 && (
               <div style={{ marginBottom:20 }}>
                 <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
-                  대기 중 · {sentInvites.length}
+                  대기 중 · {sentInvites.filter(inv => inv.tripId).length}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {sentInvites.map(inv => {
+                  {sentInvites.filter(inv => inv.tripId).map(inv => {
                     const u = inviteUsers[inv.toUid];
                     return (
                       <SwipeableRow key={inv.id}
@@ -5777,11 +5780,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
                           try {
                             await fbCancelInvite(inv.id);
                             const fromUser = { uid:authUser.uid, displayName:authUser.displayName, email:authUser.email, photoURL:authUser.photoURL||'' };
-                            if (inv.tripId) {
-                              await fbSendTripInvite(fromUser, inv.toEmail, inv.tripId, inv.tripTitle||'');
-                            } else {
-                              await fbSendInvite(fromUser, inv.toEmail);
-                            }
+                            await fbSendTripInvite(fromUser, inv.toEmail, inv.tripId, inv.tripTitle||'');
                           } catch(e) { alert('재신청 실패.'); }
                         }}
                         editLabel="재신청" editBg="#ffa500"
@@ -5814,40 +5813,68 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
               </div>
             )}
 
-            {/* 동행인 목록 */}
-            <div style={{ marginBottom:20 }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
-                동행인 · {contacts.length}
-              </div>
-              {contacts.length === 0 ? (
-                <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                  아직 동행인이 없어요
+            {/* 동행인 목록 — 미수락(contact invite pending) 포함 */}
+            {(() => {
+              const pendingInvMap = {};
+              sentInvites.filter(inv => inv.type === 'contact' && !inv.tripId)
+                .forEach(inv => { pendingInvMap[inv.toUid] = inv; });
+              const total = contacts.length;
+              return (
+                <div style={{ marginBottom:20 }}>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                    동행인 · {total}
+                  </div>
+                  {total === 0 ? (
+                    <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                      아직 동행인이 없어요
+                    </div>
+                  ) : (
+                    <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                      {contacts.map(c => {
+                        const pendingInv = pendingInvMap[c.uid];
+                        return (
+                          <SwipeableRow key={c.uid}
+                            onEdit={pendingInv ? async () => {
+                              try {
+                                await fbCancelInvite(pendingInv.id);
+                                await fbAddContact(authUser.uid, pendingInv.toEmail);
+                              } catch(e) { alert('재신청 실패.'); }
+                            } : undefined}
+                            editLabel={pendingInv ? '재신청' : undefined} editBg="#ffa500"
+                            onDelete={async () => {
+                              if (!confirm(`${c.displayName}님을 동행인에서 삭제할까요?\n모든 여행에서도 제거됩니다.`)) return;
+                              if (pendingInv) await fbCancelInvite(pendingInv.id).catch(() => {});
+                              await removeContact(c, true);
+                            }}
+                            wrapStyle={{ borderRadius:14 }}>
+                            <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px',
+                              display:'flex', alignItems:'center', gap:12 }}>
+                              <Avatar u={c}/>
+                              <div style={{ flex:1, minWidth:0 }}>
+                                <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
+                                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{c.email}</div>
+                              </div>
+                              <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
+                                {pendingInv && (
+                                  <div style={{ fontFamily:MONO, fontSize:9, color:'#B8860B',
+                                    background:'#FFF8E1', borderRadius:6, padding:'2px 6px' }}>미수락</div>
+                                )}
+                                <div style={{ display:'flex', gap:4, flexWrap:'wrap', justifyContent:'flex-end' }}>
+                                  {(trips||[]).filter(t => (tripCompanions[t.id]||[]).some(m => m.uid === c.uid)).map(t => (
+                                    <div key={t.id} style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED',
+                                      background:'#EEF2FF', borderRadius:6, padding:'2px 6px' }}>{t.title||'여행'}</div>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          </SwipeableRow>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-              ) : (
-                <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                  {contacts.map(c => (
-                    <SwipeableRow key={c.uid}
-                      onDelete={() => removeContact(c)}
-                      wrapStyle={{ borderRadius:14 }}>
-                      <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px',
-                        display:'flex', alignItems:'center', gap:12 }}>
-                        <Avatar u={c}/>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
-                          <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{c.email}</div>
-                        </div>
-                        <div style={{ display:'flex', gap:4, flexWrap:'wrap', justifyContent:'flex-end' }}>
-                          {(trips||[]).filter(t => (tripCompanions[t.id]||[]).some(m => m.uid === c.uid)).map(t => (
-                            <div key={t.id} style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED',
-                              background:'#EEF2FF', borderRadius:6, padding:'2px 6px' }}>{t.title||'여행'}</div>
-                          ))}
-                        </div>
-                      </div>
-                    </SwipeableRow>
-                  ))}
-                </div>
-              )}
-            </div>
+              );
+            })()}
 
             {/* 여행별 동행인 */}
             {(trips||[]).length > 0 && (
@@ -5988,6 +6015,11 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
   };
 
   const handleAccept = async (inv) => {
+    if (inv.type === 'contact') {
+      await fbAcceptContactInvite(inv, authUser.uid);
+      setPendingInvites(p => p.filter(i => i.id !== inv.id));
+      return;
+    }
     const tripId = await fbAcceptTripInvite(inv, authUser.uid);
     onUserDataUpdate({ ...userData, tripIds: [...(userData.tripIds||[]), tripId] });
     setPendingInvites(p => p.filter(i => i.id !== inv.id));
@@ -6027,7 +6059,9 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
                 }
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{inv.tripTitle || inv.fromEmail}</div>
+                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
+                    {inv.type === 'contact' ? '동행인 요청' : (inv.tripTitle || inv.fromEmail)}
+                  </div>
                 </div>
                 <button onClick={() => handleAccept(inv)} style={{
                   border:'none', borderRadius:9, padding:'6px 12px', cursor:'pointer',
