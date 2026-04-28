@@ -121,13 +121,13 @@ function EditBtn({ editing, onClick, compact }) {
 }
 
 // ─── Swipeable row (swipe-left to reveal edit/delete) ────────
-function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {}, editIcon, editBg }) {
+function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {}, editIcon, editBg, editLabel, deleteLabel }) {
   const [x, setX] = React.useState(0);
   const [open, setOpen] = React.useState(false);
   const startRef = React.useRef(null);
   const dragging = React.useRef(false);
   const xRef = React.useRef(0);
-  const REVEAL = onEdit ? 116 : 70;
+  const REVEAL = onEdit ? 124 : 70;
   const DELETE_EXTRA = 72;
 
   const close = () => { setX(0); xRef.current = 0; setOpen(false); };
@@ -193,16 +193,28 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
         }}>
           {onEdit && (
             <button onClick={(e)=>{e.stopPropagation(); close(); setTimeout(onEdit,100);}} style={{
-              width:46, height:46, borderRadius:23, border:'none', cursor:'pointer',
+              width: editLabel ? 54 : 46, height: editLabel ? 38 : 46,
+              borderRadius: editLabel ? 10 : 23,
+              border:'none', cursor:'pointer',
               background: editBg || '#ffa500', flexShrink:0,
-              display:'flex', alignItems:'center', justifyContent:'center',
-            }}><Icon name={editIcon||'edit'} size={17} color="#fff" stroke={2}/></button>
+              display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
+            }}>
+              {editLabel
+                ? <span style={{ fontFamily:SANS, fontSize:11, fontWeight:600, color:'#fff' }}>{editLabel}</span>
+                : <Icon name={editIcon||'edit'} size={17} color="#fff" stroke={2}/>}
+            </button>
           )}
           <button onClick={(e)=>{e.stopPropagation(); close(); setTimeout(onDelete,100);}} style={{
-            width:46, height:46, borderRadius:23, border:'none', cursor:'pointer',
+            width: deleteLabel ? 54 : 46, height: deleteLabel ? 38 : 46,
+            borderRadius: deleteLabel ? 10 : 23,
+            border:'none', cursor:'pointer',
             background:'#B5451B', flexShrink:0,
-            display:'flex', alignItems:'center', justifyContent:'center',
-          }}><Icon name="trash" size={17} color="#fff" stroke={2}/></button>
+            display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
+          }}>
+            {deleteLabel
+              ? <span style={{ fontFamily:SANS, fontSize:11, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
+              : <Icon name="trash" size={17} color="#fff" stroke={2}/>}
+          </button>
         </div>
       </div>
     </div>
@@ -1705,7 +1717,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:72, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v161</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v162</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5619,10 +5631,23 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
                     const u = inviteUsers[inv.toUid];
                     return (
                       <SwipeableRow key={inv.id}
+                        onEdit={async () => {
+                          try {
+                            await fbCancelInvite(inv.id);
+                            const fromUser = { uid:authUser.uid, displayName:authUser.displayName, email:authUser.email, photoURL:authUser.photoURL||'' };
+                            if (inv.tripId) {
+                              await fbSendTripInvite(fromUser, inv.toEmail, inv.tripId, inv.tripTitle||'');
+                            } else {
+                              await fbSendInvite(fromUser, inv.toEmail);
+                            }
+                          } catch(e) { alert('재신청 실패.'); }
+                        }}
+                        editLabel="재신청" editBg="#4F6BED"
                         onDelete={async () => {
                           if (!confirm('초대를 취소할까요?')) return;
                           try { await fbCancelInvite(inv.id); } catch(e) { alert('취소 실패.'); }
                         }}
+                        deleteLabel="취소"
                         wrapStyle={{ borderRadius:14 }}>
                         <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px',
                           display:'flex', alignItems:'center', gap:12 }}>
@@ -6724,7 +6749,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v161</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v162</div>
         </div>
       </div>
       <button onClick={async () => {
