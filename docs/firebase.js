@@ -271,6 +271,11 @@ window.fbSendTripInvite = async (fromUser, toEmail, tripId, tripTitle) => {
     status   : 'pending',
     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
   });
+  _fbAddNotification(toUser.uid, {
+    type: 'invite_received',
+    fromUid: fromUser.uid, fromName: fromUser.displayName || '', fromPhoto: fromUser.photoURL || '',
+    tripId, tripTitle: tripTitle || '',
+  }).catch(() => {});
   return { success: true, toName: toUser.displayName };
 };
 
@@ -284,6 +289,13 @@ window.fbAcceptTripInvite = async (invite, myUid) => {
   await _fbDb.collection('users').doc(myUid).update({
     tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
   });
+  const mySnap = await _fbDb.collection('users').doc(myUid).get();
+  const myData = mySnap.exists ? mySnap.data() : {};
+  _fbAddNotification(invite.fromUid, {
+    type: 'invite_accepted',
+    fromUid: myUid, fromName: myData.displayName || '', fromPhoto: myData.photoURL || '',
+    tripId, tripTitle: invite.tripTitle || '',
+  }).catch(() => {});
   return tripId;
 };
 
@@ -367,4 +379,37 @@ window.fbRemoveContact = async (myUid, contactUid) => {
   await _fbDb.collection('users').doc(myUid).update({
     contacts: firebase.firestore.FieldValue.arrayRemove(contactUid),
   });
+};
+
+// ─── Notifications ──────────────────────────────────────────
+const _fbAddNotification = (uid, data) =>
+  _fbDb.collection('users').doc(uid).collection('notifications').add({
+    ...data, read: false,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  });
+
+window.fbListenNotifications = (uid, cb) =>
+  _fbDb.collection('users').doc(uid).collection('notifications')
+    .orderBy('createdAt', 'desc').limit(50)
+    .onSnapshot(s => cb(s.docs.map(d => ({ id: d.id, ...d.data() }))));
+
+window.fbMarkAllRead = async (uid) => {
+  const snap = await _fbDb.collection('users').doc(uid)
+    .collection('notifications').where('read', '==', false).get();
+  if (snap.empty) return;
+  const batch = _fbDb.batch();
+  snap.docs.forEach(d => batch.update(d.ref, { read: true }));
+  await batch.commit();
+};
+
+window.fbNotifyTripEdit = async (tripId, editorUid, editorName, editorPhoto, tripTitle) => {
+  const snap = await _fbDb.collection('groups').doc(tripId).get();
+  if (!snap.exists) return;
+  const members = (snap.data().members || []).filter(u => u !== editorUid);
+  if (!members.length) return;
+  await Promise.all(members.map(uid => _fbAddNotification(uid, {
+    type: 'trip_edited',
+    fromUid: editorUid, fromName: editorName || '', fromPhoto: editorPhoto || '',
+    tripId, tripTitle: tripTitle || '',
+  })));
 };

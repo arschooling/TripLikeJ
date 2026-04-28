@@ -69,6 +69,7 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'wallet':  return <svg {...p}><rect x="2" y="5" width="20" height="14" rx="3"/><path d="M16 12h.01"/><path d="M2 10h20"/></svg>;
     case 'minus':      return <svg {...p}><path d="M5 12h14"/></svg>;
     case 'calculator': return <svg {...p}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h2M8 18h2M12 18h2M16 18h2"/></svg>;
+    case 'bell':       return <svg {...p}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
     default: return null;
   }
 };
@@ -1688,7 +1689,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
   );
 }
 
-function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid }) {
+function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount }) {
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
   const handleRestore = async () => {
@@ -1699,6 +1700,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
   };
   return (
     <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:100, position:'relative' }}>
+      {/* 프로필 버튼 */}
       <button onClick={onOpenCompanion} style={{
         position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:20, zIndex:10,
         width:38, height:38, borderRadius:19,
@@ -1713,11 +1715,31 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
           : <Icon name="user" size={18} color={COLORS.mute}/>
         }
       </button>
+      {/* 알림 벨 버튼 */}
+      <button onClick={onOpenNotifs} style={{
+        position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:66, zIndex:10,
+        width:38, height:38, borderRadius:19,
+        background:COLORS.softer, border:`2px solid ${COLORS.line}`,
+        padding:0, cursor:'pointer',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
+      }}>
+        <Icon name="bell" size={17} color={COLORS.ink} stroke={2}/>
+        {unreadCount > 0 && (
+          <div style={{
+            position:'absolute', top:0, right:0,
+            width:16, height:16, borderRadius:8,
+            background:'#E03C31', border:`2px solid ${COLORS.bg}`,
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontFamily:MONO, fontSize:8.5, color:'#fff', fontWeight:700,
+          }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
+        )}
+      </button>
       <div style={{
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
-        paddingLeft:20, paddingRight:72, paddingBottom:16,
+        paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v162</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v163</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1821,7 +1843,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       onEditTrip, onReorderDays, onAddDay, onDeleteDay, onBack,
                       onAddHotel, onAddHotelFromSearch, onDeleteHotel, onReorderHotels,
                       onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
-                      userData, onOpenCompanion, onLoadSample }) {
+                      userData, onOpenCompanion, onLoadSample, onOpenNotifs, unreadCount }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   const [sampleLoading, setSampleLoading] = React.useState(false);
@@ -1931,6 +1953,27 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             ? <img src={userData.photoURL} alt="profile" style={{ width:'100%', height:'100%', objectFit:'cover' }}/>
             : <Icon name="user" size={18} color={COLORS.mute}/>
           }
+        </button>
+      )}
+      {onOpenNotifs && (
+        <button onClick={onOpenNotifs} style={{
+          position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:66, zIndex:10,
+          width:38, height:38, borderRadius:19,
+          background:COLORS.softer, border:`2px solid ${COLORS.line}`,
+          padding:0, cursor:'pointer',
+          display:'flex', alignItems:'center', justifyContent:'center',
+          boxShadow:'0 1px 6px rgba(0,0,0,0.10)',
+        }}>
+          <Icon name="bell" size={17} color={COLORS.ink} stroke={2}/>
+          {unreadCount > 0 && (
+            <div style={{
+              position:'absolute', top:0, right:0,
+              width:16, height:16, borderRadius:8,
+              background:'#E03C31', border:`2px solid ${COLORS.bg}`,
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontFamily:MONO, fontSize:8.5, color:'#fff', fontWeight:700,
+            }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
+          )}
         </button>
       )}
       <div style={{ paddingTop:'calc(52px + env(safe-area-inset-top, 0px))' }}/>
@@ -5497,6 +5540,105 @@ function LoginScreen({ errorMsg, onLoginStart }) {
   );
 }
 
+// ─── Notifications ───────────────────────────────────────────
+function NotificationsScreen({ open, onClose, authUser, notifications }) {
+  React.useEffect(() => {
+    if (!open || !authUser?.uid) return;
+    if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
+  }, [open, authUser?.uid]);
+
+  if (!open) return null;
+
+  const fmtMsg = (n) => {
+    const name = n.fromName || '누군가';
+    const trip = n.tripTitle ? `"${n.tripTitle}"` : '여행';
+    if (n.type === 'invite_received') return `${name}님이 ${trip}에 초대했습니다.`;
+    if (n.type === 'invite_accepted') return `${name}님이 ${trip} 초대를 수락했습니다.`;
+    if (n.type === 'trip_edited')     return `${name}님이 ${trip} 일정을 수정했습니다.`;
+    return '새 알림';
+  };
+
+  const fmtTime = (ts) => {
+    if (!ts) return '';
+    const d = ts.toDate ? ts.toDate() : new Date(ts);
+    const diff = (Date.now() - d) / 1000;
+    if (diff < 60)    return '방금';
+    if (diff < 3600)  return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    return `${Math.floor(diff / 86400)}일 전`;
+  };
+
+  const typeColor = (type) => ({
+    invite_received: '#4F6BED',
+    invite_accepted: '#2E9E5B',
+    trip_edited:     '#E07B39',
+  }[type] || COLORS.mute);
+
+  const typeIcon = (type) => ({
+    invite_received: 'users',
+    invite_accepted: 'check',
+    trip_edited:     'edit',
+  }[type] || 'bell');
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:220, background:COLORS.bg, overflowY:'auto',
+      paddingBottom:'calc(32px + env(safe-area-inset-bottom,0px))' }}>
+      <div style={{
+        position:'sticky', top:0, background:COLORS.bg, zIndex:5,
+        paddingTop:'calc(env(safe-area-inset-top,0px) + 14px)',
+        paddingLeft:16, paddingRight:16, paddingBottom:14,
+        borderBottom:`1px solid ${COLORS.line}`,
+        display:'flex', alignItems:'center', gap:12,
+      }}>
+        <button onClick={onClose} style={{
+          width:36, height:36, borderRadius:18, border:'none', background:COLORS.softer,
+          display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0,
+        }}>
+          <Icon name="chevron-l" size={17} color={COLORS.ink} stroke={2}/>
+        </button>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, flex:1 }}>Notifications</div>
+      </div>
+
+      <div style={{ padding:'16px' }}>
+        {notifications.length === 0 ? (
+          <div style={{ padding:'64px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+            알림이 없습니다
+          </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {notifications.map(n => {
+              const color = typeColor(n.type);
+              return (
+                <div key={n.id} style={{
+                  background: n.read ? COLORS.card : `${color}12`,
+                  borderRadius:14, padding:'13px 14px',
+                  display:'flex', alignItems:'flex-start', gap:12,
+                  border:`1.5px solid ${n.read ? 'transparent' : color+'30'}`,
+                }}>
+                  <div style={{
+                    width:36, height:36, borderRadius:18, flexShrink:0,
+                    background:`${color}20`,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                  }}>
+                    <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
+                  </div>
+                  <div style={{ flex:1, minWidth:0 }}>
+                    <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
+                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
+                  </div>
+                  {!n.read && (
+                    <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Companions ───────────────────────────────────────────────
 function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
   const [contacts, setContacts]         = React.useState([]);
@@ -6054,6 +6196,9 @@ function App() {
   const [profileSheetOpen,     setProfileSheetOpen]     = React.useState(false);
   const [addCompanionOpen,     setAddCompanionOpen]     = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
   const [companionsScreenOpen, setCompanionsScreenOpen] = React.useState(false);
+  const [notifOpen, setNotifOpen]               = React.useState(false);
+  const [notifs, setNotifs]                     = React.useState([]);
+  const notifyTripEditTimer                     = React.useRef(null);
   const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -6144,6 +6289,12 @@ function App() {
       }
     });
   }, []);
+
+  // ── 알림 리스너 ────────────────────────────────────────────
+  React.useEffect(() => {
+    if (!authUser?.uid || typeof fbListenNotifications !== 'function') return;
+    return fbListenNotifications(authUser.uid, setNotifs);
+  }, [authUser?.uid]);
 
   // ── 여행 목록 로드 ─────────────────────────────────────────
   React.useEffect(() => {
@@ -6287,6 +6438,13 @@ function App() {
   const editTrip = (patch) => {
     setTrip(prev => ({ ...prev, ...patch }));
     if (activeTripId) fbSaveGroup(activeTripId, patch).catch(console.error);
+    // 동행인에게 일정 수정 알림 (60초 디바운스)
+    if (activeTripId && authUser && typeof fbNotifyTripEdit === 'function') {
+      clearTimeout(notifyTripEditTimer.current);
+      notifyTripEditTimer.current = setTimeout(() => {
+        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', trip?.title || '').catch(() => {});
+      }, 60000);
+    }
   };
   const editPrep = (newPrep) => {
     setPrep(newPrep);
@@ -6568,6 +6726,7 @@ function App() {
   // ── Permission check ───────────────────────────────────
   const myRole = (trip?.permissions || {})[authUser?.uid];
   const canEdit = myRole !== 'view';
+  const unreadCount = notifs.filter(n => !n.read).length;
 
   // ── Render ─────────────────────────────────────────────
   let screen, label;
@@ -6605,6 +6764,7 @@ function App() {
         onAddItemToFirstDay={addItemToFirstDay}
         editing={editing} setEditing={setEditing}
         userData={userData} onOpenCompanion={() => setProfileSheetOpen(true)}
+        onOpenNotifs={() => setNotifOpen(true)} unreadCount={unreadCount}
         onLoadSample={async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const patch = {
@@ -6654,6 +6814,7 @@ function App() {
         userData={userData}
         myUid={authUser?.uid}
         onOpenCompanion={() => setProfileSheetOpen(true)}
+        onOpenNotifs={() => setNotifOpen(true)} unreadCount={unreadCount}
         onSelect={(id) => {
           const found = userTrips.find(t => t.id === id);
           let tripToShow = found;
@@ -6729,6 +6890,8 @@ function App() {
         onUserDataUpdate={ud => setUserData(ud)}/>
       <CompanionsScreen open={companionsScreenOpen} onClose={() => setCompanionsScreenOpen(false)}
         authUser={authUser} userData={userData} trips={userTrips}/>
+      <NotificationsScreen open={notifOpen} onClose={() => setNotifOpen(false)}
+        authUser={authUser} notifications={notifs}/>
     </>
   );
 
@@ -6825,6 +6988,8 @@ function App() {
         onUserDataUpdate={ud => setUserData(ud)}/>
       <CompanionsScreen open={companionsScreenOpen} onClose={() => setCompanionsScreenOpen(false)}
         authUser={authUser} userData={userData} trips={userTrips}/>
+      <NotificationsScreen open={notifOpen} onClose={() => setNotifOpen(false)}
+        authUser={authUser} notifications={notifs}/>
 
       {/* 저장 확인 다이얼로그 */}
       {saveConfirm && ReactDOM.createPortal(
