@@ -3784,7 +3784,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v182"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v183"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -11973,73 +11973,14 @@ function NotificationsScreen({
   authUser,
   notifications
 }) {
-  const [sheetY, setSheetY] = React.useState(0);
   const [entered, setEntered] = React.useState(false);
-  const sheetRef = React.useRef(null);
-  const sheetYRef = React.useRef(0);
-  const dragRef = React.useRef({
-    active: false,
-    startY: 0,
-    startScrollTop: 0
-  });
   React.useEffect(() => {
-    setSheetY(0);
-    sheetYRef.current = 0;
-    setEntered(false);
-    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+    if (open) requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));else setEntered(false);
   }, [open]);
   React.useEffect(() => {
     if (!open || !authUser?.uid) return;
     if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
   }, [open, authUser?.uid]);
-  React.useEffect(() => {
-    const el = sheetRef.current;
-    if (!el) return;
-    const onStart = e => {
-      dragRef.current = {
-        active: true,
-        startY: e.touches[0].clientY,
-        startScrollTop: el.scrollTop
-      };
-    };
-    const onMove = e => {
-      if (!dragRef.current.active) return;
-      const {
-        startY,
-        startScrollTop
-      } = dragRef.current;
-      const dy = e.touches[0].clientY - startY;
-      if (startScrollTop > 8 || dy <= 0) {
-        dragRef.current.active = false;
-        return;
-      }
-      e.preventDefault();
-      sheetYRef.current = Math.max(0, dy);
-      setSheetY(sheetYRef.current);
-    };
-    const onEnd = () => {
-      dragRef.current.active = false;
-      const top = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
-      if (top > window.innerHeight / 2) onClose();else {
-        sheetYRef.current = 0;
-        setSheetY(0);
-      }
-    };
-    el.addEventListener('touchstart', onStart, {
-      passive: true
-    });
-    el.addEventListener('touchmove', onMove, {
-      passive: false
-    });
-    el.addEventListener('touchend', onEnd, {
-      passive: true
-    });
-    return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
-      el.removeEventListener('touchend', onEnd);
-    };
-  }, [open]);
   if (!open) return null;
   const fmtMsg = n => {
     const name = n.fromName || '누군가';
@@ -12081,73 +12022,57 @@ function NotificationsScreen({
     style: {
       position: 'fixed',
       inset: 0,
-      zIndex: 1000,
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      background: `rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})`
-    },
-    onClick: onClose
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
-      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-      display: 'flex',
-      flexDirection: 'column'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    ref: sheetRef,
-    onClick: e => e.stopPropagation(),
-    style: {
+      zIndex: 230,
       background: COLORS.bg,
-      borderRadius: '22px 22px 0 0',
-      paddingBottom: 40,
-      maxHeight: '88%',
       overflowY: 'auto',
-      overflowX: 'hidden'
+      overflowX: 'hidden',
+      transform: `translateX(${entered ? 0 : 100}%)`,
+      transition: 'transform 0.3s cubic-bezier(0.32,0.72,0,1)',
+      paddingBottom: 'calc(32px + env(safe-area-inset-bottom,0px))'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      display: 'flex',
-      justifyContent: 'center',
-      padding: '10px 0 6px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 4,
-      background: COLORS.line,
-      borderRadius: 2
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '4px 20px 14px',
+      position: 'sticky',
+      top: 0,
+      background: COLORS.bg,
+      zIndex: 5,
+      paddingTop: 'calc(env(safe-area-inset-top,0px) + 14px)',
+      paddingLeft: 16,
+      paddingRight: 16,
+      paddingBottom: 14,
+      borderBottom: `1px solid ${COLORS.line}`,
       display: 'flex',
       alignItems: 'center',
-      justifyContent: 'space-between'
+      gap: 12
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      border: 'none',
+      background: COLORS.softer,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      cursor: 'pointer',
+      flexShrink: 0
+    }
+  }, /*#__PURE__*/React.createElement(Icon, {
+    name: "chevron-l",
+    size: 17,
+    color: COLORS.ink,
+    stroke: 2
+  })), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SERIF,
       fontSize: 22,
       color: COLORS.ink
     }
-  }, "Notifications"), /*#__PURE__*/React.createElement("button", {
-    onClick: onClose,
+  }, "Notifications")), /*#__PURE__*/React.createElement("div", {
     style: {
-      border: 'none',
-      background: 'none',
-      cursor: 'pointer',
-      padding: 4
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "x",
-    size: 18,
-    color: COLORS.mute,
-    stroke: 2
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px'
+      padding: '16px 16px 0'
     }
   }, notifications.length === 0 ? /*#__PURE__*/React.createElement("div", {
     style: {
@@ -12227,7 +12152,7 @@ function NotificationsScreen({
         marginTop: 6
       }
     })));
-  }))))));
+  }))));
 }
 
 // ─── Companions ───────────────────────────────────────────────

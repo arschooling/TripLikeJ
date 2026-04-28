@@ -1807,7 +1807,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v182</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v183</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5771,45 +5771,17 @@ function LoginScreen({ errorMsg, onLoginStart }) {
 
 // ─── Notifications ───────────────────────────────────────────
 function NotificationsScreen({ open, onClose, authUser, notifications }) {
-  const [sheetY, setSheetY]   = React.useState(0);
   const [entered, setEntered] = React.useState(false);
-  const sheetRef  = React.useRef(null);
-  const sheetYRef = React.useRef(0);
-  const dragRef   = React.useRef({ active:false, startY:0, startScrollTop:0 });
 
   React.useEffect(() => {
-    setSheetY(0); sheetYRef.current = 0; setEntered(false);
-    requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+    if (open) requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
+    else setEntered(false);
   }, [open]);
 
   React.useEffect(() => {
     if (!open || !authUser?.uid) return;
     if (typeof fbMarkAllRead === 'function') fbMarkAllRead(authUser.uid).catch(() => {});
   }, [open, authUser?.uid]);
-
-  React.useEffect(() => {
-    const el = sheetRef.current;
-    if (!el) return;
-    const onStart = e => { dragRef.current = { active:true, startY:e.touches[0].clientY, startScrollTop:el.scrollTop }; };
-    const onMove  = e => {
-      if (!dragRef.current.active) return;
-      const { startY, startScrollTop } = dragRef.current;
-      const dy = e.touches[0].clientY - startY;
-      if (startScrollTop > 8 || dy <= 0) { dragRef.current.active = false; return; }
-      e.preventDefault();
-      sheetYRef.current = Math.max(0, dy); setSheetY(sheetYRef.current);
-    };
-    const onEnd = () => {
-      dragRef.current.active = false;
-      const top = sheetRef.current ? sheetRef.current.getBoundingClientRect().top : 0;
-      if (top > window.innerHeight / 2) onClose();
-      else { sheetYRef.current = 0; setSheetY(0); }
-    };
-    el.addEventListener('touchstart', onStart, { passive:true });
-    el.addEventListener('touchmove',  onMove,  { passive:false });
-    el.addEventListener('touchend',   onEnd,   { passive:true });
-    return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); el.removeEventListener('touchend', onEnd); };
-  }, [open]);
 
   if (!open) return null;
 
@@ -5856,67 +5828,69 @@ function NotificationsScreen({ open, onClose, authUser, notifications }) {
   };
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000,
-      display:'flex', flexDirection:'column', justifyContent:'flex-end',
-      background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
-      <div style={{ transform:`translateY(${entered ? sheetY : window.innerHeight}px)`,
-        transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-        display:'flex', flexDirection:'column' }}>
-        <div ref={sheetRef} onClick={e => e.stopPropagation()}
-          style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0', paddingBottom:40,
-            maxHeight:'88%', overflowY:'auto', overflowX:'hidden' }}>
-          <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
-            <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
-          </div>
-          <div style={{ padding:'4px 20px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>Notifications</div>
-            <button onClick={onClose} style={{ border:'none', background:'none', cursor:'pointer', padding:4 }}>
-              <Icon name="x" size={18} color={COLORS.mute} stroke={2}/>
-            </button>
-          </div>
+    <div style={{
+      position:'fixed', inset:0, zIndex:230, background:COLORS.bg,
+      overflowY:'auto', overflowX:'hidden',
+      transform:`translateX(${entered ? 0 : 100}%)`,
+      transition:'transform 0.3s cubic-bezier(0.32,0.72,0,1)',
+      paddingBottom:'calc(32px + env(safe-area-inset-bottom,0px))',
+    }}>
+      <div style={{
+        position:'sticky', top:0, background:COLORS.bg, zIndex:5,
+        paddingTop:'calc(env(safe-area-inset-top,0px) + 14px)',
+        paddingLeft:16, paddingRight:16, paddingBottom:14,
+        borderBottom:`1px solid ${COLORS.line}`,
+        display:'flex', alignItems:'center', gap:12,
+      }}>
+        <button onClick={onClose} style={{
+          width:36, height:36, borderRadius:18, border:'none', background:COLORS.softer,
+          display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer', flexShrink:0,
+        }}>
+          <Icon name="chevron-l" size={17} color={COLORS.ink} stroke={2}/>
+        </button>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>Notifications</div>
+      </div>
 
-          <div style={{ padding:'0 16px' }}>
-            {notifications.length === 0 ? (
-              <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                알림이 없습니다
-              </div>
-            ) : (
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
-                {notifications.map(n => {
-                  const color = typeColor(n.type);
-                  return (
-                    <SwipeableRow key={n.id}
-                      onDelete={() => deleteNotif(n.id)}
-                      deleteLabel="삭제"
-                      wrapStyle={{ borderRadius:14 }}>
-                      <div style={{
-                        background: n.read ? COLORS.card : `${color}12`,
-                        borderRadius:14, padding:'13px 14px',
-                        display:'flex', alignItems:'flex-start', gap:12,
-                        border:`1.5px solid ${n.read ? 'transparent' : color+'30'}`,
-                      }}>
-                        <div style={{
-                          width:36, height:36, borderRadius:18, flexShrink:0,
-                          background:`${color}20`,
-                          display:'flex', alignItems:'center', justifyContent:'center',
-                        }}>
-                          <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
-                        </div>
-                        <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
-                          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
-                        </div>
-                        {!n.read && (
-                          <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
-                        )}
-                      </div>
-                    </SwipeableRow>
-                  );
-                })}
-              </div>
-            )}
+      <div style={{ padding:'16px 16px 0' }}>
+        {notifications.length === 0 ? (
+          <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+            알림이 없습니다
           </div>
-        </div>
+        ) : (
+          <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+            {notifications.map(n => {
+              const color = typeColor(n.type);
+              return (
+                <SwipeableRow key={n.id}
+                  onDelete={() => deleteNotif(n.id)}
+                  deleteLabel="삭제"
+                  wrapStyle={{ borderRadius:14 }}>
+                  <div style={{
+                    background: n.read ? COLORS.card : `${color}12`,
+                    borderRadius:14, padding:'13px 14px',
+                    display:'flex', alignItems:'flex-start', gap:12,
+                    border:`1.5px solid ${n.read ? 'transparent' : color+'30'}`,
+                  }}>
+                    <div style={{
+                      width:36, height:36, borderRadius:18, flexShrink:0,
+                      background:`${color}20`,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                    }}>
+                      <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
+                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
+                    </div>
+                    {!n.read && (
+                      <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
+                    )}
+                  </div>
+                </SwipeableRow>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
