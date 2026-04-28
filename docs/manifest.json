@@ -1,6 +1,6 @@
 {
   "name": "Trip Like J",
-  "short_name": "여행",
+  "short_name": "TripLikeJ",
   "display": "standalone",
   "start_url": "/TripLikeJ/",
   "background_color": "#F5F2EC",
