@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v248</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v249</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5482,59 +5482,57 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
   const isOp = (o) => op===o;
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:310,
-      display:'flex', flexDirection:'column', justifyContent:'flex-end',
-      background:'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        background:COLORS.bg, borderRadius:'22px 22px 0 0',
-        paddingBottom:'env(safe-area-inset-bottom,0px)',
-        transform:`translateY(${entered ? 0 : window.innerHeight}px)`,
-        transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-      }}>
-        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
-          <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+    <div style={{
+      position:'fixed', left:0, right:0, bottom:0, zIndex:310,
+      background:COLORS.bg, borderRadius:'22px 22px 0 0',
+      paddingBottom:'env(safe-area-inset-bottom,0px)',
+      boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
+      transform:`translateY(${entered ? 0 : '100%'})`,
+      transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+    }}>
+      <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
+        <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+      </div>
+      {/* 디스플레이 */}
+      <div style={{ padding:'8px 20px 14px', textAlign:'right', minHeight:64 }}>
+        {op && <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginRight:8 }}>{op}</span>}
+        <span style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em' }}>{fmtDisp}</span>
+      </div>
+      {/* 키패드 */}
+      <div style={{ padding:'0 14px', display:'flex', flexDirection:'column', gap:8 }}>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={pressClear} style={KS(COLORS.softer, COLORS.mute)}>C</button>
+          <button onClick={pressBack}  style={KS(COLORS.softer, COLORS.mute)}>⌫</button>
+          <button onClick={() => { setDisplay(String(Math.round((parseFloat(display)||0)/100*100)/100)); setWaitNew(true); }}
+            style={KS(COLORS.softer, COLORS.mute)}>%</button>
+          <button onClick={() => pressOp('÷')}
+            style={KS(isOp('÷') ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp('÷') ? '#fff' : COLORS.accent)}>÷</button>
         </div>
-        {/* 디스플레이 */}
-        <div style={{ padding:'8px 20px 14px', textAlign:'right', minHeight:64 }}>
-          {op && <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginRight:8 }}>{op}</span>}
-          <span style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em' }}>{fmtDisp}</span>
-        </div>
-        {/* 키패드 */}
-        <div style={{ padding:'0 14px', display:'flex', flexDirection:'column', gap:8 }}>
-          <div style={{ display:'flex', gap:8 }}>
-            <button onClick={pressClear} style={KS(COLORS.softer, COLORS.mute)}>C</button>
-            <button onClick={pressBack}  style={KS(COLORS.softer, COLORS.mute)}>⌫</button>
-            <button onClick={() => { setDisplay(String(Math.round((parseFloat(display)||0)/100*100)/100)); setWaitNew(true); }}
-              style={KS(COLORS.softer, COLORS.mute)}>%</button>
-            <button onClick={() => pressOp('÷')}
-              style={KS(isOp('÷') ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp('÷') ? '#fff' : COLORS.accent)}>÷</button>
+        {[['7','8','9','×'],['4','5','6','−'],['1','2','3','+']].map(row => (
+          <div key={row[0]} style={{ display:'flex', gap:8 }}>
+            {row.slice(0,3).map(d => (
+              <button key={d} onClick={() => pressDigit(d)} style={KS(COLORS.card, COLORS.ink)}>{d}</button>
+            ))}
+            <button onClick={() => pressOp(row[3])}
+              style={KS(isOp(row[3]) ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp(row[3]) ? '#fff' : COLORS.accent)}>{row[3]}</button>
           </div>
-          {[['7','8','9','×'],['4','5','6','−'],['1','2','3','+']].map(row => (
-            <div key={row[0]} style={{ display:'flex', gap:8 }}>
-              {row.slice(0,3).map(d => (
-                <button key={d} onClick={() => pressDigit(d)} style={KS(COLORS.card, COLORS.ink)}>{d}</button>
-              ))}
-              <button onClick={() => pressOp(row[3])}
-                style={KS(isOp(row[3]) ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp(row[3]) ? '#fff' : COLORS.accent)}>{row[3]}</button>
-            </div>
-          ))}
-          <div style={{ display:'flex', gap:8 }}>
-            <button onClick={() => pressDigit('0')} style={KS(COLORS.card, COLORS.ink, { flex:2 })}>0</button>
-            <button onClick={() => pressDigit('.')} style={KS(COLORS.card, COLORS.ink)}>.</button>
-            <button onClick={pressEqual} style={KS(COLORS.accent, '#fff')}>=</button>
-          </div>
+        ))}
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={() => pressDigit('0')} style={KS(COLORS.card, COLORS.ink, { flex:2 })}>0</button>
+          <button onClick={() => pressDigit('.')} style={KS(COLORS.card, COLORS.ink)}>.</button>
+          <button onClick={pressEqual} style={KS(COLORS.accent, '#fff')}>=</button>
         </div>
-        {/* 입력 버튼 */}
-        <div style={{ padding:'12px 14px 16px', display:'flex', gap:8 }}>
-          <button onClick={() => { onEnter('in', displayNum); onClose(); }} style={{
-            flex:1, padding:'14px 0', border:`1px solid ${COLORS.line}`, borderRadius:14,
-            background:COLORS.card, fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, cursor:'pointer',
-          }}>수입으로 입력</button>
-          <button onClick={() => { onEnter('out', displayNum); onClose(); }} style={{
-            flex:1, padding:'14px 0', border:'none', borderRadius:14,
-            background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
-          }}>지출로 입력</button>
-        </div>
+      </div>
+      {/* 입력 버튼 */}
+      <div style={{ padding:'12px 14px 16px', display:'flex', gap:8 }}>
+        <button onClick={() => { onEnter('in', displayNum); onClose(); }} style={{
+          flex:1, padding:'14px 0', border:`1px solid ${COLORS.line}`, borderRadius:14,
+          background:COLORS.card, fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, cursor:'pointer',
+        }}>수입으로 입력</button>
+        <button onClick={() => { onEnter('out', displayNum); onClose(); }} style={{
+          flex:1, padding:'14px 0', border:'none', borderRadius:14,
+          background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
+        }}>지출로 입력</button>
       </div>
     </div>
   );
@@ -5629,7 +5627,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
   const [splitOpen,  setSplitOpen]  = React.useState(false);
   const sheetTouchY = React.useRef(null);
 
-  React.useEffect(() => { onSheetChange?.(addOpen || editIdx !== null); }, [addOpen, editIdx]);
+  React.useEffect(() => { onSheetChange?.(addOpen || editIdx !== null || calcOpen); }, [addOpen, editIdx, calcOpen]);
 
   // KRW 환산 합계 (총 금액 표시용)
   const krwTotalOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
