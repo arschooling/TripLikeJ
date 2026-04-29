@@ -203,10 +203,12 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
 
   if (cardSwipe) {
     return (
+      // 높이 접힘용 래퍼 (overflow:hidden은 접힐 때만)
       <div ref={outerRef} style={collapseStyle}
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-        <div style={{ position:'relative', overflow:'hidden', ...wrapStyle }}>
-          {/* 버튼들 — 날아가는 동안 숨김 */}
+        {/* overflow 없음 → 카드가 컨테이너 밖으로 자유롭게 이동 */}
+        <div style={{ position:'relative', ...wrapStyle }}>
+          {/* 버튼들: 카드 뒤에, 날아가는 동안 숨김 */}
           {!flying && (
             <div style={{
               position:'absolute', right:0, top:0, bottom:0,
@@ -231,8 +233,9 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
               </button>
             </div>
           )}
-          {/* 카드 전체 슬라이드 */}
+          {/* 카드: position:relative + zIndex:1 → 이웃 카드 위에 표시되며 프레임 밖으로 이동 */}
           <div style={{
+            position:'relative', zIndex:1,
             transform:`translateX(${x}px)`,
             transition: flying ? flyTransition : dragging.current ? 'none' : snapTransition,
             willChange:'transform', WebkitTapHighlightColor:'transparent',
@@ -1860,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v233</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v234</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
