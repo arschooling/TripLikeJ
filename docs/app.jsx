@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v251</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v252</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5482,6 +5482,11 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
   const isOp = (o) => op===o;
 
   return (
+    <>
+    <div style={{ position:'fixed', inset:0, zIndex:309,
+      background:`rgba(0,0,0,${entered ? 0.3 : 0})`,
+      transition:'background 0.34s ease',
+    }} onClick={onClose}/>
     <div style={{
       position:'fixed', left:0, right:0, bottom:0, zIndex:310,
       background:COLORS.bg, borderRadius:'22px 22px 0 0',
@@ -5535,6 +5540,7 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
         }}>지출로 입력</button>
       </div>
     </div>
+    </>
   );
 }
 
@@ -5896,8 +5902,14 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
 
       {/* 입력/수정 시트 */}
       {(sheetOpen || sheetEntered) && (
+        <div style={{ position:'fixed', inset:0, zIndex:200,
+          background:`rgba(0,0,0,${sheetEntered ? 0.3 : 0})`,
+          transition:'background 0.34s ease',
+        }} onClick={() => { setAddOpen(false); setEditIdx(null); setDelConfirm(false); }}/>
+      )}
+      {(sheetOpen || sheetEntered) && (
         <div style={{
-          position:'fixed', left:0, right:0, bottom:0, zIndex:200,
+          position:'fixed', left:0, right:0, bottom:0, zIndex:201,
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
           padding:'20px 18px', paddingBottom:'calc(24px + env(safe-area-inset-bottom,0px))',
           boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
