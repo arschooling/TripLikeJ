@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v249</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v250</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5623,11 +5623,18 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
   const [form, setForm] = React.useState({ type:'out', amount:'', cat:'식비', note:'', date:'' });
   const [addingCat,  setAddingCat]  = React.useState(false);
   const [newCatVal,  setNewCatVal]  = React.useState('');
-  const [calcOpen,   setCalcOpen]   = React.useState(false);
-  const [splitOpen,  setSplitOpen]  = React.useState(false);
+  const [calcOpen,      setCalcOpen]      = React.useState(false);
+  const [splitOpen,     setSplitOpen]     = React.useState(false);
+  const [sheetEntered,  setSheetEntered]  = React.useState(false);
   const sheetTouchY = React.useRef(null);
 
-  React.useEffect(() => { onSheetChange?.(addOpen || editIdx !== null || calcOpen); }, [addOpen, editIdx, calcOpen]);
+  const sheetOpen = addOpen || editIdx !== null;
+  React.useEffect(() => {
+    if (sheetOpen) requestAnimationFrame(() => requestAnimationFrame(() => setSheetEntered(true)));
+    else setSheetEntered(false);
+  }, [sheetOpen]);
+
+  React.useEffect(() => { onSheetChange?.(sheetOpen || calcOpen); }, [sheetOpen, calcOpen]);
 
   // KRW 환산 합계 (총 금액 표시용)
   const krwTotalOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
@@ -5887,17 +5894,18 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
         );
       })()}
 
-      {/* 입력 시트 */}
-      {addOpen && (
-        <div style={{ position:'fixed', inset:0, zIndex:200, background:'rgba(0,0,0,0.38)' }}
-          onClick={() => setAddOpen(false)}>
-          <div style={{
-            position:'absolute', bottom:0, left:0, right:0,
-            background:COLORS.bg, borderRadius:'22px 22px 0 0',
-            padding:'20px 18px', paddingBottom:'calc(24px + env(safe-area-inset-bottom,0px))',
-          }} onClick={e => e.stopPropagation()}
-            onTouchStart={e => { sheetTouchY.current = e.touches[0].clientY; }}
-            onTouchEnd={e => { if (e.changedTouches[0].clientY - (sheetTouchY.current||0) > 80) setAddOpen(false); }}>
+      {/* 입력/수정 시트 */}
+      {(sheetOpen || sheetEntered) && (
+        <div style={{
+          position:'fixed', left:0, right:0, bottom:0, zIndex:200,
+          background:COLORS.bg, borderRadius:'22px 22px 0 0',
+          padding:'20px 18px', paddingBottom:'calc(24px + env(safe-area-inset-bottom,0px))',
+          boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
+          transform:`translateY(${sheetEntered ? 0 : '100%'})`,
+          transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+        }}
+          onTouchStart={e => { sheetTouchY.current = e.touches[0].clientY; }}
+          onTouchEnd={e => { if (e.changedTouches[0].clientY - (sheetTouchY.current||0) > 80) { setAddOpen(false); setEditIdx(null); setDelConfirm(false); } }}>
             <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2, margin:'-10px auto 14px' }}/>
             {/* 수입/지출 토글 + 공동/개인 */}
             <div style={{ display:'flex', gap:8, marginBottom:14 }}>
@@ -6049,7 +6057,6 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
                 {editIdx !== null ? '수정' : '저장'}
               </button>
             </div>
-          </div>
         </div>
       )}
       <BudgetCalcSheet open={calcOpen} onClose={() => setCalcOpen(false)}
@@ -8218,7 +8225,7 @@ function App() {
     label = 'Map';
   }
   else if (tab === 'food')   { screen = <FoodScreen trip={trip} onEditFood={food => editTrip({ food })} editing={editing} setEditing={setEditing}/>; label='Food'; }
-  else if (tab === 'budget') { screen = <BudgetScreen trip={trip} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={setBudgetSheetOpen}/>; label='Budget'; }
+  else if (tab === 'budget') { screen = <BudgetScreen trip={trip} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={v => { setBudgetSheetOpen(v); if (!v) setTabBarVisible(true); }}/>; label='Budget'; }
   else                       { screen = <PrepScreen trip={trip} prep={prep} onEditPrep={editPrep} editing={editing} setEditing={setEditing}/>; label='Prep'; }
 
   const dayHue = dayIdx !== null && trip
