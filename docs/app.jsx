@@ -1779,7 +1779,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v204</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v205</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2107,7 +2107,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         <div style={{ padding:'4px 16px 18px' }}>
           <div style={{ background:COLORS.card, borderRadius:22, overflow:'hidden',
             boxShadow:'0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.05)' }}>
-            <Photo hue={featured.hero?.hue ?? 25} label={featured.hero?.label} height={170}/>
+            <Photo hue={(featuredIdx === 0 ? (trip.hue ?? featured.hero?.hue) : featured.hero?.hue) ?? 25} label={featured.hero?.label} height={170}/>
             <div style={{ padding:'16px 18px 18px' }}>
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
@@ -2153,7 +2153,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             }}>
               <div style={{ padding:12, display:'flex', gap:12, alignItems:'center' }}>
                   <div style={{ width:64, height:64, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
-                    <Photo hue={d.hero?.hue ?? 25} height={64} small/>
+                    <Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} height={64} small/>
                   </div>
                   <div style={{ flex:1, minWidth:0 }}>
                     <div style={{ display:'flex', gap:8, alignItems:'baseline' }}>
@@ -2409,7 +2409,7 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
   const [nearbyTab, setNearbyTab]   = React.useState('hotspot');
   const { itemProps: itemDragProps } = useDragReorder(onReorderItems, editing);
 
-  const heroHue = day.hero?.hue ?? 25;
+  const heroHue = (dayIdx === 0 ? (trip.hue ?? day.hero?.hue) : day.hero?.hue) ?? 25;
   const heroBg  = `oklch(0.88 0.035 ${heroHue})`;
   return (
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
