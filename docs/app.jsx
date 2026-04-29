@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v224</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v225</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3309,8 +3309,6 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
   const [draft, setDraft] = React.useState(open.stop);
-  const [editingTitleInline, setEditingTitleInline] = React.useState(false);
-  const [editingEnInline, setEditingEnInline] = React.useState(false);
   const committed = React.useRef(open.stop);
   const [sheetY, setSheetY] = React.useState(0);
   const [entered, setEntered] = React.useState(false);
@@ -3443,63 +3441,17 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
             <EditStopForm draft={draft} setDraft={setDraft} cityBias={cityBias}/>
           ) : (
             <>
-              {/* 타이틀 인라인 편집 */}
-              <div style={{ marginTop:8, position:'relative' }}>
-                {editingTitleInline ? (
-                  <input autoFocus value={draft.title}
-                    onChange={e => setDraft({...draft, title: e.target.value})}
-                    onBlur={() => { setEditingTitleInline(false); onSave(draft); committed.current = draft; }}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); }}
-                    style={{ width:'100%', border:'none', borderBottom:`1.5px solid ${COLORS.ink}`,
-                      background:'transparent', fontFamily:SERIF, fontSize:28, lineHeight:1.12,
-                      color:COLORS.ink, outline:'none', boxSizing:'border-box', padding:'0 28px 0 0' }}/>
-                ) : (
-                  <div onClick={() => setEditingTitleInline(true)} style={{
-                    fontFamily:SERIF, fontSize:28, lineHeight:1.12, color:COLORS.ink,
-                    cursor:'text', paddingRight:28,
-                    borderBottom:`1px dashed ${COLORS.line}`, paddingBottom:2,
-                  }}>
-                    {draft.title}
-                  </div>
-                )}
-                {!editingTitleInline && (
-                  <button onClick={() => setEditingTitleInline(true)} style={{
-                    position:'absolute', top:4, right:0, border:'none', background:'transparent',
-                    padding:3, cursor:'pointer', opacity:0.35,
-                  }}>
-                    <Icon name="edit" size={13} color={COLORS.ink} stroke={2}/>
-                  </button>
-                )}
+              {/* 타이틀 / 부제 — 뷰 모드에서는 읽기 전용 */}
+              <div style={{ marginTop:8 }}>
+                <div style={{ fontFamily:SERIF, fontSize:28, lineHeight:1.12, color:COLORS.ink }}>
+                  {draft.title}
+                </div>
               </div>
-              {/* 부제(en) 인라인 편집 */}
-              <div style={{ marginTop:4, position:'relative' }}>
-                {editingEnInline ? (
-                  <input autoFocus value={draft.en || ''}
-                    placeholder="영문명 / 부제"
-                    onChange={e => setDraft({...draft, en: e.target.value})}
-                    onBlur={() => { setEditingEnInline(false); onSave(draft); committed.current = draft; }}
-                    onKeyDown={e => { if (e.key === 'Enter' || e.key === 'Escape') e.target.blur(); }}
-                    style={{ width:'100%', border:'none', borderBottom:`1px solid ${COLORS.mute}`,
-                      background:'transparent', fontFamily:SANS, fontSize:13.5, fontStyle:'italic',
-                      color:COLORS.mute, outline:'none', boxSizing:'border-box', padding:'0 24px 0 0' }}/>
-                ) : (
-                  <div onClick={() => setEditingEnInline(true)} style={{
-                    fontFamily:SANS, fontSize:13.5, fontStyle:'italic', color:COLORS.mute,
-                    cursor:'text', paddingRight:24, minHeight:20,
-                    borderBottom:`1px dashed transparent`,
-                  }}>
-                    {draft.en || <span style={{ opacity:0.35 }}>영문명 / 부제</span>}
-                  </div>
-                )}
-                {!editingEnInline && (
-                  <button onClick={() => setEditingEnInline(true)} style={{
-                    position:'absolute', top:2, right:0, border:'none', background:'transparent',
-                    padding:3, cursor:'pointer', opacity:0.3,
-                  }}>
-                    <Icon name="edit" size={11} color={COLORS.mute} stroke={2}/>
-                  </button>
-                )}
-              </div>
+              {draft.en && (
+                <div style={{ marginTop:4, fontFamily:SANS, fontSize:13.5, fontStyle:'italic', color:COLORS.mute }}>
+                  {draft.en}
+                </div>
+              )}
               <div style={{ marginTop:16, display:'flex', flexDirection:'column' }}>
                 {[
                   draft.loc && { icon:'pin', label:'위치', value: draft.loc },
@@ -7248,14 +7200,14 @@ function App() {
     editTrip({ days });
   };
   const addItem = () => {
-    const newItem = { time:'12:00', cat:'sight', title:'새 일정', en:'New stop', loc:'', note:'' };
+    const newItem = { time:'12:00', cat:'sight', title:'새 일정', en:'', loc:'', note:'' };
     const days = [...trip.days];
     days[dayIdx] = { ...days[dayIdx], items: [...days[dayIdx].items, newItem] };
     editTrip({ days });
     setOpenStop({ idx: days[dayIdx].items.length - 1, stop: newItem, editing: true });
   };
   const addItemToFirstDay = () => {
-    const newItem = { time:'12:00', cat:'sight', title:'새 일정', en:'New stop', loc:'', note:'' };
+    const newItem = { time:'12:00', cat:'sight', title:'새 일정', en:'', loc:'', note:'' };
     const days = [...trip.days];
     days[0] = { ...days[0], items: [...days[0].items, newItem] };
     editTrip({ days });
@@ -7293,7 +7245,8 @@ function App() {
     }
     const days = [...trip.days];
     const items = [...days[dayIdx].items];
-    let savedDraft = { ...draft };
+    // en 자동 채움: 비어있으면 loc → title 순으로
+    let savedDraft = { ...draft, en: draft.en || draft.loc || draft.title || '' };
     let hotels = [...(trip.hotels || [])];
 
     if (draft.cat === 'hotel') {
