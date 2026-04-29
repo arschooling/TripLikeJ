@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v220</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v221</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1956,41 +1956,55 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   React.useEffect(() => { setFeaturedIdx(calcFeaturedIdx()); }, [trip.days.length]);
   // 슬라이더 상태
   const [fOffset, setFOffset] = React.useState(0);
-  const fOffsetRef = React.useRef(0);  // stale closure 없이 현재 offset 읽기
+  const fOffsetRef = React.useRef(0);
   const fGesture   = React.useRef({ on:false, startX:0, startY:0, drag:false });
-  const fWrapRef   = React.useRef(null);  // 클립 컨테이너
-  const fTrackRef  = React.useRef(null);  // 트랙 div (transition 직접 제어)
+  const fVelSamples = React.useRef([]);   // 속도 계산용 최근 터치 샘플
+  const fWrapRef   = React.useRef(null);
+  const fTrackRef  = React.useRef(null);
   const fW = () => fWrapRef.current?.offsetWidth || 360;
-  const F_EASE = 'transform 0.32s cubic-bezier(0.22,1,0.36,1)';
 
-  const fSetEase = () => { if (fTrackRef.current) fTrackRef.current.style.transition = F_EASE; };
+  const fTrans = (dur, ease) => {
+    if (fTrackRef.current)
+      fTrackRef.current.style.transition = `transform ${dur}ms ${ease}`;
+  };
   const fSetNone = () => { if (fTrackRef.current) fTrackRef.current.style.transition = 'none'; };
   const fSet = (v) => { fOffsetRef.current = v; setFOffset(v); };
 
   const changeFeatured = (newIdx) => {
     if (newIdx < 0 || newIdx >= trip.days.length || newIdx === featuredIdx) return;
-    fSetEase();
+    fTrans(320, 'cubic-bezier(0.4,0,0.2,1)');
     setFeaturedIdx(newIdx);
     fSet(0);
   };
   const onFStart = e => {
     fGesture.current = { on:true, startX:e.touches[0].clientX, startY:e.touches[0].clientY, drag:false };
+    fVelSamples.current = [];
   };
   const onFMove = e => {
     const g = fGesture.current;
     if (!g.on) return;
-    const dx = e.touches[0].clientX - g.startX;
+    const x = e.touches[0].clientX;
+    const dx = x - g.startX;
     const dy = Math.abs(e.touches[0].clientY - g.startY);
     if (!g.drag) {
       if (dy > Math.abs(dx) + 8) { g.on = false; return; }
       if (Math.abs(dx) > 6) g.drag = true;
     }
     if (!g.drag) return;
-    fSetNone();  // 드래그 중 즉각 반응 (transition 없음)
+    // 속도 샘플 기록 (최근 6개 유지)
+    const now = Date.now();
+    fVelSamples.current.push({ x, t: now });
+    if (fVelSamples.current.length > 6) fVelSamples.current.shift();
+    fSetNone();
     const w = fW();
-    const limited = dx < 0
-      ? Math.max(dx, featuredIdx >= trip.days.length - 1 ? 0 : -w * 1.2)
-      : Math.min(dx, featuredIdx <= 0 ? 0 : w * 1.2);
+    // 첫/마지막 카드에서 약한 저항감 (rubber band)
+    let limited;
+    if (dx < 0 && featuredIdx >= trip.days.length - 1)
+      limited = dx * 0.18;
+    else if (dx > 0 && featuredIdx <= 0)
+      limited = dx * 0.18;
+    else
+      limited = dx < 0 ? Math.max(dx, -w * 1.1) : Math.min(dx, w * 1.1);
     fSet(limited);
   };
   const onFEnd = () => {
@@ -1998,17 +2012,33 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
     fGesture.current = { ...g, on:false, drag:false };
     if (!g.drag) return;
     const w = fW();
-    const threshold = w * 0.22;
-    const cur = fOffsetRef.current;  // stale closure 없이 정확한 현재값
-    fSetEase();  // DOM에 먼저 transition 활성화 → React 렌더 전에 CSS 확정
-    if (cur < -threshold && featuredIdx < trip.days.length - 1) {
+    const cur = fOffsetRef.current;
+    // 최근 샘플로 속도 계산 (px/ms)
+    const samples = fVelSamples.current;
+    let vel = 0;
+    if (samples.length >= 2) {
+      const a = samples[0], b = samples[samples.length - 1];
+      const dt = b.t - a.t;
+      if (dt > 0) vel = (b.x - a.x) / dt;
+    }
+    const byDist  = Math.abs(cur) > w * 0.2;
+    const byFlick = Math.abs(vel) > 0.25;  // 0.25 px/ms 이상이면 빠른 스와이프
+    const toNext  = (cur < 0 && (byDist || byFlick)) && featuredIdx < trip.days.length - 1;
+    const toPrev  = (cur > 0 && (byDist || byFlick)) && featuredIdx > 0;
+    // 이동 거리에 비례한 애니메이션 속도 (빠른 스와이프 = 짧은 duration)
+    const remaining = toNext ? w + cur : toPrev ? w - cur : Math.abs(cur);
+    const dur = Math.min(360, Math.max(180, remaining * 0.9));
+    fTrans(dur, 'cubic-bezier(0.25,0.46,0.45,0.94)');
+    if (toNext) {
       fSet(-w);
-      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i + 1); fSet(0); }, 330);
-    } else if (cur > threshold && featuredIdx > 0) {
+      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i + 1); fSet(0); }, dur + 20);
+    } else if (toPrev) {
       fSet(w);
-      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i - 1); fSet(0); }, 330);
+      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i - 1); fSet(0); }, dur + 20);
     } else {
-      fSet(0);  // 중앙으로 스냅백
+      // 스냅백: 스프링 느낌
+      fTrans(380, 'cubic-bezier(0.22,1,0.36,1)');
+      fSet(0);
     }
   };
   const featured = trip.days[featuredIdx];
