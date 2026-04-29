@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v216</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v218</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2180,23 +2180,25 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
 
       {/* Featured */}
       {featured && (
-        <div style={{ padding:'4px 16px 18px' }}>
-          {/* 슬라이더 트랙: overflow:hidden 컨테이너 */}
-          <div ref={fWrapRef}
-            onTouchStart={onFStart} onTouchMove={onFMove} onTouchEnd={onFEnd}
-            style={{ borderRadius:22, overflow:'hidden',
-              boxShadow:'0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.05)',
-              background:COLORS.card, position:'relative',
-            }}>
-            {/* 모든 날을 가로로 늘어놓은 트랙 */}
-            <div style={{
-              display:'flex',
-              transform: `translateX(calc(${-featuredIdx * 100}% + ${fOffset}px))`,
-              transition: fAnimate ? 'transform 0.3s cubic-bezier(0.22,1,0.36,1)' : 'none',
-              willChange: 'transform',
-            }}>
-              {trip.days.map((d, i) => (
-                <div key={i} style={{ minWidth:'100%', flexShrink:0 }}>
+        /* 클립 컨테이너: 화면 전체 너비, 오버플로만 숨김 */
+        <div ref={fWrapRef}
+          onTouchStart={onFStart} onTouchMove={onFMove} onTouchEnd={onFEnd}
+          style={{ overflow:'hidden', position:'relative' }}>
+          {/* 트랙: 모든 날 + 각 날의 여백이 함께 이동 */}
+          <div style={{
+            display:'flex',
+            transform: `translateX(calc(${-featuredIdx * 100}% + ${fOffset}px))`,
+            transition: fAnimate ? 'transform 0.3s cubic-bezier(0.22,1,0.36,1)' : 'none',
+            willChange: 'transform',
+          }}>
+            {trip.days.map((d, i) => (
+              /* 여백을 슬라이드 아이템 안에 포함 → 카드+여백이 하나의 단위로 이동 */
+              <div key={i} style={{ minWidth:'100%', flexShrink:0, padding:'4px 16px 18px' }}>
+                <div style={{
+                  borderRadius:22, overflow:'hidden',
+                  boxShadow:'0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.05)',
+                  background:COLORS.card,
+                }}>
                   <Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170}/>
                   <div style={{ padding:'16px 18px 18px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
@@ -2219,8 +2221,8 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     </button>
                   </div>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -3150,7 +3152,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
     );
   };
 
-  return (
+  return ReactDOM.createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:1100,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
       background:`rgba(0,0,0,${Math.max(0, 0.32 - sheetY/500)})` }} onClick={onClose}>
@@ -3196,7 +3198,8 @@ function NearbySheet({ stop, initialTab, onClose }) {
           <div>{currentData.map(renderItem)}</div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
 
