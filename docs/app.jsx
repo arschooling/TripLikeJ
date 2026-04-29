@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v210</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v211</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1920,6 +1920,7 @@ function isoToWeekday(iso) {
 
 // ─── Home ───────────────────────────────────────────────────
 function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPickCity,
+                      curCode, onSetCurCode,
                       onEditTrip, onReorderDays, onAddDay, onDeleteDay, onBack,
                       onAddHotel, onAddHotelFromSearch, onAddHotelViaStop, onDeleteHotel, onReorderHotels,
                       onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
@@ -2348,7 +2349,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>실용 정보</div>
       </div>
       <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-        <FxCard curCode={curCode} onSetCurCode={setCurCode}/>
+        <FxCard curCode={curCode} onSetCurCode={onSetCurCode}/>
         <TimezoneCard city={city} onPick={onPickCity}/>
       </div>
       <div style={{ padding:'8px 16px 0' }}>
@@ -7320,6 +7321,7 @@ function App() {
         onOpenHotel={(i) => { savedHomeScrollY.current = window.scrollY; setHotelIdx(i); setScrollKey(k=>k+1); }}
         onOpenHotelSheet={(i) => setHotelDetailSheet(i)}
         city={city} onPickCity={setCity}
+        curCode={curCode} onSetCurCode={setCurCode}
         onEditTrip={editTrip} onReorderDays={reorderDays}
         onAddDay={addDay} onDeleteDay={deleteDay}
         onAddHotel={addHotel}
