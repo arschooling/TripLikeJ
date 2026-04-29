@@ -1779,7 +1779,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v201</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v202</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7382,15 +7382,25 @@ function App() {
         onAdd={async () => {
           const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
           if (!title) return;
-          const { tripId, hue } = await fbCreateNewTrip(userData.uid, title);
-          // 새 여행은 Day 1 구조 포함
+          // 기존 여행들과 가장 다른 색상 자동 선택
+          const PALETTE = [20, 45, 90, 140, 200, 240, 280, 320, 350, 0];
+          const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
+          const existingHues = userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25);
+          const bestHue = existingHues.length === 0 ? 200
+            : PALETTE.reduce((best, h) => {
+                const minDist = Math.min(...existingHues.map(e => hueDist(h, e)));
+                const bestDist = Math.min(...existingHues.map(e => hueDist(best, e)));
+                return minDist > bestDist ? h : best;
+              }, PALETTE[0]);
+          const { tripId } = await fbCreateNewTrip(userData.uid, title);
           const template = {
+            hue: bestHue,
             days: [{ n:1, date:'', weekday:'', title:'Day 1', titleEn:'',
-              hero:{ hue: hue ?? 25, label:'DAY 1' }, weather:'', items:[] }],
+              hero:{ hue: bestHue, label:'DAY 1' }, weather:'', items:[] }],
             hotels: [], food: [],
           };
           await fbSaveGroup(tripId, template).catch(() => {});
-          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', ...template, members:[userData.uid], hue }]);
+          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', ...template, members:[userData.uid], hue: bestHue }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}
