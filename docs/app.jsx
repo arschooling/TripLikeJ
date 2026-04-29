@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v230</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v231</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -4381,6 +4381,7 @@ function MapScreen({ trip, onEditItem }) {
   const [routeTip, setRouteTip] = React.useState(null);
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
 
+  const heroHue = (selDay === 0 ? (trip.hue ?? day?.hero?.hue) : day?.hero?.hue) ?? 25;
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
     'new york':[40.758,-73.985],'paris':[48.856,2.352],'london':[51.507,-0.127],
