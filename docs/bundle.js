@@ -4063,7 +4063,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v191"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v192"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -4701,6 +4701,7 @@ function HomeScreen({
       ref: dp.ref,
       style: dp.style || {}
     }, /*#__PURE__*/React.createElement(SwipeableRow, {
+      cardSwipe: true,
       onEdit: () => onOpenDay(i),
       onDelete: () => onDeleteDay(i),
       disabled: editing,
@@ -4972,6 +4973,7 @@ function HomeScreen({
         ref: hp.ref,
         style: hp.style || {}
       }, /*#__PURE__*/React.createElement(SwipeableRow, {
+        cardSwipe: true,
         onEdit: () => openHotel(h._idx),
         onDelete: () => onDeleteHotel(h._idx),
         disabled: editing,
@@ -5453,6 +5455,7 @@ function DayScreen({
       color: "#fff",
       stroke: 3
     }))), /*#__PURE__*/React.createElement(SwipeableRow, {
+      cardSwipe: true,
       wrapStyle: {
         flex: 1,
         marginLeft: 10,
@@ -9374,16 +9377,19 @@ function FoodCatItems({
         ...(dp.style || {})
       }
     }, /*#__PURE__*/React.createElement(SwipeableRow, {
-      onEdit: () => {},
+      cardSwipe: true,
       onDelete: () => delFood(f.idx),
       isDragging: isTouchDragging,
       wrapStyle: {
-        borderBottom: i < catItems.length - 1 ? `1px solid ${COLORS.line}` : 'none'
+        borderRadius: 14,
+        marginBottom: 6
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
         padding: '12px 14px',
-        position: 'relative'
+        position: 'relative',
+        background: COLORS.card,
+        borderRadius: 14
       }
     }, editing ? /*#__PURE__*/React.createElement("div", {
       style: {
@@ -9734,13 +9740,7 @@ function FoodScreen({
     size: 11,
     color: COLORS.accent,
     stroke: 2
-  })))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      overflow: 'hidden'
-    }
-  }, /*#__PURE__*/React.createElement(FoodCatItems, {
+  })))), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement(FoodCatItems, {
     catItems: items,
     allFood: allFood,
     onEditFood: onEditFood,
@@ -11530,20 +11530,16 @@ function BudgetScreen({
         textTransform: 'uppercase',
         padding: '4px 2px 8px'
       }
-    }, date), /*#__PURE__*/React.createElement("div", {
-      style: {
-        background: COLORS.card,
-        borderRadius: 14,
-        overflow: 'hidden'
-      }
-    }, byDate[date].map((e, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
+    }, date), /*#__PURE__*/React.createElement("div", null, byDate[date].map((e, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
       key: e.id || e._i,
+      cardSwipe: true,
       onEdit: () => openEdit(e._i),
       onDelete: () => onEditBudget({
         entries: entries.filter((_, j) => j !== e._i)
       }),
       wrapStyle: {
-        borderBottom: i < byDate[date].length - 1 ? `1px solid ${COLORS.line}` : 'none'
+        borderRadius: 14,
+        marginBottom: 6
       }
     }, /*#__PURE__*/React.createElement("div", {
       style: {
@@ -11551,7 +11547,9 @@ function BudgetScreen({
         cursor: 'pointer',
         display: 'flex',
         alignItems: 'center',
-        gap: 12
+        gap: 12,
+        background: COLORS.card,
+        borderRadius: 14
       },
       onClick: () => openEdit(e._i)
     }, /*#__PURE__*/React.createElement("div", {

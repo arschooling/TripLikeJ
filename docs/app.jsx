@@ -1779,7 +1779,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v191</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v192</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2109,7 +2109,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
           const dp = dayDragProps(i);
           return (
             <div key={i} ref={dp.ref} style={dp.style || {}}>
-            <SwipeableRow onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} isDragging={isDayDragging} wrapStyle={{ borderRadius:16 }}>
+            <SwipeableRow cardSwipe onEdit={() => onOpenDay(i)} onDelete={() => onDeleteDay(i)} disabled={editing} isDragging={isDayDragging} wrapStyle={{ borderRadius:16 }}>
             <div onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
               onClick={() => !editing && !isDayDragging && onOpenDay(i)} style={{
               borderRadius:16,
@@ -2237,7 +2237,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 const hp = hotelDragProps(h._idx);
                 return (
                   <div key={h._idx} ref={hp.ref} style={hp.style || {}}>
-                  <SwipeableRow onEdit={() => openHotel(h._idx)} onDelete={() => onDeleteHotel(h._idx)} disabled={editing} wrapStyle={{ borderRadius:16 }}>
+                  <SwipeableRow cardSwipe onEdit={() => openHotel(h._idx)} onDelete={() => onDeleteHotel(h._idx)} disabled={editing} wrapStyle={{ borderRadius:16 }}>
                   <div onTouchStart={hp.onTouchStart} onTouchMove={hp.onTouchMove} onTouchEnd={hp.onTouchEnd} onClick={() => !editing && openHotel(h._idx)} style={{
                     background:COLORS.card, borderRadius:16, padding:12,
                     display:'flex', gap:12, alignItems:'center',
@@ -2454,6 +2454,7 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                   </button>
                 </div>
                 <SwipeableRow
+                  cardSwipe
                   wrapStyle={{ flex:1, marginLeft:10, borderRadius:14 }}
                   disabled={editing}
                   onEdit={() => onOpenStop({ idx: i, stop: it, editing: true })}
@@ -4418,12 +4419,12 @@ function FoodCatItems({ catItems, allFood, onEditFood, editing }) {
           <div key={f.idx} ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
             style={{ position:'relative', ...(dp.style||{}) }}>
             <SwipeableRow
-              onEdit={() => {}}
+              cardSwipe
               onDelete={() => delFood(f.idx)}
               isDragging={isTouchDragging}
-              wrapStyle={{ borderBottom: i < catItems.length - 1 ? `1px solid ${COLORS.line}` : 'none' }}
+              wrapStyle={{ borderRadius:14, marginBottom:6 }}
             >
-              <div style={{ padding:'12px 14px', position:'relative' }}>
+              <div style={{ padding:'12px 14px', position:'relative', background:COLORS.card, borderRadius:14 }}>
                 {editing ? (
                   <div style={{ display:'flex', flexDirection:'column', gap:4, paddingRight:32 }}>
                     <input value={f.name} onChange={e => updateFood(f.idx, { name: e.target.value })}
@@ -4567,7 +4568,7 @@ function FoodScreen({ trip, onEditFood, editing, setEditing }) {
                 </>
               )}
             </div>
-            <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
+            <div>
               <FoodCatItems catItems={items} allFood={allFood} onEditFood={onEditFood} editing={editing}/>
               {/* 항목 추가 */}
               {addSelCat === cat ? (
@@ -5358,14 +5359,16 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
               <div key={date} style={{ marginBottom:16 }}>
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em',
                   textTransform:'uppercase', padding:'4px 2px 8px' }}>{date}</div>
-                <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
+                <div>
                   {byDate[date].map((e, i) => (
                     <SwipeableRow key={e.id||e._i}
+                      cardSwipe
                       onEdit={() => openEdit(e._i)}
                       onDelete={() => onEditBudget({ entries: entries.filter((_,j) => j !== e._i) })}
-                      wrapStyle={{ borderBottom: i < byDate[date].length-1 ? `1px solid ${COLORS.line}` : 'none' }}>
+                      wrapStyle={{ borderRadius:14, marginBottom:6 }}>
                       <div style={{
                         padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12,
+                        background:COLORS.card, borderRadius:14,
                       }} onClick={() => openEdit(e._i)}>
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginBottom:2,
