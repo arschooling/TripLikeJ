@@ -1869,7 +1869,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v268</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v269</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3393,9 +3393,14 @@ function NearbySheet({ stop, initialTab, onClose }) {
 }
 
 // ─── Stop sheet (unchanged except pulls editing from open) ─
-function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
+function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit }) {
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
+  // 탭바 수정 버튼과 연동
+  React.useEffect(() => {
+    onRegisterEdit?.(() => setEditing(e => !e));
+    return () => onRegisterEdit?.(null);
+  }, []);
   const [draft, setDraft] = React.useState(open.stop);
   const committed = React.useRef(open.stop);
   const [sheetY, setSheetY] = React.useState(0);
@@ -3522,7 +3527,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
           paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 80px)',
           maxHeight: expanded
             ? 'calc(100dvh - var(--sat, 44px) - 8px)'
-            : '62dvh',
+            : '80dvh',
           overflowY: expanded ? 'auto' : 'hidden',
           overflowX:'hidden',
           transition: 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',
@@ -7704,6 +7709,8 @@ function App() {
   const [scrollKey, setScrollKey]     = React.useState(0);
   const [editing, setEditing]         = React.useState(false);
   const [tabBarVisible, setTabBarVisible] = React.useState(true);
+  const [tabBarPeeking, setTabBarPeeking] = React.useState(false);
+  const tabBarPeekTimer = React.useRef(null);
   const [budgetSheetOpen, setBudgetSheetOpen] = React.useState(false);
   const [newTripSheetOpen, setNewTripSheetOpen] = React.useState(false);
   const [saveConfirm, setSaveConfirm] = React.useState(false); // 저장 확인 다이얼로그
@@ -7713,7 +7720,14 @@ function App() {
   const editSnapshot     = React.useRef(null); // 편집 시작 시 trip+prep 스냅샷
 
   // 편집 버튼 토글 핸들러
+  const stopSheetEditRef = React.useRef(null); // StopSheet의 setEditing 연결용
+
   const handleEditToggle = () => {
+    // StopSheet가 열려있으면 팝업 편집 모드 토글
+    if (openStop && stopSheetEditRef.current) {
+      stopSheetEditRef.current();
+      return;
+    }
     if (!editing) {
       if (!canEdit) return;
       editSnapshot.current = JSON.stringify({ trip, prep });
@@ -8572,10 +8586,22 @@ function App() {
         </div>
       </div>
       <TabBar tab={tab} setTab={changeTab}
-        visible={tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm}
-        editing={editing} canEdit={canEdit} onToggleEdit={handleEditToggle}/>
+        visible={tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && (!openStop || tabBarPeeking)}
+        editing={openStop ? false : editing} canEdit={canEdit} onToggleEdit={handleEditToggle}/>
+      {/* 팝업이 열려있고 탭바가 숨겨졌을 때 — 하단 터치로 탭바 잠깐 보이기 */}
+      {openStop && !tabBarPeeking && (
+        <div onTouchStart={() => {
+          clearTimeout(tabBarPeekTimer.current);
+          setTabBarPeeking(true);
+          tabBarPeekTimer.current = setTimeout(() => setTabBarPeeking(false), 3000);
+        }} style={{
+          position:'fixed', bottom:0, left:0, right:0, height:32, zIndex:1060,
+        }}/>
+      )}
       <StopSheet open={openStop} dayHue={dayHue}
-        onClose={() => setOpenStop(null)} onSave={saveStop}/>
+        onClose={() => { setOpenStop(null); setTabBarPeeking(false); clearTimeout(tabBarPeekTimer.current); }}
+        onSave={saveStop}
+        onRegisterEdit={fn => { stopSheetEditRef.current = fn; }}/>
       <HotelSheet
         open={hotelDetailSheet !== null}
         onClose={() => setHotelDetailSheet(null)}
