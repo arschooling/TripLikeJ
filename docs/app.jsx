@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v227</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v228</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -4123,6 +4123,123 @@ function EditStopForm({ draft, setDraft, cityBias }) {
 // ─── Geocoding cache ─────────────────────────────────────────
 const GEO_CACHE = {};
 
+// ─── Route tip 계산 (MapScreen 밖으로 추출) ───────────────────
+function computeRouteTip(pts, times) {
+  if (pts.length < 2) return null;
+  const toMin = t => { const m=(t||'').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1]*60 + +m[2] : null; };
+  const dist2 = (a, b) => { const dl=a.pos[0]-b.pos[0],dn=a.pos[1]-b.pos[1]; return dl*dl+dn*dn; };
+  const hotel  = pts.find(p => p.cat === 'hotel') || null;
+  const foods  = pts.filter(p => p.cat === 'food');
+  const lunch  = foods.find(p => { const m=toMin(p.time); return m && m>=600 && m<=900; }) || foods[0] || null;
+  const dinner = foods.find(p => { const m=toMin(p.time); return m && m>=1020; }) || (foods.length>1 ? foods[foods.length-1] : null);
+  const dinnerIsLunch = dinner && lunch && dinner === lunch;
+  const startIdx = hotel ? pts.indexOf(hotel) : 0;
+  const n = pts.length;
+  const visited = Array(n).fill(false);
+  const order = [startIdx]; visited[startIdx] = true;
+  for (let step=1; step<n; step++) {
+    let best=-1, bestD=Infinity;
+    const last=order[order.length-1];
+    for (let j=0; j<n; j++) { if (!visited[j]) { const d=dist2(pts[last],pts[j]); if (d<bestD){bestD=d;best=j;} } }
+    visited[best]=true; order.push(best);
+  }
+  const isOptimal = order.every((v,i) => v===i);
+  const totalTransit = Object.values(times).reduce((s,t) => s+(t.transit||0), 0);
+  const longestLeg   = Object.entries(times).sort((a,b)=>(b[1].transit||0)-(a[1].transit||0))[0];
+  const returnsToHotel = hotel ? pts[pts.length-1].cat==='hotel' : null;
+  return { pts, order, isOptimal, totalTransit, longestLeg, times,
+           hotel, lunch, dinner: dinnerIsLunch ? null : dinner, returnsToHotel };
+}
+
+// ─── 백그라운드 프리패치: 모든 날 경로 + 이동시간 ────────────
+async function prefetchRoutes(trip) {
+  if (!trip?.days?.length) return;
+  const delay = ms => new Promise(r => setTimeout(r, ms));
+  const city = trip.title || '';
+  const CITY_BIAS_MAP = {
+    'new york':[40.758,-73.985],'paris':[48.856,2.352],'london':[51.507,-0.127],
+    'tokyo':[35.690,139.692],'seoul':[37.563,126.997],'los angeles':[34.052,-118.244],
+    'rome':[41.900,12.500],'florence':[43.769,11.256],'barcelona':[41.387,2.170],
+    'amsterdam':[52.370,4.895],'berlin':[52.520,13.405],'prague':[50.088,14.420],
+  };
+  const cityBias = CITY_BIAS_MAP[city.toLowerCase().split(/[^a-z]/)[0]];
+  const bias = cityBias ? `&lat=${cityBias[0]}&lon=${cityBias[1]}` : '';
+
+  const geocode = async (query) => {
+    if (GEO_CACHE[query]) return GEO_CACHE[query];
+    try {
+      const j = await (await fetch(
+        `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=1&lang=en${bias}`
+      )).json();
+      const f = j?.features?.[0];
+      if (f) { const [lon,lat]=f.geometry.coordinates; GEO_CACHE[query]=[lat,lon]; return [lat,lon]; }
+    } catch(_) {}
+    return null;
+  };
+
+  for (let dayIdx = 0; dayIdx < trip.days.length; dayIdx++) {
+    const day = trip.days[dayIdx];
+    const ordered = (day.items||[]).filter(it => it.loc).map((it,ii) => ({...it, _origIdx:ii}));
+    if (!ordered.length) continue;
+
+    // ① MapScreen 경로 캐시
+    const mapKey = ordered.map(s => `${s.title}|${s.coords ? s.coords.join(',') : ''}`).join('~');
+    const routeCacheKey = `route_${trip.title}_${dayIdx}_${mapKey}`;
+    if (!localStorage.getItem(routeCacheKey)) {
+      const pts = [];
+      for (const s of ordered) {
+        let pos = s.coords || null;
+        if (!pos) {
+          const queries = [s.loc ? `${s.title}, ${s.loc}, ${city}` : null, `${s.title}, ${city}`, s.title].filter(Boolean);
+          for (const q of queries) { pos = await geocode(q); if (pos) break; await delay(80); }
+        }
+        if (pos) pts.push({ pos, title:s.title, cat:s.cat||'', time:s.time||'' });
+        await delay(60);
+      }
+      if (pts.length > 1) {
+        try {
+          const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
+          const rd = await (await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
+          )).json();
+          if (rd.routes?.[0]) {
+            const times = {};
+            (rd.routes[0].legs||[]).forEach((leg,li) => {
+              times[li+1] = { transit:Math.max(1,Math.round(leg.duration/60)), walk:Math.max(1,Math.round(leg.distance/83.33)) };
+            });
+            const tip = computeRouteTip(pts, times);
+            try { localStorage.setItem(routeCacheKey, JSON.stringify({ pts, times, tip })); } catch(_) {}
+          }
+        } catch(_) {}
+      }
+      await delay(300); // 날짜 간 간격
+    }
+
+    // ② DayScreen 이동시간 캐시 (coords 있는 항목만)
+    const items = day.items || [];
+    const coordsKey = items.map(it => it.coords ? it.coords.join(',') : '').join('|');
+    const ttCacheKey = `tt_day_${trip.title}_${dayIdx}_${coordsKey}`;
+    const pending = items.reduce((acc,it,i) => { if (i>0 && it.coords && items[i-1].coords) acc.push(i); return acc; }, []);
+    if (pending.length && !localStorage.getItem(ttCacheKey)) {
+      const results = {};
+      await Promise.all(pending.map(async (i) => {
+        const [lat1,lon1]=items[i-1].coords, [lat2,lon2]=items[i].coords;
+        try {
+          const r = await (await fetch(
+            `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`
+          )).json();
+          if (r.routes?.[0]) {
+            const {duration,distance}=r.routes[0];
+            results[i]={drive:Math.max(1,Math.round(duration/60)),walk:Math.max(1,Math.round(distance/83.33))};
+          }
+        } catch(_) {}
+      }));
+      try { localStorage.setItem(ttCacheKey, JSON.stringify(results)); } catch(_) {}
+      await delay(200);
+    }
+  }
+}
+
 // ─── Place search sheet ───────────────────────────────────────
 function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
   const [query, setQuery]     = React.useState('');
@@ -4252,52 +4369,6 @@ function MapScreen({ trip, onEditItem }) {
   const [travelTimes, setTravelTimes] = React.useState({});
   const [routeTip, setRouteTip] = React.useState(null);
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
-
-  const computeRouteTip = (pts, times) => {
-    if (pts.length < 2) return null;
-    const toMin  = t => { const m=(t||'').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1]*60 + +m[2] : null; };
-    const dist2  = (a, b) => { const dl=a.pos[0]-b.pos[0],dn=a.pos[1]-b.pos[1]; return dl*dl+dn*dn; };
-
-    // 앵커 식별: 숙소 / 점심 / 저녁
-    const hotel  = pts.find(p => p.cat === 'hotel') || null;
-    const foods  = pts.filter(p => p.cat === 'food');
-    // 점심: 시간이 있으면 10:00~15:00, 없으면 첫 번째 food
-    const lunch  = foods.find(p => { const m=toMin(p.time); return m && m>=600 && m<=900; })
-                || foods[0] || null;
-    // 저녁: 시간이 있으면 17:00 이후, 없으면 두 번째 food
-    const dinner = foods.find(p => { const m=toMin(p.time); return m && m>=1020; })
-                || (foods.length > 1 ? foods[foods.length-1] : null);
-    const dinnerIsLunch = dinner && lunch && dinner === lunch;
-
-    // nearest-neighbor: 숙소가 있으면 숙소부터 출발
-    const startIdx = hotel ? pts.indexOf(hotel) : 0;
-    const n = pts.length;
-    const visited = Array(n).fill(false);
-    const order = [startIdx];
-    visited[startIdx] = true;
-    for (let step = 1; step < n; step++) {
-      let best = -1, bestD = Infinity;
-      const last = order[order.length-1];
-      for (let j = 0; j < n; j++) {
-        if (!visited[j]) {
-          const d = dist2(pts[last], pts[j]);
-          if (d < bestD) { bestD = d; best = j; }
-        }
-      }
-      visited[best] = true;
-      order.push(best);
-    }
-
-    const isOptimal = order.every((v,i) => v === i);
-    const totalTransit = Object.values(times).reduce((s,t) => s+(t.transit||0), 0);
-    const longestLeg   = Object.entries(times).sort((a,b)=>(b[1].transit||0)-(a[1].transit||0))[0];
-
-    // 숙소 귀환 여부: 숙소가 있고 마지막 아이템이 숙소가 아닌 경우
-    const returnsToHotel = hotel ? pts[pts.length-1].cat === 'hotel' : null;
-
-    return { pts, order, isOptimal, totalTransit, longestLeg, times,
-             hotel, lunch, dinner: dinnerIsLunch ? null : dinner, returnsToHotel };
-  };
 
   const city = trip.title || 'New York';
   const CITY_BIAS_MAP = {
@@ -7066,6 +7137,15 @@ function App() {
     if (detected) setCity(detected);
     setCurCode(detectCurrencyFromTitle(trip?.title));
   }, [trip?.title]);
+
+  // 백그라운드 프리패치: 지도·경로·이동시간을 미리 캐싱
+  // → Map 탭 클릭 시 즉시 표시, DayScreen 타임라인도 즉시 표시
+  React.useEffect(() => {
+    if (!trip?.days?.length) return;
+    // 3초 후 idle하게 시작 (초기 렌더 블록 방지)
+    const t = setTimeout(() => { prefetchRoutes(trip); }, 3000);
+    return () => clearTimeout(t);
+  }, [trip?.title, trip?.days?.length]);
 
   React.useEffect(() => { saveNav({ tab, dayIdx, hotelIdx, activeTripId }); }, [tab, dayIdx, hotelIdx, activeTripId]);
 
