@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v246</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v247</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6808,105 +6808,63 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
 }
 
 // ─── 새 여행 만들기 시트 ──────────────────────────────────────
-const NEW_TRIP_PALETTE = [200, 45, 90, 140, 20, 240, 280, 320, 350, 0];
-function NewTripSheet({ open, onClose, onSubmit, existingHues = [] }) {
-  const [name, setName]   = React.useState('');
-  const [hue,  setHue]    = React.useState(200);
-  const [entered, setEntered] = React.useState(false);
+function NewTripSheet({ open, onClose, onSubmit }) {
+  const [name, setName] = React.useState('');
   const inputRef = React.useRef(null);
 
   React.useEffect(() => {
     if (open) {
-      setName(''); setEntered(false);
-      // 기존 여행과 가장 다른 색상 자동 선택
-      const hueDist = (a,b) => { const d=Math.abs(a-b)%360; return Math.min(d,360-d); };
-      const best = existingHues.length === 0 ? 200
-        : NEW_TRIP_PALETTE.reduce((bst,h) => {
-            const md = Math.min(...existingHues.map(e=>hueDist(h,e)));
-            const bd = Math.min(...existingHues.map(e=>hueDist(bst,e)));
-            return md>bd ? h : bst;
-          }, NEW_TRIP_PALETTE[0]);
-      setHue(best);
-      document.body.style.overflow = 'hidden';
-      requestAnimationFrame(()=>requestAnimationFrame(()=>{ setEntered(true); inputRef.current?.focus(); }));
-    } else {
-      setEntered(false);
-      document.body.style.overflow = '';
+      setName('');
+      requestAnimationFrame(() => requestAnimationFrame(() => inputRef.current?.focus()));
     }
-    return () => { document.body.style.overflow = ''; };
   }, [open]);
 
-  if (!open && !entered) return null;
+  if (!open) return null;
 
   const create = () => {
     if (!name.trim()) return;
-    onSubmit(name.trim(), hue);
+    onSubmit(name.trim(), 200);
     onClose();
   };
 
-  const previewLabel = (name||'NEW TRIP').toUpperCase().slice(0,18);
-
   return ReactDOM.createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:1100,
-      display:'flex', flexDirection:'column', justifyContent:'flex-end',
-      background:`rgba(0,0,0,${entered ? 0.35 : 0})`,
-      transition:'background 0.3s ease',
+      display:'flex', alignItems:'center', justifyContent:'center',
+      background:'rgba(0,0,0,0.35)', padding:'0 32px',
     }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
-        background: COLORS.bg,
-        borderRadius:'22px 22px 0 0',
-        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',
-        transform:`translateY(${entered ? 0 : window.innerHeight}px)`,
-        transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-        overflow:'hidden',
+      <div onClick={e => e.stopPropagation()} style={{
+        background: COLORS.bg, borderRadius:20,
+        padding:'24px 20px 20px', width:'100%', maxWidth:320,
+        boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
       }}>
-        {/* 핸들 */}
-        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 0' }}>
-          <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
-        </div>
-        {/* 컬러 프리뷰 */}
-        <Photo hue={hue} label={previewLabel} height={160}/>
-        {/* 입력 영역 */}
-        <div style={{ padding:'20px 20px 0' }}>
-          <input
-            ref={inputRef}
-            value={name}
-            onChange={e=>setName(e.target.value)}
-            onKeyDown={e=>{ if(e.key==='Enter') create(); }}
-            placeholder="여행 이름"
-            style={{
-              width:'100%', border:'none', outline:'none', background:'transparent',
-              fontFamily:SERIF, fontSize:26, color:COLORS.ink,
-              borderBottom:`1.5px solid ${COLORS.line}`,
-              paddingBottom:10, boxSizing:'border-box',
-            }}/>
-          {/* 색상 선택 */}
-          <div style={{ marginTop:20, display:'flex', gap:8, flexWrap:'wrap' }}>
-            {NEW_TRIP_PALETTE.map(h => (
-              <button key={h} onClick={()=>setHue(h)} style={{
-                width:30, height:30, borderRadius:15, cursor:'pointer', padding:0, border:'none',
-                background:`oklch(0.83 0.06 ${h})`,
-                boxShadow: h===hue
-                  ? `0 0 0 2px ${COLORS.bg}, 0 0 0 4px oklch(0.55 0.08 ${h})`
-                  : 'none',
-                transform: h===hue ? 'scale(1.15)' : 'scale(1)',
-                transition:'box-shadow 0.15s, transform 0.15s',
-              }}/>
-            ))}
-          </div>
-          {/* 만들기 버튼 */}
-          <button
-            onClick={create}
-            style={{
-              marginTop:22, width:'100%', padding:'14px',
-              background: name.trim() ? COLORS.ink : COLORS.softer,
-              color:       name.trim() ? COLORS.bg  : COLORS.mute,
-              border:'none', borderRadius:14, cursor: name.trim() ? 'pointer' : 'default',
-              fontFamily:SANS, fontSize:15, fontWeight:600,
-              transition:'background 0.15s, color 0.15s',
-            }}>
-            만들기
-          </button>
+        <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, marginBottom:16 }}>새 여행</div>
+        <input
+          ref={inputRef}
+          value={name}
+          onChange={e => setName(e.target.value)}
+          onKeyDown={e => { if (e.key === 'Enter') create(); if (e.key === 'Escape') onClose(); }}
+          placeholder="여행 이름"
+          style={{
+            width:'100%', boxSizing:'border-box',
+            border:'none', borderBottom:`1.5px solid ${COLORS.line}`,
+            outline:'none', background:'transparent',
+            fontFamily:SANS, fontSize:16, color:COLORS.ink,
+            paddingBottom:8, marginBottom:20,
+          }}/>
+        <div style={{ display:'flex', gap:8 }}>
+          <button onClick={onClose} style={{
+            flex:1, padding:'11px 0', borderRadius:12,
+            border:`1px solid ${COLORS.line}`, background:'transparent',
+            fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer',
+          }}>취소</button>
+          <button onClick={create} disabled={!name.trim()} style={{
+            flex:1, padding:'11px 0', borderRadius:12, border:'none',
+            background: name.trim() ? COLORS.ink : COLORS.softer,
+            color:       name.trim() ? COLORS.bg  : COLORS.mute,
+            fontFamily:SANS, fontSize:14, fontWeight:600,
+            cursor: name.trim() ? 'pointer' : 'default',
+            transition:'background 0.15s, color 0.15s',
+          }}>만들기</button>
         </div>
       </div>
     </div>,
@@ -8046,7 +8004,6 @@ function App() {
       <NewTripSheet
         open={newTripSheetOpen}
         onClose={() => setNewTripSheetOpen(false)}
-        existingHues={userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25)}
         onSubmit={async (title, hue) => {
           const { tripId } = await fbCreateNewTrip(userData.uid, title);
           const template = {
@@ -8163,7 +8120,6 @@ function App() {
       <NewTripSheet
         open={newTripSheetOpen}
         onClose={() => setNewTripSheetOpen(false)}
-        existingHues={userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25)}
         onSubmit={async (title, hue) => {
           const { tripId } = await fbCreateNewTrip(userData.uid, title);
           const template = {
