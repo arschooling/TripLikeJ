@@ -1155,8 +1155,7 @@ function useFxRate(currency) {
   return { ...state, refresh: fetchRate };
 }
 
-function FxCard() {
-  const [curCode, setCurCode]   = React.useState('USD');
+function FxCard({ curCode, onSetCurCode }) {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const cur = FX_CURRENCIES.find(c => c.code === curCode) || FX_CURRENCIES[0];
   const { loading, rate, ts, refresh } = useFxRate(cur.code);
@@ -1197,7 +1196,7 @@ function FxCard() {
         getKey={c => c.code}
         filterFn={fxFilterFn}
         selectedKey={cur.code}
-        onPick={c => setCurCode(c.code)}
+        onPick={c => onSetCurCode(c.code)}
         renderRow={(c) => (
           <>
             <div style={{ fontFamily:MONO, fontSize:14, fontWeight:600, color:COLORS.ink, minWidth:42 }}>{c.code}</div>
@@ -1214,22 +1213,22 @@ function FxCard() {
 
 // ─── Timezones ──────────────────────────────────────────────
 const CITIES = [
-  { key:'New York',    kor:'뉴욕',       zone:'America/New_York',    flag:'🇺🇸', lat:40.71,  lon:-74.01  },
-  { key:'Los Angeles', kor:'로스앤젤레스',zone:'America/Los_Angeles', flag:'🇺🇸', lat:34.05,  lon:-118.24 },
-  { key:'Washington',  kor:'워싱턴',     zone:'America/New_York',    flag:'🇺🇸', lat:38.91,  lon:-77.04  },
-  { key:'London',      kor:'런던',       zone:'Europe/London',       flag:'🇬🇧', lat:51.51,  lon:-0.13   },
-  { key:'Paris',       kor:'파리',       zone:'Europe/Paris',        flag:'🇫🇷', lat:48.85,  lon:2.35    },
-  { key:'Rome',        kor:'로마',       zone:'Europe/Rome',         flag:'🇮🇹', lat:41.90,  lon:12.50   },
-  { key:'Berlin',      kor:'베를린',     zone:'Europe/Berlin',       flag:'🇩🇪', lat:52.52,  lon:13.40   },
-  { key:'Dubai',       kor:'두바이',     zone:'Asia/Dubai',          flag:'🇦🇪', lat:25.20,  lon:55.27   },
-  { key:'Bangkok',     kor:'방콕',       zone:'Asia/Bangkok',        flag:'🇹🇭', lat:13.75,  lon:100.52  },
-  { key:'Singapore',   kor:'싱가포르',   zone:'Asia/Singapore',      flag:'🇸🇬', lat:1.35,   lon:103.82  },
-  { key:'Hong Kong',   kor:'홍콩',       zone:'Asia/Hong_Kong',      flag:'🇭🇰', lat:22.32,  lon:114.17  },
-  { key:'Shanghai',    kor:'상하이',     zone:'Asia/Shanghai',       flag:'🇨🇳', lat:31.23,  lon:121.47  },
-  { key:'Tokyo',       kor:'도쿄',       zone:'Asia/Tokyo',          flag:'🇯🇵', lat:35.68,  lon:139.69  },
-  { key:'Seoul',       kor:'서울',       zone:'Asia/Seoul',          flag:'🇰🇷', lat:37.57,  lon:126.98  },
-  { key:'Sydney',      kor:'시드니',     zone:'Australia/Sydney',    flag:'🇦🇺', lat:-33.87, lon:151.21  },
-  { key:'Hawaii',      kor:'하와이',     zone:'Pacific/Honolulu',    flag:'🇺🇸', lat:21.31,  lon:-157.86 },
+  { key:'New York',    kor:'뉴욕',       zone:'America/New_York',    flag:'🇺🇸', lat:40.71,  lon:-74.01,  currency:'USD' },
+  { key:'Los Angeles', kor:'로스앤젤레스',zone:'America/Los_Angeles', flag:'🇺🇸', lat:34.05,  lon:-118.24, currency:'USD' },
+  { key:'Washington',  kor:'워싱턴',     zone:'America/New_York',    flag:'🇺🇸', lat:38.91,  lon:-77.04,  currency:'USD' },
+  { key:'London',      kor:'런던',       zone:'Europe/London',       flag:'🇬🇧', lat:51.51,  lon:-0.13,   currency:'EUR' },
+  { key:'Paris',       kor:'파리',       zone:'Europe/Paris',        flag:'🇫🇷', lat:48.85,  lon:2.35,    currency:'EUR' },
+  { key:'Rome',        kor:'로마',       zone:'Europe/Rome',         flag:'🇮🇹', lat:41.90,  lon:12.50,   currency:'EUR' },
+  { key:'Berlin',      kor:'베를린',     zone:'Europe/Berlin',       flag:'🇩🇪', lat:52.52,  lon:13.40,   currency:'EUR' },
+  { key:'Dubai',       kor:'두바이',     zone:'Asia/Dubai',          flag:'🇦🇪', lat:25.20,  lon:55.27,   currency:'USD' },
+  { key:'Bangkok',     kor:'방콕',       zone:'Asia/Bangkok',        flag:'🇹🇭', lat:13.75,  lon:100.52,  currency:'USD' },
+  { key:'Singapore',   kor:'싱가포르',   zone:'Asia/Singapore',      flag:'🇸🇬', lat:1.35,   lon:103.82,  currency:'USD' },
+  { key:'Hong Kong',   kor:'홍콩',       zone:'Asia/Hong_Kong',      flag:'🇭🇰', lat:22.32,  lon:114.17,  currency:'USD' },
+  { key:'Shanghai',    kor:'상하이',     zone:'Asia/Shanghai',       flag:'🇨🇳', lat:31.23,  lon:121.47,  currency:'CNY' },
+  { key:'Tokyo',       kor:'도쿄',       zone:'Asia/Tokyo',          flag:'🇯🇵', lat:35.68,  lon:139.69,  currency:'JPY' },
+  { key:'Seoul',       kor:'서울',       zone:'Asia/Seoul',          flag:'🇰🇷', lat:37.57,  lon:126.98,  currency:'USD' },
+  { key:'Sydney',      kor:'시드니',     zone:'Australia/Sydney',    flag:'🇦🇺', lat:-33.87, lon:151.21,  currency:'USD' },
+  { key:'Hawaii',      kor:'하와이',     zone:'Pacific/Honolulu',    flag:'🇺🇸', lat:21.31,  lon:-157.86, currency:'USD' },
 ];
 
 // 여행 제목에서 도시 자동 감지
@@ -1241,6 +1240,19 @@ function detectCityFromTitle(title) {
   return sorted.find(c =>
     lower.includes(c.key.toLowerCase()) || lower.includes(c.kor)
   ) || null;
+}
+
+// 여행 제목에서 통화 자동 감지 (달러/유로/엔/위안/페소)
+function detectCurrencyFromTitle(title) {
+  if (!title) return 'USD';
+  const city = detectCityFromTitle(title);
+  if (city?.currency) return city.currency;
+  const t = title.toLowerCase();
+  if (/japan|일본|osaka|교토|오사카|나고야/.test(t)) return 'JPY';
+  if (/china|중국|beijing|베이징|guangzhou|광저우/.test(t)) return 'CNY';
+  if (/mexico|멕시코/.test(t)) return 'MXN';
+  if (/europe|유럽|france|프랑스|italy|이탈리아|florence|피렌체|venice|베네치아|milan|밀라노|germany|독일|spain|스페인|barcelona|마드리드|madrid|netherlands|amsterdam|amsterdam|portugal|lisbon|리스본|greece|athens|아테네|vienna|빈|switzerland|취리히|prague|프라하|budapest|부다페스트/.test(t)) return 'EUR';
+  return 'USD';
 }
 
 // WMO 날씨 코드 → 설명 + 이모지
@@ -1790,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v208</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v209</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2336,7 +2348,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>실용 정보</div>
       </div>
       <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
-        <FxCard/>
+        <FxCard curCode={curCode} onSetCurCode={setCurCode}/>
         <TimezoneCard city={city} onPick={onPickCity}/>
       </div>
       <div style={{ padding:'8px 16px 0' }}>
@@ -6690,6 +6702,7 @@ function App() {
   const [slideKey,  setSlideKey]  = React.useState(0);
   const [openStop, setOpenStop]   = React.useState(null);
   const [city, setCity]           = React.useState(CITIES[0]);
+  const [curCode, setCurCode]     = React.useState('USD');
   const [hotelSheet, setHotelSheet]       = React.useState(null);
   const [hotelDetailSheet, setHotelDetailSheet] = React.useState(null); // null=closed, 'new'=add, number=idx
   const [scrollKey, setScrollKey]     = React.useState(0);
@@ -6865,10 +6878,11 @@ function App() {
     });
   }, [authUser?.uid]);
 
-  // 여행 제목 바뀌면 시차 도시 자동 감지
+  // 여행 제목 바뀌면 시차 도시 · 환율 자동 감지
   React.useEffect(() => {
     const detected = detectCityFromTitle(trip?.title);
     if (detected) setCity(detected);
+    setCurCode(detectCurrencyFromTitle(trip?.title));
   }, [trip?.title]);
 
   React.useEffect(() => { saveNav({ tab, dayIdx, hotelIdx, activeTripId }); }, [tab, dayIdx, hotelIdx, activeTripId]);
