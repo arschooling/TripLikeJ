@@ -1107,7 +1107,7 @@ function PickerSheet({ open, onClose, title, items, getKey, filterFn, renderRow,
             </button>}
           </div>
         </div>
-        <div style={{ flex:1, overflowY:'auto', padding:'0 16px calc(24px + env(safe-area-inset-bottom,0px))' }}>
+        <div style={{ flex:1, overflowY:'auto', padding:'0 16px calc(80px + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
             {filtered.length === 0 && (
               <div style={{ padding:'20px', fontFamily:SANS, fontSize:13, color:COLORS.mute, textAlign:'center' }}>검색 결과 없음</div>
@@ -1868,7 +1868,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v259</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v260</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2710,6 +2710,7 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                 {/* 체크박스: 타임라인 선 가로 중간(x=52)에 독립 배치 — 슬라이드 시 카드에 가려짐 */}
                 <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
                   width:16, height:16, borderRadius:8, flexShrink:0, marginTop:11,
+                  boxSizing:'border-box',
                   border:`1.5px solid ${isDone?COLORS.accent:COLORS.ink}`,
                   background: isDone?COLORS.accent:COLORS.bg, cursor:'pointer', padding:0,
                   display:'flex', alignItems:'center', justifyContent:'center',
@@ -3492,9 +3493,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   const searchQuery = [draft.title, draft.en, draft.loc, 'New York'].filter(Boolean).join(' ');
 
   return (
-    <div style={{ position:'fixed', top:0, left:0, right:0,
-      bottom:'calc(env(safe-area-inset-bottom, 0px) + 72px)',
-      zIndex:1000,
+    <div style={{ position:'fixed', inset:0, zIndex:1000,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
       background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
       {/* transform wrapper — sheet + filler 같이 움직임 */}
@@ -3506,8 +3505,8 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
       <div ref={sheetRef} onClick={(e)=>e.stopPropagation()}
         style={{
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
-          paddingBottom:'24px',
-          maxHeight:'calc(100dvh - var(--sat, 44px) - 8px - env(safe-area-inset-bottom, 0px) - 72px)',
+          paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+          maxHeight:'calc(100dvh - var(--sat, 44px) - 8px)',
           overflowY:'auto', overflowX:'hidden',
         }}>
         {/* 드래그 핸들 */}
@@ -4497,7 +4496,7 @@ function MapScreen({ trip, onEditItem }) {
 
   const { selDay, ordered } = state;
   const day = trip.days[selDay];
-  const { itemProps } = useDragReorder((from, to) => dispatch({ type:'REORDER', from, to }), true);
+  const { itemProps } = useDragReorder((from, to) => dispatch({ type:'REORDER', from, to }), false);
 
   const [openStop, setOpenStop] = React.useState(null);
   const [travelTimes, setTravelTimes] = React.useState({});
@@ -4907,7 +4906,7 @@ function FoodCatItems({ catItems, allFood, onEditFood, editing }) {
   const updateFood = (globalIdx, patch) => {
     const list = [...allFood]; list[globalIdx] = { ...list[globalIdx], ...patch }; onEditFood(list);
   };
-  const { itemProps, isTouchDragging } = useDragReorder(reorder, true);
+  const { itemProps, isTouchDragging } = useDragReorder(reorder, false);
   return (
     <>
       {catItems.map((f, i) => {
@@ -5151,7 +5150,7 @@ function PrepCatItems({ ci, cat, cats, save, editing, editingItem, setEditingIte
     });
     save(next);
   };
-  const { itemProps, isTouchDragging } = useDragReorder(reorder, true);
+  const { itemProps, isTouchDragging } = useDragReorder(reorder, false);
   const deleteItem = (ii) => {
     const next = cats.map((c, i) => i !== ci ? c : { ...c, items: c.items.filter((_, j) => j !== ii) });
     save(next);
@@ -5528,7 +5527,7 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
       }}>
       <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0',
-        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 8px)',
+        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 80px)',
         boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
       }}>
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
@@ -5602,7 +5601,7 @@ function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter }) {
       background:'rgba(0,0,0,0.4)' }} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0', padding:'0 16px',
-        paddingBottom:'calc(20px + env(safe-area-inset-bottom,0px))',
+        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 80px)',
         transform:`translateY(${entered ? 0 : window.innerHeight}px)`,
         transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
       }}>
@@ -5684,7 +5683,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
     newEntries.splice(to, 0, newEntries.splice(from, 1)[0]);
     onEditBudget({ entries: newEntries });
   };
-  const { itemProps: entryDragProps, isTouchDragging: isEntryDragging } = useDragReorder(reorderEntries, true);
+  const { itemProps: entryDragProps, isTouchDragging: isEntryDragging } = useDragReorder(reorderEntries, false);
 
   const sheetOpen = addOpen || editIdx !== null;
   React.useEffect(() => {
@@ -6008,7 +6007,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
           }}>
           <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
             background:COLORS.bg, borderRadius:'22px 22px 0 0',
-            paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 24px)',
+            paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 80px)',
             maxHeight:'calc(100dvh - var(--sat,44px) - 8px)',
             overflowY:'auto', overflowX:'hidden',
           }}>
@@ -6194,7 +6193,7 @@ function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
     <div style={{
       position:'fixed', left:14, right:14,
       bottom:0,
-      zIndex:30,
+      zIndex:1050,
       background:'rgba(255,255,255,0.88)',
       backdropFilter:'blur(20px) saturate(180%)',
       WebkitBackdropFilter:'blur(20px) saturate(180%)',
@@ -8555,7 +8554,7 @@ function App() {
         </div>
       </div>
       <TabBar tab={tab} setTab={changeTab}
-        visible={tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen}
+        visible={tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm}
         editing={editing} canEdit={canEdit} onToggleEdit={handleEditToggle}/>
       <StopSheet open={openStop} dayHue={dayHue}
         onClose={() => setOpenStop(null)} onSave={saveStop}/>

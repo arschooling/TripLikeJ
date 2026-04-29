@@ -2973,7 +2973,7 @@ function PickerSheet({
     style: {
       flex: 1,
       overflowY: 'auto',
-      padding: '0 16px calc(24px + env(safe-area-inset-bottom,0px))'
+      padding: '0 16px calc(80px + env(safe-area-inset-bottom,0px))'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4539,7 +4539,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v259"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v260"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -6166,6 +6166,7 @@ function DayScreen({
         borderRadius: 8,
         flexShrink: 0,
         marginTop: 11,
+        boxSizing: 'border-box',
         border: `1.5px solid ${isDone ? COLORS.accent : COLORS.ink}`,
         background: isDone ? COLORS.accent : COLORS.bg,
         cursor: 'pointer',
@@ -7617,10 +7618,7 @@ function StopSheet({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
+      inset: 0,
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
@@ -7641,8 +7639,8 @@ function StopSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: '24px',
-      maxHeight: 'calc(100dvh - var(--sat, 44px) - 8px - env(safe-area-inset-bottom, 0px) - 72px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 80px)',
+      maxHeight: 'calc(100dvh - var(--sat, 44px) - 8px)',
       overflowY: 'auto',
       overflowX: 'hidden'
     }
@@ -9634,7 +9632,7 @@ function MapScreen({
     type: 'REORDER',
     from,
     to
-  }), true);
+  }), false);
   const [openStop, setOpenStop] = React.useState(null);
   const [travelTimes, setTravelTimes] = React.useState({});
   const [routeTip, setRouteTip] = React.useState(null);
@@ -10391,7 +10389,7 @@ function FoodCatItems({
   const {
     itemProps,
     isTouchDragging
-  } = useDragReorder(reorder, true);
+  } = useDragReorder(reorder, false);
   return /*#__PURE__*/React.createElement(React.Fragment, null, catItems.map((f, i) => {
     const dp = itemProps(i);
     return /*#__PURE__*/React.createElement("div", {
@@ -10968,7 +10966,7 @@ function PrepCatItems({
   const {
     itemProps,
     isTouchDragging
-  } = useDragReorder(reorder, true);
+  } = useDragReorder(reorder, false);
   const deleteItem = ii => {
     const next = cats.map((c, i) => i !== ci ? c : {
       ...c,
@@ -11748,7 +11746,7 @@ function BudgetCalcSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 8px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 80px)',
       boxShadow: '0 -4px 24px rgba(0,0,0,0.12)'
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -11919,7 +11917,7 @@ function SplitSheet({
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
       padding: '0 16px',
-      paddingBottom: 'calc(20px + env(safe-area-inset-bottom,0px))',
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 80px)',
       transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
       transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
     }
@@ -12159,7 +12157,7 @@ function BudgetScreen({
   const {
     itemProps: entryDragProps,
     isTouchDragging: isEntryDragging
-  } = useDragReorder(reorderEntries, true);
+  } = useDragReorder(reorderEntries, false);
   const sheetOpen = addOpen || editIdx !== null;
   React.useEffect(() => {
     if (sheetOpen) {
@@ -12813,7 +12811,7 @@ function BudgetScreen({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 80px)',
       maxHeight: 'calc(100dvh - var(--sat,44px) - 8px)',
       overflowY: 'auto',
       overflowX: 'hidden'
@@ -13222,7 +13220,7 @@ function TabBar({
       left: 14,
       right: 14,
       bottom: 0,
-      zIndex: 30,
+      zIndex: 1050,
       background: 'rgba(255,255,255,0.88)',
       backdropFilter: 'blur(20px) saturate(180%)',
       WebkitBackdropFilter: 'blur(20px) saturate(180%)',
@@ -17290,7 +17288,7 @@ function App() {
   }, screen))), /*#__PURE__*/React.createElement(TabBar, {
     tab: tab,
     setTab: changeTab,
-    visible: tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen,
+    visible: tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm,
     editing: editing,
     canEdit: canEdit,
     onToggleEdit: handleEditToggle
