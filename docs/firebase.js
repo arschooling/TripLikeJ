@@ -493,8 +493,13 @@ window.fbSyncSample = async (uid, userEmail, sampleId) => {
   if ((ud.deletedSamples || []).includes(sampleId)) return null;
 
   const sampleSnap = await _fbDb.collection('samples').doc(sampleId).get();
-  if (!sampleSnap.exists) return null;
-  const { tripData, sampleVersion } = sampleSnap.data();
+  // Firestore에 샘플이 없으면 로컬 데이터로 폴백
+  const localData = sampleId === 'nyc' ? (window.TRIP_DEFAULT || null)
+                  : sampleId === 'rome' ? (window.ROME_DEFAULT || null)
+                  : null;
+  if (!sampleSnap.exists && !localData) return null;
+  const sampleVersion = sampleSnap.exists ? (sampleSnap.data().sampleVersion || 1) : 1;
+  const tripData = sampleSnap.exists ? sampleSnap.data().tripData : localData;
 
   const userVersion = (ud.sampleVersions || {})[sampleId] || 0;
   const tripIds = ud.tripIds || [uid];

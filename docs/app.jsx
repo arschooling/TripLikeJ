@@ -1779,7 +1779,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v194</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v195</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1788,6 +1788,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
               const isShared = Array.isArray(t.members) && t.members.length > 0 && t.members[0] !== myUid;
+              const isSample = !!t.sampleId;
               return (
                 <TripSwipeCard key={t.id}
                   onShare={() => onShare(t)}
@@ -1806,14 +1807,30 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                       <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
                         {t.title || '새 여행'}
                       </div>
-                      {isShared && (
+                      {(isSample || isShared) && (
                         <div style={{
                           position:'absolute', top:14, right:16,
-                          display:'flex', alignItems:'center', gap:4,
-                          background:'#EEF2FF', borderRadius:20, padding:'4px 10px',
+                          display:'flex', alignItems:'center', gap:6,
                         }}>
-                          <Icon name="users" size={11} color="#4F6BED" stroke={2}/>
-                          <span style={{ fontFamily:SANS, fontSize:10, color:'#4F6BED', fontWeight:500 }}>공유됨</span>
+                          {isSample && (
+                            <div style={{
+                              display:'flex', alignItems:'center', gap:3,
+                              background:'#FFF5EB', borderRadius:20, padding:'4px 10px',
+                              border:'1px solid rgba(193,79,46,0.15)',
+                            }}>
+                              <Icon name="sparkle" size={10} color={COLORS.accent} stroke={1.8}/>
+                              <span style={{ fontFamily:SANS, fontSize:10, color:COLORS.accent, fontWeight:500 }}>샘플</span>
+                            </div>
+                          )}
+                          {isShared && (
+                            <div style={{
+                              display:'flex', alignItems:'center', gap:4,
+                              background:'#EEF2FF', borderRadius:20, padding:'4px 10px',
+                            }}>
+                              <Icon name="users" size={11} color="#4F6BED" stroke={2}/>
+                              <span style={{ fontFamily:SANS, fontSize:10, color:'#4F6BED', fontWeight:500 }}>공유됨</span>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -6745,15 +6762,18 @@ function App() {
     const tripIds = userData.tripIds || [userData.groupId];
     setTripsLoading(true);
 
-    // 샘플 싱크 (오너 아닌 경우): 새 tripId가 생기면 tripIds가 업데이트됨
-    const syncPromise = (typeof fbSyncSample === 'function')
-      ? fbSyncSample(uid, email, 'nyc').catch(() => null)
-      : Promise.resolve(null);
+    // 샘플 싱크 (오너 아닌 경우): nyc + rome 동시에
+    const SAMPLES = ['nyc', 'rome'];
+    const syncAll = (typeof fbSyncSample === 'function')
+      ? Promise.all(SAMPLES.map(sid => fbSyncSample(uid, email, sid).catch(() => null)))
+      : Promise.resolve([null, null]);
 
-    syncPromise.then(syncResult => {
-      // syncResult.isNew면 users/{uid}.tripIds에 새 ID가 추가됨 → 해당 ID도 포함해 로드
-      const extraId = syncResult?.isNew ? syncResult.tripId : null;
-      const allIds = extraId && !tripIds.includes(extraId) ? [...tripIds, extraId] : tripIds;
+    syncAll.then(syncResults => {
+      // 새로 추가된 샘플 tripId 수집
+      const newIds = syncResults
+        .filter(r => r?.isNew && r.tripId && !tripIds.includes(r.tripId))
+        .map(r => r.tripId);
+      const allIds = [...tripIds, ...newIds];
       return fbLoadTrips(allIds).then(async trips => {
         const normalized = trips.map(t => normalizeTrip(t, t.id));
         // days가 없는 여행은 TRIP_DEFAULT로 자동 복구 (샘플 제외)
@@ -6772,11 +6792,13 @@ function App() {
             fbSaveGroup(normalized[i].id, patch).catch(e => console.warn('auto-restore save failed', e));
           }
         }
-        // 샘플이 업데이트된 경우 로컬 상태도 반영
-        if (syncResult?.updated && syncResult.tripId) {
-          const idx = normalized.findIndex(t => t.id === syncResult.tripId);
-          if (idx >= 0) normalized[idx] = normalizeTrip({ ...normalized[idx], ...syncResult.tripData, sampleId: 'nyc' }, syncResult.tripId);
-        }
+        // 업데이트된 샘플 반영
+        syncResults.forEach(r => {
+          if (r?.updated && r.tripId && r.tripData) {
+            const idx = normalized.findIndex(t => t.id === r.tripId);
+            if (idx >= 0) normalized[idx] = normalizeTrip({ ...normalized[idx], ...r.tripData, sampleId: normalized[idx].sampleId }, r.tripId);
+          }
+        });
         setUserTrips(normalized);
         setTripsLoading(false);
       });
@@ -7311,11 +7333,14 @@ function App() {
         onSelect={(id) => {
           const found = userTrips.find(t => t.id === id);
           let tripToShow = found;
-          // days 없으면 TRIP_DEFAULT로 즉시 채워서 표시
+          // days 없으면 샘플 또는 TRIP_DEFAULT로 즉시 채워서 표시
           if (found && !(found.days?.length)) {
-            const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
+            const localSrc = found.sampleId === 'rome' ? window.ROME_DEFAULT
+                           : found.sampleId === 'nyc'  ? window.TRIP_DEFAULT
+                           : window.TRIP_DEFAULT;
+            const def = JSON.parse(JSON.stringify(localSrc));
             tripToShow = normalizeTrip({ ...found,
-              title : def.title  || found.title,
+              title : found.title || def.title,
               dates : def.dates  || '',
               hotel : def.hotel  || '',
               days  : def.days   || [],
