@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v247</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v248</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6807,64 +6807,397 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips }) {
   );
 }
 
-// ─── 새 여행 만들기 시트 ──────────────────────────────────────
+// ─── 새 여행 만들기 위저드 ────────────────────────────────────
+
+function greedyRoute(places) {
+  if (!places.length) return [];
+  const result = [places[0]];
+  const rem = places.slice(1);
+  while (rem.length) {
+    const last = result[result.length - 1];
+    let best = 0, bestDist = Infinity;
+    rem.forEach((p, i) => {
+      const dist = Math.hypot(p.lat - last.lat, p.lon - last.lon);
+      if (dist < bestDist) { bestDist = dist; best = i; }
+    });
+    result.push(rem.splice(best, 1)[0]);
+  }
+  return result;
+}
+
+function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAirport, selectedPlaces, isKorean }) {
+  const startDate = new Date(startIso + 'T12:00:00');
+  const dayCount  = Math.round((new Date(endIso + 'T12:00:00') - startDate) / 86400000) + 1;
+  const routed    = greedyRoute([...selectedPlaces]);
+  const hasArr    = !isKorean && arrAirport;
+  const hasDep    = !isKorean && depAirport;
+  const cStart    = hasArr ? 2 : 1;
+  const cEnd      = hasDep ? dayCount - 1 : dayCount;
+  const cDays     = Math.max(0, cEnd - cStart + 1);
+  const perDay    = cDays > 0 ? Math.min(4, Math.ceil(routed.length / cDays)) : 4;
+  const chunks    = [];
+  for (let i = 0; i < routed.length; i += Math.max(1, perDay)) chunks.push(routed.slice(i, i + perDay));
+  const getHotel  = n => hotels.find(h => h.name && n >= h.from && n <= h.to) || null;
+  let ci = 0;
+  const days = Array.from({ length: dayCount }, (_, i) => {
+    const n = i + 1;
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    const iso    = d.toISOString().slice(0, 10);
+    const hotel  = getHotel(n);
+    const prev   = n > 1 ? getHotel(n - 1) : null;
+    const items  = [];
+    if (n === 1 && hasArr)  items.push({ time:'14:00', title:arrAirport, loc:'', done:false });
+    if (hotel && (!prev || prev.name !== hotel.name))
+      items.push({ time: n===1 ? '16:00' : '15:00', title:`체크인 · ${hotel.name}`, loc:hotel.name, done:false });
+    if (n === dayCount) {
+      if (hotel)  items.push({ time:'10:00', title:`체크아웃 · ${hotel.name}`, loc:hotel.name, done:false });
+      if (hasDep) items.push({ time:'13:00', title:depAirport, loc:'', done:false });
+    }
+    if (n >= cStart && n <= cEnd && ci < chunks.length) {
+      chunks[ci++].forEach((p, pi) => {
+        const hr = String(10 + pi * 2).padStart(2, '0');
+        items.push({ time:`${hr}:00`, title:p.name, loc:'', done:false, lat:p.lat, lon:p.lon });
+      });
+    }
+    items.sort((a, b) => a.time.localeCompare(b.time));
+    return {
+      n, date:isoToDayDate(iso), weekday:isoToWeekday(iso),
+      title:`Day ${n}`, titleEn:`Day ${n}`,
+      hero:{ hue:200, label:`DAY ${String(n).padStart(2,'0')}` },
+      weather:'', items,
+    };
+  });
+  return {
+    title:  cities.filter(Boolean).join(' · ') || 'New Trip',
+    dates:  `${isoToDayDate(startIso)} – ${isoToDayDate(endIso)}`,
+    hue:    200,
+    days,
+    hotels: [],
+    food:   [],
+  };
+}
+
+function MiniCalendar({ startIso, endIso, onRange }) {
+  const today = new Date();
+  const [vy, setVy] = React.useState(today.getFullYear());
+  const [vm, setVm] = React.useState(today.getMonth());
+  const todayIso  = today.toISOString().slice(0, 10);
+  const toIso     = (y, m, d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const dim       = new Date(vy, vm + 1, 0).getDate();
+  const firstDow  = new Date(vy, vm, 1).getDay();
+  const prevMo    = () => vm === 0 ? (setVy(y=>y-1), setVm(11)) : setVm(m=>m-1);
+  const nextMo    = () => vm === 11 ? (setVy(y=>y+1), setVm(0)) : setVm(m=>m+1);
+  const tap = d => {
+    const iso = toIso(vy, vm, d);
+    if (iso < todayIso) return;
+    if (!startIso || (startIso && endIso)) onRange(iso, '');
+    else if (iso <= startIso) onRange(iso, startIso);
+    else onRange(startIso, iso);
+  };
+  const cells = [...Array(firstDow).fill(null), ...Array.from({length:dim},(_,i)=>i+1)];
+  return (
+    <div>
+      <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
+        <button onClick={prevMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>‹</button>
+        <span style={{ fontFamily:SANS, fontSize:14, fontWeight:600, color:COLORS.ink }}>
+          {MONTH_NAMES_SHORT[vm]} {vy}
+        </span>
+        <button onClick={nextMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>›</button>
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', textAlign:'center', marginBottom:4 }}>
+        {['S','M','T','W','T','F','S'].map((w,i) => (
+          <div key={i} style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, paddingBottom:4 }}>{w}</div>
+        ))}
+      </div>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
+        {cells.map((d, i) => {
+          if (!d) return <div key={i}/>;
+          const iso     = toIso(vy, vm, d);
+          const isStart = iso === startIso;
+          const isEnd   = iso === endIso;
+          const inRange = startIso && endIso && iso > startIso && iso < endIso;
+          const past    = iso < todayIso;
+          const isToday = iso === todayIso;
+          return (
+            <button key={i} onClick={() => tap(d)} style={{
+              padding:'7px 0', border:'none', cursor: past ? 'default' : 'pointer',
+              borderRadius: (isStart || isEnd) ? 8 : inRange ? 2 : 8,
+              background: (isStart || isEnd) ? COLORS.ink : inRange ? COLORS.softer : 'transparent',
+              color: (isStart || isEnd) ? COLORS.bg : past ? COLORS.line : isToday ? COLORS.accent : COLORS.ink,
+              fontFamily:SANS, fontSize:13, fontWeight:(isStart||isEnd) ? 600 : 400,
+            }}>{d}</button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function NewTripSheet({ open, onClose, onSubmit }) {
-  const [name, setName] = React.useState('');
-  const inputRef = React.useRef(null);
+  const isKorean = React.useMemo(() => navigator.language.startsWith('ko'), []);
+  const TOTAL    = isKorean ? 4 : 5;
+  const HP_STEP  = isKorean ? 4 : 5;
+
+  const [step,       setStep]       = React.useState(1);
+  const [cities,     setCities]     = React.useState(['']);
+  const [startIso,   setStartIso]   = React.useState('');
+  const [endIso,     setEndIso]     = React.useState('');
+  const [hotels,     setHotels]     = React.useState([{ name:'', from:1, to:1 }]);
+  const [skipHotel,  setSkipHotel]  = React.useState(false);
+  const [arrAirport, setArrAirport] = React.useState('');
+  const [depAirport, setDepAirport] = React.useState('');
+  const [places,     setPlaces]     = React.useState([]);
+  const [loading,    setLoading]    = React.useState(false);
+  const [selected,   setSelected]   = React.useState(new Set());
+
+  const dayCount = startIso && endIso
+    ? Math.round((new Date(endIso+'T12:00:00') - new Date(startIso+'T12:00:00')) / 86400000) + 1
+    : 0;
 
   React.useEffect(() => {
-    if (open) {
-      setName('');
-      requestAnimationFrame(() => requestAnimationFrame(() => inputRef.current?.focus()));
-    }
+    if (!open) return;
+    setStep(1); setCities(['']); setStartIso(''); setEndIso('');
+    setHotels([{ name:'', from:1, to:1 }]); setSkipHotel(false);
+    setArrAirport(''); setDepAirport('');
+    setPlaces([]); setLoading(false); setSelected(new Set());
   }, [open]);
+
+  React.useEffect(() => {
+    if (dayCount > 0)
+      setHotels(prev => prev.map((h, i) => i === prev.length - 1 ? { ...h, to: dayCount } : h));
+  }, [dayCount]);
+
+  // 핫플 로딩
+  React.useEffect(() => {
+    if (step !== HP_STEP || !open) return;
+    const city = cities.find(c => c.trim());
+    if (!city) return;
+    setLoading(true); setPlaces([]);
+    (async () => {
+      try {
+        const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(city)}&limit=1`).then(r=>r.json());
+        const f   = geo.features?.[0];
+        if (!f) { setLoading(false); return; }
+        const [lon, lat] = f.geometry.coordinates;
+        const q = `[out:json][timeout:20];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo"]["wikipedia"](around:20000,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"]["wikipedia"](around:20000,${lat},${lon});node["leisure"~"park|garden"]["wikipedia"](around:15000,${lat},${lon}););out 40;`;
+        const ov  = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`).then(r=>r.json());
+        const list = (ov.elements||[]).filter(e=>e.tags?.name).map(e => ({
+          id: e.id, name: e.tags['name:en'] || e.tags.name,
+          lat: e.lat, lon: e.lon, wikipedia: e.tags.wikipedia, photo: null,
+        }));
+        setPlaces(list); setLoading(false);
+        list.forEach(async (p, idx) => {
+          if (!p.wikipedia) return;
+          try {
+            const t = p.wikipedia.replace(/^[a-z-]+:/,'').replace(/ /g,'_');
+            const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r=>r.json());
+            const photo = d.thumbnail?.source;
+            if (photo) setPlaces(prev => prev.map((pl,i) => i===idx ? {...pl,photo} : pl));
+          } catch(_) {}
+        });
+      } catch(_) { setLoading(false); }
+    })();
+  }, [step]);
 
   if (!open) return null;
 
-  const create = () => {
-    if (!name.trim()) return;
-    onSubmit(name.trim(), 200);
+  const canNext = step===1 ? cities.some(c=>c.trim()) : step===2 ? !!(startIso&&endIso) : true;
+
+  const TITLES = { 1:'어디로 가요?', 2:'언제 가요?', 3:'숙소는요?', [isKorean?4:4]:'어느 공항으로?', [HP_STEP]:'가고 싶은 곳을 골라요' };
+
+  const handleNext = () => {
+    if (step < TOTAL) { setStep(s => s + 1); return; }
+    const selPlaces = places.filter(p => selected.has(p.id));
+    const tripData  = generateTripData({
+      cities: cities.filter(Boolean), startIso, endIso,
+      hotels: skipHotel ? [] : hotels.filter(h => h.name.trim()),
+      arrAirport: isKorean ? '' : arrAirport,
+      depAirport: isKorean ? '' : depAirport,
+      selectedPlaces: selPlaces, isKorean,
+    });
+    onSubmit(tripData);
     onClose();
   };
 
+  const togglePlace = id => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
+
   return ReactDOM.createPortal(
-    <div style={{ position:'fixed', inset:0, zIndex:1100,
-      display:'flex', alignItems:'center', justifyContent:'center',
-      background:'rgba(0,0,0,0.35)', padding:'0 32px',
-    }} onClick={onClose}>
-      <div onClick={e => e.stopPropagation()} style={{
-        background: COLORS.bg, borderRadius:20,
-        padding:'24px 20px 20px', width:'100%', maxWidth:320,
-        boxShadow:'0 8px 32px rgba(0,0,0,0.18)',
+    <div style={{ position:'fixed', inset:0, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.4)', padding:'0 20px' }} onClick={onClose}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        background:COLORS.bg, borderRadius:22, width:'100%', maxWidth:380,
+        maxHeight:'82vh', display:'flex', flexDirection:'column',
+        boxShadow:'0 12px 48px rgba(0,0,0,0.22)',
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, marginBottom:16 }}>새 여행</div>
-        <input
-          ref={inputRef}
-          value={name}
-          onChange={e => setName(e.target.value)}
-          onKeyDown={e => { if (e.key === 'Enter') create(); if (e.key === 'Escape') onClose(); }}
-          placeholder="여행 이름"
-          style={{
-            width:'100%', boxSizing:'border-box',
-            border:'none', borderBottom:`1.5px solid ${COLORS.line}`,
-            outline:'none', background:'transparent',
-            fontFamily:SANS, fontSize:16, color:COLORS.ink,
-            paddingBottom:8, marginBottom:20,
-          }}/>
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={onClose} style={{
-            flex:1, padding:'11px 0', borderRadius:12,
-            border:`1px solid ${COLORS.line}`, background:'transparent',
-            fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer',
-          }}>취소</button>
-          <button onClick={create} disabled={!name.trim()} style={{
+        {/* 헤더 */}
+        <div style={{ padding:'18px 20px 0', flexShrink:0 }}>
+          <div style={{ display:'flex', gap:4, marginBottom:14 }}>
+            {Array.from({length:TOTAL}, (_,i) => (
+              <div key={i} style={{ height:3, flex:1, borderRadius:2, background: i < step ? COLORS.ink : COLORS.line, transition:'background 0.2s' }}/>
+            ))}
+          </div>
+          <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>
+            {step===1 ? '어디로 가요?' : step===2 ? '언제 가요?' : step===3 ? '숙소는요?' : !isKorean&&step===4 ? '어느 공항으로?' : '가고 싶은 곳을 골라요'}
+          </div>
+        </div>
+        {/* 컨텐츠 */}
+        <div style={{ overflowY:'auto', flex:1, padding:'14px 20px' }}>
+
+          {/* Step 1: 도시 */}
+          {step === 1 && (
+            <div>
+              {cities.map((city, i) => (
+                <div key={i} style={{ display:'flex', gap:8, marginBottom:10, alignItems:'center' }}>
+                  <input value={city} autoFocus={i===0}
+                    onChange={e => setCities(prev => prev.map((c,j) => j===i ? e.target.value : c))}
+                    onKeyDown={e => { if (e.key==='Enter' && city.trim()) setStep(2); }}
+                    placeholder={i===0 ? '도시 이름' : `도시 ${i+1}`}
+                    style={{ flex:1, border:'none', borderBottom:`1.5px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:16, color:COLORS.ink, padding:'8px 0' }}
+                  />
+                  {cities.length > 1 && (
+                    <button onClick={() => setCities(prev => prev.filter((_,j)=>j!==i))} style={{ background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:20, lineHeight:1 }}>×</button>
+                  )}
+                </div>
+              ))}
+              <button onClick={() => setCities(prev=>[...prev,''])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:13, padding:'6px 0', marginTop:4 }}>
+                <span style={{ fontSize:18, lineHeight:1 }}>+</span> 도시 추가
+              </button>
+            </div>
+          )}
+
+          {/* Step 2: 기간 */}
+          {step === 2 && (
+            <div>
+              {startIso && endIso && dayCount > 0 && (
+                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.accent, marginBottom:12, textAlign:'center', fontWeight:600 }}>
+                  {dayCount-1}박 {dayCount}일
+                </div>
+              )}
+              <MiniCalendar startIso={startIso} endIso={endIso} onRange={(s,e) => { setStartIso(s); setEndIso(e); }}/>
+            </div>
+          )}
+
+          {/* Step 3: 숙소 */}
+          {step === 3 && (
+            <div>
+              {!skipHotel && hotels.map((h, i) => (
+                <div key={i} style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px', marginBottom:10, border:`1px solid ${COLORS.line}` }}>
+                  <input value={h.name} autoFocus={i===0}
+                    onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,name:e.target.value} : hh))}
+                    placeholder="숙소 이름"
+                    style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, padding:'4px 0 8px', marginBottom:10 }}
+                  />
+                  {dayCount > 1 && (
+                    <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
+                      <span>Day</span>
+                      <input type="number" min={1} max={dayCount} value={h.from}
+                        onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,from:Math.max(1,Math.min(dayCount,+e.target.value||1))} : hh))}
+                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:12, outline:'none' }}
+                      />
+                      <span>~</span>
+                      <input type="number" min={1} max={dayCount} value={h.to}
+                        onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,to:Math.max(1,Math.min(dayCount,+e.target.value||1))} : hh))}
+                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:12, outline:'none' }}
+                      />
+                      {hotels.length > 1 && (
+                        <button onClick={() => setHotels(prev=>prev.filter((_,j)=>j!==i))} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:18 }}>×</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+              {!skipHotel && (
+                <button onClick={() => setHotels(prev=>[...prev,{name:'',from:1,to:dayCount||1}])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:13, padding:'4px 0', marginBottom:14 }}>
+                  <span style={{ fontSize:18 }}>+</span> 숙소 추가
+                </button>
+              )}
+              <button onClick={() => setSkipHotel(s=>!s)} style={{ width:'100%', padding:'10px', border:`1px solid ${skipHotel?COLORS.accent:COLORS.line}`, borderRadius:12, background:'transparent', fontFamily:SANS, fontSize:13, color:skipHotel?COLORS.accent:COLORS.mute, cursor:'pointer' }}>
+                {skipHotel ? '✓ 아직 못 정했어요' : '아직 못 정했어요'}
+              </button>
+            </div>
+          )}
+
+          {/* Step 4: 공항 (비한국인) */}
+          {!isKorean && step === 4 && (
+            <div>
+              <div style={{ marginBottom:18 }}>
+                <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>도착 공항</div>
+                <input value={arrAirport} autoFocus onChange={e=>setArrAirport(e.target.value)}
+                  placeholder="e.g. Narita International Airport"
+                  style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1.5px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, padding:'8px 0' }}
+                />
+              </div>
+              <div>
+                <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>출발 공항</div>
+                <input value={depAirport} onChange={e=>setDepAirport(e.target.value)}
+                  placeholder="e.g. Narita International Airport"
+                  style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1.5px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, padding:'8px 0' }}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Step 5 (or 4 for Korean): 핫플레이스 */}
+          {step === HP_STEP && (
+            <div>
+              {loading && (
+                <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                  장소 불러오는 중...
+                </div>
+              )}
+              {!loading && places.length === 0 && (
+                <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                  장소를 찾을 수 없어요
+                </div>
+              )}
+              {selected.size > 0 && (
+                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.accent, marginBottom:10, fontWeight:600 }}>
+                  {selected.size}곳 선택됨
+                </div>
+              )}
+              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                {places.map(p => {
+                  const sel = selected.has(p.id);
+                  return (
+                    <button key={p.id} onClick={() => togglePlace(p.id)} style={{
+                      border: sel ? `2px solid ${COLORS.ink}` : `1px solid ${COLORS.line}`,
+                      borderRadius:12, padding:0, cursor:'pointer', background:COLORS.card,
+                      overflow:'hidden', textAlign:'left', transition:'border 0.1s',
+                    }}>
+                      <div style={{ height:80, background: p.photo ? `url(${p.photo}) center/cover no-repeat` : COLORS.softer, position:'relative' }}>
+                        {sel && (
+                          <div style={{ position:'absolute', top:6, right:6, width:20, height:20, borderRadius:10, background:COLORS.ink, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            <Icon name="check" size={11} color="#fff" stroke={2.5}/>
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ padding:'8px', fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35 }}>{p.name}</div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+        {/* 푸터 */}
+        <div style={{ padding:'10px 20px 20px', display:'flex', gap:8, flexShrink:0, borderTop:`1px solid ${COLORS.line}` }}>
+          {step > 1
+            ? <button onClick={() => setStep(s=>s-1)} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>이전</button>
+            : <button onClick={onClose} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer' }}>취소</button>
+          }
+          <button onClick={handleNext} disabled={!canNext} style={{
             flex:1, padding:'11px 0', borderRadius:12, border:'none',
-            background: name.trim() ? COLORS.ink : COLORS.softer,
-            color:       name.trim() ? COLORS.bg  : COLORS.mute,
+            background: canNext ? COLORS.ink : COLORS.softer,
+            color:       canNext ? COLORS.bg  : COLORS.mute,
             fontFamily:SANS, fontSize:14, fontWeight:600,
-            cursor: name.trim() ? 'pointer' : 'default',
+            cursor: canNext ? 'pointer' : 'default',
             transition:'background 0.15s, color 0.15s',
-          }}>만들기</button>
+          }}>{step === TOTAL ? '만들기' : '다음'}</button>
         </div>
       </div>
     </div>,
@@ -8004,16 +8337,10 @@ function App() {
       <NewTripSheet
         open={newTripSheetOpen}
         onClose={() => setNewTripSheetOpen(false)}
-        onSubmit={async (title, hue) => {
-          const { tripId } = await fbCreateNewTrip(userData.uid, title);
-          const template = {
-            hue,
-            days: [{ n:1, date:'', weekday:'', title:'Day 1', titleEn:'',
-              hero:{ hue, label:'DAY 1' }, weather:'', items:[] }],
-            hotels: [], food: [],
-          };
-          await fbSaveGroup(tripId, template).catch(() => {});
-          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', ...template, members:[userData.uid], hue }]);
+        onSubmit={async (tripData) => {
+          const { tripId } = await fbCreateNewTrip(userData.uid, tripData.title);
+          await fbSaveGroup(tripId, tripData).catch(() => {});
+          setUserTrips(prev => [...prev, { id: tripId, ...tripData, members:[userData.uid] }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}/>
@@ -8120,16 +8447,10 @@ function App() {
       <NewTripSheet
         open={newTripSheetOpen}
         onClose={() => setNewTripSheetOpen(false)}
-        onSubmit={async (title, hue) => {
-          const { tripId } = await fbCreateNewTrip(userData.uid, title);
-          const template = {
-            hue,
-            days: [{ n:1, date:'', weekday:'', title:'Day 1', titleEn:'',
-              hero:{ hue, label:'DAY 1' }, weather:'', items:[] }],
-            hotels: [], food: [],
-          };
-          await fbSaveGroup(tripId, template).catch(() => {});
-          setUserTrips(prev => [...prev, { id: tripId, title, dates:'', ...template, members:[userData.uid], hue }]);
+        onSubmit={async (tripData) => {
+          const { tripId } = await fbCreateNewTrip(userData.uid, tripData.title);
+          await fbSaveGroup(tripId, tripData).catch(() => {});
+          setUserTrips(prev => [...prev, { id: tripId, ...tripData, members:[userData.uid] }]);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}/>
