@@ -305,6 +305,7 @@ window.ROME_DEFAULT = {
   travelers: 'Solo trip',
   hotel: "Hotel Campo de' Fiori (Rome)",
   hue: 200,
+  sampleVersion: 2,
   hotels: [
     {
       name: "Hotel Campo de' Fiori",
