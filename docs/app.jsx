@@ -1208,12 +1208,17 @@ function FxCard({ curCode, onSetCurCode }) {
           <Icon name="refresh" size={12} color={COLORS.mute} stroke={1.8}/>
         </button>
       </div>
-      <div style={{ marginTop:5, fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>
-        {loading ? '…' : rate ? `₩${Math.round(rate).toLocaleString()}` : '—'}
+      <div style={{ marginTop:5, display:'flex', alignItems:'flex-end', gap:5 }}>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, lineHeight:1 }}>
+          {loading ? '…' : rate ? `₩${Math.round(rate).toLocaleString()}` : '—'}
+        </div>
+        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, paddingBottom:2 }}>
+          = {cur.sym}1
+        </div>
       </div>
       <div style={{ marginTop:4, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
-          = {cur.sym}1 {ts && <span style={{ opacity:0.6 }}>· {ts}</span>}
+        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, opacity:0.6 }}>
+          {ts || ''}
         </div>
         <button onClick={() => setPickerOpen(true)} style={{
           border:'none', background:'transparent', cursor:'pointer', padding:'2px 0',
@@ -1448,7 +1453,7 @@ function TimezoneCard({ city, onPick }) {
           <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={1.8}/>
         </div>
         <div style={{ marginTop:5, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, flexShrink:0 }}>{formatDiffFromSeoul(city.zone)}</div>
+          <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, flexShrink:0, lineHeight:1 }}>{formatDiffFromSeoul(city.zone)}</div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:2 }}>
             <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.04em' }}>{formatCityDateWeekday(city.zone)}</div>
             <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.ink, letterSpacing:'0.04em' }}>{formatCityTime(city.zone)}</div>
@@ -1863,7 +1868,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v256</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v259</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2697,14 +2702,14 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
             const isDone = done.has(i);
             const dp = itemDragProps(i);
             return (
-              <div key={i} {...dp} style={{ display:'flex', alignItems:'center', marginBottom:12, position:'relative', ...(dp.style || {}) }}>
-                {/* 시간 — alignItems:center로 수직 중앙 정렬됨 */}
-                <div style={{ width:44, flexShrink:0,
+              <div key={i} {...dp} style={{ display:'flex', alignItems:'flex-start', marginBottom:12, position:'relative', ...(dp.style || {}) }}>
+                {/* 시간 — marginTop으로 카드 첫째 줄에 맞춤 */}
+                <div style={{ width:44, flexShrink:0, marginTop:11,
                   fontFamily:MONO, fontSize:10.5, color:COLORS.mute,
                   textAlign:'right', paddingRight:4 }}>{it.time}</div>
                 {/* 체크박스: 타임라인 선 가로 중간(x=52)에 독립 배치 — 슬라이드 시 카드에 가려짐 */}
                 <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
-                  width:16, height:16, borderRadius:8, flexShrink:0,
+                  width:16, height:16, borderRadius:8, flexShrink:0, marginTop:11,
                   border:`1.5px solid ${isDone?COLORS.accent:COLORS.ink}`,
                   background: isDone?COLORS.accent:COLORS.bg, cursor:'pointer', padding:0,
                   display:'flex', alignItems:'center', justifyContent:'center',
@@ -3487,7 +3492,9 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
   const searchQuery = [draft.title, draft.en, draft.loc, 'New York'].filter(Boolean).join(' ');
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:1000,
+    <div style={{ position:'fixed', top:0, left:0, right:0,
+      bottom:'calc(env(safe-area-inset-bottom, 0px) + 72px)',
+      zIndex:1000,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
       background:`rgba(0,0,0,${Math.max(0, 0.35 - sheetY / 400)})` }} onClick={onClose}>
       {/* transform wrapper — sheet + filler 같이 움직임 */}
@@ -3499,8 +3506,8 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias }) {
       <div ref={sheetRef} onClick={(e)=>e.stopPropagation()}
         style={{
           background:COLORS.bg, borderRadius:'22px 22px 0 0',
-          paddingBottom:'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-          maxHeight:'calc(100dvh - var(--sat, 44px) - 8px)',
+          paddingBottom:'24px',
+          maxHeight:'calc(100dvh - var(--sat, 44px) - 8px - env(safe-area-inset-bottom, 0px) - 72px)',
           overflowY:'auto', overflowX:'hidden',
         }}>
         {/* 드래그 핸들 */}
@@ -5428,12 +5435,41 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
   const [op, setOp]           = React.useState(null);
   const [waitNew, setWaitNew] = React.useState(false);
   const [entered, setEntered] = React.useState(false);
+  const [sheetY,  setSheetY]  = React.useState(0);
+  const sheetYRef = React.useRef(0);
+  const sheetRef  = React.useRef(null);
+  const dragRef   = React.useRef({ active: false, startY: 0 });
 
   React.useEffect(() => {
-    if (!open) { setEntered(false); return; }
+    if (!open) { setEntered(false); setSheetY(0); sheetYRef.current = 0; return; }
     setDisplay('0'); setPrevVal(null); setOp(null); setWaitNew(false);
+    setSheetY(0); sheetYRef.current = 0;
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
+
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !entered) return;
+    const onStart = e => { dragRef.current = { active: true, startY: e.touches[0].clientY }; };
+    const onMove  = e => {
+      if (!dragRef.current.active) return;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      if (dy > 0) { e.preventDefault(); sheetYRef.current = dy; setSheetY(dy); }
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      if (sheetYRef.current > 100) onClose();
+      else { sheetYRef.current = 0; setSheetY(0); }
+    };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove',  onMove,  { passive: false });
+    el.addEventListener('touchend',   onEnd,   { passive: true });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove',  onMove);
+      el.removeEventListener('touchend',   onEnd);
+    };
+  }, [entered]);
 
   if (!open) return null;
 
@@ -5482,65 +5518,66 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
   const isOp = (o) => op===o;
 
   return (
-    <>
     <div style={{ position:'fixed', inset:0, zIndex:309,
-      background:`rgba(0,0,0,${entered ? 0.3 : 0})`,
-      transition:'background 0.34s ease',
-    }} onClick={onClose}/>
-    <div style={{
-      position:'fixed', left:0, right:0, bottom:0, zIndex:310,
-      background:COLORS.bg, borderRadius:'22px 22px 0 0',
-      paddingBottom:'env(safe-area-inset-bottom,0px)',
-      boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
-      transform:`translateY(${entered ? 0 : '100%'})`,
-      transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-    }}>
-      <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
-        <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
-      </div>
-      {/* 디스플레이 */}
-      <div style={{ padding:'8px 20px 14px', textAlign:'right', minHeight:64 }}>
-        {op && <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginRight:8 }}>{op}</span>}
-        <span style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em' }}>{fmtDisp}</span>
-      </div>
-      {/* 키패드 */}
-      <div style={{ padding:'0 14px', display:'flex', flexDirection:'column', gap:8 }}>
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={pressClear} style={KS(COLORS.softer, COLORS.mute)}>C</button>
-          <button onClick={pressBack}  style={KS(COLORS.softer, COLORS.mute)}>⌫</button>
-          <button onClick={() => { setDisplay(String(Math.round((parseFloat(display)||0)/100*100)/100)); setWaitNew(true); }}
-            style={KS(COLORS.softer, COLORS.mute)}>%</button>
-          <button onClick={() => pressOp('÷')}
-            style={KS(isOp('÷') ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp('÷') ? '#fff' : COLORS.accent)}>÷</button>
+      display:'flex', flexDirection:'column', justifyContent:'flex-end',
+      background:`rgba(0,0,0,${Math.max(0, (entered?0.35:0) - sheetY/400)})`,
+    }} onClick={onClose}>
+      <div style={{
+        transform:`translateY(${entered ? sheetY : window.innerHeight}px)`,
+        transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+      }}>
+      <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
+        background:COLORS.bg, borderRadius:'22px 22px 0 0',
+        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 8px)',
+        boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
+          <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
-        {[['7','8','9','×'],['4','5','6','−'],['1','2','3','+']].map(row => (
-          <div key={row[0]} style={{ display:'flex', gap:8 }}>
-            {row.slice(0,3).map(d => (
-              <button key={d} onClick={() => pressDigit(d)} style={KS(COLORS.card, COLORS.ink)}>{d}</button>
-            ))}
-            <button onClick={() => pressOp(row[3])}
-              style={KS(isOp(row[3]) ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp(row[3]) ? '#fff' : COLORS.accent)}>{row[3]}</button>
+        {/* 디스플레이 */}
+        <div style={{ padding:'8px 20px 14px', textAlign:'right', minHeight:64 }}>
+          {op && <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginRight:8 }}>{op}</span>}
+          <span style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em' }}>{fmtDisp}</span>
+        </div>
+        {/* 키패드 */}
+        <div style={{ padding:'0 14px', display:'flex', flexDirection:'column', gap:8 }}>
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={pressClear} style={KS(COLORS.softer, COLORS.mute)}>C</button>
+            <button onClick={pressBack}  style={KS(COLORS.softer, COLORS.mute)}>⌫</button>
+            <button onClick={() => { setDisplay(String(Math.round((parseFloat(display)||0)/100*100)/100)); setWaitNew(true); }}
+              style={KS(COLORS.softer, COLORS.mute)}>%</button>
+            <button onClick={() => pressOp('÷')}
+              style={KS(isOp('÷') ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp('÷') ? '#fff' : COLORS.accent)}>÷</button>
           </div>
-        ))}
-        <div style={{ display:'flex', gap:8 }}>
-          <button onClick={() => pressDigit('0')} style={KS(COLORS.card, COLORS.ink, { flex:2 })}>0</button>
-          <button onClick={() => pressDigit('.')} style={KS(COLORS.card, COLORS.ink)}>.</button>
-          <button onClick={pressEqual} style={KS(COLORS.accent, '#fff')}>=</button>
+          {[['7','8','9','×'],['4','5','6','−'],['1','2','3','+']].map(row => (
+            <div key={row[0]} style={{ display:'flex', gap:8 }}>
+              {row.slice(0,3).map(d => (
+                <button key={d} onClick={() => pressDigit(d)} style={KS(COLORS.card, COLORS.ink)}>{d}</button>
+              ))}
+              <button onClick={() => pressOp(row[3])}
+                style={KS(isOp(row[3]) ? COLORS.accent : 'rgba(193,79,46,0.12)', isOp(row[3]) ? '#fff' : COLORS.accent)}>{row[3]}</button>
+            </div>
+          ))}
+          <div style={{ display:'flex', gap:8 }}>
+            <button onClick={() => pressDigit('0')} style={KS(COLORS.card, COLORS.ink, { flex:2 })}>0</button>
+            <button onClick={() => pressDigit('.')} style={KS(COLORS.card, COLORS.ink)}>.</button>
+            <button onClick={pressEqual} style={KS(COLORS.accent, '#fff')}>=</button>
+          </div>
+        </div>
+        {/* 입력 버튼 */}
+        <div style={{ padding:'12px 14px 16px', display:'flex', gap:8 }}>
+          <button onClick={() => { onEnter('in', displayNum); onClose(); }} style={{
+            flex:1, padding:'14px 0', border:`1px solid ${COLORS.line}`, borderRadius:14,
+            background:COLORS.card, fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, cursor:'pointer',
+          }}>수입으로 입력</button>
+          <button onClick={() => { onEnter('out', displayNum); onClose(); }} style={{
+            flex:1, padding:'14px 0', border:'none', borderRadius:14,
+            background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
+          }}>지출로 입력</button>
         </div>
       </div>
-      {/* 입력 버튼 */}
-      <div style={{ padding:'12px 14px 16px', display:'flex', gap:8 }}>
-        <button onClick={() => { onEnter('in', displayNum); onClose(); }} style={{
-          flex:1, padding:'14px 0', border:`1px solid ${COLORS.line}`, borderRadius:14,
-          background:COLORS.card, fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, cursor:'pointer',
-        }}>수입으로 입력</button>
-        <button onClick={() => { onEnter('out', displayNum); onClose(); }} style={{
-          flex:1, padding:'14px 0', border:'none', borderRadius:14,
-          background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
-        }}>지출로 입력</button>
       </div>
     </div>
-    </>
   );
 }
 
@@ -5637,7 +5674,17 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
   const sheetRef    = React.useRef(null);
   const dragRef     = React.useRef({ active:false, startY:0, startScrollTop:0 });
 
-  const closeSheet = () => { setAddOpen(false); setEditIdx(null); setDelConfirm(false); };
+  const closeSheet = () => {
+    setAddOpen(false); setEditIdx(null); setDelConfirm(false);
+    if (!calcOpen && !splitOpen) onSheetChange?.(false);
+  };
+
+  const reorderEntries = (from, to) => {
+    const newEntries = [...entries];
+    newEntries.splice(to, 0, newEntries.splice(from, 1)[0]);
+    onEditBudget({ entries: newEntries });
+  };
+  const { itemProps: entryDragProps, isTouchDragging: isEntryDragging } = useDragReorder(reorderEntries, true);
 
   const sheetOpen = addOpen || editIdx !== null;
   React.useEffect(() => {
@@ -5679,7 +5726,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
     };
   }, [sheetEntered]);
 
-  React.useEffect(() => { onSheetChange?.(sheetOpen || calcOpen); }, [sheetOpen, calcOpen]);
+  // onSheetChange는 각 open/close 함수에서 직접 동기 호출 (탭바 딜레이 방지)
 
   // KRW 환산 합계 (총 금액 표시용)
   const krwTotalOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
@@ -5708,18 +5755,21 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
     setForm({ type, amount:'', cat: cats[0] || '', note:'', date:'', currency:'KRW', scope:'personal' });
     setEditIdx(null); setDelConfirm(false); setAddingCat(false); setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
   const openAddWithAmount = (type, amount) => {
     const cats = type === 'out' ? outCats : inCats;
     setForm({ type, amount: String(Math.round(amount)), cat: cats[0] || '', note:'', date:'', currency:'KRW', scope:'personal' });
     setEditIdx(null); setDelConfirm(false); setAddingCat(false); setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
   const openEdit = (idx) => {
     const e = entries[idx];
     setForm({ type:e.type, amount:String(e.amount), cat:e.cat, note:e.note||'', date:e.date||'', currency:e.currency||'KRW', scope:e.scope||'personal' });
     setEditIdx(idx); setDelConfirm(false); setAddingCat(false); setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
 
   const addCustomCat = () => {
@@ -5830,7 +5880,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
               <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
                 <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동</div>
                 {krwSharedOut > 0 && (
-                  <button onClick={() => setSplitOpen(true)} style={{
+                  <button onClick={() => { setSplitOpen(true); onSheetChange?.(true); }} style={{
                     background:'none', border:'none', cursor:'pointer', padding:0,
                     fontSize:15, lineHeight:1, opacity:0.75,
                   }}>➗</button>
@@ -5869,7 +5919,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
         }}>
           <Icon name="minus" size={14} color="#fff" stroke={2.5}/> 지출 추가
         </button>
-        <button onClick={() => setCalcOpen(true)} style={{
+        <button onClick={() => { setCalcOpen(true); onSheetChange?.(true); }} style={{
           width:46, padding:'12px 0', background:COLORS.card, border:`1px solid ${COLORS.line}`, borderRadius:14,
           cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
         }}>
@@ -5900,12 +5950,17 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em',
                   textTransform:'uppercase', padding:'4px 2px 8px' }}>{date}</div>
                 <div>
-                  {byDate[date].map((e, i) => (
-                    <SwipeableRow key={e.id||e._i}
+                  {byDate[date].map((e, i) => {
+                    const dp = entryDragProps(e._i);
+                    return (
+                    <div key={e.id||e._i} ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
+                      style={{ position:'relative', marginBottom:6, ...(dp.style||{}) }}>
+                    <SwipeableRow
                       cardSwipe
+                      isDragging={isEntryDragging}
                       onEdit={() => openEdit(e._i)}
                       onDelete={() => onEditBudget({ entries: entries.filter((_,j) => j !== e._i) })}
-                      wrapStyle={{ borderRadius:14, marginBottom:6 }}>
+                      wrapStyle={{ borderRadius:14 }}>
                       <div style={{
                         padding:'12px 14px', cursor:'pointer', display:'flex', alignItems:'center', gap:12,
                         background:COLORS.card, borderRadius:14,
@@ -5931,7 +5986,9 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
                         </div>
                       </div>
                     </SwipeableRow>
-                  ))}
+                    </div>
+                  );
+                  })}
                 </div>
               </div>
             ))}
@@ -6114,9 +6171,9 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
           </div>{/* transform wrapper */}
         </div>
       )}
-      <BudgetCalcSheet open={calcOpen} onClose={() => setCalcOpen(false)}
-        onEnter={(type, amount) => openAddWithAmount(type, amount)}/>
-      <SplitSheet open={splitOpen} onClose={() => setSplitOpen(false)}
+      <BudgetCalcSheet open={calcOpen} onClose={() => { setCalcOpen(false); if (!sheetOpen && !splitOpen) onSheetChange?.(false); }}
+        onEnter={(type, amount) => { setCalcOpen(false); openAddWithAmount(type, amount); }}/>
+      <SplitSheet open={splitOpen} onClose={() => { setSplitOpen(false); if (!sheetOpen && !calcOpen) onSheetChange?.(false); }}
         totalKrw={Math.round(krwSharedOut)}
         defaultN={Math.max(2, (trip.members||[]).length)}
         onEnter={(type, amount) => openAddWithAmount(type, amount)}/>
@@ -7103,10 +7160,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   });
 
   return ReactDOM.createPortal(
-    <div style={{ position:'fixed', inset:0, zIndex:1100, display:'flex', alignItems:'flex-end', justifyContent:'center', background:'rgba(0,0,0,0.4)', padding:`0 20px ${kbOffset + 16}px` }} onClick={onClose}>
+    <div style={{ position:'fixed', top:0, left:0, right:0, bottom:kbOffset, zIndex:1100, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.4)', padding:'20px' }} onClick={onClose}>
       <div onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:22, width:'100%', maxWidth:380,
-        maxHeight: kbOffset > 0 ? `calc(100vh - ${kbOffset + 32}px)` : '82vh',
+        maxHeight: '82vh',
         display:'flex', flexDirection:'column',
         boxShadow:'0 12px 48px rgba(0,0,0,0.22)',
         transition:'max-height 0.2s ease',
@@ -8498,7 +8555,7 @@ function App() {
         </div>
       </div>
       <TabBar tab={tab} setTab={changeTab}
-        visible={tabBarVisible && !openStop && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen}
+        visible={tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen}
         editing={editing} canEdit={canEdit} onToggleEdit={handleEditToggle}/>
       <StopSheet open={openStop} dayHue={dayHue}
         onClose={() => setOpenStop(null)} onSave={saveStop}/>

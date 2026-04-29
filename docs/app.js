@@ -2539,11 +2539,25 @@ function FxCard({
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 5,
+      display: 'flex',
+      alignItems: 'flex-end',
+      gap: 5
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
       fontFamily: SERIF,
       fontSize: 22,
-      color: COLORS.ink
+      color: COLORS.ink,
+      lineHeight: 1
     }
   }, loading ? '…' : rate ? `₩${Math.round(rate).toLocaleString()}` : '—'), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute,
+      paddingBottom: 2
+    }
+  }, "= ", cur.sym, "1")), /*#__PURE__*/React.createElement("div", {
     style: {
       marginTop: 4,
       display: 'flex',
@@ -2554,13 +2568,10 @@ function FxCard({
     style: {
       fontFamily: SANS,
       fontSize: 11,
-      color: COLORS.mute
-    }
-  }, "= ", cur.sym, "1 ", ts && /*#__PURE__*/React.createElement("span", {
-    style: {
+      color: COLORS.mute,
       opacity: 0.6
     }
-  }, "\xB7 ", ts)), /*#__PURE__*/React.createElement("button", {
+  }, ts || ''), /*#__PURE__*/React.createElement("button", {
     onClick: () => setPickerOpen(true),
     style: {
       border: 'none',
@@ -3096,9 +3107,10 @@ function TimezoneCard({
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SERIF,
-      fontSize: 22,
+      fontSize: 30,
       color: COLORS.ink,
-      flexShrink: 0
+      flexShrink: 0,
+      lineHeight: 1
     }
   }, formatDiffFromSeoul(city.zone)), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -3863,7 +3875,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v244"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v259"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -5463,7 +5475,7 @@ function DayScreen({
     }, dp, {
       style: {
         display: 'flex',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 12,
         position: 'relative',
         ...(dp.style || {})
@@ -5472,6 +5484,7 @@ function DayScreen({
       style: {
         width: 44,
         flexShrink: 0,
+        marginTop: 11,
         fontFamily: MONO,
         fontSize: 10.5,
         color: COLORS.mute,
@@ -5488,6 +5501,7 @@ function DayScreen({
         height: 16,
         borderRadius: 8,
         flexShrink: 0,
+        marginTop: 11,
         border: `1.5px solid ${isDone ? COLORS.accent : COLORS.ink}`,
         background: isDone ? COLORS.accent : COLORS.bg,
         cursor: 'pointer',
@@ -6939,7 +6953,10 @@ function StopSheet({
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
-      inset: 0,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
       zIndex: 1000,
       display: 'flex',
       flexDirection: 'column',
@@ -6960,8 +6977,8 @@ function StopSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 24px)',
-      maxHeight: 'calc(100dvh - var(--sat, 44px) - 8px)',
+      paddingBottom: '24px',
+      maxHeight: 'calc(100dvh - var(--sat, 44px) - 8px - env(safe-area-inset-bottom, 0px) - 72px)',
       overflowY: 'auto',
       overflowX: 'hidden'
     }
@@ -10913,17 +10930,68 @@ function BudgetCalcSheet({
   const [op, setOp] = React.useState(null);
   const [waitNew, setWaitNew] = React.useState(false);
   const [entered, setEntered] = React.useState(false);
+  const [sheetY, setSheetY] = React.useState(0);
+  const sheetYRef = React.useRef(0);
+  const sheetRef = React.useRef(null);
+  const dragRef = React.useRef({
+    active: false,
+    startY: 0
+  });
   React.useEffect(() => {
     if (!open) {
       setEntered(false);
+      setSheetY(0);
+      sheetYRef.current = 0;
       return;
     }
     setDisplay('0');
     setPrevVal(null);
     setOp(null);
     setWaitNew(false);
+    setSheetY(0);
+    sheetYRef.current = 0;
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !entered) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      if (dy > 0) {
+        e.preventDefault();
+        sheetYRef.current = dy;
+        setSheetY(dy);
+      }
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      if (sheetYRef.current > 100) onClose();else {
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [entered]);
   if (!open) return null;
   const compute = (a, b, o) => {
     if (o === '+') return a + b;
@@ -10998,21 +11066,26 @@ function BudgetCalcSheet({
     style: {
       position: 'fixed',
       inset: 0,
-      zIndex: 310,
+      zIndex: 309,
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      background: 'rgba(0,0,0,0.4)'
+      background: `rgba(0,0,0,${Math.max(0, (entered ? 0.35 : 0) - sheetY / 400)})`
     },
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
     onClick: e => e.stopPropagation(),
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'env(safe-area-inset-bottom,0px)',
-      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
-      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 8px)',
+      boxShadow: '0 -4px 24px rgba(0,0,0,0.12)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -11143,7 +11216,7 @@ function BudgetCalcSheet({
       color: '#fff',
       cursor: 'pointer'
     }
-  }, "\uC9C0\uCD9C\uB85C \uC785\uB825"))));
+  }, "\uC9C0\uCD9C\uB85C \uC785\uB825")))));
 }
 function SplitSheet({
   open,
@@ -11397,10 +11470,97 @@ function BudgetScreen({
   const [newCatVal, setNewCatVal] = React.useState('');
   const [calcOpen, setCalcOpen] = React.useState(false);
   const [splitOpen, setSplitOpen] = React.useState(false);
-  const sheetTouchY = React.useRef(null);
+  const [sheetEntered, setSheetEntered] = React.useState(false);
+  const [sheetY, setSheetY] = React.useState(0);
+  const sheetYRef = React.useRef(0);
+  const sheetRef = React.useRef(null);
+  const dragRef = React.useRef({
+    active: false,
+    startY: 0,
+    startScrollTop: 0
+  });
+  const closeSheet = () => {
+    setAddOpen(false);
+    setEditIdx(null);
+    setDelConfirm(false);
+    if (!calcOpen && !splitOpen) onSheetChange?.(false);
+  };
+  const reorderEntries = (from, to) => {
+    const newEntries = [...entries];
+    newEntries.splice(to, 0, newEntries.splice(from, 1)[0]);
+    onEditBudget({
+      entries: newEntries
+    });
+  };
+  const {
+    itemProps: entryDragProps,
+    isTouchDragging: isEntryDragging
+  } = useDragReorder(reorderEntries, true);
+  const sheetOpen = addOpen || editIdx !== null;
   React.useEffect(() => {
-    onSheetChange?.(addOpen || editIdx !== null);
-  }, [addOpen, editIdx]);
+    if (sheetOpen) {
+      setSheetY(0);
+      sheetYRef.current = 0;
+      requestAnimationFrame(() => requestAnimationFrame(() => setSheetEntered(true)));
+    } else {
+      setSheetEntered(false);
+      setSheetY(0);
+      sheetYRef.current = 0;
+    }
+  }, [sheetOpen]);
+
+  // StopSheet 스타일 드래그 핸들러
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !sheetEntered) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY,
+        startScrollTop: el.scrollTop
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const {
+        startY,
+        startScrollTop
+      } = dragRef.current;
+      const dy = e.touches[0].clientY - startY;
+      if (startScrollTop > 8 && dy <= 0) {
+        dragRef.current.active = false;
+        return;
+      }
+      e.preventDefault();
+      if (dy > 0) {
+        sheetYRef.current = dy;
+        setSheetY(dy);
+      }
+    };
+    const onEnd = () => {
+      dragRef.current.active = false;
+      if (sheetYRef.current > 120) {
+        closeSheet();
+      } else {
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [sheetEntered]);
+
+  // onSheetChange는 각 open/close 함수에서 직접 동기 호출 (탭바 딜레이 방지)
 
   // KRW 환산 합계 (총 금액 표시용)
   const krwTotalOut = entries.filter(e => e.type === 'out').reduce((s, e) => s + toKrw(e.amount, e.currency || 'KRW'), 0);
@@ -11440,6 +11600,7 @@ function BudgetScreen({
     setAddingCat(false);
     setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
   const openAddWithAmount = (type, amount) => {
     const cats = type === 'out' ? outCats : inCats;
@@ -11457,6 +11618,7 @@ function BudgetScreen({
     setAddingCat(false);
     setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
   const openEdit = idx => {
     const e = entries[idx];
@@ -11474,6 +11636,7 @@ function BudgetScreen({
     setAddingCat(false);
     setNewCatVal('');
     setAddOpen(true);
+    onSheetChange?.(true);
   };
   const addCustomCat = () => {
     const name = newCatVal.trim();
@@ -11715,7 +11878,10 @@ function BudgetScreen({
       textTransform: 'uppercase'
     }
   }, "\uACF5\uB3D9"), krwSharedOut > 0 && /*#__PURE__*/React.createElement("button", {
-    onClick: () => setSplitOpen(true),
+    onClick: () => {
+      setSplitOpen(true);
+      onSheetChange?.(true);
+    },
     style: {
       background: 'none',
       border: 'none',
@@ -11810,7 +11976,10 @@ function BudgetScreen({
     color: "#fff",
     stroke: 2.5
   }), " \uC9C0\uCD9C \uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setCalcOpen(true),
+    onClick: () => {
+      setCalcOpen(true);
+      onSheetChange?.(true);
+    },
     style: {
       width: 46,
       padding: '12px 0',
@@ -11877,109 +12046,132 @@ function BudgetScreen({
         textTransform: 'uppercase',
         padding: '4px 2px 8px'
       }
-    }, date), /*#__PURE__*/React.createElement("div", null, byDate[date].map((e, i) => /*#__PURE__*/React.createElement(SwipeableRow, {
-      key: e.id || e._i,
-      cardSwipe: true,
-      onEdit: () => openEdit(e._i),
-      onDelete: () => onEditBudget({
-        entries: entries.filter((_, j) => j !== e._i)
-      }),
-      wrapStyle: {
-        borderRadius: 14,
-        marginBottom: 6
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '12px 14px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        background: COLORS.card,
-        borderRadius: 14
-      },
-      onClick: () => openEdit(e._i)
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        flex: 1,
-        minWidth: 0
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: SANS,
-        fontSize: 13,
-        color: COLORS.ink,
-        marginBottom: 2,
-        whiteSpace: 'nowrap',
-        overflow: 'hidden',
-        textOverflow: 'ellipsis'
-      }
-    }, e.cat, e.note ? ` · ${e.note}` : ''), /*#__PURE__*/React.createElement("div", {
-      style: {
-        display: 'flex',
-        alignItems: 'center',
-        gap: 5
-      }
-    }, (e.scope || 'personal') === 'shared' && /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 9,
-        color: '#4F6BED',
-        background: 'rgba(79,107,237,0.1)',
-        borderRadius: 4,
-        padding: '1px 5px',
-        letterSpacing: '0.05em'
-      }
-    }, "\uACF5\uB3D9"), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 9.5,
-        color: COLORS.mute
-      }
-    }, e.type === 'in' ? '수입' : '지출'))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        fontFamily: MONO,
-        fontSize: 14,
-        fontWeight: 600,
-        flexShrink: 0,
-        color: e.type === 'in' ? '#3A9B4C' : '#C14F2E'
-      }
-    }, e.type === 'in' ? '+' : '-', fmtAmt(e.amount, e.currency || 'KRW')))))))));
-  })(), addOpen && /*#__PURE__*/React.createElement("div", {
+    }, date), /*#__PURE__*/React.createElement("div", null, byDate[date].map((e, i) => {
+      const dp = entryDragProps(e._i);
+      return /*#__PURE__*/React.createElement("div", {
+        key: e.id || e._i,
+        ref: dp.ref,
+        onTouchStart: dp.onTouchStart,
+        onTouchMove: dp.onTouchMove,
+        onTouchEnd: dp.onTouchEnd,
+        style: {
+          position: 'relative',
+          marginBottom: 6,
+          ...(dp.style || {})
+        }
+      }, /*#__PURE__*/React.createElement(SwipeableRow, {
+        cardSwipe: true,
+        isDragging: isEntryDragging,
+        onEdit: () => openEdit(e._i),
+        onDelete: () => onEditBudget({
+          entries: entries.filter((_, j) => j !== e._i)
+        }),
+        wrapStyle: {
+          borderRadius: 14
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          padding: '12px 14px',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 12,
+          background: COLORS.card,
+          borderRadius: 14
+        },
+        onClick: () => openEdit(e._i)
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          minWidth: 0
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: SANS,
+          fontSize: 13,
+          color: COLORS.ink,
+          marginBottom: 2,
+          whiteSpace: 'nowrap',
+          overflow: 'hidden',
+          textOverflow: 'ellipsis'
+        }
+      }, e.cat, e.note ? ` · ${e.note}` : ''), /*#__PURE__*/React.createElement("div", {
+        style: {
+          display: 'flex',
+          alignItems: 'center',
+          gap: 5
+        }
+      }, (e.scope || 'personal') === 'shared' && /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: MONO,
+          fontSize: 9,
+          color: '#4F6BED',
+          background: 'rgba(79,107,237,0.1)',
+          borderRadius: 4,
+          padding: '1px 5px',
+          letterSpacing: '0.05em'
+        }
+      }, "\uACF5\uB3D9"), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: MONO,
+          fontSize: 9.5,
+          color: COLORS.mute
+        }
+      }, e.type === 'in' ? '수입' : '지출'))), /*#__PURE__*/React.createElement("div", {
+        style: {
+          fontFamily: MONO,
+          fontSize: 14,
+          fontWeight: 600,
+          flexShrink: 0,
+          color: e.type === 'in' ? '#3A9B4C' : '#C14F2E'
+        }
+      }, e.type === 'in' ? '+' : '-', fmtAmt(e.amount, e.currency || 'KRW')))));
+    })))));
+  })(), (sheetOpen || sheetEntered) && /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
       inset: 0,
       zIndex: 200,
-      background: 'rgba(0,0,0,0.38)'
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: `rgba(0,0,0,${Math.max(0, (sheetEntered ? 0.35 : 0) - sheetY / 400)})`
     },
-    onClick: () => setAddOpen(false)
+    onClick: closeSheet
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
+      transform: `translateY(${sheetEntered ? sheetY : window.innerHeight}px)`,
+      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
+    onClick: e => e.stopPropagation(),
+    style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      padding: '20px 18px',
-      paddingBottom: 'calc(24px + env(safe-area-inset-bottom,0px))'
-    },
-    onClick: e => e.stopPropagation(),
-    onTouchStart: e => {
-      sheetTouchY.current = e.touches[0].clientY;
-    },
-    onTouchEnd: e => {
-      if (e.changedTouches[0].clientY - (sheetTouchY.current || 0) > 80) setAddOpen(false);
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 24px)',
+      maxHeight: 'calc(100dvh - var(--sat,44px) - 8px)',
+      overflowY: 'auto',
+      overflowX: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 6px'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       width: 36,
       height: 4,
       background: COLORS.line,
-      borderRadius: 2,
-      margin: '-10px auto 14px'
+      borderRadius: 2
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '0 18px'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
       gap: 8,
@@ -12308,13 +12500,22 @@ function BudgetScreen({
       color: '#fff',
       cursor: 'pointer'
     }
-  }, editIdx !== null ? '수정' : '저장')))), /*#__PURE__*/React.createElement(BudgetCalcSheet, {
+  }, editIdx !== null ? '수정' : '저장')))))), /*#__PURE__*/React.createElement(BudgetCalcSheet, {
     open: calcOpen,
-    onClose: () => setCalcOpen(false),
-    onEnter: (type, amount) => openAddWithAmount(type, amount)
+    onClose: () => {
+      setCalcOpen(false);
+      if (!sheetOpen && !splitOpen) onSheetChange?.(false);
+    },
+    onEnter: (type, amount) => {
+      setCalcOpen(false);
+      openAddWithAmount(type, amount);
+    }
   }), /*#__PURE__*/React.createElement(SplitSheet, {
     open: splitOpen,
-    onClose: () => setSplitOpen(false),
+    onClose: () => {
+      setSplitOpen(false);
+      if (!sheetOpen && !calcOpen) onSheetChange?.(false);
+    },
     totalKrw: Math.round(krwSharedOut),
     defaultN: Math.max(2, (trip.members || []).length),
     onEnter: (type, amount) => openAddWithAmount(type, amount)
@@ -13637,155 +13838,816 @@ function CompanionsScreen({
   }, "\uCDE8\uC18C"))));
 }
 
-// ─── 새 여행 만들기 시트 ──────────────────────────────────────
-const NEW_TRIP_PALETTE = [200, 45, 90, 140, 20, 240, 280, 320, 350, 0];
+// ─── 새 여행 만들기 위저드 ────────────────────────────────────
+
+function greedyRoute(places) {
+  if (!places.length) return [];
+  const result = [places[0]];
+  const rem = places.slice(1);
+  while (rem.length) {
+    const last = result[result.length - 1];
+    let best = 0,
+      bestDist = Infinity;
+    rem.forEach((p, i) => {
+      const dist = Math.hypot(p.lat - last.lat, p.lon - last.lon);
+      if (dist < bestDist) {
+        bestDist = dist;
+        best = i;
+      }
+    });
+    result.push(rem.splice(best, 1)[0]);
+  }
+  return result;
+}
+function generateTripData({
+  cities,
+  startIso,
+  endIso,
+  hotels,
+  arrAirport,
+  depAirport,
+  selectedPlaces,
+  isKorean
+}) {
+  const startDate = new Date(startIso + 'T12:00:00');
+  const dayCount = Math.round((new Date(endIso + 'T12:00:00') - startDate) / 86400000) + 1;
+  const routed = greedyRoute([...selectedPlaces]);
+  const hasArr = !isKorean && arrAirport;
+  const hasDep = !isKorean && depAirport;
+  const cStart = hasArr ? 2 : 1;
+  const cEnd = hasDep ? dayCount - 1 : dayCount;
+  const cDays = Math.max(0, cEnd - cStart + 1);
+  const perDay = cDays > 0 ? Math.min(4, Math.ceil(routed.length / cDays)) : 4;
+  const chunks = [];
+  for (let i = 0; i < routed.length; i += Math.max(1, perDay)) chunks.push(routed.slice(i, i + perDay));
+  const getHotel = n => hotels.find(h => h.name && n >= h.from && n <= h.to) || null;
+  let ci = 0;
+  const days = Array.from({
+    length: dayCount
+  }, (_, i) => {
+    const n = i + 1;
+    const d = new Date(startDate);
+    d.setDate(d.getDate() + i);
+    const iso = d.toISOString().slice(0, 10);
+    const hotel = getHotel(n);
+    const prev = n > 1 ? getHotel(n - 1) : null;
+    const items = [];
+    if (n === 1 && hasArr) items.push({
+      time: '14:00',
+      title: arrAirport,
+      loc: '',
+      done: false
+    });
+    if (hotel && (!prev || prev.name !== hotel.name)) items.push({
+      time: n === 1 ? '16:00' : '15:00',
+      title: `체크인 · ${hotel.name}`,
+      loc: hotel.name,
+      done: false
+    });
+    if (n === dayCount) {
+      if (hotel) items.push({
+        time: '10:00',
+        title: `체크아웃 · ${hotel.name}`,
+        loc: hotel.name,
+        done: false
+      });
+      if (hasDep) items.push({
+        time: '13:00',
+        title: depAirport,
+        loc: '',
+        done: false
+      });
+    }
+    if (n >= cStart && n <= cEnd && ci < chunks.length) {
+      chunks[ci++].forEach((p, pi) => {
+        const hr = String(10 + pi * 2).padStart(2, '0');
+        items.push({
+          time: `${hr}:00`,
+          title: p.name,
+          loc: '',
+          done: false,
+          lat: p.lat,
+          lon: p.lon
+        });
+      });
+    }
+    items.sort((a, b) => a.time.localeCompare(b.time));
+    return {
+      n,
+      date: isoToDayDate(iso),
+      weekday: isoToWeekday(iso),
+      title: `Day ${n}`,
+      titleEn: `Day ${n}`,
+      hero: {
+        hue: 200,
+        label: `DAY ${String(n).padStart(2, '0')}`
+      },
+      weather: '',
+      items
+    };
+  });
+  return {
+    title: cities.filter(Boolean).join(' · ') || 'New Trip',
+    dates: `${isoToDayDate(startIso)} – ${isoToDayDate(endIso)}`,
+    hue: 200,
+    days,
+    hotels: [],
+    food: []
+  };
+}
+function MiniCalendar({
+  startIso,
+  endIso,
+  onRange
+}) {
+  const today = new Date();
+  const [vy, setVy] = React.useState(today.getFullYear());
+  const [vm, setVm] = React.useState(today.getMonth());
+  const todayIso = today.toISOString().slice(0, 10);
+  const toIso = (y, m, d) => `${y}-${String(m + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+  const dim = new Date(vy, vm + 1, 0).getDate();
+  const firstDow = new Date(vy, vm, 1).getDay();
+  const prevMo = () => vm === 0 ? (setVy(y => y - 1), setVm(11)) : setVm(m => m - 1);
+  const nextMo = () => vm === 11 ? (setVy(y => y + 1), setVm(0)) : setVm(m => m + 1);
+  const tap = d => {
+    const iso = toIso(vy, vm, d);
+    if (iso < todayIso) return;
+    if (!startIso || startIso && endIso) onRange(iso, '');else if (iso <= startIso) onRange(iso, startIso);else onRange(startIso, iso);
+  };
+  const cells = [...Array(firstDow).fill(null), ...Array.from({
+    length: dim
+  }, (_, i) => i + 1)];
+  return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginBottom: 10
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: prevMo,
+    style: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 20,
+      padding: '0 10px',
+      color: COLORS.ink
+    }
+  }, "\u2039"), /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 14,
+      fontWeight: 600,
+      color: COLORS.ink
+    }
+  }, MONTH_NAMES_SHORT[vm], " ", vy), /*#__PURE__*/React.createElement("button", {
+    onClick: nextMo,
+    style: {
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      fontSize: 20,
+      padding: '0 10px',
+      color: COLORS.ink
+    }
+  }, "\u203A")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(7,1fr)',
+      textAlign: 'center',
+      marginBottom: 4
+    }
+  }, ['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((w, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      fontFamily: MONO,
+      fontSize: 10,
+      color: COLORS.mute,
+      paddingBottom: 4
+    }
+  }, w))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: 'repeat(7,1fr)',
+      gap: 2
+    }
+  }, cells.map((d, i) => {
+    if (!d) return /*#__PURE__*/React.createElement("div", {
+      key: i
+    });
+    const iso = toIso(vy, vm, d);
+    const isStart = iso === startIso;
+    const isEnd = iso === endIso;
+    const inRange = startIso && endIso && iso > startIso && iso < endIso;
+    const past = iso < todayIso;
+    const isToday = iso === todayIso;
+    return /*#__PURE__*/React.createElement("button", {
+      key: i,
+      onClick: () => tap(d),
+      style: {
+        padding: '7px 0',
+        border: 'none',
+        cursor: past ? 'default' : 'pointer',
+        borderRadius: isStart || isEnd ? 8 : inRange ? 2 : 8,
+        background: isStart || isEnd ? COLORS.ink : inRange ? COLORS.softer : 'transparent',
+        color: isStart || isEnd ? COLORS.bg : past ? COLORS.line : isToday ? COLORS.accent : COLORS.ink,
+        fontFamily: SANS,
+        fontSize: 13,
+        fontWeight: isStart || isEnd ? 600 : 400
+      }
+    }, d);
+  })));
+}
 function NewTripSheet({
   open,
   onClose,
-  onSubmit,
-  existingHues = []
+  onSubmit
 }) {
-  const [name, setName] = React.useState('');
-  const [hue, setHue] = React.useState(200);
-  const [entered, setEntered] = React.useState(false);
-  const inputRef = React.useRef(null);
+  const isKorean = React.useMemo(() => navigator.language.startsWith('ko'), []);
+  const TOTAL = isKorean ? 4 : 5;
+  const HP_STEP = isKorean ? 4 : 5;
+  const [step, setStep] = React.useState(1);
+  const [cities, setCities] = React.useState(['']);
+  const [startIso, setStartIso] = React.useState('');
+  const [endIso, setEndIso] = React.useState('');
+  const [hotels, setHotels] = React.useState([{
+    name: '',
+    from: 1,
+    to: 1
+  }]);
+  const [skipHotel, setSkipHotel] = React.useState(false);
+  const [arrAirport, setArrAirport] = React.useState('');
+  const [depAirport, setDepAirport] = React.useState('');
+  const [places, setPlaces] = React.useState([]);
+  const [loading, setLoading] = React.useState(false);
+  const [selected, setSelected] = React.useState(new Set());
+  const [kbOffset, setKbOffset] = React.useState(0);
+
+  // 키보드 올라올 때 팝업 위치 조정
   React.useEffect(() => {
-    if (open) {
-      setName('');
-      setEntered(false);
-      // 기존 여행과 가장 다른 색상 자동 선택
-      const hueDist = (a, b) => {
-        const d = Math.abs(a - b) % 360;
-        return Math.min(d, 360 - d);
-      };
-      const best = existingHues.length === 0 ? 200 : NEW_TRIP_PALETTE.reduce((bst, h) => {
-        const md = Math.min(...existingHues.map(e => hueDist(h, e)));
-        const bd = Math.min(...existingHues.map(e => hueDist(bst, e)));
-        return md > bd ? h : bst;
-      }, NEW_TRIP_PALETTE[0]);
-      setHue(best);
-      document.body.style.overflow = 'hidden';
-      requestAnimationFrame(() => requestAnimationFrame(() => {
-        setEntered(true);
-        inputRef.current?.focus();
-      }));
-    } else {
-      setEntered(false);
-      document.body.style.overflow = '';
+    if (!open) {
+      setKbOffset(0);
+      return;
     }
+    const vv = window.visualViewport;
+    if (!vv) return;
+    const update = () => {
+      const kb = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+      setKbOffset(kb);
+    };
+    vv.addEventListener('resize', update);
+    vv.addEventListener('scroll', update);
+    update();
     return () => {
-      document.body.style.overflow = '';
+      vv.removeEventListener('resize', update);
+      vv.removeEventListener('scroll', update);
     };
   }, [open]);
-  if (!open && !entered) return null;
-  const create = () => {
-    if (!name.trim()) return;
-    onSubmit(name.trim(), hue);
+  const dayCount = startIso && endIso ? Math.round((new Date(endIso + 'T12:00:00') - new Date(startIso + 'T12:00:00')) / 86400000) + 1 : 0;
+  React.useEffect(() => {
+    if (!open) return;
+    setStep(1);
+    setCities(['']);
+    setStartIso('');
+    setEndIso('');
+    setHotels([{
+      name: '',
+      from: 1,
+      to: 1
+    }]);
+    setSkipHotel(false);
+    setArrAirport('');
+    setDepAirport('');
+    setPlaces([]);
+    setLoading(false);
+    setSelected(new Set());
+  }, [open]);
+  React.useEffect(() => {
+    if (dayCount > 0) setHotels(prev => prev.map((h, i) => i === prev.length - 1 ? {
+      ...h,
+      to: dayCount
+    } : h));
+  }, [dayCount]);
+
+  // 핫플 로딩
+  React.useEffect(() => {
+    if (step !== HP_STEP || !open) return;
+    const city = cities.find(c => c.trim());
+    if (!city) return;
+    setLoading(true);
+    setPlaces([]);
+    (async () => {
+      try {
+        const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(city)}&limit=1`).then(r => r.json());
+        const f = geo.features?.[0];
+        if (!f) {
+          setLoading(false);
+          return;
+        }
+        const [lon, lat] = f.geometry.coordinates;
+        const q = `[out:json][timeout:20];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo"]["wikipedia"](around:20000,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"]["wikipedia"](around:20000,${lat},${lon});node["leisure"~"park|garden"]["wikipedia"](around:15000,${lat},${lon}););out 40;`;
+        const ov = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`).then(r => r.json());
+        const list = (ov.elements || []).filter(e => e.tags?.name).map(e => ({
+          id: e.id,
+          name: e.tags['name:en'] || e.tags.name,
+          lat: e.lat,
+          lon: e.lon,
+          wikipedia: e.tags.wikipedia,
+          photo: null
+        }));
+        setPlaces(list);
+        setLoading(false);
+        list.forEach(async (p, idx) => {
+          if (!p.wikipedia) return;
+          try {
+            const t = p.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
+            const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
+            const photo = d.thumbnail?.source;
+            if (photo) setPlaces(prev => prev.map((pl, i) => i === idx ? {
+              ...pl,
+              photo
+            } : pl));
+          } catch (_) {}
+        });
+      } catch (_) {
+        setLoading(false);
+      }
+    })();
+  }, [step]);
+  if (!open) return null;
+  const canNext = step === 1 ? cities.some(c => c.trim()) : step === 2 ? !!(startIso && endIso) : true;
+  const TITLES = {
+    1: '어디로 가요?',
+    2: '언제 가요?',
+    3: '숙소는요?',
+    [isKorean ? 4 : 4]: '어느 공항으로?',
+    [HP_STEP]: '가고 싶은 곳을 골라요'
+  };
+  const handleNext = () => {
+    if (step < TOTAL) {
+      setStep(s => s + 1);
+      return;
+    }
+    const selPlaces = places.filter(p => selected.has(p.id));
+    const tripData = generateTripData({
+      cities: cities.filter(Boolean),
+      startIso,
+      endIso,
+      hotels: skipHotel ? [] : hotels.filter(h => h.name.trim()),
+      arrAirport: isKorean ? '' : arrAirport,
+      depAirport: isKorean ? '' : depAirport,
+      selectedPlaces: selPlaces,
+      isKorean
+    });
+    onSubmit(tripData);
     onClose();
   };
-  const previewLabel = (name || 'NEW TRIP').toUpperCase().slice(0, 18);
+  const togglePlace = id => setSelected(prev => {
+    const next = new Set(prev);
+    next.has(id) ? next.delete(id) : next.add(id);
+    return next;
+  });
   return ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
-      inset: 0,
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: kbOffset,
       zIndex: 1100,
       display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end',
-      background: `rgba(0,0,0,${entered ? 0.35 : 0})`,
-      transition: 'background 0.3s ease'
+      alignItems: 'center',
+      justifyContent: 'center',
+      background: 'rgba(0,0,0,0.4)',
+      padding: '20px'
     },
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation(),
     style: {
       background: COLORS.bg,
-      borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 20px)',
-      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
-      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
-      overflow: 'hidden'
+      borderRadius: 22,
+      width: '100%',
+      maxWidth: 380,
+      maxHeight: '82vh',
+      display: 'flex',
+      flexDirection: 'column',
+      boxShadow: '0 12px 48px rgba(0,0,0,0.22)',
+      transition: 'max-height 0.2s ease'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '18px 20px 0',
+      flexShrink: 0
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
-      justifyContent: 'center',
-      padding: '10px 0 0'
+      gap: 4,
+      marginBottom: 14
     }
-  }, /*#__PURE__*/React.createElement("div", {
+  }, Array.from({
+    length: TOTAL
+  }, (_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
     style: {
-      width: 36,
-      height: 4,
-      background: COLORS.line,
-      borderRadius: 2
+      height: 3,
+      flex: 1,
+      borderRadius: 2,
+      background: i < step ? COLORS.ink : COLORS.line,
+      transition: 'background 0.2s'
     }
-  })), /*#__PURE__*/React.createElement(Photo, {
-    hue: hue,
-    label: previewLabel,
-    height: 160
-  }), /*#__PURE__*/React.createElement("div", {
+  }))), /*#__PURE__*/React.createElement("div", {
     style: {
-      padding: '20px 20px 0'
-    }
-  }, /*#__PURE__*/React.createElement("input", {
-    ref: inputRef,
-    value: name,
-    onChange: e => setName(e.target.value),
-    onKeyDown: e => {
-      if (e.key === 'Enter') create();
-    },
-    placeholder: "\uC5EC\uD589 \uC774\uB984",
-    style: {
-      width: '100%',
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
       fontFamily: SERIF,
-      fontSize: 26,
-      color: COLORS.ink,
-      borderBottom: `1.5px solid ${COLORS.line}`,
-      paddingBottom: 10,
-      boxSizing: 'border-box'
+      fontSize: 20,
+      color: COLORS.ink
     }
-  }), /*#__PURE__*/React.createElement("div", {
+  }, step === 1 ? '어디로 가요?' : step === 2 ? '언제 가요?' : step === 3 ? '숙소는요?' : !isKorean && step === 4 ? '어느 공항으로?' : '가고 싶은 곳을 골라요')), /*#__PURE__*/React.createElement("div", {
     style: {
-      marginTop: 20,
+      overflowY: 'auto',
+      flex: 1,
+      padding: '14px 20px'
+    }
+  }, step === 1 && /*#__PURE__*/React.createElement("div", null, cities.map((city, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
       display: 'flex',
       gap: 8,
-      flexWrap: 'wrap'
+      marginBottom: 10,
+      alignItems: 'center'
     }
-  }, NEW_TRIP_PALETTE.map(h => /*#__PURE__*/React.createElement("button", {
-    key: h,
-    onClick: () => setHue(h),
+  }, /*#__PURE__*/React.createElement("input", {
+    value: city,
+    autoFocus: i === 0,
+    onChange: e => setCities(prev => prev.map((c, j) => j === i ? e.target.value : c)),
+    onKeyDown: e => {
+      if (e.key === 'Enter' && city.trim()) setStep(2);
+    },
+    placeholder: i === 0 ? '도시 이름' : `도시 ${i + 1}`,
     style: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
+      flex: 1,
+      border: 'none',
+      borderBottom: `1.5px solid ${COLORS.line}`,
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 16,
+      color: COLORS.ink,
+      padding: '8px 0'
+    }
+  }), cities.length > 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCities(prev => prev.filter((_, j) => j !== i)),
+    style: {
+      background: 'none',
+      border: 'none',
       cursor: 'pointer',
-      padding: 0,
-      border: 'none',
-      background: `oklch(0.83 0.06 ${h})`,
-      boxShadow: h === hue ? `0 0 0 2px ${COLORS.bg}, 0 0 0 4px oklch(0.55 0.08 ${h})` : 'none',
-      transform: h === hue ? 'scale(1.15)' : 'scale(1)',
-      transition: 'box-shadow 0.15s, transform 0.15s'
+      color: COLORS.mute,
+      fontSize: 20,
+      lineHeight: 1
     }
-  }))), /*#__PURE__*/React.createElement("button", {
-    onClick: create,
+  }, "\xD7"))), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setCities(prev => [...prev, '']),
     style: {
-      marginTop: 22,
-      width: '100%',
-      padding: '14px',
-      background: name.trim() ? COLORS.ink : COLORS.softer,
-      color: name.trim() ? COLORS.bg : COLORS.mute,
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      background: 'none',
       border: 'none',
+      cursor: 'pointer',
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13,
+      padding: '6px 0',
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18,
+      lineHeight: 1
+    }
+  }, "+"), " \uB3C4\uC2DC \uCD94\uAC00")), step === 2 && /*#__PURE__*/React.createElement("div", null, startIso && endIso && dayCount > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.accent,
+      marginBottom: 12,
+      textAlign: 'center',
+      fontWeight: 600
+    }
+  }, dayCount - 1, "\uBC15 ", dayCount, "\uC77C"), /*#__PURE__*/React.createElement(MiniCalendar, {
+    startIso: startIso,
+    endIso: endIso,
+    onRange: (s, e) => {
+      setStartIso(s);
+      setEndIso(e);
+    }
+  })), step === 3 && /*#__PURE__*/React.createElement("div", null, !skipHotel && hotels.map((h, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      background: COLORS.card,
       borderRadius: 14,
-      cursor: name.trim() ? 'pointer' : 'default',
+      padding: '12px 14px',
+      marginBottom: 10,
+      border: `1px solid ${COLORS.line}`
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    value: h.name,
+    autoFocus: i === 0,
+    onChange: e => setHotels(prev => prev.map((hh, j) => j === i ? {
+      ...hh,
+      name: e.target.value
+    } : hh)),
+    placeholder: "\uC219\uC18C \uC774\uB984",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      border: 'none',
+      borderBottom: `1px solid ${COLORS.line}`,
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      padding: '4px 0 8px',
+      marginBottom: 10
+    }
+  }), dayCount > 1 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 8,
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute
+    }
+  }, /*#__PURE__*/React.createElement("span", null, "Day"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 1,
+    max: dayCount,
+    value: h.from,
+    onChange: e => setHotels(prev => prev.map((hh, j) => j === i ? {
+      ...hh,
+      from: Math.max(1, Math.min(dayCount, +e.target.value || 1))
+    } : hh)),
+    style: {
+      width: 40,
+      textAlign: 'center',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 6,
+      padding: '3px 4px',
+      fontFamily: SANS,
+      fontSize: 12,
+      outline: 'none'
+    }
+  }), /*#__PURE__*/React.createElement("span", null, "~"), /*#__PURE__*/React.createElement("input", {
+    type: "number",
+    min: 1,
+    max: dayCount,
+    value: h.to,
+    onChange: e => setHotels(prev => prev.map((hh, j) => j === i ? {
+      ...hh,
+      to: Math.max(1, Math.min(dayCount, +e.target.value || 1))
+    } : hh)),
+    style: {
+      width: 40,
+      textAlign: 'center',
+      border: `1px solid ${COLORS.line}`,
+      borderRadius: 6,
+      padding: '3px 4px',
+      fontFamily: SANS,
+      fontSize: 12,
+      outline: 'none'
+    }
+  }), hotels.length > 1 && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setHotels(prev => prev.filter((_, j) => j !== i)),
+    style: {
+      marginLeft: 'auto',
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: COLORS.mute,
+      fontSize: 18
+    }
+  }, "\xD7")))), !skipHotel && /*#__PURE__*/React.createElement("button", {
+    onClick: () => setHotels(prev => [...prev, {
+      name: '',
+      from: 1,
+      to: dayCount || 1
+    }]),
+    style: {
+      display: 'flex',
+      alignItems: 'center',
+      gap: 6,
+      background: 'none',
+      border: 'none',
+      cursor: 'pointer',
+      color: COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 13,
+      padding: '4px 0',
+      marginBottom: 14
+    }
+  }, /*#__PURE__*/React.createElement("span", {
+    style: {
+      fontSize: 18
+    }
+  }, "+"), " \uC219\uC18C \uCD94\uAC00"), /*#__PURE__*/React.createElement("button", {
+    onClick: () => setSkipHotel(s => !s),
+    style: {
+      width: '100%',
+      padding: '10px',
+      border: `1px solid ${skipHotel ? COLORS.accent : COLORS.line}`,
+      borderRadius: 12,
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: skipHotel ? COLORS.accent : COLORS.mute,
+      cursor: 'pointer'
+    }
+  }, skipHotel ? '✓ 아직 못 정했어요' : '아직 못 정했어요')), !isKorean && step === 4 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginBottom: 18
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute,
+      marginBottom: 6,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em'
+    }
+  }, "\uB3C4\uCC29 \uACF5\uD56D"), /*#__PURE__*/React.createElement("input", {
+    value: arrAirport,
+    autoFocus: true,
+    onChange: e => setArrAirport(e.target.value),
+    placeholder: "e.g. Narita International Airport",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      border: 'none',
+      borderBottom: `1.5px solid ${COLORS.line}`,
+      outline: 'none',
+      background: 'transparent',
       fontFamily: SANS,
       fontSize: 15,
+      color: COLORS.ink,
+      padding: '8px 0'
+    }
+  })), /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11,
+      color: COLORS.mute,
+      marginBottom: 6,
+      textTransform: 'uppercase',
+      letterSpacing: '0.05em'
+    }
+  }, "\uCD9C\uBC1C \uACF5\uD56D"), /*#__PURE__*/React.createElement("input", {
+    value: depAirport,
+    onChange: e => setDepAirport(e.target.value),
+    placeholder: "e.g. Narita International Airport",
+    style: {
+      width: '100%',
+      boxSizing: 'border-box',
+      border: 'none',
+      borderBottom: `1.5px solid ${COLORS.line}`,
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 15,
+      color: COLORS.ink,
+      padding: '8px 0'
+    }
+  }))), step === HP_STEP && /*#__PURE__*/React.createElement("div", null, loading && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '48px 0',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC7A5\uC18C \uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && places.length === 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      padding: '48px 0',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.mute
+    }
+  }, "\uC7A5\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC5B4\uC694"), selected.size > 0 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.accent,
+      marginBottom: 10,
+      fontWeight: 600
+    }
+  }, selected.size, "\uACF3 \uC120\uD0DD\uB428"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'grid',
+      gridTemplateColumns: '1fr 1fr',
+      gap: 10
+    }
+  }, places.map(p => {
+    const sel = selected.has(p.id);
+    return /*#__PURE__*/React.createElement("button", {
+      key: p.id,
+      onClick: () => togglePlace(p.id),
+      style: {
+        border: sel ? `2px solid ${COLORS.ink}` : `1px solid ${COLORS.line}`,
+        borderRadius: 12,
+        padding: 0,
+        cursor: 'pointer',
+        background: COLORS.card,
+        overflow: 'hidden',
+        textAlign: 'left',
+        transition: 'border 0.1s'
+      }
+    }, /*#__PURE__*/React.createElement("div", {
+      style: {
+        height: 80,
+        background: p.photo ? `url(${p.photo}) center/cover no-repeat` : COLORS.softer,
+        position: 'relative'
+      }
+    }, sel && /*#__PURE__*/React.createElement("div", {
+      style: {
+        position: 'absolute',
+        top: 6,
+        right: 6,
+        width: 20,
+        height: 20,
+        borderRadius: 10,
+        background: COLORS.ink,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }
+    }, /*#__PURE__*/React.createElement(Icon, {
+      name: "check",
+      size: 11,
+      color: "#fff",
+      stroke: 2.5
+    }))), /*#__PURE__*/React.createElement("div", {
+      style: {
+        padding: '8px',
+        fontFamily: SANS,
+        fontSize: 11.5,
+        color: COLORS.ink,
+        lineHeight: 1.35
+      }
+    }, p.name));
+  })))), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '10px 20px 20px',
+      display: 'flex',
+      gap: 8,
+      flexShrink: 0,
+      borderTop: `1px solid ${COLORS.line}`
+    }
+  }, step > 1 ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setStep(s => s - 1),
+    style: {
+      padding: '11px 18px',
+      borderRadius: 12,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.ink,
+      cursor: 'pointer'
+    }
+  }, "\uC774\uC804") : /*#__PURE__*/React.createElement("button", {
+    onClick: onClose,
+    style: {
+      padding: '11px 18px',
+      borderRadius: 12,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 14,
+      color: COLORS.mute,
+      cursor: 'pointer'
+    }
+  }, "\uCDE8\uC18C"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleNext,
+    disabled: !canNext,
+    style: {
+      flex: 1,
+      padding: '11px 0',
+      borderRadius: 12,
+      border: 'none',
+      background: canNext ? COLORS.ink : COLORS.softer,
+      color: canNext ? COLORS.bg : COLORS.mute,
+      fontFamily: SANS,
+      fontSize: 14,
       fontWeight: 600,
+      cursor: canNext ? 'pointer' : 'default',
       transition: 'background 0.15s, color 0.15s'
     }
-  }, "\uB9CC\uB4E4\uAE30")))), document.body);
+  }, step === TOTAL ? '만들기' : '다음')))), document.body);
 }
 function AddCompanionSheet({
   open,
@@ -14090,9 +14952,37 @@ function ProfileSheet({
   authUser,
   trips,
   onAddCompanion,
-  onViewCompanions
+  onViewCompanions,
+  onDeleteAccount
 }) {
+  const [confirmDelete, setConfirmDelete] = React.useState(false);
+  const [deleting, setDeleting] = React.useState(false);
+  const [deleteError, setDeleteError] = React.useState('');
+  React.useEffect(() => {
+    if (!open) {
+      setConfirmDelete(false);
+      setDeleting(false);
+      setDeleteError('');
+    }
+  }, [open]);
   if (!open || !authUser) return null;
+  const handleDelete = async () => {
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      const tripIds = (trips || []).map(t => t.id).filter(Boolean);
+      await fbDeleteAccount(authUser.uid, tripIds);
+      onDeleteAccount();
+    } catch (e) {
+      setDeleting(false);
+      if (e.code === 'auth/popup-closed-by-user' || e.code === 'auth/cancelled-popup-request') {
+        setDeleteError('');
+        setConfirmDelete(false);
+      } else {
+        setDeleteError('오류가 발생했어요. 다시 시도해 주세요.');
+      }
+    }
+  };
   return /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'fixed',
@@ -14283,7 +15173,89 @@ function ProfileSheet({
       fontWeight: 600,
       color: '#fff'
     }
-  }, "\uCD94\uAC00"))))));
+  }, "\uCD94\uAC00"))), !confirmDelete ? /*#__PURE__*/React.createElement("button", {
+    onClick: () => setConfirmDelete(true),
+    style: {
+      width: '100%',
+      marginTop: 4,
+      padding: '12px 0',
+      background: 'transparent',
+      border: 'none',
+      cursor: 'pointer',
+      fontFamily: SANS,
+      fontSize: 12,
+      color: COLORS.mute,
+      textAlign: 'center'
+    }
+  }, "\uACC4\uC815 \uD0C8\uD1F4") : /*#__PURE__*/React.createElement("div", {
+    style: {
+      background: '#FFF5F5',
+      borderRadius: 14,
+      border: '1px solid #FFCDD2',
+      padding: '16px',
+      marginTop: 4
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#C62828',
+      marginBottom: 6
+    }
+  }, "\uC815\uB9D0 \uD0C8\uD1F4\uD560\uAE4C\uC694?"), /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 12,
+      color: '#B71C1C',
+      lineHeight: 1.5,
+      marginBottom: 14
+    }
+  }, "\uBAA8\uB4E0 \uC5EC\uD589 \uB370\uC774\uD130\uAC00 \uC601\uAD6C \uC0AD\uC81C\uB418\uBA70 \uBCF5\uAD6C\uD560 \uC218 \uC5C6\uC5B4\uC694. Google \uACC4\uC815\uC73C\uB85C \uC7AC\uC778\uC99D \uD6C4 \uC9C4\uD589\uB429\uB2C8\uB2E4."), deleteError && /*#__PURE__*/React.createElement("div", {
+    style: {
+      fontFamily: SANS,
+      fontSize: 11.5,
+      color: '#C62828',
+      marginBottom: 10
+    }
+  }, deleteError), /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 8
+    }
+  }, /*#__PURE__*/React.createElement("button", {
+    onClick: () => {
+      setConfirmDelete(false);
+      setDeleteError('');
+    },
+    style: {
+      flex: 1,
+      padding: '10px 0',
+      borderRadius: 10,
+      border: `1px solid ${COLORS.line}`,
+      background: 'transparent',
+      fontFamily: SANS,
+      fontSize: 13,
+      color: COLORS.ink,
+      cursor: 'pointer'
+    }
+  }, "\uCDE8\uC18C"), /*#__PURE__*/React.createElement("button", {
+    onClick: handleDelete,
+    disabled: deleting,
+    style: {
+      flex: 1,
+      padding: '10px 0',
+      borderRadius: 10,
+      border: 'none',
+      background: '#C62828',
+      fontFamily: SANS,
+      fontSize: 13,
+      fontWeight: 600,
+      color: '#fff',
+      cursor: deleting ? 'not-allowed' : 'pointer',
+      opacity: deleting ? 0.7 : 1
+    }
+  }, deleting ? '삭제 중...' : '탈퇴하기'))))));
 }
 function _readCache() {
   if (!localStorage.getItem('tlj_authed')) return null;
@@ -14334,6 +15306,7 @@ function App() {
   const [activeTripId, setActiveTripId] = React.useState(_nav.activeTripId || null);
   const [userTrips, setUserTrips] = React.useState([]);
   const [tripsLoading, setTripsLoading] = React.useState(false);
+  const [tripsReady, setTripsReady] = React.useState(false);
   const [profileSheetOpen, setProfileSheetOpen] = React.useState(false);
   const [addCompanionOpen, setAddCompanionOpen] = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
   const [companionsScreenOpen, setCompanionsScreenOpen] = React.useState(false);
@@ -14390,12 +15363,12 @@ function App() {
     }
   };
 
-  // ── 앱 준비되면 loginPending 해제 ────────────────────────────
+  // ── 앱 준비되면 loginPending 해제 (trips 로딩 완료 후) ────────
   React.useEffect(() => {
-    if (loginPending && authState === 'in') {
+    if (loginPending && authState === 'in' && tripsReady) {
       setLoginPending(false);
     }
-  }, [loginPending, authState]);
+  }, [loginPending, authState, tripsReady]);
 
   // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용) ──────────────────
   React.useEffect(() => {
@@ -14473,8 +15446,8 @@ function App() {
     const SAMPLES = ['rome'];
     const syncAll = typeof fbSyncSample === 'function' ? Promise.all(SAMPLES.map(sid => fbSyncSample(uid, email, sid).catch(() => null))) : Promise.resolve([null, null]);
     syncAll.then(syncResults => {
-      // 새로 추가된 샘플 tripId 수집
-      const newIds = syncResults.filter(r => r?.isNew && r.tripId && !tripIds.includes(r.tripId)).map(r => r.tripId);
+      // 샘플 tripId 수집 (isNew 여부 무관 — effect 재실행 시에도 누락 방지)
+      const newIds = syncResults.filter(r => r?.tripId && !tripIds.includes(r.tripId)).map(r => r.tripId);
       const allIds = [...tripIds, ...newIds];
       return fbLoadTrips(allIds).then(async trips => {
         const normalized = trips.map(t => normalizeTrip(t, t.id));
@@ -14513,8 +15486,19 @@ function App() {
         });
         setUserTrips(normalized);
         setTripsLoading(false);
+        setTripsReady(true);
+        // userData.tripIds에 샘플 ID 반영 → effect 재실행 시 allIds 누락 방지
+        if (newIds.length > 0) {
+          setUserData(prev => ({
+            ...prev,
+            tripIds: [...new Set([...(prev.tripIds || []), ...newIds])]
+          }));
+        }
       });
-    }).catch(() => setTripsLoading(false));
+    }).catch(() => {
+      setTripsLoading(false);
+      setTripsReady(true);
+    });
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
 
   // ── Firestore: shared group listener ──────────────────────
@@ -15309,7 +16293,10 @@ function App() {
           ...b
         }
       }),
-      onSheetChange: setBudgetSheetOpen
+      onSheetChange: v => {
+        setBudgetSheetOpen(v);
+        if (!v) setTabBarVisible(true);
+      }
     });
     label = 'Budget';
   } else {
@@ -15451,6 +16438,13 @@ function App() {
     onViewCompanions: () => {
       setProfileSheetOpen(false);
       setCompanionsScreenOpen(true);
+    },
+    onDeleteAccount: () => {
+      ['tlj_authed', 'tlj_userData', 'tlj_trip', 'tlj_prep', 'tlj_nav'].forEach(k => localStorage.removeItem(k));
+      setAuthState('out');
+      setAuthUser(null);
+      setUserData(null);
+      setProfileSheetOpen(false);
     }
   }), /*#__PURE__*/React.createElement(AddCompanionSheet, {
     open: addCompanionOpen !== null,
@@ -15474,37 +16468,15 @@ function App() {
   }), /*#__PURE__*/React.createElement(NewTripSheet, {
     open: newTripSheetOpen,
     onClose: () => setNewTripSheetOpen(false),
-    existingHues: userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25),
-    onSubmit: async (title, hue) => {
+    onSubmit: async tripData => {
       const {
         tripId
-      } = await fbCreateNewTrip(userData.uid, title);
-      const template = {
-        hue,
-        days: [{
-          n: 1,
-          date: '',
-          weekday: '',
-          title: 'Day 1',
-          titleEn: '',
-          hero: {
-            hue,
-            label: 'DAY 1'
-          },
-          weather: '',
-          items: []
-        }],
-        hotels: [],
-        food: []
-      };
-      await fbSaveGroup(tripId, template).catch(() => {});
+      } = await fbCreateNewTrip(userData.uid, tripData.title);
+      await fbSaveGroup(tripId, tripData).catch(() => {});
       setUserTrips(prev => [...prev, {
         id: tripId,
-        title,
-        dates: '',
-        ...template,
-        members: [userData.uid],
-        hue
+        ...tripData,
+        members: [userData.uid]
       }]);
       setActiveTripId(tripId);
       setTab('home');
@@ -15654,7 +16626,7 @@ function App() {
   }, screen))), /*#__PURE__*/React.createElement(TabBar, {
     tab: tab,
     setTab: changeTab,
-    visible: tabBarVisible && !openStop && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen,
+    visible: tabBarVisible && !profileSheetOpen && !hotelSheet && !hotelDetailSheet && !saveConfirm && !budgetSheetOpen,
     editing: editing,
     canEdit: canEdit,
     onToggleEdit: handleEditToggle
@@ -15688,6 +16660,13 @@ function App() {
     onViewCompanions: () => {
       setProfileSheetOpen(false);
       setCompanionsScreenOpen(true);
+    },
+    onDeleteAccount: () => {
+      ['tlj_authed', 'tlj_userData', 'tlj_trip', 'tlj_prep', 'tlj_nav'].forEach(k => localStorage.removeItem(k));
+      setAuthState('out');
+      setAuthUser(null);
+      setUserData(null);
+      setProfileSheetOpen(false);
     }
   }), /*#__PURE__*/React.createElement(AddCompanionSheet, {
     open: addCompanionOpen !== null,
@@ -15700,37 +16679,15 @@ function App() {
   }), /*#__PURE__*/React.createElement(NewTripSheet, {
     open: newTripSheetOpen,
     onClose: () => setNewTripSheetOpen(false),
-    existingHues: userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25),
-    onSubmit: async (title, hue) => {
+    onSubmit: async tripData => {
       const {
         tripId
-      } = await fbCreateNewTrip(userData.uid, title);
-      const template = {
-        hue,
-        days: [{
-          n: 1,
-          date: '',
-          weekday: '',
-          title: 'Day 1',
-          titleEn: '',
-          hero: {
-            hue,
-            label: 'DAY 1'
-          },
-          weather: '',
-          items: []
-        }],
-        hotels: [],
-        food: []
-      };
-      await fbSaveGroup(tripId, template).catch(() => {});
+      } = await fbCreateNewTrip(userData.uid, tripData.title);
+      await fbSaveGroup(tripId, tripData).catch(() => {});
       setUserTrips(prev => [...prev, {
         id: tripId,
-        title,
-        dates: '',
-        ...template,
-        members: [userData.uid],
-        hue
+        ...tripData,
+        members: [userData.uid]
       }]);
       setActiveTripId(tripId);
       setTab('home');
