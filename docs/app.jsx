@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v212</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v213</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2109,7 +2109,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         {/* 색깔 선택 (수정 모드) */}
         {editing && (
           <div style={{ marginTop:12, display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
-            {[20, 45, 75, 90, 140, 200, 240, 280, 320, 350, 0].map(h => {
+            {[20, 45, 90, 140, 200, 240, 280, 320, 350, 0].map(h => {
               const sel = (trip.hue ?? 25) === h;
               return (
                 <button key={h} onClick={() => onEditTrip({ hue: h })} style={{
@@ -7418,7 +7418,7 @@ function App() {
           const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
           if (!title) return;
           // 기존 여행들과 가장 다른 색상 자동 선택
-          const PALETTE = [20, 45, 75, 90, 140, 200, 240, 280, 320, 350, 0];
+          const PALETTE = [20, 45, 90, 140, 200, 240, 280, 320, 350, 0];
           const hueDist = (a, b) => { const d = Math.abs(a - b) % 360; return Math.min(d, 360 - d); };
           const existingHues = userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25);
           const bestHue = existingHues.length === 0 ? 200
