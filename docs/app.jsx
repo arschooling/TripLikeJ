@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v255</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v256</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7734,9 +7734,9 @@ function App() {
       : Promise.resolve([null, null]);
 
     syncAll.then(syncResults => {
-      // 새로 추가된 샘플 tripId 수집
+      // 샘플 tripId 수집 (isNew 여부 무관 — effect 재실행 시에도 누락 방지)
       const newIds = syncResults
-        .filter(r => r?.isNew && r.tripId && !tripIds.includes(r.tripId))
+        .filter(r => r?.tripId && !tripIds.includes(r.tripId))
         .map(r => r.tripId);
       const allIds = [...tripIds, ...newIds];
       return fbLoadTrips(allIds).then(async trips => {
@@ -7770,6 +7770,13 @@ function App() {
         setUserTrips(normalized);
         setTripsLoading(false);
         setTripsReady(true);
+        // userData.tripIds에 샘플 ID 반영 → effect 재실행 시 allIds 누락 방지
+        if (newIds.length > 0) {
+          setUserData(prev => ({
+            ...prev,
+            tripIds: [...new Set([...(prev.tripIds || []), ...newIds])],
+          }));
+        }
       });
     }).catch(() => { setTripsLoading(false); setTripsReady(true); });
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
