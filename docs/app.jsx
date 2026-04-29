@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v234</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v237</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2701,24 +2701,26 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                 <div style={{ width:44, flexShrink:0, paddingTop:14,
                   fontFamily:MONO, fontSize:10.5, color:COLORS.mute,
                   textAlign:'right', paddingRight:4 }}>{it.time}</div>
-                <div style={{ width:16, flexShrink:0, display:'flex', justifyContent:'center',
-                  paddingTop:15, position:'relative', zIndex:2 }}>
-                  <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
-                    width:16, height:16, borderRadius:8,
-                    border:`1.5px solid ${isDone?COLORS.accent:COLORS.ink}`,
-                    background: isDone?COLORS.accent:COLORS.bg, cursor:'pointer', padding:0,
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                  }}>
-                    {isDone && <Icon name="check" size={10} color="#fff" stroke={3}/>}
-                  </button>
-                </div>
                 <SwipeableRow
                   cardSwipe
-                  wrapStyle={{ flex:1, marginLeft:10, borderRadius:14 }}
+                  wrapStyle={{ flex:1, borderRadius:14 }}
                   disabled={editing}
                   onEdit={() => onOpenStop({ idx: i, stop: it, editing: true })}
                   onDelete={() => onDeleteItem(i)}>
-                <div style={{ position:'relative' }}>
+                {/* 체크박스 + 카드 가로 배치 — 체크박스가 카드와 함께 슬라이드 */}
+                <div style={{ display:'flex', alignItems:'center' }}>
+                  {/* 체크박스: SwipeableRow 왼쪽 끝 → 타임라인 선 중앙(x=8) 정렬 */}
+                  <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
+                    width:16, height:16, borderRadius:8, flexShrink:0,
+                    border:`1.5px solid ${isDone?COLORS.accent:COLORS.ink}`,
+                    background: isDone?COLORS.accent:COLORS.bg, cursor:'pointer', padding:0,
+                    display:'flex', alignItems:'center', justifyContent:'center',
+                    position:'relative', zIndex:2,
+                  }}>
+                    {isDone && <Icon name="check" size={10} color="#fff" stroke={3}/>}
+                  </button>
+                  {/* 카드 본체 */}
+                  <div style={{ flex:1, marginLeft:10, position:'relative' }}>
                   {!editing && (
                     <div style={{ position:'absolute', top:8, right:8, zIndex:5, display:'flex', gap:4 }}>
                       <button onClick={(e)=>{ e.stopPropagation(); setNearbyTab('hotspot'); setNearbyStop(it); }} style={{
@@ -2739,8 +2741,10 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                   )}
                   <button onClick={() => onOpenStop({ idx: i, stop: it, editing })} style={{
                     width:'100%', background:COLORS.card, borderRadius:14, border:'none', cursor:'pointer',
-                    padding:'11px 14px 13px', textAlign:'left', opacity: isDone ? 0.5 : 1,
+                    padding:'11px 14px 13px', textAlign:'left',
                   }}>
+                  {/* opacity는 배경이 아닌 콘텐츠에만 적용 → 버튼 배경이 불투명하게 유지됨 */}
+                  <div style={{ opacity: isDone ? 0.45 : 1 }}>
                     {travelTimes[i] && (
                       <div style={{ display:'flex', gap:10, marginBottom:7,
                         fontFamily:MONO, fontSize:9, color:COLORS.mute, letterSpacing:'0.06em' }}>
@@ -2795,6 +2799,7 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                         {it.note}
                       </div>
                     )}
+                  </div>{/* /opacity wrapper */}
                   </button>
                   {editing && (
                     <div style={{ position:'absolute', top:8, right:8, display:'flex', gap:6, alignItems:'center' }}>
@@ -2815,7 +2820,8 @@ function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
                     <div style={{ position:'absolute', inset:-2, border:`2px dashed rgba(193,79,46,0.45)`,
                       borderRadius:16, pointerEvents:'none', background:'rgba(193,79,46,0.04)' }}/>
                   )}
-                </div>
+                  </div>{/* /카드 본체 */}
+                </div>{/* /flex row */}
                 </SwipeableRow>
               </div>
             );
