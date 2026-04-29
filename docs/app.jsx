@@ -1802,7 +1802,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v231</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v232</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -4246,6 +4246,43 @@ async function prefetchRoutes(trip) {
           try { localStorage.setItem(ttCacheKey, JSON.stringify(results)); } catch(_) {}
           await delay(200);
         }
+      } catch(_) {}
+    }
+
+    // ③ NearbySheet 장소 목록 프리패치 (coords 있는 스탑만, 사진 제외)
+    const allStops = trip.days.flatMap(d => (d.items||[]).filter(it => it.coords));
+    const overpassBase = 'https://overpass-api.de/api/interpreter?data=';
+    const parseOverpass = (d, lat, lon) => {
+      const seen = new Set();
+      return (d.elements||[]).reduce((acc, e) => {
+        const nm = e.tags?.name || e.tags?.['name:en'] || '';
+        if (!nm || seen.has(nm) || !e.lat) return acc;
+        seen.add(nm);
+        acc.push({
+          name: nm,
+          type: e.tags?.amenity || e.tags?.tourism || e.tags?.historic || e.tags?.leisure || '',
+          wikipedia: e.tags?.wikipedia || '',
+          image: e.tags?.image || '',
+          dist: haversineM(lat, lon, e.lat, e.lon),
+          lat: e.lat, lon: e.lon,
+        });
+        return acc;
+      }, []).sort((a,b) => a.dist - b.dist);
+    };
+    for (const s of allStops) {
+      try {
+        const [lat, lon] = s.coords;
+        const stopKey = `${lat.toFixed(3)}_${lon.toFixed(3)}`;
+        const cacheKey = `nearby_places_${stopKey}`;
+        if (ncGet(cacheKey, NC_PLACES_TTL) !== undefined) continue; // 이미 캐시됨
+        const hQ = `[out:json][timeout:10];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo"](around:900,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"](around:900,${lat},${lon});node["leisure"~"park|garden"](around:900,${lat},${lon}););out 30;`;
+        const fQ = `[out:json][timeout:10];(node["amenity"~"restaurant|cafe|bar|fast_food|pub|biergarten|food_court"](around:600,${lat},${lon}););out 30;`;
+        const [hR, fR] = await Promise.all([
+          fetch(overpassBase + encodeURIComponent(hQ)).then(r=>r.json()),
+          fetch(overpassBase + encodeURIComponent(fQ)).then(r=>r.json()),
+        ]);
+        ncSet(cacheKey, { hotspots: parseOverpass(hR, lat, lon), food: parseOverpass(fR, lat, lon) });
+        await delay(2000); // Overpass 부담 최소화
       } catch(_) {}
     }
   } catch(_) {}
