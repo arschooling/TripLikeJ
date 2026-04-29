@@ -4527,7 +4527,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v240"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v241"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -14300,6 +14300,157 @@ function CompanionsScreen({
     }
   }, "\uCDE8\uC18C"))));
 }
+
+// ─── 새 여행 만들기 시트 ──────────────────────────────────────
+const NEW_TRIP_PALETTE = [200, 45, 90, 140, 20, 240, 280, 320, 350, 0];
+function NewTripSheet({
+  open,
+  onClose,
+  onSubmit,
+  existingHues = []
+}) {
+  const [name, setName] = React.useState('');
+  const [hue, setHue] = React.useState(200);
+  const [entered, setEntered] = React.useState(false);
+  const inputRef = React.useRef(null);
+  React.useEffect(() => {
+    if (open) {
+      setName('');
+      setEntered(false);
+      // 기존 여행과 가장 다른 색상 자동 선택
+      const hueDist = (a, b) => {
+        const d = Math.abs(a - b) % 360;
+        return Math.min(d, 360 - d);
+      };
+      const best = existingHues.length === 0 ? 200 : NEW_TRIP_PALETTE.reduce((bst, h) => {
+        const md = Math.min(...existingHues.map(e => hueDist(h, e)));
+        const bd = Math.min(...existingHues.map(e => hueDist(bst, e)));
+        return md > bd ? h : bst;
+      }, NEW_TRIP_PALETTE[0]);
+      setHue(best);
+      document.body.style.overflow = 'hidden';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setEntered(true);
+        inputRef.current?.focus();
+      }));
+    } else {
+      setEntered(false);
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [open]);
+  if (!open && !entered) return null;
+  const create = () => {
+    if (!name.trim()) return;
+    onSubmit(name.trim(), hue);
+    onClose();
+  };
+  const previewLabel = (name || 'NEW TRIP').toUpperCase().slice(0, 18);
+  return ReactDOM.createPortal(/*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'fixed',
+      inset: 0,
+      zIndex: 1100,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'flex-end',
+      background: `rgba(0,0,0,${entered ? 0.35 : 0})`,
+      transition: 'background 0.3s ease'
+    },
+    onClick: onClose
+  }, /*#__PURE__*/React.createElement("div", {
+    onClick: e => e.stopPropagation(),
+    style: {
+      background: COLORS.bg,
+      borderRadius: '22px 22px 0 0',
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 20px)',
+      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
+      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+      overflow: 'hidden'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      justifyContent: 'center',
+      padding: '10px 0 0'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      width: 36,
+      height: 4,
+      background: COLORS.line,
+      borderRadius: 2
+    }
+  })), /*#__PURE__*/React.createElement(Photo, {
+    hue: hue,
+    label: previewLabel,
+    height: 160
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      padding: '20px 20px 0'
+    }
+  }, /*#__PURE__*/React.createElement("input", {
+    ref: inputRef,
+    value: name,
+    onChange: e => setName(e.target.value),
+    onKeyDown: e => {
+      if (e.key === 'Enter') create();
+    },
+    placeholder: "\uC5EC\uD589 \uC774\uB984",
+    style: {
+      width: '100%',
+      border: 'none',
+      outline: 'none',
+      background: 'transparent',
+      fontFamily: SERIF,
+      fontSize: 26,
+      color: COLORS.ink,
+      borderBottom: `1.5px solid ${COLORS.line}`,
+      paddingBottom: 10,
+      boxSizing: 'border-box'
+    }
+  }), /*#__PURE__*/React.createElement("div", {
+    style: {
+      marginTop: 20,
+      display: 'flex',
+      gap: 8,
+      flexWrap: 'wrap'
+    }
+  }, NEW_TRIP_PALETTE.map(h => /*#__PURE__*/React.createElement("button", {
+    key: h,
+    onClick: () => setHue(h),
+    style: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      cursor: 'pointer',
+      padding: 0,
+      border: 'none',
+      background: `oklch(0.83 0.06 ${h})`,
+      boxShadow: h === hue ? `0 0 0 2px ${COLORS.bg}, 0 0 0 4px oklch(0.55 0.08 ${h})` : 'none',
+      transform: h === hue ? 'scale(1.15)' : 'scale(1)',
+      transition: 'box-shadow 0.15s, transform 0.15s'
+    }
+  }))), /*#__PURE__*/React.createElement("button", {
+    onClick: create,
+    style: {
+      marginTop: 22,
+      width: '100%',
+      padding: '14px',
+      background: name.trim() ? COLORS.ink : COLORS.softer,
+      color: name.trim() ? COLORS.bg : COLORS.mute,
+      border: 'none',
+      borderRadius: 14,
+      cursor: name.trim() ? 'pointer' : 'default',
+      fontFamily: SANS,
+      fontSize: 15,
+      fontWeight: 600,
+      transition: 'background 0.15s, color 0.15s'
+    }
+  }, "\uB9CC\uB4E4\uAE30")))), document.body);
+}
 function AddCompanionSheet({
   open,
   onClose,
@@ -14874,6 +15025,7 @@ function App() {
   const [editing, setEditing] = React.useState(false);
   const [tabBarVisible, setTabBarVisible] = React.useState(true);
   const [budgetSheetOpen, setBudgetSheetOpen] = React.useState(false);
+  const [newTripSheetOpen, setNewTripSheetOpen] = React.useState(false);
   const [saveConfirm, setSaveConfirm] = React.useState(false); // 저장 확인 다이얼로그
   const lastScrollTop = React.useRef(0);
   const savedHomeScrollY = React.useRef(0);
@@ -15913,56 +16065,7 @@ function App() {
         setTrip(fresh);
       }).catch(() => {});
     },
-    onAdd: async () => {
-      const title = prompt('여행 이름을 입력해 주세요\n(예: 뉴욕, 파리 7박)');
-      if (!title) return;
-      // 기존 여행들과 가장 다른 색상 자동 선택
-      const PALETTE = [20, 45, 90, 140, 200, 240, 280, 320, 350, 0];
-      const hueDist = (a, b) => {
-        const d = Math.abs(a - b) % 360;
-        return Math.min(d, 360 - d);
-      };
-      const existingHues = userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25);
-      const bestHue = existingHues.length === 0 ? 200 : PALETTE.reduce((best, h) => {
-        const minDist = Math.min(...existingHues.map(e => hueDist(h, e)));
-        const bestDist = Math.min(...existingHues.map(e => hueDist(best, e)));
-        return minDist > bestDist ? h : best;
-      }, PALETTE[0]);
-      const {
-        tripId
-      } = await fbCreateNewTrip(userData.uid, title);
-      const template = {
-        hue: bestHue,
-        days: [{
-          n: 1,
-          date: '',
-          weekday: '',
-          title: 'Day 1',
-          titleEn: '',
-          hero: {
-            hue: bestHue,
-            label: 'DAY 1'
-          },
-          weather: '',
-          items: []
-        }],
-        hotels: [],
-        food: []
-      };
-      await fbSaveGroup(tripId, template).catch(() => {});
-      setUserTrips(prev => [...prev, {
-        id: tripId,
-        title,
-        dates: '',
-        ...template,
-        members: [userData.uid],
-        hue: bestHue
-      }]);
-      setActiveTripId(tripId);
-      setTab('home');
-      setDayIdx(null);
-      setHotelIdx(null);
-    },
+    onAdd: () => setNewTripSheetOpen(true),
     onRestore: async () => {
       const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
       const patch = {
@@ -16215,6 +16318,46 @@ function App() {
     trips: userTrips,
     defaultTripId: addCompanionOpen || null,
     onUserDataUpdate: ud => setUserData(ud)
+  }), /*#__PURE__*/React.createElement(NewTripSheet, {
+    open: newTripSheetOpen,
+    onClose: () => setNewTripSheetOpen(false),
+    existingHues: userTrips.map(t => t.hue ?? t.days?.[0]?.hero?.hue ?? 25),
+    onSubmit: async (title, hue) => {
+      const {
+        tripId
+      } = await fbCreateNewTrip(userData.uid, title);
+      const template = {
+        hue,
+        days: [{
+          n: 1,
+          date: '',
+          weekday: '',
+          title: 'Day 1',
+          titleEn: '',
+          hero: {
+            hue,
+            label: 'DAY 1'
+          },
+          weather: '',
+          items: []
+        }],
+        hotels: [],
+        food: []
+      };
+      await fbSaveGroup(tripId, template).catch(() => {});
+      setUserTrips(prev => [...prev, {
+        id: tripId,
+        title,
+        dates: '',
+        ...template,
+        members: [userData.uid],
+        hue
+      }]);
+      setActiveTripId(tripId);
+      setTab('home');
+      setDayIdx(null);
+      setHotelIdx(null);
+    }
   }), /*#__PURE__*/React.createElement(CompanionsScreen, {
     open: companionsScreenOpen,
     onClose: () => setCompanionsScreenOpen(false),
