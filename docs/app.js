@@ -3863,7 +3863,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v239"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v240"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -15204,7 +15204,8 @@ function App() {
           hotel: def.hotel || '',
           days: def.days || [],
           hotels: def.hotels || [],
-          food: def.food || []
+          food: def.food || [],
+          budget: def.budget || {}
         }, id);
         fbSaveGroup(id, {
           title: tripToShow.title,
@@ -15212,7 +15213,8 @@ function App() {
           hotel: tripToShow.hotel,
           days: tripToShow.days,
           hotels: tripToShow.hotels,
-          food: tripToShow.food
+          food: tripToShow.food,
+          budget: tripToShow.budget
         }).catch(() => {});
       }
       if (tripToShow) {
@@ -15225,13 +15227,26 @@ function App() {
       setHotelIdx(null);
       setEditing(false);
       // Firestore에서 직접 읽어 최신 데이터로 보장 (days 있을 때만 반영)
+      // 샘플 여행은 budget이 비어있으면 로컬 기본값으로 채워서 저장
       fbLoadTrips([id]).then(trips => {
         if (!trips || !trips.length) return;
-        const fresh = normalizeTrip(trips[0], id);
-        if (fresh.days?.length) {
-          tripRef.current = fresh;
-          setTrip(fresh);
+        let fresh = normalizeTrip(trips[0], id);
+        if (!fresh.days?.length) return;
+        if (!fresh.budget?.entries?.length && found.sampleId) {
+          const localSrc = found.sampleId === 'rome' ? window.ROME_DEFAULT : window.TRIP_DEFAULT;
+          const def = JSON.parse(JSON.stringify(localSrc));
+          if (def.budget?.entries?.length) {
+            fresh = {
+              ...fresh,
+              budget: def.budget
+            };
+            fbSaveGroup(id, {
+              budget: fresh.budget
+            }).catch(() => {});
+          }
         }
+        tripRef.current = fresh;
+        setTrip(fresh);
       }).catch(() => {});
     },
     onAdd: async () => {

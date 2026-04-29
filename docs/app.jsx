@@ -1863,7 +1863,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v239</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v240</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7794,18 +7794,30 @@ function App() {
               days  : def.days   || [],
               hotels: def.hotels || [],
               food  : def.food   || [],
+              budget: def.budget || {},
             }, id);
             fbSaveGroup(id, { title: tripToShow.title, dates: tripToShow.dates,
               hotel: tripToShow.hotel, days: tripToShow.days,
-              hotels: tripToShow.hotels, food: tripToShow.food }).catch(() => {});
+              hotels: tripToShow.hotels, food: tripToShow.food,
+              budget: tripToShow.budget }).catch(() => {});
           }
           if (tripToShow) { tripRef.current = tripToShow; setTrip(tripToShow); }
           setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false);
           // Firestore에서 직접 읽어 최신 데이터로 보장 (days 있을 때만 반영)
+          // 샘플 여행은 budget이 비어있으면 로컬 기본값으로 채워서 저장
           fbLoadTrips([id]).then(trips => {
             if (!trips || !trips.length) return;
-            const fresh = normalizeTrip(trips[0], id);
-            if (fresh.days?.length) { tripRef.current = fresh; setTrip(fresh); }
+            let fresh = normalizeTrip(trips[0], id);
+            if (!fresh.days?.length) return;
+            if (!(fresh.budget?.entries?.length) && found.sampleId) {
+              const localSrc = found.sampleId === 'rome' ? window.ROME_DEFAULT : window.TRIP_DEFAULT;
+              const def = JSON.parse(JSON.stringify(localSrc));
+              if (def.budget?.entries?.length) {
+                fresh = { ...fresh, budget: def.budget };
+                fbSaveGroup(id, { budget: fresh.budget }).catch(() => {});
+              }
+            }
+            tripRef.current = fresh; setTrip(fresh);
           }).catch(() => {});
         }}
         onAdd={async () => {
