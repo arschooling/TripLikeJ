@@ -35,7 +35,7 @@ window.fbGetOrCreateUser = async (fbUser) => {
   const snap = await ref.get({ source: 'server' }).catch(() => ref.get());
   const isOwner = fbUser.email === SAMPLE_OWNER_EMAIL;
   if (!snap.exists) {
-    // 신규 유저: 빈 tripIds로 시작, 기본 여행 없음
+    // 신규 유저: 빈 tripIds로 시작
     const data = {
       displayName : fbUser.displayName || '여행자',
       email       : fbUser.email       || '',
@@ -52,37 +52,44 @@ window.fbGetOrCreateUser = async (fbUser) => {
   }
   const existing = snap.data();
 
-  // 오너 전용: groups/{uid} 복구
-  if (isOwner) {
-    const groupRef  = _fbDb.collection('groups').doc(fbUser.uid);
-    const groupSnap = await groupRef.get();
-    const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
-    const tripDefault = {
-      title   : def.title  || 'New York',
-      dates   : def.dates  || '',
-      hotel   : def.hotel  || '',
-      days    : def.days   || [],
-      hotels  : def.hotels || [],
-      food    : def.food   || [],
-    };
-    if (!groupSnap.exists) {
-      console.warn('[TripLikeJ] groups/' + fbUser.uid + ' 없음 → TRIP_DEFAULT로 복구 (오너)');
-      await groupRef.set({ ...tripDefault, members: [fbUser.uid], createdAt: firebase.firestore.FieldValue.serverTimestamp() });
-    } else if (!(groupSnap.data().days || []).length) {
-      console.warn('[TripLikeJ] groups/' + fbUser.uid + ' days 비어있음 → TRIP_DEFAULT로 복구 (오너)');
-      await groupRef.set(tripDefault, { merge: true });
+  // ── 레거시 trip 마이그레이션 (오너, 1회) ─────────────────────
+  // groups/{uid} → groups/{새 UUID}  +  hue 필드 추가
+  if (isOwner && !existing.legacyMigrated) {
+    const legacyRef  = _fbDb.collection('groups').doc(fbUser.uid);
+    const legacySnap = await legacyRef.get();
+    if (legacySnap.exists) {
+      const legacyData = legacySnap.data();
+      const newId = _fbDb.collection('groups').doc().id;
+      const hue   = legacyData.hue ?? legacyData.days?.[0]?.hero?.hue ?? 25;
+      const existingTripIds = existing.tripIds || [];
+      const newTripIds = existingTripIds.includes(fbUser.uid)
+        ? existingTripIds.map(id => id === fbUser.uid ? newId : id)
+        : [newId, ...existingTripIds];
+      // 배치: 새 doc 생성 + user tripIds 교체 + 구 legacy doc 삭제
+      const batch = _fbDb.batch();
+      batch.set(_fbDb.collection('groups').doc(newId), {
+        ...legacyData, hue,
+        members: legacyData.members || [fbUser.uid],
+      });
+      batch.update(ref, { tripIds: newTripIds, legacyMigrated: true });
+      batch.delete(legacyRef);
+      await batch.commit();
+      existing.tripIds       = newTripIds;
+      existing.legacyMigrated = true;
+      console.log('[TripLikeJ] 레거시 trip 마이그레이션 완료 →', newId);
+    } else {
+      // legacy doc 없음 — 마이그레이션 완료로 표시만
+      await ref.update({ legacyMigrated: true });
+      existing.legacyMigrated = true;
     }
   }
 
   // tripIds 정리: 실제 멤버로 남아있는 여행만 유지
-  // 오너는 uid 기반 레거시 트립 포함, 일반 유저는 tripIds 그대로 사용
-  let tripIds = existing.tripIds != null ? existing.tripIds : (isOwner ? [fbUser.uid] : []);
-  if (isOwner && !tripIds.includes(fbUser.uid)) tripIds = [fbUser.uid, ...tripIds];
+  const tripIds = existing.tripIds != null ? existing.tripIds : [];
   const groupSnaps = await Promise.all(tripIds.map(id => _fbDb.collection('groups').doc(id).get()));
   const validTripIds = tripIds.filter((id, i) =>
     groupSnaps[i].exists &&
-    (groupSnaps[i].data().members || []).includes(fbUser.uid) &&
-    (isOwner || id !== fbUser.uid)  // 비오너는 uid 기반 레거시 trip(뉴욕) 차단
+    (groupSnaps[i].data().members || []).includes(fbUser.uid)
   );
   if (JSON.stringify(validTripIds) !== JSON.stringify(existing.tripIds || [])) {
     await ref.update({ tripIds: validTripIds });
