@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v319</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v320</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3753,8 +3753,11 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete }) 
     if (!searchQ.trim()) { setSearchRes([]); setShowSearch(false); return; }
     searchTimer.current = setTimeout(async () => {
       try {
+        const engQ = (typeof korToEngHotel === 'function') ? korToEngHotel(searchQ.trim()) : searchQ.trim();
+        const destEntry = (typeof CITY_DB !== 'undefined') ? CITY_DB.find(c => c.zone === trip?.timezone) : null;
+        const bias = destEntry ? `&lat=${destEntry.lat}&lon=${destEntry.lon}` : '';
         const j = await (await fetch(
-          `https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=8&lang=en&osm_tag=tourism:hotel`
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(engQ)}&limit=8${bias}&osm_tag=tourism:hotel`
         )).json();
         const feats = j?.features || [];
         setSearchRes(feats);
@@ -4207,12 +4210,12 @@ function EditStopForm({ draft, setDraft, cityBias }) {
       {showHotelSearch && (
         <HotelSearchSheet
           COLORS={COLORS} SERIF={SERIF} SANS={SANS} MONO={MONO} Icon={Icon}
+          cityBias={cityBias}
           onPick={(result) => {
             if (typeof result === 'string') {
               const m = result.match(/^(.+?)\s*\(([^)]+)\)\s*$/);
               setDraft({ ...draft, title: m ? m[1] : result, en: m ? m[1] : result, loc: m ? m[2] : '' });
             } else {
-              // Gmail 스캔 결과 객체
               setDraft({
                 ...draft,
                 title: result.name,
@@ -8982,6 +8985,7 @@ function App() {
       {hotelSheet !== null && (
         <HotelSearchSheet
           COLORS={COLORS} SERIF={SERIF} SANS={SANS} MONO={MONO} Icon={Icon}
+          cityBias={(() => { const c = CITY_DB.find(d => d.zone === trip?.timezone); return c ? [c.lat, c.lon] : null; })()}
           onPick={pickHotelFromSearch}
           onClose={() => setHotelSheet(null)}/>
       )}

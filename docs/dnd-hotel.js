@@ -347,492 +347,181 @@ const MAILBOX_HOTELS = [{
   price: '$289/박 × 9박'
 }];
 
+// ─── Korean hotel brand → English mapping ───────────────────
+const KOR_HOTEL_BRANDS = {
+  '힐튼':'Hilton','메리어트':'Marriott','쉐라톤':'Sheraton','하얏트':'Hyatt',
+  '파크하얏트':'Park Hyatt','그랜드하얏트':'Grand Hyatt','안다즈':'Andaz',
+  '인터컨티넨탈':'InterContinental','홀리데이인':'Holiday Inn',
+  '이비스':'Ibis','노보텔':'Novotel','소피텔':'Sofitel','풀만':'Pullman',
+  '롯데':'Lotte','신라':'Shilla','웨스틴':'Westin',
+  '포시즌스':'Four Seasons','리츠칼튼':'Ritz-Carlton','르메르디앙':'Le Meridien',
+  '더블트리':'DoubleTree','콘래드':'Conrad','라마다':'Ramada',
+  '베스트웨스턴':'Best Western','크라운플라자':'Crowne Plaza','코트야드':'Courtyard',
+  '레지던스인':'Residence Inn','캔들우드':'Candlewood Suites','인디고':'Hotel Indigo',
+  '목시':'Moxy','에이스':'Ace Hotel','오크우드':'Oakwood','앰배서더':'Ambassador',
+};
+
+function korToEngHotel(q) {
+  let result = q;
+  for (const [kor, eng] of Object.entries(KOR_HOTEL_BRANDS)) {
+    if (result.includes(kor)) result = result.split(kor).join(eng);
+  }
+  return result;
+}
+
 // ─── Hotel search sheet ─────────────────────────────────────
-function HotelSearchSheet({
-  COLORS,
-  SERIF,
-  SANS,
-  MONO,
-  Icon,
-  onPick,
-  onClose
-}) {
+function HotelSearchSheet({ COLORS, SERIF, SANS, MONO, Icon, onPick, onClose, cityBias }) {
   const [q, setQ] = React.useState('');
-  const [tab, setTab] = React.useState('search'); // search | mailbox
+  const [tab, setTab] = React.useState('search');
   const [scanning, setScanning] = React.useState(false);
   const [found, setFound] = React.useState(null);
-  const filtered = SAMPLE_HOTELS.filter(h => !q || h.name.toLowerCase().includes(q.toLowerCase()) || h.area.toLowerCase().includes(q.toLowerCase()) || h.tags.some(t => t.includes(q.toLowerCase())));
+  const [searchRes, setSearchRes] = React.useState([]);
+  const [searching, setSearching] = React.useState(false);
+  const timerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    clearTimeout(timerRef.current);
+    if (!q.trim()) { setSearchRes([]); setSearching(false); return; }
+    setSearching(true);
+    timerRef.current = setTimeout(async () => {
+      try {
+        const engQ = korToEngHotel(q.trim());
+        const [bLat, bLon] = cityBias || [];
+        const bias = bLat ? `&lat=${bLat}&lon=${bLon}` : '';
+        const j = await fetch(
+          `https://photon.komoot.io/api/?q=${encodeURIComponent(engQ)}&limit=12${bias}&osm_tag=tourism:hotel`
+        ).then(r => r.json());
+        const feats = (j?.features || []).map(f => {
+          const p = f.properties;
+          return {
+            name: p.name || '',
+            area: [p.city, p.county, p.state].filter(Boolean)[0] || '',
+            address: [p.street, p.housenumber].filter(Boolean).join(' '),
+          };
+        }).filter(h => h.name);
+        setSearchRes(feats);
+      } catch(_) {}
+      setSearching(false);
+    }, 400);
+  }, [q]);
   const scanMailbox = () => {
-    setScanning(true);
-    setFound(null);
-    // Simulate scan
-    const steps = ['이메일 스캔 중…', '캘린더 이벤트 확인 중…', '예약 확인 메일 분석 중…', '일정과 매칭 중…'];
+    setScanning(true); setFound(null);
     let i = 0;
-    const t = setInterval(() => {
-      i++;
-      if (i >= steps.length) {
-        clearInterval(t);
-        setScanning(false);
-        setFound(MAILBOX_HOTELS);
-      }
-    }, 600);
+    const t = setInterval(() => { i++; if (i >= 4) { clearInterval(t); setScanning(false); setFound(MAILBOX_HOTELS); } }, 600);
   };
-  return /*#__PURE__*/React.createElement("div", {
-    style: {
-      position: 'fixed',
-      inset: 0,
-      zIndex: 110,
-      background: 'rgba(0,0,0,0.35)',
-      display: 'flex',
-      flexDirection: 'column',
-      justifyContent: 'flex-end'
-    },
-    onClick: onClose
-  }, /*#__PURE__*/React.createElement("div", {
-    onClick: e => e.stopPropagation(),
-    style: {
-      background: COLORS.bg,
-      borderRadius: '22px 22px 0 0',
-      maxHeight: '90%',
-      display: 'flex',
-      flexDirection: 'column'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      justifyContent: 'center',
-      padding: '8px 0 4px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 36,
-      height: 4,
-      background: COLORS.line,
-      borderRadius: 2
-    }
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '6px 20px 8px',
-      display: 'flex',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      gap: 12
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 24,
-      color: COLORS.ink,
-      flex: 1,
-      whiteSpace: 'nowrap'
-    }
-  }, "\uD638\uD154 \uAC80\uC0C9"), /*#__PURE__*/React.createElement("button", {
+
+  const e = React.createElement;
+  const spinStyle = { display:'inline-block', width:16, height:16, borderRadius:8, border:`2px solid transparent`, borderTopColor:COLORS.accent, animation:'hss-spin 0.7s linear infinite', flexShrink:0 };
+
+  return e('div', {
+    style: { position:'fixed', inset:0, zIndex:110, background:'rgba(0,0,0,0.35)', display:'flex', flexDirection:'column', justifyContent:'flex-end' },
     onClick: onClose,
-    style: {
-      width: 28,
-      height: 28,
-      borderRadius: 14,
-      border: 'none',
-      background: COLORS.card,
-      cursor: 'pointer',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "x",
-    size: 14,
-    color: COLORS.mute,
-    stroke: 2
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px 10px',
-      display: 'flex',
-      gap: 6
-    }
-  }, [{
-    id: 'search',
-    label: '검색'
-  }, {
-    id: 'mailbox',
-    label: '이메일·캘린더에서 찾기'
-  }].map(t => /*#__PURE__*/React.createElement("button", {
-    key: t.id,
-    onClick: () => setTab(t.id),
-    style: {
-      flex: 1,
-      border: 'none',
-      borderRadius: 10,
-      padding: '9px 10px',
-      background: tab === t.id ? COLORS.ink : COLORS.card,
-      color: tab === t.id ? COLORS.bg : COLORS.ink,
-      fontFamily: SANS,
-      fontSize: 12,
-      fontWeight: 500,
-      cursor: 'pointer'
-    }
-  }, t.label))), tab === 'search' ? /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '0 16px 10px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 10,
-      padding: '10px 12px',
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "search",
-    size: 14,
-    color: COLORS.mute,
-    stroke: 1.8
-  }), /*#__PURE__*/React.createElement("input", {
-    autoFocus: true,
-    value: q,
-    onChange: e => setQ(e.target.value),
-    placeholder: "\uD638\uD154\uBA85, \uC9C0\uC5ED, \uC2A4\uD0C0\uC77C",
-    style: {
-      border: 'none',
-      outline: 'none',
-      background: 'transparent',
-      flex: 1,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.ink
-    }
-  }))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflow: 'auto',
-      padding: '0 16px 40px'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      overflow: 'hidden'
-    }
-  }, filtered.map((h, i) => /*#__PURE__*/React.createElement("button", {
-    key: i,
-    onClick: () => {
-      onPick(h.name + ' (' + h.area + ')');
-      onClose();
-    },
-    style: {
-      width: '100%',
-      border: 'none',
-      background: 'transparent',
-      padding: '12px 14px',
-      textAlign: 'left',
-      cursor: 'pointer',
-      borderBottom: i < filtered.length - 1 ? `1px solid ${COLORS.line}` : 'none'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 8,
-      alignItems: 'baseline',
-      justifyContent: 'space-between'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 13.5,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, h.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: MONO,
-      fontSize: 10.5,
-      color: COLORS.accent,
-      flexShrink: 0
-    }
-  }, h.price)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 3,
-      fontFamily: SANS,
-      fontSize: 11.5,
-      color: COLORS.mute,
-      display: 'flex',
-      gap: 6,
-      alignItems: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "pin",
-    size: 11,
-    stroke: 1.8
-  }), /*#__PURE__*/React.createElement("span", null, h.area), /*#__PURE__*/React.createElement("span", {
-    style: {
-      opacity: 0.4
-    }
-  }, "\xB7"), /*#__PURE__*/React.createElement("span", null, '★'.repeat(h.stars), '☆'.repeat(5 - h.stars))))), filtered.length === 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: 20,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute,
-      textAlign: 'center'
-    }
-  }, "\uACB0\uACFC \uC5C6\uC74C")), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      padding: '10px 12px',
-      background: COLORS.softer,
-      borderRadius: 10,
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      lineHeight: 1.45
-    }
-  }, "\uD83D\uDCA1 \uC2E4\uC81C \uC571\uC5D0\uC11C\uB294 Booking.com\xB7Expedia\xB7Google Places API\uC5D0\uC11C \uC2E4\uC2DC\uAC04 \uAC00\uACA9\uACFC \uAC00\uC6A9 \uAC1D\uC2E4\uC744 \uAC00\uC838\uC635\uB2C8\uB2E4."))) : /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      overflow: 'auto',
-      padding: '0 16px 40px'
-    }
-  }, !scanning && !found && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      padding: 18
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SERIF,
-      fontSize: 18,
-      color: COLORS.ink,
-      lineHeight: 1.3
-    }
-  }, "\uC774\uBA54\uC77C\uACFC \uCE98\uB9B0\uB354\uC5D0\uC11C \uD638\uD154 \uC608\uC57D\uC744 \uC790\uB3D9\uC73C\uB85C \uCC3E\uC544\uB4DC\uB824\uC694"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontFamily: SANS,
-      fontSize: 12.5,
-      color: COLORS.mute,
-      lineHeight: 1.5
-    }
-  }, "\uC5EC\uD589 \uAE30\uAC04(May 4\u201313, 2025)\uC5D0 \uB9DE\uB294 \uD638\uD154 \uC608\uC57D \uD655\uC778 \uBA54\uC77C\uC744 \uC2A4\uCE94\uD569\uB2C8\uB2E4. Booking.com, Agoda, Expedia \uB4F1\uC758 \uD655\uC778 \uBA54\uC77C\uACFC \uAD6C\uAE00 \uCE98\uB9B0\uB354 \uC774\uBCA4\uD2B8\uB97C \uBD84\uC11D\uD574\uC694."), /*#__PURE__*/React.createElement("button", {
-    onClick: scanMailbox,
-    style: {
-      marginTop: 14,
-      width: '100%',
-      border: 'none',
-      cursor: 'pointer',
-      background: COLORS.ink,
-      color: COLORS.bg,
-      borderRadius: 12,
-      padding: '13px',
-      fontFamily: SANS,
-      fontSize: 14,
-      fontWeight: 500,
-      display: 'flex',
-      gap: 8,
-      alignItems: 'center',
-      justifyContent: 'center'
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "search",
-    size: 14,
-    color: COLORS.bg,
-    stroke: 1.8
-  }), "\uC2A4\uCE94 \uC2DC\uC791"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 12,
-      display: 'flex',
-      gap: 6,
-      flexWrap: 'wrap'
-    }
-  }, ['Gmail', 'Outlook', 'Google Calendar', 'Apple Calendar'].map(s => /*#__PURE__*/React.createElement("span", {
-    key: s,
-    style: {
-      padding: '4px 8px',
-      borderRadius: 6,
-      background: COLORS.softer,
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.04em'
-    }
-  }, s))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 14,
-      padding: '10px 12px',
-      background: COLORS.softer,
-      borderRadius: 10,
-      fontFamily: SANS,
-      fontSize: 11,
-      color: COLORS.mute,
-      lineHeight: 1.45
-    }
-  }, "\u26A0\uFE0F \uC774 \uB370\uBAA8\uC5D0\uC11C\uB294 \uC0D8\uD50C \uB370\uC774\uD130\uB97C \uBC18\uD658\uD574\uC694. \uC2E4\uC81C \uAD6C\uD604 \uC2DC OAuth\uB85C Gmail\xB7Google Calendar API\uC5D0 \uC811\uADFC\uD569\uB2C8\uB2E4.")), scanning && /*#__PURE__*/React.createElement("div", {
-    style: {
-      background: COLORS.card,
-      borderRadius: 14,
-      padding: 24,
-      textAlign: 'center'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'inline-block',
-      width: 36,
-      height: 36,
-      borderRadius: 18,
-      border: `2.5px solid ${COLORS.line}`,
-      borderTopColor: COLORS.accent,
-      animation: 'spin 0.8s linear infinite'
-    }
-  }), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 14,
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.ink
-    }
-  }, "\uBA54\uC77C\uD568 \uC2A4\uCE94 \uC911\u2026"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 4,
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.08em'
-    }
-  }, "GMAIL \xB7 CALENDAR \xB7 BOOKING CONFIRMATIONS"), /*#__PURE__*/React.createElement("style", null, `@keyframes spin { to { transform: rotate(360deg); } }`)), found && /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
-    style: {
-      padding: '4px 4px 10px',
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.accent,
-      letterSpacing: '0.12em'
-    }
-  }, "\u2713 ", found.length, "\uAC1C \uC608\uC57D \uBC1C\uACAC"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      flexDirection: 'column',
-      gap: 8
-    }
-  }, found.map((h, i) => /*#__PURE__*/React.createElement("button", {
-    key: i,
-    onClick: () => {
-      onPick(h.name + ' (' + h.area + ')');
-      onClose();
-    },
-    style: {
-      background: COLORS.card,
-      border: 'none',
-      borderRadius: 14,
-      padding: '14px 16px',
-      textAlign: 'left',
-      cursor: 'pointer'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'flex',
-      gap: 10,
-      alignItems: 'flex-start'
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      width: 40,
-      height: 40,
-      borderRadius: 10,
-      background: COLORS.softer,
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      flexShrink: 0
-    }
-  }, /*#__PURE__*/React.createElement(Icon, {
-    name: "hotel",
-    size: 18,
-    color: COLORS.ink,
-    stroke: 1.8
-  })), /*#__PURE__*/React.createElement("div", {
-    style: {
-      flex: 1,
-      minWidth: 0
-    }
-  }, /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 14,
-      color: COLORS.ink,
-      fontWeight: 500
-    }
-  }, h.name), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 2,
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute
-    }
-  }, h.area), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      display: 'grid',
-      gridTemplateColumns: '86px 1fr',
-      gap: '3px 10px',
-      fontFamily: MONO,
-      fontSize: 10,
-      color: COLORS.mute,
-      letterSpacing: '0.04em'
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "CHECK-IN"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.checkin), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "CHECKOUT"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.checkout), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "\uC608\uC57D\uBC88\uD638"), /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.confirmation), /*#__PURE__*/React.createElement("span", {
-    style: {
-      whiteSpace: 'nowrap'
-    }
-  }, "\uC694\uAE08"), "    ", /*#__PURE__*/React.createElement("span", {
-    style: {
-      color: COLORS.ink
-    }
-  }, h.price)), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 8,
-      fontFamily: SANS,
-      fontSize: 10.5,
-      color: COLORS.mute,
-      fontStyle: 'italic'
-    }
-  }, "\uCD9C\uCC98: ", h.source))), /*#__PURE__*/React.createElement("div", {
-    style: {
-      marginTop: 10,
-      padding: '8px 10px',
-      background: COLORS.softer,
-      borderRadius: 8,
-      fontFamily: SANS,
-      fontSize: 11.5,
-      color: COLORS.ink,
-      textAlign: 'center',
-      fontWeight: 500
-    }
-  }, "\uC774 \uD638\uD154\uB85C \uC124\uC815\uD558\uAE30 \u2192"))))))));
+  },
+    e('style', null, '@keyframes hss-spin { to { transform:rotate(360deg); } }'),
+    e('div', { onClick: ev => ev.stopPropagation(), style: { background:COLORS.bg, borderRadius:'22px 22px 0 0', maxHeight:'90%', display:'flex', flexDirection:'column' } },
+      // Handle bar
+      e('div', { style:{ display:'flex', justifyContent:'center', padding:'8px 0 4px' } },
+        e('div', { style:{ width:36, height:4, background:COLORS.line, borderRadius:2 } })
+      ),
+      // Header
+      e('div', { style:{ padding:'6px 20px 8px', display:'flex', justifyContent:'space-between', alignItems:'center', gap:12 } },
+        e('div', { style:{ fontFamily:SERIF, fontSize:24, color:COLORS.ink } }, '호텔 검색'),
+        e('button', { onClick:onClose, style:{ width:28, height:28, borderRadius:14, border:'none', background:COLORS.card, cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' } },
+          e(Icon, { name:'x', size:14, color:COLORS.mute, stroke:2 })
+        )
+      ),
+      // Tabs
+      e('div', { style:{ padding:'0 16px 10px', display:'flex', gap:6 } },
+        ...[{id:'search',label:'검색'},{id:'mailbox',label:'이메일·캘린더에서 찾기'}].map(t =>
+          e('button', { key:t.id, onClick:()=>setTab(t.id),
+            style:{ flex:1, border:'none', borderRadius:10, padding:'9px 10px', cursor:'pointer',
+              background:tab===t.id ? COLORS.ink : COLORS.card,
+              color:tab===t.id ? COLORS.bg : COLORS.ink,
+              fontFamily:SANS, fontSize:12, fontWeight:500 } }, t.label)
+        )
+      ),
+      // ── Search tab ──
+      tab === 'search' ? e(React.Fragment, null,
+        e('div', { style:{ padding:'0 16px 10px' } },
+          e('div', { style:{ background:COLORS.card, borderRadius:10, padding:'10px 12px', display:'flex', gap:8, alignItems:'center' } },
+            e(Icon, { name:'search', size:14, color:COLORS.mute, stroke:1.8 }),
+            e('input', {
+              autoFocus: true,
+              value: q,
+              onChange: ev => setQ(ev.target.value),
+              placeholder: '호텔명, 지역 (한글·영어 모두 가능)',
+              style: { border:'none', outline:'none', background:'transparent', flex:1, fontFamily:SANS, fontSize:13, color:COLORS.ink },
+            }),
+            searching && e('div', { style: spinStyle })
+          )
+        ),
+        e('div', { style:{ flex:1, overflow:'auto', padding:'0 16px 40px' } },
+          !q.trim() ? (
+            e('div', { style:{ padding:'14px 4px', fontFamily:SANS, fontSize:13, color:COLORS.mute, lineHeight:1.6 } },
+              '호텔 이름이나 지역을 입력하세요.', e('br', null),
+              '힐튼, 메리어트 등 한글 브랜드명도 인식돼요.'
+            )
+          ) : searching && searchRes.length === 0 ? null :
+          searchRes.length === 0 ? (
+            e('div', { style:{ padding:20, fontFamily:SANS, fontSize:13, color:COLORS.mute, textAlign:'center' } }, '검색 결과가 없어요')
+          ) : (
+            e('div', { style:{ background:COLORS.card, borderRadius:14, overflow:'hidden' } },
+              ...searchRes.map((h, i) =>
+                e('button', {
+                  key: i,
+                  onClick: () => { onPick(h.name + (h.area ? ' (' + h.area + ')' : '')); onClose(); },
+                  style: { width:'100%', border:'none', background:'transparent', padding:'12px 14px', textAlign:'left', cursor:'pointer',
+                    borderBottom: i < searchRes.length-1 ? '1px solid ' + COLORS.line : 'none' },
+                },
+                  e('div', { style:{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, fontWeight:500 } }, h.name),
+                  h.area && e('div', { style:{ marginTop:3, fontFamily:SANS, fontSize:11.5, color:COLORS.mute, display:'flex', gap:5, alignItems:'center' } },
+                    e(Icon, { name:'pin', size:11, stroke:1.8 }),
+                    e('span', null, [h.address, h.area].filter(Boolean).join(', '))
+                  )
+                )
+              )
+            )
+          )
+        )
+      ) :
+      // ── Mailbox tab ──
+      e('div', { style:{ flex:1, overflow:'auto', padding:'0 16px 40px' } },
+        !scanning && !found && e('div', { style:{ background:COLORS.card, borderRadius:14, padding:18 } },
+          e('div', { style:{ fontFamily:SERIF, fontSize:18, color:COLORS.ink, lineHeight:1.3 } }, '이메일과 캘린더에서 호텔 예약을 자동으로 찾아드려요'),
+          e('div', { style:{ marginTop:8, fontFamily:SANS, fontSize:12.5, color:COLORS.mute, lineHeight:1.5 } }, 'Booking.com, Agoda, Expedia 등의 확인 메일과 구글 캘린더 이벤트를 분석해요.'),
+          e('button', { onClick:scanMailbox, style:{ marginTop:14, width:'100%', border:'none', cursor:'pointer', background:COLORS.ink, color:COLORS.bg, borderRadius:12, padding:'13px', fontFamily:SANS, fontSize:14, fontWeight:500, display:'flex', gap:8, alignItems:'center', justifyContent:'center' } },
+            e(Icon, { name:'search', size:14, color:COLORS.bg, stroke:1.8 }), '스캔 시작'
+          ),
+          e('div', { style:{ marginTop:12, display:'flex', gap:6, flexWrap:'wrap' } },
+            ...['Gmail','Outlook','Google Calendar','Apple Calendar'].map(s =>
+              e('span', { key:s, style:{ padding:'4px 8px', borderRadius:6, background:COLORS.softer, fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.04em' } }, s)
+            )
+          )
+        ),
+        scanning && e('div', { style:{ background:COLORS.card, borderRadius:14, padding:24, textAlign:'center' } },
+          e('div', { style:{ display:'inline-block', width:36, height:36, borderRadius:18, border:'2.5px solid ' + COLORS.line, borderTopColor:COLORS.accent, animation:'hss-spin 0.8s linear infinite' } }),
+          e('div', { style:{ marginTop:14, fontFamily:SANS, fontSize:13, color:COLORS.ink } }, '메일함 스캔 중…'),
+          e('div', { style:{ marginTop:4, fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.08em' } }, 'GMAIL · CALENDAR · BOOKING CONFIRMATIONS')
+        ),
+        found && e(React.Fragment, null,
+          e('div', { style:{ padding:'4px 4px 10px', fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.12em' } }, '✓ ' + found.length + '개 예약 발견'),
+          e('div', { style:{ display:'flex', flexDirection:'column', gap:8 } },
+            ...found.map((h, i) =>
+              e('button', { key:i, onClick:() => { onPick(h); onClose(); },
+                style:{ background:COLORS.card, border:'none', borderRadius:14, padding:'14px 16px', textAlign:'left', cursor:'pointer' } },
+                e('div', { style:{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:600 } }, h.name),
+                e('div', { style:{ marginTop:3, fontFamily:SANS, fontSize:12, color:COLORS.mute } }, h.area),
+                h.checkin && e('div', { style:{ marginTop:6, fontFamily:MONO, fontSize:10.5, color:COLORS.ink, letterSpacing:'0.05em' } }, h.checkin + ' → ' + h.checkout),
+                h.confirmation && e('div', { style:{ marginTop:2, fontFamily:MONO, fontSize:10, color:COLORS.mute } }, '예약번호: ' + h.confirmation),
+                h.source && e('div', { style:{ marginTop:4, fontFamily:SANS, fontSize:11, color:COLORS.mute, fontStyle:'italic' } }, h.source),
+                e('div', { style:{ marginTop:10, padding:'8px 10px', background:COLORS.softer, borderRadius:8, fontFamily:SANS, fontSize:11.5, color:COLORS.ink, textAlign:'center', fontWeight:500 } }, '이 호텔로 설정하기 →')
+              )
+            )
+          )
+        )
+      )
+    )
+  );
 }
 Object.assign(window, {
   useDragReorder,
