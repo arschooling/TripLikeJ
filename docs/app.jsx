@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v317</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v318</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7311,6 +7311,33 @@ function MiniCalendar({ startIso, endIso, onRange }) {
     </div>
   );
 }
+
+const CITY_DB = [
+  { key:'tokyo',     kor:'도쿄',     flag:'🇯🇵', zone:'Asia/Tokyo',          currency:'JPY', lat:35.6762, lon:139.6503 },
+  { key:'osaka',     kor:'오사카',   flag:'🇯🇵', zone:'Asia/Tokyo',          currency:'JPY', lat:34.6937, lon:135.5023 },
+  { key:'paris',     kor:'파리',     flag:'🇫🇷', zone:'Europe/Paris',        currency:'EUR', lat:48.8566, lon:2.3522   },
+  { key:'newyork',   kor:'뉴욕',     flag:'🇺🇸', zone:'America/New_York',    currency:'USD', lat:40.7128, lon:-74.0060 },
+  { key:'london',    kor:'런던',     flag:'🇬🇧', zone:'Europe/London',       currency:'GBP', lat:51.5074, lon:-0.1278  },
+  { key:'bangkok',   kor:'방콕',     flag:'🇹🇭', zone:'Asia/Bangkok',        currency:'THB', lat:13.7563, lon:100.5018 },
+  { key:'bali',      kor:'발리',     flag:'🇮🇩', zone:'Asia/Makassar',       currency:'IDR', lat:-8.3405, lon:115.0920 },
+  { key:'singapore', kor:'싱가포르', flag:'🇸🇬', zone:'Asia/Singapore',      currency:'SGD', lat:1.3521,  lon:103.8198 },
+  { key:'barcelona', kor:'바르셀로나',flag:'🇪🇸', zone:'Europe/Madrid',       currency:'EUR', lat:41.3851, lon:2.1734   },
+  { key:'rome',      kor:'로마',     flag:'🇮🇹', zone:'Europe/Rome',         currency:'EUR', lat:41.9028, lon:12.4964  },
+  { key:'prague',    kor:'프라하',   flag:'🇨🇿', zone:'Europe/Prague',       currency:'CZK', lat:50.0755, lon:14.4378  },
+  { key:'sydney',    kor:'시드니',   flag:'🇦🇺', zone:'Australia/Sydney',    currency:'AUD', lat:-33.8688, lon:151.2093 },
+  { key:'dubai',     kor:'두바이',   flag:'🇦🇪', zone:'Asia/Dubai',          currency:'AED', lat:25.2048, lon:55.2708  },
+  { key:'istanbul',  kor:'이스탄불', flag:'🇹🇷', zone:'Europe/Istanbul',     currency:'TRY', lat:41.0082, lon:28.9784  },
+  { key:'vietnam',   kor:'하노이',   flag:'🇻🇳', zone:'Asia/Ho_Chi_Minh',   currency:'VND', lat:21.0285, lon:105.8542 },
+  { key:'hawaii',    kor:'하와이',   flag:'🇺🇸', zone:'Pacific/Honolulu',    currency:'USD', lat:21.3069, lon:-157.8583 },
+  { key:'taipei',    kor:'타이베이', flag:'🇹🇼', zone:'Asia/Taipei',         currency:'TWD', lat:25.0330, lon:121.5654 },
+  { key:'hongkong',  kor:'홍콩',     flag:'🇭🇰', zone:'Asia/Hong_Kong',      currency:'HKD', lat:22.3193, lon:114.1694 },
+  { key:'maldives',  kor:'몰디브',   flag:'🇲🇻', zone:'Indian/Maldives',     currency:'USD', lat:3.2028,  lon:73.2207  },
+  { key:'losangeles',kor:'LA',       flag:'🇺🇸', zone:'America/Los_Angeles', currency:'USD', lat:34.0522, lon:-118.2437 },
+  { key:'amsterdam', kor:'암스테르담',flag:'🇳🇱', zone:'Europe/Amsterdam',    currency:'EUR', lat:52.3676, lon:4.9041   },
+  { key:'greece',    kor:'산토리니', flag:'🇬🇷', zone:'Europe/Athens',       currency:'EUR', lat:36.3932, lon:25.4615  },
+  { key:'malaysia',  kor:'쿠알라룸푸르',flag:'🇲🇾', zone:'Asia/Kuala_Lumpur', currency:'MYR', lat:3.1390,  lon:101.6869 },
+  { key:'cancun',    kor:'칸쿤',     flag:'🇲🇽', zone:'America/Cancun',      currency:'MXN', lat:21.1619, lon:-86.8515 },
+];
 
 function NewTripSheet({ open, onClose, onSubmit }) {
   const isKorean = React.useMemo(() => navigator.language.startsWith('ko'), []);
