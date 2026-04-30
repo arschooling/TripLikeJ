@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v342</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v343</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1961,7 +1961,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
             </button>
           </div>
       }
-      <div style={{ textAlign:'center', paddingBottom:32, paddingTop:8 }}>
+      <div style={{ position:'absolute', bottom:12, left:0, right:0, textAlign:'center' }}>
         <div style={{ fontFamily:'Adam, serif', fontSize:15, color:COLORS.ink, opacity:0.18, letterSpacing:'0.18em' }}>ARSHOOLING</div>
       </div>
     </div>
@@ -2532,7 +2532,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       <div style={{ padding:'8px 16px 0' }}>
         <WeatherCard city={city}/>
       </div>
-      <div style={{ textAlign:'center', padding:'24px 0 32px' }}>
+      <div style={{ textAlign:'center', padding:'32px 0 40px' }}>
         <div style={{ fontFamily:'Adam, serif', fontSize:15, color:COLORS.ink, opacity:0.18, letterSpacing:'0.18em' }}>ARSHOOLING</div>
       </div>
 
