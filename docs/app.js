@@ -3880,7 +3880,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v287"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v288"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -10982,7 +10982,8 @@ const fmtAmt = (n, cur) => {
 function BudgetCalcSheet({
   open,
   onClose,
-  onEnter
+  onEnter,
+  onTabBarToggle
 }) {
   const [display, setDisplay] = React.useState('0');
   const [prevVal, setPrevVal] = React.useState(null);
@@ -10990,7 +10991,12 @@ function BudgetCalcSheet({
   const [waitNew, setWaitNew] = React.useState(false);
   const [entered, setEntered] = React.useState(false);
   const [sheetY, setSheetY] = React.useState(0);
+  const [sheetUp, setSheetUp] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(false);
+  const [closing, setClosing] = React.useState(false);
   const sheetYRef = React.useRef(0);
+  const sheetUpRef = React.useRef(0);
+  const expandedRef = React.useRef(false);
   const sheetRef = React.useRef(null);
   const dragRef = React.useRef({
     active: false,
@@ -11001,6 +11007,11 @@ function BudgetCalcSheet({
       setEntered(false);
       setSheetY(0);
       sheetYRef.current = 0;
+      setSheetUp(0);
+      sheetUpRef.current = 0;
+      setExpanded(false);
+      expandedRef.current = false;
+      setClosing(false);
       return;
     }
     setDisplay('0');
@@ -11009,6 +11020,11 @@ function BudgetCalcSheet({
     setWaitNew(false);
     setSheetY(0);
     sheetYRef.current = 0;
+    setSheetUp(0);
+    sheetUpRef.current = 0;
+    setExpanded(false);
+    expandedRef.current = false;
+    setClosing(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
   React.useEffect(() => {
@@ -11023,15 +11039,56 @@ function BudgetCalcSheet({
     const onMove = e => {
       if (!dragRef.current.active) return;
       const dy = e.touches[0].clientY - dragRef.current.startY;
-      if (dy > 0) {
-        e.preventDefault();
-        sheetYRef.current = dy;
-        setSheetY(dy);
+      e.preventDefault();
+      if (expandedRef.current) {
+        if (dy > 0) {
+          sheetYRef.current = dy;
+          setSheetY(dy);
+        }
+      } else {
+        if (dy < 0) {
+          const up = Math.min(Math.abs(dy), window.innerHeight * 0.2);
+          sheetUpRef.current = up;
+          setSheetUp(up);
+        } else {
+          sheetUpRef.current = 0;
+          setSheetUp(0);
+          sheetYRef.current = dy;
+          setSheetY(dy);
+        }
       }
     };
-    const onEnd = () => {
+    const onEnd = e => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 100) onClose();else {
+      const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - dragRef.current.startY);
+      if (dy < 8) {
+        onTabBarToggle?.();
+        sheetYRef.current = 0;
+        setSheetY(0);
+        sheetUpRef.current = 0;
+        setSheetUp(0);
+        return;
+      }
+      const curUp = sheetUpRef.current;
+      const cur = sheetYRef.current;
+      if (curUp > 60) {
+        expandedRef.current = true;
+        setExpanded(true);
+        sheetUpRef.current = 0;
+        setSheetUp(0);
+      } else if (cur > 100) {
+        if (expandedRef.current) {
+          expandedRef.current = false;
+          setExpanded(false);
+          sheetYRef.current = 0;
+          setSheetY(0);
+        } else {
+          setClosing(true);
+          setTimeout(() => onClose(), 340);
+        }
+      } else {
+        sheetUpRef.current = 0;
+        setSheetUp(0);
         sheetYRef.current = 0;
         setSheetY(0);
       }
@@ -11134,8 +11191,8 @@ function BudgetCalcSheet({
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      transform: `translateY(${entered ? sheetY : window.innerHeight}px)`,
-      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+      transform: `translateY(${closing ? window.innerHeight : entered ? sheetY : window.innerHeight}px)`,
+      transition: closing || !sheetY && entered ? 'transform 0.34s cubic-bezier(0.32,0.72,0,1)' : 'none'
     }
   }, /*#__PURE__*/React.createElement("div", {
     ref: sheetRef,
@@ -11143,7 +11200,11 @@ function BudgetCalcSheet({
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
-      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 80px)',
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 60px)',
+      maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+      overflowY: 'hidden',
+      overflowX: 'hidden',
+      transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',
       boxShadow: '0 -4px 24px rgba(0,0,0,0.12)'
     }
   }, /*#__PURE__*/React.createElement("div", {
@@ -11282,18 +11343,126 @@ function SplitSheet({
   onClose,
   totalKrw,
   defaultN,
-  onEnter
+  onEnter,
+  onTabBarToggle
 }) {
   const [n, setN] = React.useState(String(defaultN));
   const [entered, setEntered] = React.useState(false);
+  const [sheetY, setSheetY] = React.useState(0);
+  const [sheetUp, setSheetUp] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(false);
+  const [closing, setClosing] = React.useState(false);
+  const sheetYRef = React.useRef(0);
+  const sheetUpRef = React.useRef(0);
+  const expandedRef = React.useRef(false);
+  const sheetRef = React.useRef(null);
+  const dragRef = React.useRef({
+    active: false,
+    startY: 0
+  });
   React.useEffect(() => {
     if (!open) {
       setEntered(false);
+      setSheetY(0);
+      sheetYRef.current = 0;
+      setSheetUp(0);
+      sheetUpRef.current = 0;
+      setExpanded(false);
+      expandedRef.current = false;
+      setClosing(false);
       return;
     }
     setN(String(defaultN));
+    setSheetY(0);
+    sheetYRef.current = 0;
+    setSheetUp(0);
+    sheetUpRef.current = 0;
+    setExpanded(false);
+    expandedRef.current = false;
+    setClosing(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open, defaultN]);
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !entered) return;
+    const onStart = e => {
+      dragRef.current = {
+        active: true,
+        startY: e.touches[0].clientY
+      };
+    };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      e.preventDefault();
+      if (expandedRef.current) {
+        if (dy > 0) {
+          sheetYRef.current = dy;
+          setSheetY(dy);
+        }
+      } else {
+        if (dy < 0) {
+          const up = Math.min(Math.abs(dy), window.innerHeight * 0.2);
+          sheetUpRef.current = up;
+          setSheetUp(up);
+        } else {
+          sheetUpRef.current = 0;
+          setSheetUp(0);
+          sheetYRef.current = dy;
+          setSheetY(dy);
+        }
+      }
+    };
+    const onEnd = e => {
+      dragRef.current.active = false;
+      const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - dragRef.current.startY);
+      if (dy < 8) {
+        onTabBarToggle?.();
+        sheetYRef.current = 0;
+        setSheetY(0);
+        sheetUpRef.current = 0;
+        setSheetUp(0);
+        return;
+      }
+      const curUp = sheetUpRef.current;
+      const cur = sheetYRef.current;
+      if (curUp > 60) {
+        expandedRef.current = true;
+        setExpanded(true);
+        sheetUpRef.current = 0;
+        setSheetUp(0);
+      } else if (cur > 100) {
+        if (expandedRef.current) {
+          expandedRef.current = false;
+          setExpanded(false);
+          sheetYRef.current = 0;
+          setSheetY(0);
+        } else {
+          setClosing(true);
+          setTimeout(() => onClose(), 340);
+        }
+      } else {
+        sheetUpRef.current = 0;
+        setSheetUp(0);
+        sheetYRef.current = 0;
+        setSheetY(0);
+      }
+    };
+    el.addEventListener('touchstart', onStart, {
+      passive: true
+    });
+    el.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    el.addEventListener('touchend', onEnd, {
+      passive: true
+    });
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+    };
+  }, [entered]);
   if (!open) return null;
   const count = Math.max(1, parseInt(n) || 1);
   const perPerson = Math.round(totalKrw / count);
@@ -11305,18 +11474,26 @@ function SplitSheet({
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      background: 'rgba(0,0,0,0.4)'
+      background: `rgba(0,0,0,${Math.max(0, (entered ? 0.4 : 0) - sheetY / 400)})`
     },
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
+    style: {
+      transform: `translateY(${closing ? window.innerHeight : entered ? sheetY : window.innerHeight}px)`,
+      transition: closing || !sheetY && entered ? 'transform 0.34s cubic-bezier(0.32,0.72,0,1)' : 'none'
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    ref: sheetRef,
     onClick: e => e.stopPropagation(),
     style: {
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
       padding: '0 16px',
-      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 80px)',
-      transform: `translateY(${entered ? 0 : window.innerHeight}px)`,
-      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+      paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 60px)',
+      maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+      overflowY: 'hidden',
+      overflowX: 'hidden',
+      transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)'
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
@@ -11504,12 +11681,13 @@ function SplitSheet({
       color: '#fff',
       cursor: 'pointer'
     }
-  }, "\uC9C0\uCD9C\uB85C \uC785\uB825"))));
+  }, "\uC9C0\uCD9C\uB85C \uC785\uB825")))));
 }
 function BudgetScreen({
   trip,
   onEditBudget,
-  onSheetChange
+  onSheetChange,
+  onTabBarToggle
 }) {
   const budget = trip.budget || {};
   const entries = budget.entries || [];
@@ -12568,7 +12746,8 @@ function BudgetScreen({
     onEnter: (type, amount) => {
       setCalcOpen(false);
       openAddWithAmount(type, amount);
-    }
+    },
+    onTabBarToggle: onTabBarToggle
   }), /*#__PURE__*/React.createElement(SplitSheet, {
     open: splitOpen,
     onClose: () => {
@@ -12577,7 +12756,8 @@ function BudgetScreen({
     },
     totalKrw: Math.round(krwSharedOut),
     defaultN: Math.max(2, (trip.members || []).length),
-    onEnter: (type, amount) => openAddWithAmount(type, amount)
+    onEnter: (type, amount) => openAddWithAmount(type, amount),
+    onTabBarToggle: onTabBarToggle
   }));
 }
 
@@ -16384,7 +16564,8 @@ function App() {
       onSheetChange: v => {
         setBudgetSheetOpen(v);
         if (!v) setTabBarVisible(true);
-      }
+      },
+      onTabBarToggle: () => setTabBarVisible(v => !v)
     });
     label = 'Budget';
   } else {

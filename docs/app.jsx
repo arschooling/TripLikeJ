@@ -1869,7 +1869,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v287</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v288</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5473,21 +5473,29 @@ const fmtAmt = (n, cur) => {
   return sym + n.toLocaleString('ko-KR', { maximumFractionDigits: cur==='KRW'?0:2 });
 };
 
-function BudgetCalcSheet({ open, onClose, onEnter }) {
+function BudgetCalcSheet({ open, onClose, onEnter, onTabBarToggle }) {
   const [display, setDisplay] = React.useState('0');
   const [prevVal, setPrevVal] = React.useState(null);
   const [op, setOp]           = React.useState(null);
   const [waitNew, setWaitNew] = React.useState(false);
   const [entered, setEntered] = React.useState(false);
   const [sheetY,  setSheetY]  = React.useState(0);
-  const sheetYRef = React.useRef(0);
+  const [sheetUp, setSheetUp] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(false);
+  const [closing, setClosing] = React.useState(false);
+  const sheetYRef  = React.useRef(0);
+  const sheetUpRef = React.useRef(0);
+  const expandedRef = React.useRef(false);
   const sheetRef  = React.useRef(null);
   const dragRef   = React.useRef({ active: false, startY: 0 });
 
   React.useEffect(() => {
-    if (!open) { setEntered(false); setSheetY(0); sheetYRef.current = 0; return; }
+    if (!open) { setEntered(false); setSheetY(0); sheetYRef.current = 0; setSheetUp(0); sheetUpRef.current = 0; setExpanded(false); expandedRef.current = false; setClosing(false); return; }
     setDisplay('0'); setPrevVal(null); setOp(null); setWaitNew(false);
     setSheetY(0); sheetYRef.current = 0;
+    setSheetUp(0); sheetUpRef.current = 0;
+    setExpanded(false); expandedRef.current = false;
+    setClosing(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open]);
 
@@ -5495,15 +5503,35 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
     const el = sheetRef.current;
     if (!el || !entered) return;
     const onStart = e => { dragRef.current = { active: true, startY: e.touches[0].clientY }; };
-    const onMove  = e => {
+    const onMove = e => {
       if (!dragRef.current.active) return;
       const dy = e.touches[0].clientY - dragRef.current.startY;
-      if (dy > 0) { e.preventDefault(); sheetYRef.current = dy; setSheetY(dy); }
+      e.preventDefault();
+      if (expandedRef.current) {
+        if (dy > 0) { sheetYRef.current = dy; setSheetY(dy); }
+      } else {
+        if (dy < 0) {
+          const up = Math.min(Math.abs(dy), window.innerHeight * 0.2);
+          sheetUpRef.current = up; setSheetUp(up);
+        } else {
+          sheetUpRef.current = 0; setSheetUp(0);
+          sheetYRef.current = dy; setSheetY(dy);
+        }
+      }
     };
-    const onEnd = () => {
+    const onEnd = e => {
       dragRef.current.active = false;
-      if (sheetYRef.current > 100) onClose();
-      else { sheetYRef.current = 0; setSheetY(0); }
+      const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - dragRef.current.startY);
+      if (dy < 8) { onTabBarToggle?.(); sheetYRef.current=0; setSheetY(0); sheetUpRef.current=0; setSheetUp(0); return; }
+      const curUp = sheetUpRef.current;
+      const cur = sheetYRef.current;
+      if (curUp > 60) {
+        expandedRef.current = true; setExpanded(true);
+        sheetUpRef.current = 0; setSheetUp(0);
+      } else if (cur > 100) {
+        if (expandedRef.current) { expandedRef.current = false; setExpanded(false); sheetYRef.current=0; setSheetY(0); }
+        else { setClosing(true); setTimeout(() => onClose(), 340); }
+      } else { sheetUpRef.current=0; setSheetUp(0); sheetYRef.current=0; setSheetY(0); }
     };
     el.addEventListener('touchstart', onStart, { passive: true });
     el.addEventListener('touchmove',  onMove,  { passive: false });
@@ -5567,12 +5595,15 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
       background:`rgba(0,0,0,${Math.max(0, (entered?0.35:0) - sheetY/400)})`,
     }} onClick={onClose}>
       <div style={{
-        transform:`translateY(${entered ? sheetY : window.innerHeight}px)`,
-        transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+        transform:`translateY(${closing ? window.innerHeight : (entered ? sheetY : window.innerHeight)}px)`,
+        transition: (closing || (!sheetY && entered)) ? 'transform 0.34s cubic-bezier(0.32,0.72,0,1)' : 'none',
       }}>
       <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0',
-        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 80px)',
+        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 60px)',
+        maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+        overflowY:'hidden', overflowX:'hidden',
+        transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',
         boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
       }}>
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
@@ -5625,15 +5656,58 @@ function BudgetCalcSheet({ open, onClose, onEnter }) {
   );
 }
 
-function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter }) {
+function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter, onTabBarToggle }) {
   const [n, setN]         = React.useState(String(defaultN));
   const [entered, setEntered] = React.useState(false);
+  const [sheetY, setSheetY]   = React.useState(0);
+  const [sheetUp, setSheetUp] = React.useState(0);
+  const [expanded, setExpanded] = React.useState(false);
+  const [closing, setClosing]   = React.useState(false);
+  const sheetYRef   = React.useRef(0);
+  const sheetUpRef  = React.useRef(0);
+  const expandedRef = React.useRef(false);
+  const sheetRef    = React.useRef(null);
+  const dragRef     = React.useRef({ active: false, startY: 0 });
 
   React.useEffect(() => {
-    if (!open) { setEntered(false); return; }
+    if (!open) { setEntered(false); setSheetY(0); sheetYRef.current=0; setSheetUp(0); sheetUpRef.current=0; setExpanded(false); expandedRef.current=false; setClosing(false); return; }
     setN(String(defaultN));
+    setSheetY(0); sheetYRef.current=0; setSheetUp(0); sheetUpRef.current=0;
+    setExpanded(false); expandedRef.current=false; setClosing(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [open, defaultN]);
+
+  React.useEffect(() => {
+    const el = sheetRef.current;
+    if (!el || !entered) return;
+    const onStart = e => { dragRef.current = { active: true, startY: e.touches[0].clientY }; };
+    const onMove = e => {
+      if (!dragRef.current.active) return;
+      const dy = e.touches[0].clientY - dragRef.current.startY;
+      e.preventDefault();
+      if (expandedRef.current) {
+        if (dy > 0) { sheetYRef.current = dy; setSheetY(dy); }
+      } else {
+        if (dy < 0) { const up = Math.min(Math.abs(dy), window.innerHeight*0.2); sheetUpRef.current=up; setSheetUp(up); }
+        else { sheetUpRef.current=0; setSheetUp(0); sheetYRef.current=dy; setSheetY(dy); }
+      }
+    };
+    const onEnd = e => {
+      dragRef.current.active = false;
+      const dy = Math.abs((e.changedTouches[0]?.clientY ?? 0) - dragRef.current.startY);
+      if (dy < 8) { onTabBarToggle?.(); sheetYRef.current=0; setSheetY(0); sheetUpRef.current=0; setSheetUp(0); return; }
+      const curUp = sheetUpRef.current; const cur = sheetYRef.current;
+      if (curUp > 60) { expandedRef.current=true; setExpanded(true); sheetUpRef.current=0; setSheetUp(0); }
+      else if (cur > 100) {
+        if (expandedRef.current) { expandedRef.current=false; setExpanded(false); sheetYRef.current=0; setSheetY(0); }
+        else { setClosing(true); setTimeout(() => onClose(), 340); }
+      } else { sheetUpRef.current=0; setSheetUp(0); sheetYRef.current=0; setSheetY(0); }
+    };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove',  onMove,  { passive: false });
+    el.addEventListener('touchend',   onEnd,   { passive: true });
+    return () => { el.removeEventListener('touchstart', onStart); el.removeEventListener('touchmove', onMove); el.removeEventListener('touchend', onEnd); };
+  }, [entered]);
 
   if (!open) return null;
 
@@ -5643,12 +5717,17 @@ function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter }) {
   return (
     <div style={{ position:'fixed', inset:0, zIndex:310,
       display:'flex', flexDirection:'column', justifyContent:'flex-end',
-      background:'rgba(0,0,0,0.4)' }} onClick={onClose}>
-      <div onClick={e=>e.stopPropagation()} style={{
+      background:`rgba(0,0,0,${Math.max(0,(entered?0.4:0)-sheetY/400)})` }} onClick={onClose}>
+      <div style={{
+        transform:`translateY(${closing ? window.innerHeight : (entered ? sheetY : window.innerHeight)}px)`,
+        transition: (closing || (!sheetY && entered)) ? 'transform 0.34s cubic-bezier(0.32,0.72,0,1)' : 'none',
+      }}>
+      <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0', padding:'0 16px',
-        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 80px)',
-        transform:`translateY(${entered ? 0 : window.innerHeight}px)`,
-        transition:'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
+        paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 60px)',
+        maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+        overflowY:'hidden', overflowX:'hidden',
+        transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',
       }}>
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
@@ -5694,11 +5773,12 @@ function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter }) {
           }}>지출로 입력</button>
         </div>
       </div>
+      </div>
     </div>
   );
 }
 
-function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
+function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
   const budget  = trip.budget || {};
   const entries = budget.entries || [];
   const outCats = budget.outCats || BUDGET_OUT_CATS_DEFAULT;
@@ -6216,11 +6296,13 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange }) {
         </div>
       )}
       <BudgetCalcSheet open={calcOpen} onClose={() => { setCalcOpen(false); if (!sheetOpen && !splitOpen) onSheetChange?.(false); }}
-        onEnter={(type, amount) => { setCalcOpen(false); openAddWithAmount(type, amount); }}/>
+        onEnter={(type, amount) => { setCalcOpen(false); openAddWithAmount(type, amount); }}
+        onTabBarToggle={onTabBarToggle}/>
       <SplitSheet open={splitOpen} onClose={() => { setSplitOpen(false); if (!sheetOpen && !calcOpen) onSheetChange?.(false); }}
         totalKrw={Math.round(krwSharedOut)}
         defaultN={Math.max(2, (trip.members||[]).length)}
-        onEnter={(type, amount) => openAddWithAmount(type, amount)}/>
+        onEnter={(type, amount) => openAddWithAmount(type, amount)}
+        onTabBarToggle={onTabBarToggle}/>
     </div>
   );
 }
@@ -8436,7 +8518,7 @@ function App() {
     label = 'Map';
   }
   else if (tab === 'food')   { screen = <FoodScreen trip={trip} onEditFood={food => editTrip({ food })} editing={editing} setEditing={setEditing}/>; label='Food'; }
-  else if (tab === 'budget') { screen = <BudgetScreen trip={trip} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={v => { setBudgetSheetOpen(v); if (!v) setTabBarVisible(true); }}/>; label='Budget'; }
+  else if (tab === 'budget') { screen = <BudgetScreen trip={trip} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={v => { setBudgetSheetOpen(v); if (!v) setTabBarVisible(true); }} onTabBarToggle={() => setTabBarVisible(v => !v)}/>; label='Budget'; }
   else                       { screen = <PrepScreen trip={trip} prep={prep} onEditPrep={editPrep} editing={editing} setEditing={setEditing}/>; label='Prep'; }
 
   const dayHue = dayIdx !== null && trip
