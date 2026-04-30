@@ -3904,7 +3904,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v301"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v302"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -11887,14 +11887,6 @@ function BudgetScreen({
   const [calcOpen, setCalcOpen] = React.useState(false);
   const [splitOpen, setSplitOpen] = React.useState(false);
   const [sheetEntered, setSheetEntered] = React.useState(false);
-  const [sheetY, setSheetY] = React.useState(0);
-  const sheetYRef = React.useRef(0);
-  const sheetRef = React.useRef(null);
-  const dragRef = React.useRef({
-    active: false,
-    startY: 0,
-    startScrollTop: 0
-  });
   const closeSheet = () => {
     setAddOpen(false);
     setEditIdx(null);
@@ -11915,66 +11907,11 @@ function BudgetScreen({
   const sheetOpen = addOpen || editIdx !== null;
   React.useEffect(() => {
     if (sheetOpen) {
-      setSheetY(0);
-      sheetYRef.current = 0;
       requestAnimationFrame(() => requestAnimationFrame(() => setSheetEntered(true)));
     } else {
       setSheetEntered(false);
-      setSheetY(0);
-      sheetYRef.current = 0;
     }
   }, [sheetOpen]);
-
-  // StopSheet 스타일 드래그 핸들러
-  React.useEffect(() => {
-    const el = sheetRef.current;
-    if (!el || !sheetEntered) return;
-    const onStart = e => {
-      dragRef.current = {
-        active: true,
-        startY: e.touches[0].clientY,
-        startScrollTop: el.scrollTop
-      };
-    };
-    const onMove = e => {
-      if (!dragRef.current.active) return;
-      const {
-        startY,
-        startScrollTop
-      } = dragRef.current;
-      const dy = e.touches[0].clientY - startY;
-      if (startScrollTop > 8 && dy <= 0) {
-        dragRef.current.active = false;
-        return;
-      }
-      e.preventDefault();
-      if (dy > 0) {
-        sheetYRef.current = dy;
-        setSheetY(dy);
-      }
-    };
-    const onEnd = () => {
-      dragRef.current.active = false;
-      if (sheetYRef.current > 120) {
-        closeSheet();
-      } else {
-        sheetYRef.current = 0;
-        setSheetY(0);
-      }
-    };
-    el.addEventListener('touchstart', onStart, {
-      passive: true
-    });
-    el.addEventListener('touchmove', onMove, {
-      passive: false
-    });
-    el.addEventListener('touchend', onEnd);
-    return () => {
-      el.removeEventListener('touchstart', onStart);
-      el.removeEventListener('touchmove', onMove);
-      el.removeEventListener('touchend', onEnd);
-    };
-  }, [sheetEntered]);
 
   // onSheetChange는 각 open/close 함수에서 직접 동기 호출 (탭바 딜레이 방지)
 
@@ -12567,16 +12504,16 @@ function BudgetScreen({
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'flex-end',
-      background: `rgba(0,0,0,${Math.max(0, (sheetEntered ? 0.35 : 0) - sheetY / 400)})`
+      background: `rgba(0,0,0,${sheetEntered ? 0.35 : 0})`,
+      transition: 'background 0.34s cubic-bezier(0.32,0.72,0,1)'
     },
     onClick: closeSheet
   }, /*#__PURE__*/React.createElement("div", {
     style: {
-      transform: `translateY(${sheetEntered ? sheetY : window.innerHeight}px)`,
-      transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
+      transform: `translateY(${sheetEntered ? 0 : window.innerHeight}px)`,
+      transition: 'transform 0.34s cubic-bezier(0.32,0.72,0,1)'
     }
   }, /*#__PURE__*/React.createElement("div", {
-    ref: sheetRef,
     onClick: e => e.stopPropagation(),
     style: {
       background: COLORS.bg,
