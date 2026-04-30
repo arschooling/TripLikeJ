@@ -973,30 +973,34 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
 
   // Snap helper – snaps to nearest item and fires onChange
   const snapAndFire = React.useCallback((el, targetTop) => {
+    scrolling.current = true;
     const its = itemsRef.current;
     const raw = Math.round(targetTop / ITEM_H);
     if (loopRef.current) {
-      const total   = its.length * 3;
-      const clamped = Math.max(0, Math.min(total - 1, raw));
+      const total    = its.length * 3;
+      const clamped  = Math.max(0, Math.min(total - 1, raw));
+      // Fire onChange immediately so highlight follows scroll animation
+      const earlyIdx = ((clamped % its.length) + its.length) % its.length;
+      if (its[earlyIdx] !== valueRef.current) onChangeRef.current(its[earlyIdx]);
       el.scrollTo({ top: clamped * ITEM_H, behavior: 'smooth' });
       clearTimeout(timer.current);
       timer.current = setTimeout(() => {
-        const finalRaw  = Math.round(el.scrollTop / ITEM_H);
-        const realIdx   = ((finalRaw % its.length) + its.length) % its.length;
-        if (its[realIdx] !== valueRef.current) onChangeRef.current(its[realIdx]);
+        const finalRaw = Math.round(el.scrollTop / ITEM_H);
+        const realIdx  = ((finalRaw % its.length) + its.length) % its.length;
         if (finalRaw < its.length || finalRaw >= 2 * its.length) {
           jumping.current = true;
-          setTimeout(() => { el.scrollTop = (its.length + realIdx) * ITEM_H; jumping.current = false; }, 180);
+          setTimeout(() => { el.scrollTop = (its.length + realIdx) * ITEM_H; jumping.current = false; scrolling.current = false; }, 180);
+        } else {
+          scrolling.current = false;
         }
-      }, 320);
+      }, 350);
     } else {
       const clamped = Math.max(0, Math.min(its.length - 1, raw));
+      // Fire onChange immediately so highlight follows scroll animation
+      if (its[clamped] !== valueRef.current) onChangeRef.current(its[clamped]);
       el.scrollTo({ top: clamped * ITEM_H, behavior: 'smooth' });
       clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        const idx = Math.max(0, Math.min(its.length - 1, Math.round(el.scrollTop / ITEM_H)));
-        if (its[idx] !== valueRef.current) onChangeRef.current(its[idx]);
-      }, 320);
+      timer.current = setTimeout(() => { scrolling.current = false; }, 350);
     }
   }, []);
 
@@ -1005,6 +1009,9 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
     const el = ref.current; if (!el) return;
     let startY = null, startTop = 0, lastY = 0, lastT = 0, vel = 0;
     const onStart = e => {
+      el.scrollTop = el.scrollTop; // cancel any running smooth scroll
+      clearTimeout(timer.current);
+      scrolling.current = false;
       startY = lastY = e.touches[0].clientY;
       startTop = el.scrollTop;
       lastT = Date.now(); vel = 0;
@@ -1029,7 +1036,7 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
         v *= 0.88;
         el.scrollTop += v;
         if (Math.abs(v) > 0.5) requestAnimationFrame(decel);
-        else { scrolling.current = false; snapAndFire(el, el.scrollTop); }
+        else { snapAndFire(el, el.scrollTop); }
       };
       requestAnimationFrame(decel);
     };
@@ -1977,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v310</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v311</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7342,7 +7349,7 @@ function MiniCalendar({ startIso, endIso, onRange }) {
   };
   const cells = [...Array(firstDow).fill(null), ...Array.from({length:dim},(_,i)=>i+1)];
   const thisYear = today.getFullYear();
-  const yearItems  = React.useMemo(() => Array.from({ length: 6 }, (_, i) => String(thisYear + i)), [thisYear]);
+  const yearItems  = React.useMemo(() => Array.from({ length: 8 }, (_, i) => String(thisYear - 1 + i)), [thisYear]);
   const monthItems = React.useMemo(() => ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], []);
 
   const openPicker = () => {
