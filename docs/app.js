@@ -3880,7 +3880,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v295"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v296"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -11202,7 +11202,7 @@ function BudgetCalcSheet({
       background: COLORS.bg,
       borderRadius: '22px 22px 0 0',
       paddingBottom: 'calc(env(safe-area-inset-bottom,0px) + 60px)',
-      maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+      maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(92dvh + ${sheetUp}px)`,
       overflowY: 'hidden',
       overflowX: 'hidden',
       transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',

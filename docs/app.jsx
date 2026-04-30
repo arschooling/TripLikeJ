@@ -1869,7 +1869,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v295</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v296</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5600,10 +5600,11 @@ function BudgetCalcSheet({ open, onClose, onEnter, onTabBarToggle }) {
       <div ref={sheetRef} onClick={e=>e.stopPropagation()} style={{
         background:COLORS.bg, borderRadius:'22px 22px 0 0',
         paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 60px)',
-        maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(80dvh + ${sheetUp}px)`,
+        maxHeight: expanded ? 'calc(100dvh - var(--sat,44px) - 8px)' : `calc(92dvh + ${sheetUp}px)`,
         overflowY:'hidden', overflowX:'hidden',
         transition: sheetUp > 0 ? 'none' : 'max-height 0.36s cubic-bezier(0.32,0.72,0,1)',
         boxShadow:'0 -4px 24px rgba(0,0,0,0.12)',
+
       }}>
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
