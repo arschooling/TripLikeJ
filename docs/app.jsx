@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v339</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v340</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7656,6 +7656,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const [places,       setPlaces]       = React.useState([]);
   const [loading,      setLoading]      = React.useState(false);
   const [selected,     setSelected]     = React.useState(new Set());
+  const [cityStep,     setCityStep]     = React.useState(0);
+  const [showMore,     setShowMore]     = React.useState(false);
   const [kbOffset,     setKbOffset]     = React.useState(0);
 
   // 키보드 올라올 때 팝업 위치 조정
@@ -7724,6 +7726,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     setHotels([{ name:'', from:1, to:1 }]); setSkipHotel(false);
     setArrAirport(''); setDepAirport('인천국제공항');
     setPlaces([]); setLoading(false); setSelected(new Set());
+    setCityStep(0); setShowMore(false);
   }, [open]);
 
   React.useEffect(() => {
@@ -7778,10 +7781,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           allPlaces.push(...list);
         }
         setPlaces(allPlaces);
-        setSelected(new Set(allPlaces.map(p => p.id)));
+        setSelected(new Set()); // 기본 미선택 — 사용자가 직접 선택
         setLoading(false);
-        // 사진 비동기 로드: wikipedia 태그 → Wikipedia API → 이름 검색 순 시도
-        allPlaces.forEach(async (p, idx) => {
+        // 사진 비동기 로드: wikipedia 태그 → 이름 검색 fallback
+        allPlaces.forEach(async (p) => {
           try {
             let photo = null;
             if (p.wikipedia) {
@@ -7790,17 +7793,13 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               photo = d.thumbnail?.source || null;
             }
             if (!photo) {
-              // 이름으로 Wikipedia 검색 fallback
               const sr = await fetch(
                 `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=400&origin=*`
               ).then(r => r.json());
               const pages = sr.query?.pages;
-              if (pages) {
-                const pg = Object.values(pages)[0];
-                photo = pg?.thumbnail?.source || null;
-              }
+              if (pages) photo = Object.values(pages)[0]?.thumbnail?.source || null;
             }
-            if (photo) setPlaces(prev => prev.map((pl, i) => i === idx ? { ...pl, photo } : pl));
+            if (photo) setPlaces(prev => prev.map(pl => pl.id === p.id ? { ...pl, photo } : pl));
           } catch (_) {}
         });
       } catch (_) { setLoading(false); }
@@ -7809,22 +7808,41 @@ function NewTripSheet({ open, onClose, onSubmit }) {
 
   if (!open) return null;
 
+  const validCities = cities.filter(c => c.trim());
+  const isLastCity  = cityStep >= validCities.length - 1;
+
   const canNext = step===1 ? !!(selectedDest || destQuery.trim()) : step===2 ? cities.some(c=>c.trim()) : step===3 ? !!(startIso&&endIso) : true;
 
-  const TITLES = { 1:'어느 나라로 가요?', 2:'도시를 알려줘요', 3:'언제 가요?', 4:'어느 공항으로?', 5:'숙소는요?', 6:'가고 싶은 곳을 골라요' };
+  // 장소 우선순위 정렬 (wikipedia 유무 + 유형 중요도)
+  const PLACE_TYPE_SCORE = { museum:6, zoo:5, aquarium:5, theme_park:5, castle:4, ruins:4, monument:3, gallery:3, viewpoint:3, park:2, garden:2, attraction:1 };
+  const sortByPriority = (arr) => [...arr].sort((a,b) => {
+    const as = (a.wikipedia?10:0) + (PLACE_TYPE_SCORE[a.type]||1);
+    const bs = (b.wikipedia?10:0) + (PLACE_TYPE_SCORE[b.type]||1);
+    return bs - as;
+  });
+
+  const TITLES = { 1:'어느 나라로 가요?', 2:'도시를 알려줘요', 3:'언제 가요?', 4:'어느 공항으로?', 5:'숙소는요?' };
+  const currentCityName = validCities[cityStep] || '';
+  const stepTitle = step < HP_STEP ? TITLES[step] : (currentCityName ? `${currentCityName}에서 가고 싶은 곳` : '가고 싶은 곳을 골라요');
 
   const handleNext = () => {
     if (step === 1) {
-      // DB에 없는 나라도 허용 — destQuery로 최소 selectedDest 생성
       if (!selectedDest && destQuery.trim()) {
         setSelectedDest({ key:'custom', kor:destQuery.trim(), eng:destQuery.trim(), flag:'🌍', zone:null, currency:'USD', lat:0, lon:0 });
       }
       setCities(['']);
     }
     if (step < TOTAL) { setStep(s => s + 1); return; }
+    // step === HP_STEP: 도시별 순차 진행
+    if (!isLastCity) {
+      setCityStep(s => s + 1);
+      setShowMore(false);
+      return;
+    }
+    // 모든 도시 완료 → 여행 생성
     const selPlaces = places.filter(p => selected.has(p.id));
     const resolvedDest = selectedDest || (destQuery.trim() ? { key:'custom', kor:destQuery.trim(), eng:destQuery.trim(), flag:'🌍', zone:null, currency:'USD', lat:0, lon:0 } : null);
-    const tripData  = generateTripData({
+    const tripData = generateTripData({
       cities: cities.filter(Boolean), startIso, endIso,
       hotels: skipHotel ? [] : hotels.filter(h => h.name.trim()),
       arrAirport, depAirport,
@@ -7832,6 +7850,15 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     });
     onSubmit(tripData);
     onClose();
+  };
+
+  const handleBack = () => {
+    if (step === HP_STEP && cityStep > 0) {
+      setCityStep(s => s - 1);
+      setShowMore(false);
+      return;
+    }
+    setStep(s => s - 1);
   };
 
   const togglePlace = id => setSelected(prev => {
@@ -7858,9 +7885,15 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               <div key={i} style={{ height:3, flex:1, borderRadius:2, background: i < step ? COLORS.ink : COLORS.line, transition:'background 0.2s' }}/>
             ))}
           </div>
-          <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>
-            {TITLES[step] || '가고 싶은 곳을 골라요'}
-          </div>
+          {/* step 6: 도시별 서브 점 표시 */}
+          {step === HP_STEP && validCities.length > 1 && (
+            <div style={{ display:'flex', gap:5, marginBottom:10 }}>
+              {validCities.map((_, i) => (
+                <div key={i} style={{ width:6, height:6, borderRadius:'50%', background: i <= cityStep ? COLORS.ink : COLORS.line, transition:'background 0.2s' }}/>
+              ))}
+            </div>
+          )}
+          <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>{stepTitle}</div>
         </div>
         {/* 컨텐츠 */}
         <div style={{ overflowY:'auto', flex:1, padding:'14px 20px' }}>
@@ -8154,54 +8187,72 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           )}
 
           {/* Step 6: 장소 확인 (자동 전체 선택, 탭으로 제외) */}
-          {step === HP_STEP && (
-            <div>
-              {loading && (
-                <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                  장소 불러오는 중...
+          {step === HP_STEP && (() => {
+            const INITIAL = 8;
+            const cityPlaces = sortByPriority(places.filter(p => p.cityIdx === cityStep));
+            const visible   = showMore ? cityPlaces : cityPlaces.slice(0, INITIAL);
+            const hiddenCnt = cityPlaces.length - INITIAL;
+            const selCount  = cityPlaces.filter(p => selected.has(p.id)).length;
+            return (
+              <div>
+                {loading && (
+                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                    장소 불러오는 중...
+                  </div>
+                )}
+                {!loading && cityPlaces.length === 0 && (
+                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                    장소를 찾을 수 없어요
+                  </div>
+                )}
+                {!loading && cityPlaces.length > 0 && (
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:12 }}>
+                    {selCount > 0 ? `${selCount}곳 선택됨` : '가고 싶은 곳을 골라보세요'}
+                  </div>
+                )}
+                <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                  {visible.map(p => {
+                    const sel = selected.has(p.id);
+                    return (
+                      <button key={p.id} onClick={() => togglePlace(p.id)} style={{
+                        border: sel ? `2px solid ${COLORS.accent}` : `1.5px solid ${COLORS.line}`,
+                        borderRadius:14, padding:0, cursor:'pointer',
+                        background: COLORS.card,
+                        overflow:'hidden', textAlign:'left',
+                        transition:'border 0.12s, transform 0.1s',
+                        transform: sel ? 'scale(1)' : 'scale(0.97)',
+                        opacity: sel ? 1 : 0.72,
+                      }}>
+                        <div style={{ height:88, position:'relative', background: p.photo ? 'transparent' : COLORS.softer }}>
+                          {p.photo && <img src={p.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy"/>}
+                          {sel && (
+                            <div style={{ position:'absolute', top:7, right:7, width:20, height:20, borderRadius:'50%', background:COLORS.accent, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                                <path d="M2 5l2.5 2.5L8 2.5" stroke="#fff" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <div style={{ padding:'7px 9px 9px', fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
+                      </button>
+                    );
+                  })}
                 </div>
-              )}
-              {!loading && places.length === 0 && (
-                <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                  장소를 찾을 수 없어요
-                </div>
-              )}
-              {!loading && places.length > 0 && (
-                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:12, lineHeight:1.5 }}>
-                  {selected.size}곳 자동 선택됨 · 빼고 싶은 곳은 탭해서 제외하세요
-                </div>
-              )}
-              <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
-                {places.map(p => {
-                  const sel = selected.has(p.id);
-                  return (
-                    <button key={p.id} onClick={() => togglePlace(p.id)} style={{
-                      border: sel ? `2px solid ${COLORS.ink}` : `1px solid ${COLORS.line}`,
-                      borderRadius:12, padding:0, cursor:'pointer',
-                      background: sel ? COLORS.card : COLORS.softer,
-                      overflow:'hidden', textAlign:'left', transition:'border 0.1s, opacity 0.1s',
-                      opacity: sel ? 1 : 0.45,
-                    }}>
-                      <div style={{ height:80, background: p.photo ? `url(${p.photo}) center/cover no-repeat` : COLORS.softer, position:'relative' }}>
-                        {!sel && (
-                          <div style={{ position:'absolute', inset:0, background:'rgba(255,255,255,0.4)', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                            <Icon name="x" size={18} color={COLORS.mute} stroke={2}/>
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ padding:'8px', fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35 }}>{p.name}</div>
-                    </button>
-                  );
-                })}
+                {!loading && !showMore && hiddenCnt > 0 && (
+                  <button onMouseDown={e=>e.preventDefault()} onClick={() => setShowMore(true)}
+                    style={{ marginTop:14, width:'100%', padding:'11px 0', borderRadius:12, border:`1.5px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:13, color:COLORS.mute, cursor:'pointer' }}>
+                    더 보기 +{hiddenCnt}개
+                  </button>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
         </div>
         {/* 푸터 */}
         <div style={{ padding:'10px 20px 20px', display:'flex', gap:8, flexShrink:0, borderTop:`1px solid ${COLORS.line}` }}>
-          {step > 1
-            ? <button onMouseDown={e=>e.preventDefault()} onClick={() => setStep(s=>s-1)} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>이전</button>
+          {(step > 1 || (step === HP_STEP && cityStep > 0))
+            ? <button onMouseDown={e=>e.preventDefault()} onClick={handleBack} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>이전</button>
             : <button onClick={onClose} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer' }}>취소</button>
           }
           <button onMouseDown={e=>e.preventDefault()} onClick={handleNext} disabled={!canNext} style={{
@@ -8211,7 +8262,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             fontFamily:SANS, fontSize:14, fontWeight:600,
             cursor: canNext ? 'pointer' : 'default',
             transition:'background 0.15s, color 0.15s',
-          }}>{step === TOTAL ? '만들기' : '다음'}</button>
+          }}>{step === TOTAL ? (isLastCity ? '완료' : '다음 도시') : '다음'}</button>
         </div>
       </div>
     </div>,
