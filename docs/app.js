@@ -2007,10 +2007,11 @@ function WheelColumn({
   value,
   onChange,
   width = 70,
-  loop = false
+  loop = false,
+  compact = false
 }) {
   const ITEM_H = 40;
-  const VISIBLE = 5; // odd so there's a center
+  const VISIBLE = compact ? 3 : 5; // compact: center + 1 peek above/below
   const CENTER_OFFSET = Math.floor(VISIBLE / 2);
   const ref = React.useRef(null);
   const timer = React.useRef(null);
@@ -2093,6 +2094,7 @@ function WheelColumn({
       clearTimeout(timer.current);
     };
     const onMove = e => {
+      e.preventDefault(); // 페이지 스크롤 차단
       if (startY === null) return;
       const y = e.touches[0].clientY;
       const dt = Math.max(1, Date.now() - lastT);
@@ -2107,10 +2109,10 @@ function WheelColumn({
       snapAndFire(el, el.scrollTop + vel * 80);
     };
     el.addEventListener('touchstart', onStart, {
-      passive: true
+      passive: false
     });
     el.addEventListener('touchmove', onMove, {
-      passive: true
+      passive: false
     });
     el.addEventListener('touchend', onEnd, {
       passive: true
@@ -2191,7 +2193,18 @@ function WheelColumn({
         fontFeatureSettings: '"tnum"'
       }
     }, it);
-  })), /*#__PURE__*/React.createElement("div", {
+  })), compact ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      position: 'absolute',
+      left: 0,
+      right: 0,
+      top: ITEM_H * CENTER_OFFSET,
+      height: ITEM_H,
+      border: `1.5px solid ${COLORS.line}`,
+      borderRadius: 10,
+      pointerEvents: 'none'
+    }
+  }) : /*#__PURE__*/React.createElement("div", {
     style: {
       position: 'absolute',
       left: 0,
@@ -2209,7 +2222,7 @@ function WheelColumn({
       left: 0,
       right: 0,
       height: ITEM_H * CENTER_OFFSET,
-      background: `linear-gradient(180deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
+      background: compact ? COLORS.bg : `linear-gradient(180deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
       pointerEvents: 'none'
     }
   }), /*#__PURE__*/React.createElement("div", {
@@ -2219,7 +2232,7 @@ function WheelColumn({
       left: 0,
       right: 0,
       height: ITEM_H * CENTER_OFFSET,
-      background: `linear-gradient(0deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
+      background: compact ? COLORS.bg : `linear-gradient(0deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
       pointerEvents: 'none'
     }
   }));
@@ -3997,7 +4010,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v305"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v306"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -14536,13 +14549,15 @@ function MiniCalendar({
     items: yearItems,
     value: pickY,
     onChange: setPickY,
-    width: 80
+    width: 80,
+    compact: true
   }), /*#__PURE__*/React.createElement(WheelColumn, {
     items: monthItems,
     value: monthItems[+pickM],
     onChange: v => setPickM(String(monthItems.indexOf(v))),
     width: 80,
-    loop: true
+    loop: true,
+    compact: true
   })) : /*#__PURE__*/React.createElement(React.Fragment, null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'grid',
