@@ -4544,7 +4544,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v290"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v291"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -15152,21 +15152,23 @@ function NewTripSheet({
       bottom: kbOffset,
       zIndex: 1100,
       display: 'flex',
-      alignItems: 'flex-end',
+      alignItems: 'center',
       justifyContent: 'center',
-      background: 'rgba(0,0,0,0.4)'
+      background: 'rgba(0,0,0,0.4)',
+      padding: '20px'
     },
     onClick: onClose
   }, /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation(),
     style: {
       background: COLORS.bg,
-      borderRadius: '22px 22px 0 0',
+      borderRadius: 22,
       width: '100%',
+      maxWidth: 380,
       maxHeight: '82vh',
       display: 'flex',
       flexDirection: 'column',
-      boxShadow: '0 -4px 24px rgba(0,0,0,0.15)',
+      boxShadow: '0 12px 48px rgba(0,0,0,0.22)',
       transition: 'max-height 0.2s ease'
     }
   }, /*#__PURE__*/React.createElement("div", {
