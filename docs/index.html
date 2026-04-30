@@ -77,17 +77,8 @@
     89%  { transform:scaleX(0.91); }
     100% { transform:scaleX(1);    }
   }
-  @keyframes arshoolingShimmer {
-    0%   { background-position: -150% center; }
-    100% { background-position: 250% center; }
-  }
   .arshooling-text {
-    background: linear-gradient(90deg, #1A1816 30%, #999 50%, #1A1816 70%);
-    background-size: 250% 100%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    animation: arshoolingShimmer 2.8s ease-in-out infinite;
+    color: #1A1816;
   }
 </style>
 <!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->

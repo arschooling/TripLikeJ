@@ -3235,12 +3235,12 @@ function FxCard({
       marginTop: 5,
       display: 'flex',
       alignItems: 'flex-end',
-      gap: 5
+      gap: 6
     }
   }, /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SERIF,
-      fontSize: 22,
+      fontSize: 30,
       color: COLORS.ink,
       lineHeight: 1
     }
@@ -3249,7 +3249,7 @@ function FxCard({
       fontFamily: SANS,
       fontSize: 11,
       color: COLORS.mute,
-      paddingBottom: 2
+      paddingBottom: 4
     }
   }, "= ", cur.sym, "1")), /*#__PURE__*/React.createElement("div", {
     style: {
@@ -4569,7 +4569,7 @@ function TripsScreen({
       color: COLORS.mute,
       marginLeft: 8
     }
-  }, "v336"))), loading ? /*#__PURE__*/React.createElement("div", {
+  }, "v353"))), loading ? /*#__PURE__*/React.createElement("div", {
     style: {
       textAlign: 'center',
       padding: 60,
@@ -4755,7 +4755,19 @@ function TripsScreen({
     size: 15,
     color: COLORS.mute,
     stroke: 2
-  }), "\uC0C8 \uC5EC\uD589 \uCD94\uAC00")));
+  }), "\uC0C8 \uC5EC\uD589 \uCD94\uAC00")), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      paddingTop: 20
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "arshooling-text",
+    style: {
+      fontFamily: 'Adam, serif',
+      fontSize: 15,
+      letterSpacing: '0.18em'
+    }
+  }, "ARSHOOLING")));
 }
 
 // ─── 날짜 변환 유틸 (앱 전역) ─────────────────────────────────
@@ -5790,7 +5802,19 @@ function HomeScreen({
     }
   }, /*#__PURE__*/React.createElement(WeatherCard, {
     city: city
-  })), /*#__PURE__*/React.createElement(DateRangeSheet, {
+  })), /*#__PURE__*/React.createElement("div", {
+    style: {
+      textAlign: 'center',
+      paddingTop: 16
+    }
+  }, /*#__PURE__*/React.createElement("div", {
+    className: "arshooling-text",
+    style: {
+      fontFamily: 'Adam, serif',
+      fontSize: 15,
+      letterSpacing: '0.18em'
+    }
+  }, "ARSHOOLING")), /*#__PURE__*/React.createElement(DateRangeSheet, {
     open: dateRangeOpen,
     startIso: startIso,
     endIso: endIso,
@@ -15095,7 +15119,9 @@ function generateTripData({
 function MiniCalendar({
   startIso,
   endIso,
-  onRange
+  onRange,
+  actionRef,
+  onPickingChange
 }) {
   const today = new Date();
   const [vy, setVy] = React.useState(today.getFullYear());
@@ -15128,11 +15154,20 @@ function MiniCalendar({
     setPickM(String(vm));
     setPicking(true);
   };
-  const confirmPicker = () => {
+  const confirmPicker = React.useCallback(() => {
     setVy(+pickY);
     setVm(+pickM);
     setPicking(false);
+  }, [pickY, pickM]);
+
+  // 부모에서 "다음" 누를 때 picker 닫기용 ref
+  if (actionRef) actionRef.current = {
+    isPicking: () => picking,
+    confirm: confirmPicker
   };
+  React.useEffect(() => {
+    onPickingChange?.(picking);
+  }, [picking]);
   return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       display: 'flex',
@@ -15154,8 +15189,12 @@ function MiniCalendar({
       padding: '0 10px',
       color: COLORS.ink
     }
-  }, "\u2039"), /*#__PURE__*/React.createElement("button", {
-    onClick: picking ? confirmPicker : openPicker,
+  }, "\u2039"), picking ? /*#__PURE__*/React.createElement("div", {
+    style: {
+      flex: 1
+    }
+  }) : /*#__PURE__*/React.createElement("button", {
+    onClick: openPicker,
     style: {
       background: 'none',
       border: 'none',
@@ -15168,7 +15207,7 @@ function MiniCalendar({
       alignItems: 'center',
       gap: 4
     }
-  }, picking ? '완료' : `${MONTH_NAMES_SHORT[vm]} ${vy}`), picking ? /*#__PURE__*/React.createElement("div", {
+  }, `${MONTH_NAMES_SHORT[vm]} ${vy}`), picking ? /*#__PURE__*/React.createElement("div", {
     style: {
       width: 32
     }
@@ -16414,6 +16453,42 @@ const CITIES_BY_KEY = {
   }, {
     kor: '하코다테',
     eng: 'Hakodate'
+  }, {
+    kor: '아사히카와',
+    eng: 'Asahikawa'
+  }, {
+    kor: '가나자와',
+    eng: 'Kanazawa'
+  }, {
+    kor: '마쓰야마',
+    eng: 'Matsuyama'
+  }, {
+    kor: '나가사키',
+    eng: 'Nagasaki'
+  }, {
+    kor: '구마모토',
+    eng: 'Kumamoto'
+  }, {
+    kor: '센다이',
+    eng: 'Sendai'
+  }, {
+    kor: '닛코',
+    eng: 'Nikko'
+  }, {
+    kor: '하코네',
+    eng: 'Hakone'
+  }, {
+    kor: '시즈오카',
+    eng: 'Shizuoka'
+  }, {
+    kor: '오이타',
+    eng: 'Oita'
+  }, {
+    kor: '미야자키',
+    eng: 'Miyazaki'
+  }, {
+    kor: '아오모리',
+    eng: 'Aomori'
   }],
   france: [{
     kor: '파리',
@@ -16439,6 +16514,36 @@ const CITIES_BY_KEY = {
   }, {
     kor: '칸',
     eng: 'Cannes'
+  }, {
+    kor: '모나코',
+    eng: 'Monaco'
+  }, {
+    kor: '낭트',
+    eng: 'Nantes'
+  }, {
+    kor: '툴루즈',
+    eng: 'Toulouse'
+  }, {
+    kor: '릴',
+    eng: 'Lille'
+  }, {
+    kor: '렌',
+    eng: 'Rennes'
+  }, {
+    kor: '엑상프로방스',
+    eng: 'Aix-en-Provence'
+  }, {
+    kor: '아비뇽',
+    eng: 'Avignon'
+  }, {
+    kor: '앙티브',
+    eng: 'Antibes'
+  }, {
+    kor: '몽펠리에',
+    eng: 'Montpellier'
+  }, {
+    kor: '샤모니',
+    eng: 'Chamonix'
   }],
   usa: [{
     kor: '뉴욕',
@@ -16463,13 +16568,52 @@ const CITIES_BY_KEY = {
     eng: 'Boston'
   }, {
     kor: '워싱턴',
-    eng: 'Washington'
+    eng: 'Washington DC'
   }, {
     kor: '시애틀',
     eng: 'Seattle'
   }, {
     kor: '샌디에이고',
     eng: 'San Diego'
+  }, {
+    kor: '뉴올리언스',
+    eng: 'New Orleans'
+  }, {
+    kor: '내슈빌',
+    eng: 'Nashville'
+  }, {
+    kor: '포틀랜드',
+    eng: 'Portland'
+  }, {
+    kor: '덴버',
+    eng: 'Denver'
+  }, {
+    kor: '피닉스',
+    eng: 'Phoenix'
+  }, {
+    kor: '샬럿',
+    eng: 'Charlotte'
+  }, {
+    kor: '애틀랜타',
+    eng: 'Atlanta'
+  }, {
+    kor: '필라델피아',
+    eng: 'Philadelphia'
+  }, {
+    kor: '오스틴',
+    eng: 'Austin'
+  }, {
+    kor: '미니애폴리스',
+    eng: 'Minneapolis'
+  }, {
+    kor: '그랜드캐니언',
+    eng: 'Grand Canyon'
+  }, {
+    kor: '옐로스톤',
+    eng: 'Yellowstone'
+  }, {
+    kor: '요세미티',
+    eng: 'Yosemite'
   }],
   uk: [{
     kor: '런던',
@@ -16495,6 +16639,30 @@ const CITIES_BY_KEY = {
   }, {
     kor: '리버풀',
     eng: 'Liverpool'
+  }, {
+    kor: '버밍엄',
+    eng: 'Birmingham'
+  }, {
+    kor: '글래스고',
+    eng: 'Glasgow'
+  }, {
+    kor: '브리스톨',
+    eng: 'Bristol'
+  }, {
+    kor: '카디프',
+    eng: 'Cardiff'
+  }, {
+    kor: '코츠월즈',
+    eng: 'Cotswolds'
+  }, {
+    kor: '스코틀랜드 하이랜드',
+    eng: 'Scottish Highlands'
+  }, {
+    kor: '브라이턴',
+    eng: 'Brighton'
+  }, {
+    kor: '윈저',
+    eng: 'Windsor'
   }],
   thailand: [{
     kor: '방콕',
@@ -16517,6 +16685,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '크라비',
     eng: 'Krabi'
+  }, {
+    kor: '코창',
+    eng: 'Koh Chang'
+  }, {
+    kor: '코피피',
+    eng: 'Koh Phi Phi'
+  }, {
+    kor: '파이',
+    eng: 'Pai'
+  }, {
+    kor: '수코타이',
+    eng: 'Sukhothai'
+  }, {
+    kor: '치앙라이',
+    eng: 'Chiang Rai'
+  }, {
+    kor: '후아힌',
+    eng: 'Hua Hin'
+  }, {
+    kor: '코리페',
+    eng: 'Koh Lipe'
   }],
   indonesia: [{
     kor: '발리',
@@ -16536,10 +16725,40 @@ const CITIES_BY_KEY = {
   }, {
     kor: '수라바야',
     eng: 'Surabaya'
+  }, {
+    kor: '메단',
+    eng: 'Medan'
+  }, {
+    kor: '마나도',
+    eng: 'Manado'
+  }, {
+    kor: '라부안바조',
+    eng: 'Labuan Bajo'
+  }, {
+    kor: '길리섬',
+    eng: 'Gili Islands'
+  }, {
+    kor: '발리쿠파팡',
+    eng: 'Balikpapan'
+  }, {
+    kor: '플로레스',
+    eng: 'Flores'
   }],
   singapore: [{
     kor: '싱가포르',
     eng: 'Singapore'
+  }, {
+    kor: '센토사',
+    eng: 'Sentosa'
+  }, {
+    kor: '마리나베이',
+    eng: 'Marina Bay'
+  }, {
+    kor: '차이나타운',
+    eng: 'Chinatown'
+  }, {
+    kor: '리틀인디아',
+    eng: 'Little India'
   }],
   spain: [{
     kor: '바르셀로나',
@@ -16565,6 +16784,36 @@ const CITIES_BY_KEY = {
   }, {
     kor: '산세바스티안',
     eng: 'San Sebastian'
+  }, {
+    kor: '코르도바',
+    eng: 'Córdoba'
+  }, {
+    kor: '팜플로나',
+    eng: 'Pamplona'
+  }, {
+    kor: '톨레도',
+    eng: 'Toledo'
+  }, {
+    kor: '살라망카',
+    eng: 'Salamanca'
+  }, {
+    kor: '이비사',
+    eng: 'Ibiza'
+  }, {
+    kor: '마요르카',
+    eng: 'Mallorca'
+  }, {
+    kor: '테네리페',
+    eng: 'Tenerife'
+  }, {
+    kor: '알리칸테',
+    eng: 'Alicante'
+  }, {
+    kor: '산티아고데콤포스텔라',
+    eng: 'Santiago de Compostela'
+  }, {
+    kor: '세고비아',
+    eng: 'Segovia'
   }],
   italy: [{
     kor: '로마',
@@ -16608,16 +16857,36 @@ const CITIES_BY_KEY = {
   }, {
     kor: '베로나',
     eng: 'Verona'
-  }],
-  czechia: [{
-    kor: '프라하',
-    eng: 'Prague'
   }, {
-    kor: '체스키크룸로프',
-    eng: 'Cesky Krumlov'
+    kor: '트리에스테',
+    eng: 'Trieste'
   }, {
-    kor: '브르노',
-    eng: 'Brno'
+    kor: '페루자',
+    eng: 'Perugia'
+  }, {
+    kor: '팔레르모',
+    eng: 'Palermo'
+  }, {
+    kor: '카타니아',
+    eng: 'Catania'
+  }, {
+    kor: '바리',
+    eng: 'Bari'
+  }, {
+    kor: '레체',
+    eng: 'Lecce'
+  }, {
+    kor: '제노바',
+    eng: 'Genoa'
+  }, {
+    kor: '파르마',
+    eng: 'Parma'
+  }, {
+    kor: '코모호수',
+    eng: 'Lake Como'
+  }, {
+    kor: '포지타노',
+    eng: 'Positano'
   }],
   australia: [{
     kor: '시드니',
@@ -16640,6 +16909,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '애들레이드',
     eng: 'Adelaide'
+  }, {
+    kor: '다윈',
+    eng: 'Darwin'
+  }, {
+    kor: '호바트',
+    eng: 'Hobart'
+  }, {
+    kor: '울루루',
+    eng: 'Uluru'
+  }, {
+    kor: '그레이트배리어리프',
+    eng: 'Great Barrier Reef'
+  }, {
+    kor: '포트더글라스',
+    eng: 'Port Douglas'
+  }, {
+    kor: '블루마운틴',
+    eng: 'Blue Mountains'
+  }, {
+    kor: '바이런베이',
+    eng: 'Byron Bay'
   }],
   uae: [{
     kor: '두바이',
@@ -16647,6 +16937,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '아부다비',
     eng: 'Abu Dhabi'
+  }, {
+    kor: '샤르자',
+    eng: 'Sharjah'
+  }, {
+    kor: '라스알카이마',
+    eng: 'Ras Al Khaimah'
+  }, {
+    kor: '후자이라',
+    eng: 'Fujairah'
   }],
   turkey: [{
     kor: '이스탄불',
@@ -16666,6 +16965,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '에페소',
     eng: 'Ephesus'
+  }, {
+    kor: '파묵칼레',
+    eng: 'Pamukkale'
+  }, {
+    kor: '트로이',
+    eng: 'Troy'
+  }, {
+    kor: '앙카라',
+    eng: 'Ankara'
+  }, {
+    kor: '알라냐',
+    eng: 'Alanya'
+  }, {
+    kor: '페티예',
+    eng: 'Fethiye'
+  }, {
+    kor: '마르마리스',
+    eng: 'Marmaris'
+  }, {
+    kor: '트라브존',
+    eng: 'Trabzon'
   }],
   vietnam: [{
     kor: '하노이',
@@ -16691,6 +17011,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '달랏',
     eng: 'Da Lat'
+  }, {
+    kor: '푸꾸옥',
+    eng: 'Phu Quoc'
+  }, {
+    kor: '사파',
+    eng: 'Sapa'
+  }, {
+    kor: '무이네',
+    eng: 'Mui Ne'
+  }, {
+    kor: '꼰다오',
+    eng: 'Con Dao'
+  }, {
+    kor: '하지앙',
+    eng: 'Ha Giang'
   }],
   taiwan: [{
     kor: '타이베이',
@@ -16710,10 +17045,34 @@ const CITIES_BY_KEY = {
   }, {
     kor: '지우펀',
     eng: 'Jiufen'
+  }, {
+    kor: '예류',
+    eng: 'Yehliu'
+  }, {
+    kor: '선저우',
+    eng: 'Alishan'
+  }, {
+    kor: '타이둥',
+    eng: 'Taitung'
+  }, {
+    kor: '루강',
+    eng: 'Lukang'
+  }, {
+    kor: '핑시',
+    eng: 'Pingxi'
   }],
   hongkong: [{
     kor: '홍콩',
     eng: 'Hong Kong'
+  }, {
+    kor: '란타우섬',
+    eng: 'Lantau Island'
+  }, {
+    kor: '빅토리아피크',
+    eng: 'Victoria Peak'
+  }, {
+    kor: '마카오',
+    eng: 'Macau'
   }],
   maldives: [{
     kor: '말레',
@@ -16721,6 +17080,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '마푸시',
     eng: 'Maafushi'
+  }, {
+    kor: '바아환초',
+    eng: 'Baa Atoll'
+  }, {
+    kor: '아리환초',
+    eng: 'Ari Atoll'
+  }, {
+    kor: '라무환초',
+    eng: 'Lamu Atoll'
+  }, {
+    kor: '북말레환초',
+    eng: 'North Malé Atoll'
   }],
   netherlands: [{
     kor: '암스테르담',
@@ -16737,6 +17108,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '잔세스칸스',
     eng: 'Zaanse Schans'
+  }, {
+    kor: '하를럼',
+    eng: 'Haarlem'
+  }, {
+    kor: '마스트리흐트',
+    eng: 'Maastricht'
+  }, {
+    kor: '에인트호번',
+    eng: 'Eindhoven'
+  }, {
+    kor: '레이던',
+    eng: 'Leiden'
+  }, {
+    kor: '호른',
+    eng: 'Hoorn'
+  }, {
+    kor: '델프트',
+    eng: 'Delft'
   }],
   greece: [{
     kor: '아테네',
@@ -16756,6 +17145,30 @@ const CITIES_BY_KEY = {
   }, {
     kor: '로도스',
     eng: 'Rhodes'
+  }, {
+    kor: '코르푸',
+    eng: 'Corfu'
+  }, {
+    kor: '파트라',
+    eng: 'Patras'
+  }, {
+    kor: '낙소스',
+    eng: 'Naxos'
+  }, {
+    kor: '파로스',
+    eng: 'Paros'
+  }, {
+    kor: '자킨토스',
+    eng: 'Zakynthos'
+  }, {
+    kor: '케팔로니아',
+    eng: 'Kefalonia'
+  }, {
+    kor: '델포이',
+    eng: 'Delphi'
+  }, {
+    kor: '올림피아',
+    eng: 'Olympia'
   }],
   malaysia: [{
     kor: '쿠알라룸푸르',
@@ -16772,6 +17185,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '랑카위',
     eng: 'Langkawi'
+  }, {
+    kor: '쿠칭',
+    eng: 'Kuching'
+  }, {
+    kor: '조호르바루',
+    eng: 'Johor Bahru'
+  }, {
+    kor: '이포',
+    eng: 'Ipoh'
+  }, {
+    kor: '캐머런하이랜드',
+    eng: 'Cameron Highlands'
+  }, {
+    kor: '티오만섬',
+    eng: 'Tioman Island'
   }],
   mexico: [{
     kor: '멕시코시티',
@@ -16788,6 +17216,30 @@ const CITIES_BY_KEY = {
   }, {
     kor: '툴룸',
     eng: 'Tulum'
+  }, {
+    kor: '플라야델카르멘',
+    eng: 'Playa del Carmen'
+  }, {
+    kor: '메리다',
+    eng: 'Mérida'
+  }, {
+    kor: '산크리스토발',
+    eng: 'San Cristóbal'
+  }, {
+    kor: '케레타로',
+    eng: 'Querétaro'
+  }, {
+    kor: '과나후아토',
+    eng: 'Guanajuato'
+  }, {
+    kor: '푸에블라',
+    eng: 'Puebla'
+  }, {
+    kor: '바하칼리포르니아',
+    eng: 'Baja California'
+  }, {
+    kor: '이슬라무헤레스',
+    eng: 'Isla Mujeres'
   }],
   canada: [{
     kor: '밴쿠버',
@@ -16799,8 +17251,8 @@ const CITIES_BY_KEY = {
     kor: '몬트리올',
     eng: 'Montreal'
   }, {
-    kor: '퀘벡',
-    eng: 'Quebec'
+    kor: '퀘벡시티',
+    eng: 'Quebec City'
   }, {
     kor: '밴프',
     eng: 'Banff'
@@ -16810,6 +17262,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '오타와',
     eng: 'Ottawa'
+  }, {
+    kor: '빅토리아',
+    eng: 'Victoria'
+  }, {
+    kor: '할리팩스',
+    eng: 'Halifax'
+  }, {
+    kor: '나이아가라폭포',
+    eng: 'Niagara Falls'
+  }, {
+    kor: '휘슬러',
+    eng: 'Whistler'
+  }, {
+    kor: '재스퍼',
+    eng: 'Jasper'
+  }, {
+    kor: '에드먼턴',
+    eng: 'Edmonton'
+  }, {
+    kor: '위니펙',
+    eng: 'Winnipeg'
   }],
   germany: [{
     kor: '베를린',
@@ -16835,6 +17308,33 @@ const CITIES_BY_KEY = {
   }, {
     kor: '로텐부르크',
     eng: 'Rothenburg'
+  }, {
+    kor: '뉘른베르크',
+    eng: 'Nuremberg'
+  }, {
+    kor: '슈투트가르트',
+    eng: 'Stuttgart'
+  }, {
+    kor: '뒤셀도르프',
+    eng: 'Düsseldorf'
+  }, {
+    kor: '라이프치히',
+    eng: 'Leipzig'
+  }, {
+    kor: '브레멘',
+    eng: 'Bremen'
+  }, {
+    kor: '퓌센',
+    eng: 'Füssen'
+  }, {
+    kor: '뤼데스하임',
+    eng: 'Rüdesheim'
+  }, {
+    kor: '바이마르',
+    eng: 'Weimar'
+  }, {
+    kor: '뤼베크',
+    eng: 'Lübeck'
   }],
   portugal: [{
     kor: '리스본',
@@ -16851,6 +17351,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '코임브라',
     eng: 'Coimbra'
+  }, {
+    kor: '오비도스',
+    eng: 'Óbidos'
+  }, {
+    kor: '에보라',
+    eng: 'Évora'
+  }, {
+    kor: '라고스',
+    eng: 'Lagos'
+  }, {
+    kor: '알부페이라',
+    eng: 'Albufeira'
+  }, {
+    kor: '아소레스',
+    eng: 'Azores'
+  }, {
+    kor: '마데이라',
+    eng: 'Madeira'
+  }, {
+    kor: '카스카이스',
+    eng: 'Cascais'
   }],
   switzerland: [{
     kor: '취리히',
@@ -16870,6 +17391,27 @@ const CITIES_BY_KEY = {
   }, {
     kor: '체르마트',
     eng: 'Zermatt'
+  }, {
+    kor: '그린델발트',
+    eng: 'Grindelwald'
+  }, {
+    kor: '로잔',
+    eng: 'Lausanne'
+  }, {
+    kor: '바젤',
+    eng: 'Basel'
+  }, {
+    kor: '장크트갈렌',
+    eng: 'St. Gallen'
+  }, {
+    kor: '루가노',
+    eng: 'Lugano'
+  }, {
+    kor: '다보스',
+    eng: 'Davos'
+  }, {
+    kor: '몽트뢰',
+    eng: 'Montreux'
   }],
   austria: [{
     kor: '빈',
@@ -16886,6 +17428,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '할슈타트',
     eng: 'Hallstatt'
+  }, {
+    kor: '린츠',
+    eng: 'Linz'
+  }, {
+    kor: '클라겐푸르트',
+    eng: 'Klagenfurt'
+  }, {
+    kor: '장크트볼프강',
+    eng: 'St. Wolfgang'
+  }, {
+    kor: '마이어호펜',
+    eng: 'Mayrhofen'
+  }, {
+    kor: '바트이슐',
+    eng: 'Bad Ischl'
   }],
   croatia: [{
     kor: '두브로브니크',
@@ -16902,6 +17459,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '플리트비체',
     eng: 'Plitvice'
+  }, {
+    kor: '로빈',
+    eng: 'Rovinj'
+  }, {
+    kor: '코르쿨라',
+    eng: 'Korčula'
+  }, {
+    kor: '자다르',
+    eng: 'Zadar'
+  }, {
+    kor: '풀라',
+    eng: 'Pula'
+  }, {
+    kor: '브라치섬',
+    eng: 'Brač'
   }],
   cambodia: [{
     kor: '씨엠립',
@@ -16912,6 +17484,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '시하누크빌',
     eng: 'Sihanoukville'
+  }, {
+    kor: '캄폿',
+    eng: 'Kampot'
+  }, {
+    kor: '케프',
+    eng: 'Kep'
+  }, {
+    kor: '바탐방',
+    eng: 'Battambang'
   }],
   philippines: [{
     kor: '마닐라',
@@ -16931,6 +17512,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '바기오',
     eng: 'Baguio'
+  }, {
+    kor: '시아르가오',
+    eng: 'Siargao'
+  }, {
+    kor: '엘니도',
+    eng: 'El Nido'
+  }, {
+    kor: '코론',
+    eng: 'Coron'
+  }, {
+    kor: '딜리만',
+    eng: 'Dumaguete'
+  }, {
+    kor: '일로일로',
+    eng: 'Iloilo'
+  }, {
+    kor: '바타네스',
+    eng: 'Batanes'
   }],
   newzealand: [{
     kor: '오클랜드',
@@ -16947,6 +17546,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '로토루아',
     eng: 'Rotorua'
+  }, {
+    kor: '더니든',
+    eng: 'Dunedin'
+  }, {
+    kor: '와나카',
+    eng: 'Wanaka'
+  }, {
+    kor: '해밀턴',
+    eng: 'Hamilton'
+  }, {
+    kor: '피오르드랜드',
+    eng: 'Fiordland'
+  }, {
+    kor: '아벨태즈먼',
+    eng: 'Abel Tasman'
+  }, {
+    kor: '밀퍼드사운드',
+    eng: 'Milford Sound'
   }],
   morocco: [{
     kor: '마라케시',
@@ -16963,6 +17580,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '에사우이라',
     eng: 'Essaouira'
+  }, {
+    kor: '라바트',
+    eng: 'Rabat'
+  }, {
+    kor: '메크네스',
+    eng: 'Meknes'
+  }, {
+    kor: '탕헤르',
+    eng: 'Tangier'
+  }, {
+    kor: '와르자자트',
+    eng: 'Ouarzazate'
+  }, {
+    kor: '사하라사막',
+    eng: 'Sahara Desert'
+  }, {
+    kor: '아이트벤하두',
+    eng: 'Aït Benhaddou'
   }],
   peru: [{
     kor: '리마',
@@ -16976,6 +17611,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '아레키파',
     eng: 'Arequipa'
+  }, {
+    kor: '티티카카호수',
+    eng: 'Lake Titicaca'
+  }, {
+    kor: '이카',
+    eng: 'Ica'
+  }, {
+    kor: '트루히요',
+    eng: 'Trujillo'
+  }, {
+    kor: '와라즈',
+    eng: 'Huaraz'
+  }, {
+    kor: '이키토스',
+    eng: 'Iquitos'
   }],
   hawaii: [{
     kor: '호놀룰루',
@@ -16989,6 +17639,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '빅아일랜드',
     eng: 'Big Island'
+  }, {
+    kor: '몰로카이',
+    eng: 'Molokai'
+  }, {
+    kor: '라나이',
+    eng: 'Lanai'
+  }, {
+    kor: '와이키키',
+    eng: 'Waikiki'
+  }, {
+    kor: '노스쇼어',
+    eng: 'North Shore'
   }],
   korea: [{
     kor: '서울',
@@ -17014,6 +17676,30 @@ const CITIES_BY_KEY = {
   }, {
     kor: '춘천',
     eng: 'Chuncheon'
+  }, {
+    kor: '속초',
+    eng: 'Sokcho'
+  }, {
+    kor: '여수',
+    eng: 'Yeosu'
+  }, {
+    kor: '광주',
+    eng: 'Gwangju'
+  }, {
+    kor: '대구',
+    eng: 'Daegu'
+  }, {
+    kor: '대전',
+    eng: 'Daejeon'
+  }, {
+    kor: '안동',
+    eng: 'Andong'
+  }, {
+    kor: '평창',
+    eng: 'Pyeongchang'
+  }, {
+    kor: '통영',
+    eng: 'Tongyeong'
   }],
   china: [{
     kor: '베이징',
@@ -17042,6 +17728,33 @@ const CITIES_BY_KEY = {
   }, {
     kor: '샤먼',
     eng: 'Xiamen'
+  }, {
+    kor: '리장',
+    eng: 'Lijiang'
+  }, {
+    kor: '충칭',
+    eng: 'Chongqing'
+  }, {
+    kor: '광저우',
+    eng: 'Guangzhou'
+  }, {
+    kor: '하얼빈',
+    eng: 'Harbin'
+  }, {
+    kor: '황산',
+    eng: 'Huangshan'
+  }, {
+    kor: '쿤밍',
+    eng: 'Kunming'
+  }, {
+    kor: '시솽반나',
+    eng: 'Xishuangbanna'
+  }, {
+    kor: '둔황',
+    eng: 'Dunhuang'
+  }, {
+    kor: '우전',
+    eng: 'Wuzhen'
   }],
   india: [{
     kor: '뭄바이',
@@ -17064,6 +17777,36 @@ const CITIES_BY_KEY = {
   }, {
     kor: '첸나이',
     eng: 'Chennai'
+  }, {
+    kor: '콜카타',
+    eng: 'Kolkata'
+  }, {
+    kor: '케랄라',
+    eng: 'Kerala'
+  }, {
+    kor: '우다이푸르',
+    eng: 'Udaipur'
+  }, {
+    kor: '조드푸르',
+    eng: 'Jodhpur'
+  }, {
+    kor: '다르질링',
+    eng: 'Darjeeling'
+  }, {
+    kor: '아우랑가바드',
+    eng: 'Aurangabad'
+  }, {
+    kor: '하이데라바드',
+    eng: 'Hyderabad'
+  }, {
+    kor: '암리차르',
+    eng: 'Amritsar'
+  }, {
+    kor: '심라',
+    eng: 'Shimla'
+  }, {
+    kor: '마날리',
+    eng: 'Manali'
   }],
   brazil: [{
     kor: '상파울루',
@@ -17077,8 +17820,31 @@ const CITIES_BY_KEY = {
   }, {
     kor: '이과수',
     eng: 'Iguazu'
+  }, {
+    kor: '포르탈레자',
+    eng: 'Fortaleza'
+  }, {
+    kor: '마나우스',
+    eng: 'Manaus'
+  }, {
+    kor: '플로리아노폴리스',
+    eng: 'Florianópolis'
+  }, {
+    kor: '벨루오리존치',
+    eng: 'Belo Horizonte'
+  }, {
+    kor: '레시페',
+    eng: 'Recife'
+  }, {
+    kor: '나탈',
+    eng: 'Natal'
+  }, {
+    kor: '봉보니토',
+    eng: 'Bonito'
+  }, {
+    kor: '파라티',
+    eng: 'Paraty'
   }],
-  // 신규 추가 나라 도시
   norway: [{
     kor: '오슬로',
     eng: 'Oslo'
@@ -17094,6 +17860,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '오레순',
     eng: 'Ålesund'
+  }, {
+    kor: '스타방에르',
+    eng: 'Stavanger'
+  }, {
+    kor: '트론헤임',
+    eng: 'Trondheim'
+  }, {
+    kor: '게이랑에르',
+    eng: 'Geiranger'
+  }, {
+    kor: '로포텐',
+    eng: 'Lofoten'
+  }, {
+    kor: '송네피오르',
+    eng: 'Sognefjord'
+  }, {
+    kor: '보도',
+    eng: 'Bodø'
   }],
   sweden: [{
     kor: '스톡홀름',
@@ -17105,8 +17889,23 @@ const CITIES_BY_KEY = {
     kor: '말뫼',
     eng: 'Malmö'
   }, {
-    kor: '우살라',
+    kor: '웁살라',
     eng: 'Uppsala'
+  }, {
+    kor: '비스비',
+    eng: 'Visby'
+  }, {
+    kor: '키루나',
+    eng: 'Kiruna'
+  }, {
+    kor: '예블레',
+    eng: 'Gävle'
+  }, {
+    kor: '린셰핑',
+    eng: 'Linköping'
+  }, {
+    kor: '칼마르',
+    eng: 'Kalmar'
   }],
   denmark: [{
     kor: '코펜하겐',
@@ -17117,6 +17916,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '오덴세',
     eng: 'Odense'
+  }, {
+    kor: '알보르',
+    eng: 'Aalborg'
+  }, {
+    kor: '에스비에르',
+    eng: 'Esbjerg'
+  }, {
+    kor: '론네',
+    eng: 'Rønne'
+  }, {
+    kor: '스케겐',
+    eng: 'Skagen'
   }],
   finland: [{
     kor: '헬싱키',
@@ -17130,6 +17941,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '투르쿠',
     eng: 'Turku'
+  }, {
+    kor: '오울루',
+    eng: 'Oulu'
+  }, {
+    kor: '사리셀카',
+    eng: 'Saariselkä'
+  }, {
+    kor: '레비',
+    eng: 'Levi'
+  }, {
+    kor: '포르보',
+    eng: 'Porvoo'
   }],
   iceland: [{
     kor: '레이캬비크',
@@ -17143,6 +17966,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '비크',
     eng: 'Vik'
+  }, {
+    kor: '호픈',
+    eng: 'Höfn'
+  }, {
+    kor: '스나이페들스네스',
+    eng: 'Snæfellsnes'
+  }, {
+    kor: '아이야피야틀라이외쿠들',
+    eng: 'Eyjafjallajökull'
+  }, {
+    kor: '스카프타펠',
+    eng: 'Skaftafell'
+  }, {
+    kor: '미바튼호수',
+    eng: 'Lake Mývatn'
   }],
   ireland: [{
     kor: '더블린',
@@ -17156,6 +17994,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '킬라니',
     eng: 'Killarney'
+  }, {
+    kor: '리머릭',
+    eng: 'Limerick'
+  }, {
+    kor: '워터퍼드',
+    eng: 'Waterford'
+  }, {
+    kor: '도니골',
+    eng: 'Donegal'
+  }, {
+    kor: '클리프스오브모허',
+    eng: 'Cliffs of Moher'
+  }, {
+    kor: '아란섬',
+    eng: 'Aran Islands'
   }],
   belgium: [{
     kor: '브뤼셀',
@@ -17169,6 +18022,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '안트베르펜',
     eng: 'Antwerp'
+  }, {
+    kor: '리에주',
+    eng: 'Liège'
+  }, {
+    kor: '나뮈르',
+    eng: 'Namur'
+  }, {
+    kor: '딘낭',
+    eng: 'Dinant'
+  }, {
+    kor: '이프르',
+    eng: 'Ypres'
+  }, {
+    kor: '메헬렌',
+    eng: 'Mechelen'
   }],
   poland: [{
     kor: '바르샤바',
@@ -17182,6 +18050,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '브로츠와프',
     eng: 'Wroclaw'
+  }, {
+    kor: '포즈난',
+    eng: 'Poznań'
+  }, {
+    kor: '아우슈비츠',
+    eng: 'Auschwitz'
+  }, {
+    kor: '자코파네',
+    eng: 'Zakopane'
+  }, {
+    kor: '루블린',
+    eng: 'Lublin'
+  }, {
+    kor: '비아워비에자',
+    eng: 'Białowieża'
+  }, {
+    kor: '토룬',
+    eng: 'Toruń'
   }],
   hungary: [{
     kor: '부다페스트',
@@ -17192,6 +18078,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '페치',
     eng: 'Pécs'
+  }, {
+    kor: '죄르',
+    eng: 'Győr'
+  }, {
+    kor: '발라톤호수',
+    eng: 'Lake Balaton'
+  }, {
+    kor: '케스테이',
+    eng: 'Keszthely'
+  }, {
+    kor: '디요르',
+    eng: 'Debrecen'
+  }, {
+    kor: '솜보르',
+    eng: 'Sopron'
   }],
   czechia: [{
     kor: '프라하',
@@ -17202,6 +18103,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '브르노',
     eng: 'Brno'
+  }, {
+    kor: '올로모우츠',
+    eng: 'Olomouc'
+  }, {
+    kor: '카를로비바리',
+    eng: 'Karlovy Vary'
+  }, {
+    kor: '플젠',
+    eng: 'Plzeň'
+  }, {
+    kor: '쿠트나호라',
+    eng: 'Kutná Hora'
+  }, {
+    kor: '리베레츠',
+    eng: 'Liberec'
   }],
   romania: [{
     kor: '부쿠레슈티',
@@ -17215,6 +18131,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '시나이아',
     eng: 'Sinaia'
+  }, {
+    kor: '클루지나포카',
+    eng: 'Cluj-Napoca'
+  }, {
+    kor: '시비우',
+    eng: 'Sibiu'
+  }, {
+    kor: '마라무레슈',
+    eng: 'Maramureș'
+  }, {
+    kor: '콘스탄차',
+    eng: 'Constanța'
   }],
   bulgaria: [{
     kor: '소피아',
@@ -17228,6 +18156,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '벨리코투르노보',
     eng: 'Veliko Tarnovo'
+  }, {
+    kor: '부르가스',
+    eng: 'Burgas'
+  }, {
+    kor: '릴라수도원',
+    eng: 'Rila Monastery'
+  }, {
+    kor: '소조폴',
+    eng: 'Sozopol'
   }],
   serbia: [{
     kor: '베오그라드',
@@ -17235,6 +18172,12 @@ const CITIES_BY_KEY = {
   }, {
     kor: '노비사드',
     eng: 'Novi Sad'
+  }, {
+    kor: '니시',
+    eng: 'Niš'
+  }, {
+    kor: '수보티차',
+    eng: 'Subotica'
   }],
   montenegro: [{
     kor: '코토르',
@@ -17245,6 +18188,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '포드고리차',
     eng: 'Podgorica'
+  }, {
+    kor: '울치니',
+    eng: 'Ulcinj'
+  }, {
+    kor: '두르미토르',
+    eng: 'Durmitor'
+  }, {
+    kor: '헤르체그노비',
+    eng: 'Herceg Novi'
   }],
   albania: [{
     kor: '티라나',
@@ -17255,6 +18207,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '지로카스터',
     eng: 'Gjirokastër'
+  }, {
+    kor: '사란다',
+    eng: 'Sarandë'
+  }, {
+    kor: '쉬코더르',
+    eng: 'Shkodër'
+  }, {
+    kor: '코르차',
+    eng: 'Korçë'
   }],
   georgia: [{
     kor: '트빌리시',
@@ -17268,6 +18229,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '쿠타이시',
     eng: 'Kutaisi'
+  }, {
+    kor: '시그나기',
+    eng: 'Sighnaghi'
+  }, {
+    kor: '메스티아',
+    eng: 'Mestia'
+  }, {
+    kor: '보르조미',
+    eng: 'Borjomi'
   }],
   armenia: [{
     kor: '예레반',
@@ -17278,6 +18248,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '딜리잔',
     eng: 'Dilijan'
+  }, {
+    kor: '게가르트',
+    eng: 'Geghard'
+  }, {
+    kor: '세반호수',
+    eng: 'Lake Sevan'
+  }, {
+    kor: '짐부르',
+    eng: 'Gyumri'
   }],
   azerbaijan: [{
     kor: '바쿠',
@@ -17288,6 +18267,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '가바라',
     eng: 'Gabala'
+  }, {
+    kor: '간자',
+    eng: 'Ganja'
+  }, {
+    kor: '랑카란',
+    eng: 'Lankaran'
+  }, {
+    kor: '구사르',
+    eng: 'Qusar'
   }],
   israel: [{
     kor: '텔아비브',
@@ -17301,6 +18289,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '에일라트',
     eng: 'Eilat'
+  }, {
+    kor: '사해',
+    eng: 'Dead Sea'
+  }, {
+    kor: '나사렛',
+    eng: 'Nazareth'
+  }, {
+    kor: '마사다',
+    eng: 'Masada'
+  }, {
+    kor: '아크레',
+    eng: 'Acre'
   }],
   jordan: [{
     kor: '암만',
@@ -17314,6 +18314,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '와디럼',
     eng: 'Wadi Rum'
+  }, {
+    kor: '제라시',
+    eng: 'Jerash'
+  }, {
+    kor: '마다바',
+    eng: 'Madaba'
+  }, {
+    kor: '사해',
+    eng: 'Dead Sea Jordan'
   }],
   saudi: [{
     kor: '리야드',
@@ -17324,10 +18333,25 @@ const CITIES_BY_KEY = {
   }, {
     kor: '알울라',
     eng: 'AlUla'
+  }, {
+    kor: '메디나',
+    eng: 'Medina'
+  }, {
+    kor: '아브하',
+    eng: 'Abha'
+  }, {
+    kor: '타부크',
+    eng: 'Tabuk'
   }],
   qatar: [{
     kor: '도하',
     eng: 'Doha'
+  }, {
+    kor: '알와크라',
+    eng: 'Al Wakrah'
+  }, {
+    kor: '알호르',
+    eng: 'Al Khor'
   }],
   oman: [{
     kor: '무스카트',
@@ -17338,6 +18362,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '살랄라',
     eng: 'Salalah'
+  }, {
+    kor: '수르',
+    eng: 'Sur'
+  }, {
+    kor: '무산담',
+    eng: 'Musandam'
+  }, {
+    kor: '와히바사막',
+    eng: 'Wahiba Sands'
   }],
   egypt: [{
     kor: '카이로',
@@ -17357,6 +18390,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '후르가다',
     eng: 'Hurghada'
+  }, {
+    kor: '아부심벨',
+    eng: 'Abu Simbel'
+  }, {
+    kor: '시나이',
+    eng: 'Sinai'
+  }, {
+    kor: '다합',
+    eng: 'Dahab'
+  }, {
+    kor: '마르사알람',
+    eng: 'Marsa Alam'
   }],
   southafrica: [{
     kor: '케이프타운',
@@ -17370,6 +18415,21 @@ const CITIES_BY_KEY = {
   }, {
     kor: '가든루트',
     eng: 'Garden Route'
+  }, {
+    kor: '스텔렌보스',
+    eng: 'Stellenbosch'
+  }, {
+    kor: '크루거국립공원',
+    eng: 'Kruger National Park'
+  }, {
+    kor: '포트엘리자베스',
+    eng: 'Port Elizabeth'
+  }, {
+    kor: '블룸폰테인',
+    eng: 'Bloemfontein'
+  }, {
+    kor: '더반',
+    eng: 'Durban'
   }],
   kenya: [{
     kor: '나이로비',
@@ -17383,6 +18443,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '암보셀리',
     eng: 'Amboseli'
+  }, {
+    kor: '삼부루',
+    eng: 'Samburu'
+  }, {
+    kor: '라무',
+    eng: 'Lamu'
+  }, {
+    kor: '츠보국립공원',
+    eng: 'Tsavo National Park'
+  }, {
+    kor: '나쿠루호수',
+    eng: 'Lake Nakuru'
   }],
   tanzania: [{
     kor: '다르에스살람',
@@ -17396,6 +18468,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '킬리만자로',
     eng: 'Kilimanjaro'
+  }, {
+    kor: '응고롱고로',
+    eng: 'Ngorongoro'
+  }, {
+    kor: '아루샤',
+    eng: 'Arusha'
+  }, {
+    kor: '빅토리아호수',
+    eng: 'Lake Victoria'
   }],
   mauritius: [{
     kor: '포르루이',
@@ -17406,6 +18487,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '플리크앙플락',
     eng: 'Flic en Flac'
+  }, {
+    kor: '블루베이',
+    eng: 'Blue Bay'
+  }, {
+    kor: '마헤부르',
+    eng: 'Mahébourg'
+  }, {
+    kor: '퀴르피프',
+    eng: 'Curepipe'
   }],
   seychelles: [{
     kor: '마헤',
@@ -17416,6 +18506,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '라디그',
     eng: 'La Digue'
+  }, {
+    kor: '실루에트',
+    eng: 'Silhouette'
+  }, {
+    kor: '알다브라',
+    eng: 'Aldabra'
+  }, {
+    kor: '드니섬',
+    eng: 'Denis Island'
   }],
   myanmar: [{
     kor: '양곤',
@@ -17429,6 +18528,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '인레호수',
     eng: 'Inle Lake'
+  }, {
+    kor: '응웨사웅',
+    eng: 'Ngwe Saung'
+  }, {
+    kor: '차욱피유',
+    eng: 'Chauk Phyu'
+  }, {
+    kor: '케마핀',
+    eng: 'Kalaw'
   }],
   laos: [{
     kor: '루앙프라방',
@@ -17439,6 +18547,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '방비엥',
     eng: 'Vang Vieng'
+  }, {
+    kor: '팍세',
+    eng: 'Pakse'
+  }, {
+    kor: '시판돈',
+    eng: 'Si Phan Don'
+  }, {
+    kor: '퐁살리',
+    eng: 'Phongsali'
   }],
   mongolia: [{
     kor: '울란바토르',
@@ -17449,6 +18566,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '테렐지',
     eng: 'Terelj'
+  }, {
+    kor: '홉스굴호수',
+    eng: 'Khövsgöl Lake'
+  }, {
+    kor: '카라코룸',
+    eng: 'Karakorum'
+  }, {
+    kor: '에르덴조',
+    eng: 'Erdene Zuu'
   }],
   nepal: [{
     kor: '카트만두',
@@ -17459,6 +18585,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '치트완',
     eng: 'Chitwan'
+  }, {
+    kor: '룸비니',
+    eng: 'Lumbini'
+  }, {
+    kor: '나가르코트',
+    eng: 'Nagarkot'
+  }, {
+    kor: '반디푸르',
+    eng: 'Bandipur'
+  }, {
+    kor: '에베레스트베이스캠프',
+    eng: 'Everest Base Camp'
   }],
   srilanka: [{
     kor: '콜롬보',
@@ -17475,6 +18613,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '엘라',
     eng: 'Ella'
+  }, {
+    kor: '누와라엘리야',
+    eng: 'Nuwara Eliya'
+  }, {
+    kor: '아누라다푸라',
+    eng: 'Anuradhapura'
+  }, {
+    kor: '폴론나루와',
+    eng: 'Polonnaruwa'
+  }, {
+    kor: '트링코말리',
+    eng: 'Trincomalee'
   }],
   bhutan: [{
     kor: '팀부',
@@ -17485,10 +18635,25 @@ const CITIES_BY_KEY = {
   }, {
     kor: '푸나카',
     eng: 'Punakha'
+  }, {
+    kor: '범탕',
+    eng: 'Bumthang'
+  }, {
+    kor: '완두에포당',
+    eng: 'Wangdue Phodrang'
   }],
   macau: [{
-    kor: '마카오',
-    eng: 'Macau'
+    kor: '마카오반도',
+    eng: 'Macau Peninsula'
+  }, {
+    kor: '타이파',
+    eng: 'Taipa'
+  }, {
+    kor: '코타이',
+    eng: 'Cotai'
+  }, {
+    kor: '콜로안',
+    eng: 'Coloane'
   }],
   argentina: [{
     kor: '부에노스아이레스',
@@ -17505,6 +18670,24 @@ const CITIES_BY_KEY = {
   }, {
     kor: '멘도사',
     eng: 'Mendoza'
+  }, {
+    kor: '살타',
+    eng: 'Salta'
+  }, {
+    kor: '코르도바',
+    eng: 'Córdoba'
+  }, {
+    kor: '엘칼라파테',
+    eng: 'El Calafate'
+  }, {
+    kor: '우수아이아',
+    eng: 'Ushuaia'
+  }, {
+    kor: '투쿠만',
+    eng: 'Tucumán'
+  }, {
+    kor: '마르델플라타',
+    eng: 'Mar del Plata'
   }],
   chile: [{
     kor: '산티아고',
@@ -17521,6 +18704,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '부활절섬',
     eng: 'Easter Island'
+  }, {
+    kor: '푸에르토나탈레스',
+    eng: 'Puerto Natales'
+  }, {
+    kor: '토레스델파이네',
+    eng: 'Torres del Paine'
+  }, {
+    kor: '비냐델마르',
+    eng: 'Viña del Mar'
+  }, {
+    kor: '칠로에',
+    eng: 'Chiloé'
   }],
   colombia: [{
     kor: '보고타',
@@ -17534,6 +18729,18 @@ const CITIES_BY_KEY = {
   }, {
     kor: '칼리',
     eng: 'Cali'
+  }, {
+    kor: '바란키야',
+    eng: 'Barranquilla'
+  }, {
+    kor: '산안드레스',
+    eng: 'San Andrés'
+  }, {
+    kor: '레티시아',
+    eng: 'Leticia'
+  }, {
+    kor: '커피의길',
+    eng: 'Coffee Region'
   }],
   ecuador: [{
     kor: '키토',
@@ -17544,6 +18751,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '갈라파고스',
     eng: 'Galapagos'
+  }, {
+    kor: '쿠엥카',
+    eng: 'Cuenca'
+  }, {
+    kor: '아마존',
+    eng: 'Amazon Ecuador'
+  }, {
+    kor: '바뇨스',
+    eng: 'Baños'
   }],
   cuba: [{
     kor: '아바나',
@@ -17554,6 +18770,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '바라데로',
     eng: 'Varadero'
+  }, {
+    kor: '시엔푸에고스',
+    eng: 'Cienfuegos'
+  }, {
+    kor: '산티아고데쿠바',
+    eng: 'Santiago de Cuba'
+  }, {
+    kor: '비냘레스',
+    eng: 'Viñales'
   }],
   costarica: [{
     kor: '산호세',
@@ -17567,6 +18792,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '몬테베르데',
     eng: 'Monteverde'
+  }, {
+    kor: '토르투게로',
+    eng: 'Tortuguero'
+  }, {
+    kor: '코코스섬',
+    eng: 'Cocos Island'
+  }, {
+    kor: '오사반도',
+    eng: 'Osa Peninsula'
   }],
   panama: [{
     kor: '파나마시티',
@@ -17574,6 +18808,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '보카스델토로',
     eng: 'Bocas del Toro'
+  }, {
+    kor: '파나마운하',
+    eng: 'Panama Canal'
+  }, {
+    kor: '엘바예',
+    eng: 'El Valle'
+  }, {
+    kor: '산블라스',
+    eng: 'San Blas'
   }],
   dominican: [{
     kor: '산토도밍고',
@@ -17584,6 +18827,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '라스테레나스',
     eng: 'Las Terrenas'
+  }, {
+    kor: '사마나',
+    eng: 'Samaná'
+  }, {
+    kor: '카바레테',
+    eng: 'Cabarete'
+  }, {
+    kor: '바라호나',
+    eng: 'Barahona'
   }],
   fiji: [{
     kor: '나디',
@@ -17594,6 +18846,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '마나섬',
     eng: 'Mana Island'
+  }, {
+    kor: '마로마나섬',
+    eng: 'Mamanuca Islands'
+  }, {
+    kor: '야사와섬',
+    eng: 'Yasawa Islands'
+  }, {
+    kor: '비티레부',
+    eng: 'Viti Levu'
   }],
   guam: [{
     kor: '투몬',
@@ -17601,6 +18862,12 @@ const CITIES_BY_KEY = {
   }, {
     kor: '아가냐',
     eng: 'Hagåtña'
+  }, {
+    kor: '탈로포포',
+    eng: 'Talofofo'
+  }, {
+    kor: '리티디안비치',
+    eng: 'Ritidian Beach'
   }],
   saipan: [{
     kor: '가라판',
@@ -17608,6 +18875,12 @@ const CITIES_BY_KEY = {
   }, {
     kor: '마나가하섬',
     eng: 'Managaha Island'
+  }, {
+    kor: '라우라우비치',
+    eng: 'Lau Lau Beach'
+  }, {
+    kor: '타포차우산',
+    eng: 'Mt. Tapochau'
   }],
   palau: [{
     kor: '코로르',
@@ -17615,6 +18888,15 @@ const CITIES_BY_KEY = {
   }, {
     kor: '록아일랜드',
     eng: 'Rock Islands'
+  }, {
+    kor: '펠렐리우',
+    eng: 'Peleliu'
+  }, {
+    kor: '응게룰무드',
+    eng: 'Ngermid'
+  }, {
+    kor: '젤리피시레이크',
+    eng: 'Jellyfish Lake'
   }]
 };
 function NewTripSheet({
@@ -17629,7 +18911,13 @@ function NewTripSheet({
   const [selectedDest, setSelectedDest] = React.useState(null); // step 1: 나라
   const [destQuery, setDestQuery] = React.useState('');
   const destInputRef = React.useRef(null);
+  const miniCalRef = React.useRef(null);
+  const [calPicking, setCalPicking] = React.useState(false);
   const [cities, setCities] = React.useState(['']);
+  const [cityDrag, setCityDrag] = React.useState(null);
+  const cityCardRefs = React.useRef({});
+  const cityDragRef = React.useRef(null);
+  cityDragRef.current = cityDrag;
   const [startIso, setStartIso] = React.useState('');
   const [endIso, setEndIso] = React.useState('');
   const [hotels, setHotels] = React.useState([{
@@ -17643,6 +18931,8 @@ function NewTripSheet({
   const [places, setPlaces] = React.useState([]);
   const [loading, setLoading] = React.useState(false);
   const [selected, setSelected] = React.useState(new Set());
+  const [cityStep, setCityStep] = React.useState(0);
+  const [showMore, setShowMore] = React.useState(false);
   const [kbOffset, setKbOffset] = React.useState(0);
 
   // 키보드 올라올 때 팝업 위치 조정
@@ -17665,6 +18955,52 @@ function NewTripSheet({
       vv.removeEventListener('scroll', update);
     };
   }, [open]);
+
+  // 도시 카드 드래그 리오더
+  React.useEffect(() => {
+    if (!cityDrag) return;
+    const onMove = e => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      e.preventDefault();
+      setCityDrag(prev => prev ? {
+        ...prev,
+        currentY: touch.clientY
+      } : null);
+    };
+    const onEnd = () => {
+      const drag = cityDragRef.current;
+      if (!drag) return;
+      const delta = drag.currentY - drag.startY;
+      const ds = drag.snapshots[drag.idx];
+      const dcY = ds ? ds.top + ds.height / 2 + delta : drag.startY + delta;
+      let hIdx = 0;
+      for (let j = 0; j < drag.len; j++) {
+        if (j === drag.idx) continue;
+        const sn = drag.snapshots[j];
+        if (sn && dcY > sn.top + sn.height / 2) hIdx++;
+      }
+      if (hIdx !== drag.idx) {
+        setCities(prev => {
+          const arr = [...prev];
+          const [rm] = arr.splice(drag.idx, 1);
+          arr.splice(hIdx, 0, rm);
+          return arr;
+        });
+      }
+      setCityDrag(null);
+    };
+    window.addEventListener('touchmove', onMove, {
+      passive: false
+    });
+    window.addEventListener('touchend', onEnd);
+    window.addEventListener('touchcancel', onEnd);
+    return () => {
+      window.removeEventListener('touchmove', onMove);
+      window.removeEventListener('touchend', onEnd);
+      window.removeEventListener('touchcancel', onEnd);
+    };
+  }, [!!cityDrag]);
   const dayCount = startIso && endIso ? Math.round((new Date(endIso + 'T12:00:00') - new Date(startIso + 'T12:00:00')) / 86400000) + 1 : 0;
   React.useEffect(() => {
     if (!open) return;
@@ -17685,6 +19021,8 @@ function NewTripSheet({
     setPlaces([]);
     setLoading(false);
     setSelected(new Set());
+    setCityStep(0);
+    setShowMore(false);
   }, [open]);
   React.useEffect(() => {
     if (dayCount > 0) setHotels(prev => prev.map((h, i) => i === prev.length - 1 ? {
@@ -17693,7 +19031,7 @@ function NewTripSheet({
     } : h));
   }, [dayCount]);
 
-  // 장소 로딩 (다중 도시 + 타입 추출 + 자동 전체 선택)
+  // 장소 로딩 (다중 도시 + 행정경계 bbox + 타입 추출 + 자동 전체 선택)
   React.useEffect(() => {
     if (step !== HP_STEP || !open) return;
     const validCities = cities.filter(c => c.trim());
@@ -17706,38 +19044,66 @@ function NewTripSheet({
         const allPlaces = [];
         for (let ci = 0; ci < validCities.length; ci++) {
           const city = validCities[ci];
-          const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(city)}&limit=1`).then(r => r.json());
-          const f = geo.features?.[0];
+          // Nominatim으로 도시 행정 경계(bounding box) 가져오기
+          const geo = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=3&addressdetails=0`, {
+            headers: {
+              'User-Agent': 'TripLikeJ/1.0'
+            }
+          }).then(r => r.json());
+          // 도시·지역 유형 우선 선택
+          const PRIO = ['city', 'town', 'village', 'borough', 'suburb', 'quarter', 'neighbourhood', 'island', 'region', 'state'];
+          const f = geo.find(g => PRIO.includes(g.type) || PRIO.includes(g.class)) || geo[0];
           if (!f) continue;
-          const [lon, lat] = f.geometry.coordinates;
-          const q = `[out:json][timeout:25];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo|aquarium"](around:20000,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"](around:20000,${lat},${lon});node["leisure"~"park|garden"](around:15000,${lat},${lon}););out 40;`;
+          const lat = parseFloat(f.lat),
+            lon = parseFloat(f.lon);
+          // bounding box 사용 (Nominatim: [south, north, west, east])
+          let areaQ;
+          if (f.boundingbox) {
+            const [s, n, w, e] = f.boundingbox.map(Number);
+            // 너무 좁은 bbox(관광지 단일 노드 등)면 반경으로 대체
+            const broad = n - s > 0.04 && e - w > 0.04;
+            areaQ = broad ? `(${s},${w},${n},${e})` : `(around:10000,${lat},${lon})`;
+          } else {
+            areaQ = `(around:10000,${lat},${lon})`;
+          }
+          const q = `[out:json][timeout:30];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo|aquarium"]${areaQ};node["historic"~"monument|castle|ruins|memorial"]${areaQ};node["leisure"~"park|garden"]${areaQ};way["tourism"~"attraction|museum|theme_park|zoo|aquarium"]${areaQ};way["historic"~"monument|castle|ruins"]${areaQ};);out center 50;`;
           const ov = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`).then(r => r.json());
           const list = (ov.elements || []).filter(e => e.tags?.name).map(e => {
             const tags = e.tags;
             const type = tags.tourism || tags.historic || tags.leisure || 'attraction';
+            const elat = e.lat ?? e.center?.lat;
+            const elon = e.lon ?? e.center?.lon;
             return {
               id: `${ci}_${e.id}`,
               name: tags['name:en'] || tags.name,
-              lat: e.lat,
-              lon: e.lon,
+              lat: elat,
+              lon: elon,
               wikipedia: tags.wikipedia,
               photo: null,
               type,
               cityIdx: ci
             };
-          });
+          }).filter(p => p.lat && p.lon);
           allPlaces.push(...list);
         }
         setPlaces(allPlaces);
-        setSelected(new Set(allPlaces.map(p => p.id)));
+        setSelected(new Set()); // 기본 미선택 — 사용자가 직접 선택
         setLoading(false);
-        allPlaces.forEach(async (p, idx) => {
-          if (!p.wikipedia) return;
+        // 사진 비동기 로드: wikipedia 태그 → 이름 검색 fallback
+        allPlaces.forEach(async p => {
           try {
-            const t = p.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
-            const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
-            const photo = d.thumbnail?.source;
-            if (photo) setPlaces(prev => prev.map((pl, i) => i === idx ? {
+            let photo = null;
+            if (p.wikipedia) {
+              const t = p.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
+              const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
+              photo = d.thumbnail?.source || null;
+            }
+            if (!photo) {
+              const sr = await fetch(`https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=400&origin=*`).then(r => r.json());
+              const pages = sr.query?.pages;
+              if (pages) photo = Object.values(pages)[0]?.thumbnail?.source || null;
+            }
+            if (photo) setPlaces(prev => prev.map(pl => pl.id === p.id ? {
               ...pl,
               photo
             } : pl));
@@ -17749,18 +19115,41 @@ function NewTripSheet({
     })();
   }, [step]);
   if (!open) return null;
+  const validCities = cities.filter(c => c.trim());
+  const isLastCity = cityStep >= validCities.length - 1;
   const canNext = step === 1 ? !!(selectedDest || destQuery.trim()) : step === 2 ? cities.some(c => c.trim()) : step === 3 ? !!(startIso && endIso) : true;
+
+  // 장소 우선순위 정렬 (wikipedia 유무 + 유형 중요도)
+  const PLACE_TYPE_SCORE = {
+    museum: 6,
+    zoo: 5,
+    aquarium: 5,
+    theme_park: 5,
+    castle: 4,
+    ruins: 4,
+    monument: 3,
+    gallery: 3,
+    viewpoint: 3,
+    park: 2,
+    garden: 2,
+    attraction: 1
+  };
+  const sortByPriority = arr => [...arr].sort((a, b) => {
+    const as = (a.wikipedia ? 10 : 0) + (PLACE_TYPE_SCORE[a.type] || 1);
+    const bs = (b.wikipedia ? 10 : 0) + (PLACE_TYPE_SCORE[b.type] || 1);
+    return bs - as;
+  });
   const TITLES = {
     1: '어느 나라로 가요?',
     2: '도시를 알려줘요',
     3: '언제 가요?',
     4: '어느 공항으로?',
-    5: '숙소는요?',
-    6: '가고 싶은 곳을 골라요'
+    5: '숙소는요?'
   };
+  const currentCityName = validCities[cityStep] || '';
+  const stepTitle = step < HP_STEP ? TITLES[step] : currentCityName ? `${currentCityName}에서 가고 싶은 곳` : '가고 싶은 곳을 골라요';
   const handleNext = () => {
     if (step === 1) {
-      // DB에 없는 나라도 허용 — destQuery로 최소 selectedDest 생성
       if (!selectedDest && destQuery.trim()) {
         setSelectedDest({
           key: 'custom',
@@ -17776,9 +19165,21 @@ function NewTripSheet({
       setCities(['']);
     }
     if (step < TOTAL) {
+      // 날짜 step에서 년/월 picker가 열려 있으면 달력으로만 돌아오기
+      if (step === 3 && miniCalRef.current?.isPicking?.()) {
+        miniCalRef.current.confirm();
+        return;
+      }
       setStep(s => s + 1);
       return;
     }
+    // step === HP_STEP: 도시별 순차 진행
+    if (!isLastCity) {
+      setCityStep(s => s + 1);
+      setShowMore(false);
+      return;
+    }
+    // 모든 도시 완료 → 여행 생성
     const selPlaces = places.filter(p => selected.has(p.id));
     const resolvedDest = selectedDest || (destQuery.trim() ? {
       key: 'custom',
@@ -17803,6 +19204,14 @@ function NewTripSheet({
     onSubmit(tripData);
     onClose();
   };
+  const handleBack = () => {
+    if (step === HP_STEP && cityStep > 0) {
+      setCityStep(s => s - 1);
+      setShowMore(false);
+      return;
+    }
+    setStep(s => s - 1);
+  };
   const togglePlace = id => setSelected(prev => {
     const next = new Set(prev);
     next.has(id) ? next.delete(id) : next.add(id);
@@ -17826,7 +19235,7 @@ function NewTripSheet({
   }, /*#__PURE__*/React.createElement("div", {
     onClick: e => e.stopPropagation(),
     onMouseDown: e => {
-      if (!e.target.closest('button,input,textarea,select,a,label')) e.preventDefault();
+      if (!e.target.closest('input,textarea,select')) e.preventDefault();
     },
     style: {
       background: COLORS.bg,
@@ -17861,13 +19270,28 @@ function NewTripSheet({
       background: i < step ? COLORS.ink : COLORS.line,
       transition: 'background 0.2s'
     }
+  }))), step === HP_STEP && validCities.length > 1 && /*#__PURE__*/React.createElement("div", {
+    style: {
+      display: 'flex',
+      gap: 5,
+      marginBottom: 10
+    }
+  }, validCities.map((_, i) => /*#__PURE__*/React.createElement("div", {
+    key: i,
+    style: {
+      width: 6,
+      height: 6,
+      borderRadius: '50%',
+      background: i <= cityStep ? COLORS.ink : COLORS.line,
+      transition: 'background 0.2s'
+    }
   }))), /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SERIF,
       fontSize: 20,
       color: COLORS.ink
     }
-  }, TITLES[step] || '가고 싶은 곳을 골라요')), /*#__PURE__*/React.createElement("div", {
+  }, stepTitle)), /*#__PURE__*/React.createElement("div", {
     style: {
       overflowY: 'auto',
       flex: 1,
@@ -17993,152 +19417,221 @@ function NewTripSheet({
         zIndex: 3
       }
     }, "\xD7")));
-  })(), step === 2 && /*#__PURE__*/React.createElement("div", null, cities.map((city, i) => {
-    const cityList = selectedDest ? CITIES_BY_KEY[selectedDest.key] || [] : [];
-    const qRaw = city;
-    const q = qRaw.toLowerCase();
-    const cityGhostMatch = qRaw.length === 0 ? null : cityList.find(c => c.kor.startsWith(qRaw) && c.kor !== qRaw) || cityList.find(c => c.eng.toLowerCase().startsWith(q) && c.eng.toLowerCase() !== q) || null;
-    const cityGhostIsKor = cityGhostMatch && cityGhostMatch.kor.startsWith(qRaw);
-    const cityGhostFull = cityGhostMatch ? cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng : '';
-    const cityGhostSuffix = cityGhostFull ? cityGhostFull.slice(qRaw.length) : '';
-    let cityTypedPx = 16 + qRaw.length * 14;
-    try {
-      const cv = document.createElement('canvas');
-      const cx = cv.getContext('2d');
-      cx.font = `15px ${SANS},sans-serif`;
-      cityTypedPx = 16 + cx.measureText(qRaw).width;
-    } catch (_) {}
-    const acceptCityGhost = () => {
-      if (!cityGhostMatch) return;
-      setCities(prev => prev.map((c, j) => j === i ? cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng : c));
-    };
-    return /*#__PURE__*/React.createElement("div", {
-      key: i,
-      style: {
-        display: 'flex',
-        gap: 8,
-        marginBottom: 10,
-        alignItems: 'center'
+  })(), step === 2 && (() => {
+    // 드래그 hoverIdx 계산
+    const dragDelta = cityDrag ? cityDrag.currentY - cityDrag.startY : 0;
+    const draggedSnap = cityDrag ? cityDrag.snapshots[cityDrag.idx] : null;
+    const draggedCenterY = draggedSnap ? draggedSnap.top + draggedSnap.height / 2 + dragDelta : 0;
+    let hoverIdx = cityDrag ? cityDrag.idx : null;
+    if (cityDrag) {
+      hoverIdx = 0;
+      for (let j = 0; j < cities.length; j++) {
+        if (j === cityDrag.idx) continue;
+        const sn = cityDrag.snapshots[j];
+        if (sn && draggedCenterY > sn.top + sn.height / 2) hoverIdx++;
       }
-    }, /*#__PURE__*/React.createElement("div", {
+    }
+    const draggedCardH = cityDrag ? (draggedSnap?.height || 54) + 10 : 0;
+    return /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
       style: {
-        flex: 1,
-        position: 'relative',
-        borderRadius: 14,
-        background: COLORS.card,
-        border: `1.5px solid ${COLORS.line}`
+        position: 'relative'
       }
-    }, cityGhostSuffix && /*#__PURE__*/React.createElement("div", {
-      "aria-hidden": "true",
+    }, cities.map((city, i) => {
+      const cityList = selectedDest ? CITIES_BY_KEY[selectedDest.key] || [] : [];
+      const qRaw = city;
+      const q = qRaw.toLowerCase();
+      const cityGhostMatch = qRaw.length === 0 ? null : cityList.find(c => c.kor.startsWith(qRaw) && c.kor !== qRaw) || cityList.find(c => c.eng.toLowerCase().startsWith(q) && c.eng.toLowerCase() !== q) || null;
+      const cityGhostIsKor = cityGhostMatch && cityGhostMatch.kor.startsWith(qRaw);
+      const cityGhostFull = cityGhostMatch ? cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng : '';
+      const cityGhostSuffix = cityGhostFull ? cityGhostFull.slice(qRaw.length) : '';
+      let cityTypedPx = 16 + qRaw.length * 14;
+      try {
+        const cv = document.createElement('canvas');
+        const cx = cv.getContext('2d');
+        cx.font = `15px ${SANS},sans-serif`;
+        cityTypedPx = 16 + cx.measureText(qRaw).width;
+      } catch (_) {}
+      const acceptCityGhost = () => {
+        if (!cityGhostMatch) return;
+        setCities(prev => prev.map((c, j) => j === i ? cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng : c));
+      };
+      const isDragging = cityDrag && cityDrag.idx === i;
+      let translateY = 0;
+      if (cityDrag) {
+        if (isDragging) {
+          translateY = dragDelta;
+        } else if (hoverIdx < cityDrag.idx) {
+          if (i >= hoverIdx && i < cityDrag.idx) translateY = draggedCardH;
+        } else if (hoverIdx > cityDrag.idx) {
+          if (i > cityDrag.idx && i <= hoverIdx) translateY = -draggedCardH;
+        }
+      }
+      return /*#__PURE__*/React.createElement("div", {
+        key: i,
+        ref: el => {
+          cityCardRefs.current[i] = el;
+        },
+        style: {
+          display: 'flex',
+          gap: 8,
+          marginBottom: 10,
+          alignItems: 'center',
+          transform: `translateY(${translateY}px)`,
+          transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(0.22,1,0.36,1)',
+          zIndex: isDragging ? 50 : 1,
+          position: 'relative'
+        }
+      }, cities.length > 1 && /*#__PURE__*/React.createElement("div", {
+        onTouchStart: e => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const snapshots = {};
+          cities.forEach((_, j) => {
+            const el = cityCardRefs.current[j];
+            if (el) snapshots[j] = el.getBoundingClientRect();
+          });
+          setCityDrag({
+            idx: i,
+            startY: touch.clientY,
+            currentY: touch.clientY,
+            snapshots,
+            len: cities.length
+          });
+        },
+        style: {
+          flexShrink: 0,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: 28,
+          height: 44,
+          cursor: 'grab',
+          touchAction: 'none'
+        }
+      }, /*#__PURE__*/React.createElement("svg", {
+        width: "12",
+        height: "18",
+        viewBox: "0 0 12 18",
+        fill: "none"
+      }, [[2, 2], [8, 2], [2, 7], [8, 7], [2, 12], [8, 12]].map(([cx, cy]) => /*#__PURE__*/React.createElement("circle", {
+        key: `${cx}-${cy}`,
+        cx: cx,
+        cy: cy,
+        r: "2",
+        fill: COLORS.mute,
+        opacity: "0.55"
+      })))), /*#__PURE__*/React.createElement("div", {
+        style: {
+          flex: 1,
+          position: 'relative',
+          borderRadius: 14,
+          background: COLORS.card,
+          border: `1.5px solid ${COLORS.line}`,
+          boxShadow: isDragging ? '0 10px 32px rgba(0,0,0,0.18)' : 'none',
+          transition: isDragging ? 'none' : 'box-shadow 0.22s ease'
+        }
+      }, cityGhostSuffix && /*#__PURE__*/React.createElement("div", {
+        "aria-hidden": "true",
+        style: {
+          position: 'absolute',
+          inset: 0,
+          padding: '12px 40px 12px 16px',
+          display: 'flex',
+          alignItems: 'center',
+          pointerEvents: 'none',
+          overflow: 'hidden',
+          fontFamily: SANS,
+          fontSize: 15,
+          lineHeight: 'normal',
+          borderRadius: 14
+        }
+      }, /*#__PURE__*/React.createElement("span", {
+        style: {
+          color: 'transparent',
+          whiteSpace: 'pre'
+        }
+      }, qRaw), /*#__PURE__*/React.createElement("span", {
+        style: {
+          color: COLORS.mute,
+          opacity: 0.55,
+          whiteSpace: 'pre'
+        }
+      }, cityGhostSuffix)), /*#__PURE__*/React.createElement("input", {
+        value: city,
+        autoFocus: i === 0 && !cityDrag,
+        onChange: e => setCities(prev => prev.map((c, j) => j === i ? e.target.value : c)),
+        onKeyDown: e => {
+          if (e.key === 'Enter' && city.trim()) setStep(3);
+        },
+        placeholder: cityGhostSuffix ? '' : i === 0 ? '도시 이름 (한글 또는 영어)' : `도시 ${i + 1}`,
+        style: {
+          width: '100%',
+          boxSizing: 'border-box',
+          padding: '12px 40px 12px 16px',
+          border: 'none',
+          borderRadius: 14,
+          outline: 'none',
+          background: 'transparent',
+          fontFamily: SANS,
+          fontSize: 15,
+          color: COLORS.ink,
+          position: 'relative',
+          zIndex: 1
+        }
+      }), cityGhostSuffix && /*#__PURE__*/React.createElement("div", {
+        onMouseDown: e => {
+          e.preventDefault();
+          acceptCityGhost();
+        },
+        style: {
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          left: cityTypedPx,
+          right: 8,
+          zIndex: 2,
+          cursor: 'pointer'
+        }
+      }), city.length > 0 && /*#__PURE__*/React.createElement("button", {
+        onClick: () => setCities(prev => prev.map((c, j) => j === i ? '' : c)),
+        style: {
+          position: 'absolute',
+          right: 10,
+          top: '50%',
+          transform: 'translateY(-50%)',
+          background: 'none',
+          border: 'none',
+          cursor: 'pointer',
+          color: COLORS.mute,
+          fontSize: 18,
+          lineHeight: 1,
+          padding: 4,
+          zIndex: 3
+        }
+      }, "\xD7")));
+    })), /*#__PURE__*/React.createElement("button", {
+      onMouseDown: e => e.preventDefault(),
+      onClick: () => setCities(prev => [...prev, '']),
       style: {
-        position: 'absolute',
-        inset: 0,
-        padding: '12px 40px 12px 16px',
         display: 'flex',
         alignItems: 'center',
-        pointerEvents: 'none',
-        overflow: 'hidden',
+        gap: 6,
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        color: COLORS.mute,
         fontFamily: SANS,
-        fontSize: 15,
-        lineHeight: 'normal',
-        borderRadius: 14
+        fontSize: 13,
+        padding: '6px 0',
+        marginTop: 4
       }
     }, /*#__PURE__*/React.createElement("span", {
       style: {
-        color: 'transparent',
-        whiteSpace: 'pre'
-      }
-    }, qRaw), /*#__PURE__*/React.createElement("span", {
-      style: {
-        color: COLORS.mute,
-        opacity: 0.55,
-        whiteSpace: 'pre'
-      }
-    }, cityGhostSuffix)), /*#__PURE__*/React.createElement("input", {
-      value: city,
-      autoFocus: i === 0,
-      onChange: e => setCities(prev => prev.map((c, j) => j === i ? e.target.value : c)),
-      onKeyDown: e => {
-        if (e.key === 'Enter' && city.trim()) setStep(3);
-      },
-      placeholder: cityGhostSuffix ? '' : i === 0 ? '도시 이름 (한글 또는 영어)' : `도시 ${i + 1}`,
-      style: {
-        width: '100%',
-        boxSizing: 'border-box',
-        padding: '12px 40px 12px 16px',
-        border: 'none',
-        borderRadius: 14,
-        outline: 'none',
-        background: 'transparent',
-        fontFamily: SANS,
-        fontSize: 15,
-        color: COLORS.ink,
-        position: 'relative',
-        zIndex: 1
-      }
-    }), cityGhostSuffix && /*#__PURE__*/React.createElement("div", {
-      onMouseDown: e => {
-        e.preventDefault();
-        acceptCityGhost();
-      },
-      style: {
-        position: 'absolute',
-        top: 0,
-        bottom: 0,
-        left: cityTypedPx,
-        right: cities.length > 1 ? 36 : 8,
-        zIndex: 2,
-        cursor: 'pointer'
-      }
-    }), city.length > 0 && /*#__PURE__*/React.createElement("button", {
-      onClick: () => setCities(prev => prev.map((c, j) => j === i ? '' : c)),
-      style: {
-        position: 'absolute',
-        right: 10,
-        top: '50%',
-        transform: 'translateY(-50%)',
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: COLORS.mute,
         fontSize: 18,
-        lineHeight: 1,
-        padding: 4,
-        zIndex: 3
+        lineHeight: 1
       }
-    }, "\xD7")), cities.length > 1 && /*#__PURE__*/React.createElement("button", {
-      onClick: () => setCities(prev => prev.filter((_, j) => j !== i)),
-      style: {
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: COLORS.mute,
-        fontSize: 20,
-        lineHeight: 1,
-        flexShrink: 0
-      }
-    }, "\xD7"));
-  }), /*#__PURE__*/React.createElement("button", {
-    onClick: () => setCities(prev => [...prev, '']),
-    style: {
-      display: 'flex',
-      alignItems: 'center',
-      gap: 6,
-      background: 'none',
-      border: 'none',
-      cursor: 'pointer',
-      color: COLORS.mute,
-      fontFamily: SANS,
-      fontSize: 13,
-      padding: '6px 0',
-      marginTop: 4
-    }
-  }, /*#__PURE__*/React.createElement("span", {
-    style: {
-      fontSize: 18,
-      lineHeight: 1
-    }
-  }, "+"), " \uB3C4\uC2DC \uCD94\uAC00")), step === 3 && /*#__PURE__*/React.createElement("div", null, startIso && endIso && dayCount > 0 && /*#__PURE__*/React.createElement("div", {
+    }, "+"), " \uB3C4\uC2DC \uCD94\uAC00"));
+  })(), step === 3 && /*#__PURE__*/React.createElement("div", null, startIso && endIso && dayCount > 0 && /*#__PURE__*/React.createElement("div", {
     style: {
       fontFamily: SANS,
       fontSize: 13,
@@ -18153,7 +19646,9 @@ function NewTripSheet({
     onRange: (s, e) => {
       setStartIso(s);
       setEndIso(e);
-    }
+    },
+    actionRef: miniCalRef,
+    onPickingChange: setCalPicking
   })), step === 4 && /*#__PURE__*/React.createElement("div", null, /*#__PURE__*/React.createElement("div", {
     style: {
       marginBottom: 18
@@ -18343,82 +19838,125 @@ function NewTripSheet({
       color: skipHotel ? COLORS.accent : COLORS.mute,
       cursor: 'pointer'
     }
-  }, skipHotel ? '✓ 아직 못 정했어요' : '아직 못 정했어요')), step === HP_STEP && /*#__PURE__*/React.createElement("div", null, loading && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      padding: '48px 0',
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute
-    }
-  }, "\uC7A5\uC18C \uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && places.length === 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      textAlign: 'center',
-      padding: '48px 0',
-      fontFamily: SANS,
-      fontSize: 13,
-      color: COLORS.mute
-    }
-  }, "\uC7A5\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC5B4\uC694"), !loading && places.length > 0 && /*#__PURE__*/React.createElement("div", {
-    style: {
-      fontFamily: SANS,
-      fontSize: 12,
-      color: COLORS.mute,
-      marginBottom: 12,
-      lineHeight: 1.5
-    }
-  }, selected.size, "\uACF3 \uC790\uB3D9 \uC120\uD0DD\uB428 \xB7 \uBE7C\uACE0 \uC2F6\uC740 \uACF3\uC740 \uD0ED\uD574\uC11C \uC81C\uC678\uD558\uC138\uC694"), /*#__PURE__*/React.createElement("div", {
-    style: {
-      display: 'grid',
-      gridTemplateColumns: '1fr 1fr',
-      gap: 10
-    }
-  }, places.map(p => {
-    const sel = selected.has(p.id);
-    return /*#__PURE__*/React.createElement("button", {
-      key: p.id,
-      onClick: () => togglePlace(p.id),
+  }, skipHotel ? '✓ 아직 못 정했어요' : '아직 못 정했어요')), step === HP_STEP && (() => {
+    const INITIAL = 8;
+    const cityPlaces = sortByPriority(places.filter(p => p.cityIdx === cityStep));
+    const visible = showMore ? cityPlaces : cityPlaces.slice(0, INITIAL);
+    const hiddenCnt = cityPlaces.length - INITIAL;
+    const selCount = cityPlaces.filter(p => selected.has(p.id)).length;
+    return /*#__PURE__*/React.createElement("div", null, loading && /*#__PURE__*/React.createElement("div", {
       style: {
-        border: sel ? `2px solid ${COLORS.ink}` : `1px solid ${COLORS.line}`,
-        borderRadius: 12,
-        padding: 0,
-        cursor: 'pointer',
-        background: sel ? COLORS.card : COLORS.softer,
-        overflow: 'hidden',
-        textAlign: 'left',
-        transition: 'border 0.1s, opacity 0.1s',
-        opacity: sel ? 1 : 0.45
-      }
-    }, /*#__PURE__*/React.createElement("div", {
-      style: {
-        height: 80,
-        background: p.photo ? `url(${p.photo}) center/cover no-repeat` : COLORS.softer,
-        position: 'relative'
-      }
-    }, !sel && /*#__PURE__*/React.createElement("div", {
-      style: {
-        position: 'absolute',
-        inset: 0,
-        background: 'rgba(255,255,255,0.4)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }
-    }, /*#__PURE__*/React.createElement(Icon, {
-      name: "x",
-      size: 18,
-      color: COLORS.mute,
-      stroke: 2
-    }))), /*#__PURE__*/React.createElement("div", {
-      style: {
-        padding: '8px',
+        textAlign: 'center',
+        padding: '48px 0',
         fontFamily: SANS,
-        fontSize: 11.5,
-        color: COLORS.ink,
-        lineHeight: 1.35
+        fontSize: 13,
+        color: COLORS.mute
       }
-    }, p.name));
-  })))), /*#__PURE__*/React.createElement("div", {
+    }, "\uC7A5\uC18C \uBD88\uB7EC\uC624\uB294 \uC911..."), !loading && cityPlaces.length === 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        textAlign: 'center',
+        padding: '48px 0',
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.mute
+      }
+    }, "\uC7A5\uC18C\uB97C \uCC3E\uC744 \uC218 \uC5C6\uC5B4\uC694"), !loading && cityPlaces.length > 0 && /*#__PURE__*/React.createElement("div", {
+      style: {
+        fontFamily: SANS,
+        fontSize: 12,
+        color: COLORS.mute,
+        marginBottom: 12
+      }
+    }, selCount > 0 ? `${selCount}곳 선택됨` : '가고 싶은 곳을 골라보세요'), /*#__PURE__*/React.createElement("div", {
+      style: {
+        display: 'grid',
+        gridTemplateColumns: '1fr 1fr',
+        gap: 10
+      }
+    }, visible.map(p => {
+      const sel = selected.has(p.id);
+      return /*#__PURE__*/React.createElement("button", {
+        key: p.id,
+        onClick: () => togglePlace(p.id),
+        style: {
+          border: sel ? `2px solid ${COLORS.accent}` : `1.5px solid ${COLORS.line}`,
+          borderRadius: 14,
+          padding: 0,
+          cursor: 'pointer',
+          background: COLORS.card,
+          overflow: 'hidden',
+          textAlign: 'left',
+          transition: 'border 0.12s, transform 0.1s',
+          transform: sel ? 'scale(1)' : 'scale(0.97)',
+          opacity: sel ? 1 : 0.72
+        }
+      }, /*#__PURE__*/React.createElement("div", {
+        style: {
+          height: 88,
+          position: 'relative',
+          background: p.photo ? 'transparent' : COLORS.softer
+        }
+      }, p.photo && /*#__PURE__*/React.createElement("img", {
+        src: p.photo,
+        alt: "",
+        style: {
+          width: '100%',
+          height: '100%',
+          objectFit: 'cover',
+          display: 'block'
+        },
+        loading: "lazy"
+      }), sel && /*#__PURE__*/React.createElement("div", {
+        style: {
+          position: 'absolute',
+          top: 7,
+          right: 7,
+          width: 20,
+          height: 20,
+          borderRadius: '50%',
+          background: COLORS.accent,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }
+      }, /*#__PURE__*/React.createElement("svg", {
+        width: "10",
+        height: "10",
+        viewBox: "0 0 10 10",
+        fill: "none"
+      }, /*#__PURE__*/React.createElement("path", {
+        d: "M2 5l2.5 2.5L8 2.5",
+        stroke: "#fff",
+        strokeWidth: "1.6",
+        strokeLinecap: "round",
+        strokeLinejoin: "round"
+      })))), /*#__PURE__*/React.createElement("div", {
+        style: {
+          padding: '7px 9px 9px',
+          fontFamily: SANS,
+          fontSize: 11.5,
+          color: COLORS.ink,
+          lineHeight: 1.35,
+          fontWeight: sel ? 600 : 400
+        }
+      }, p.name));
+    })), !loading && !showMore && hiddenCnt > 0 && /*#__PURE__*/React.createElement("button", {
+      onMouseDown: e => e.preventDefault(),
+      onClick: () => setShowMore(true),
+      style: {
+        marginTop: 14,
+        width: '100%',
+        padding: '11px 0',
+        borderRadius: 12,
+        border: `1.5px solid ${COLORS.line}`,
+        background: 'transparent',
+        fontFamily: SANS,
+        fontSize: 13,
+        color: COLORS.mute,
+        cursor: 'pointer'
+      }
+    }, "\uB354 \uBCF4\uAE30 +", hiddenCnt, "\uAC1C"));
+  })()), /*#__PURE__*/React.createElement("div", {
     style: {
       padding: '10px 20px 20px',
       display: 'flex',
@@ -18426,9 +19964,9 @@ function NewTripSheet({
       flexShrink: 0,
       borderTop: `1px solid ${COLORS.line}`
     }
-  }, step > 1 ? /*#__PURE__*/React.createElement("button", {
+  }, step > 1 || step === HP_STEP && cityStep > 0 ? /*#__PURE__*/React.createElement("button", {
     onMouseDown: e => e.preventDefault(),
-    onClick: () => setStep(s => s - 1),
+    onClick: handleBack,
     style: {
       padding: '11px 18px',
       borderRadius: 12,
@@ -18466,9 +20004,9 @@ function NewTripSheet({
       fontSize: 14,
       fontWeight: 600,
       cursor: canNext ? 'pointer' : 'default',
-      transition: 'background 0.15s, color 0.15s'
+      transition: 'background 0.2s, color 0.15s'
     }
-  }, step === TOTAL ? '만들기' : '다음')))), document.body);
+  }, step === TOTAL ? isLastCity ? '완료' : '다음 도시' : '다음')))), document.body);
 }
 function AddCompanionSheet({
   open,
