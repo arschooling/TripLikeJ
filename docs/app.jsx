@@ -944,11 +944,12 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
 // ─── Wheel column (scroll-snap) ──────────────────────────────
 function WheelColumn({ items, value, onChange, width=70, loop=false, compact=false }) {
   const ITEM_H = 40;
-  const VISIBLE = compact ? 3 : 5; // compact: center + 1 peek above/below
+  const VISIBLE = compact ? 5 : 5; // compact: center + 2 peek above/below
   const CENTER_OFFSET = Math.floor(VISIBLE / 2);
   const ref = React.useRef(null);
   const timer = React.useRef(null);
   const jumping = React.useRef(false);
+  const scrolling = React.useRef(false);
 
   // loop 모드: 아이템 3배 반복, 중간 set에서 시작
   const dispItems = React.useMemo(
@@ -1021,7 +1022,16 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
     const onEnd = () => {
       if (startY === null) return;
       startY = null;
-      snapAndFire(el, el.scrollTop + vel * 80);
+      let v = vel * 120;
+      if (Math.abs(v) < 1) { snapAndFire(el, el.scrollTop); return; }
+      scrolling.current = true;
+      const decel = () => {
+        v *= 0.88;
+        el.scrollTop += v;
+        if (Math.abs(v) > 0.5) requestAnimationFrame(decel);
+        else { scrolling.current = false; snapAndFire(el, el.scrollTop); }
+      };
+      requestAnimationFrame(decel);
     };
     el.addEventListener('touchstart', onStart, { passive: false });
     el.addEventListener('touchmove',  onMove,  { passive: false });
@@ -1034,7 +1044,7 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
   }, [snapAndFire]);
 
   const handleScroll = () => {
-    if (jumping.current) return;
+    if (jumping.current || scrolling.current) return;
     clearTimeout(timer.current);
     timer.current = setTimeout(() => {
       const el = ref.current; if (!el) return;
@@ -1087,7 +1097,7 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
       {compact ? (
         <div style={{
           position:'absolute', left:0, right:0, top: ITEM_H * CENTER_OFFSET, height: ITEM_H,
-          border:`1.5px solid ${COLORS.line}`, borderRadius:10,
+          background:'rgba(0,0,0,0.06)', borderRadius:10,
           pointerEvents:'none',
         }}/>
       ) : (
@@ -1097,19 +1107,15 @@ function WheelColumn({ items, value, onChange, width=70, loop=false, compact=fal
           pointerEvents:'none',
         }}/>
       )}
-      {/* Fade edges — compact: 불투명(완전 차단), 일반: 그라데이션 */}
+      {/* Fade edges */}
       <div style={{
         position:'absolute', top:0, left:0, right:0, height: ITEM_H * CENTER_OFFSET,
-        background: compact
-          ? COLORS.bg
-          : `linear-gradient(180deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
+        background: `linear-gradient(180deg, ${COLORS.bg} 0%, ${COLORS.bg}88 55%, ${COLORS.bg}00 100%)`,
         pointerEvents:'none',
       }}/>
       <div style={{
         position:'absolute', bottom:0, left:0, right:0, height: ITEM_H * CENTER_OFFSET,
-        background: compact
-          ? COLORS.bg
-          : `linear-gradient(0deg, ${COLORS.bg} 0%, ${COLORS.bg}00 100%)`,
+        background: `linear-gradient(0deg, ${COLORS.bg} 0%, ${COLORS.bg}88 55%, ${COLORS.bg}00 100%)`,
         pointerEvents:'none',
       }}/>
     </div>
@@ -1971,7 +1977,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v309</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v310</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
