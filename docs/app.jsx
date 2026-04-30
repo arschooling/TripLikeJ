@@ -411,7 +411,7 @@ function useKeyboardHeight() {
 }
 
 // ─── Popup sheet (centered modal with swipe-down dismiss) ────
-function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='완료' }) {
+function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='완료', noDragClose=false }) {
   const [mounted, setMounted] = React.useState(open);
   const [visible, setVisible] = React.useState(false);
   const [drag, setDrag] = React.useState(0);
@@ -437,13 +437,14 @@ function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='
   if (!mounted) return null;
 
   // Touch handlers on the whole popup; drag only engages on gesture.
-  const onTouchStart = (e) => { startY.current = e.touches[0].clientY; };
+  const onTouchStart = (e) => { if (noDragClose) return; startY.current = e.touches[0].clientY; };
   const onTouchMove = (e) => {
-    if (startY.current == null) return;
+    if (noDragClose || startY.current == null) return;
     const dy = e.touches[0].clientY - startY.current;
     if (dy > 0) setDrag(dy);
   };
   const onTouchEnd = () => {
+    if (noDragClose) return;
     if (drag > 80) onClose();
     else setDrag(0);
     startY.current = null;
@@ -600,7 +601,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
   };
 
   return (
-    <BottomSheet open={open} onClose={onClose} title={title} onConfirm={confirm}>
+    <BottomSheet open={open} onClose={onClose} title={title} onConfirm={confirm} noDragClose={pickingYM}>
       {/* 년/월 헤더 — 탭하면 스크롤 선택기로 전환 */}
       <div style={{ padding:'8px 16px 6px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
         <button onClick={() => { if (!pickingYM){ setTmpY(String(view.y)); setTmpMo(MONTH_KR[view.mo]); } setPickingYM(p=>!p); }} style={{
@@ -740,7 +741,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
   const YEARS_LIST  = Array.from({length:12}, (_,i) => String(today.getFullYear()-2+i));
 
   return (
-    <BottomSheet open={open} onClose={onClose} title="기간 선택"
+    <BottomSheet open={open} onClose={onClose} title="기간 선택" noDragClose={showYM}
       onConfirm={() => { if(!start){onClose();return;} onPick(toIso(start),toIso(end)); onClose(); }}>
 
       {/* 시작/종료 상태 바 */}
@@ -1048,7 +1049,7 @@ function TimeWheelSheet({ open, value, onClose, onPick, title='시간 선택' })
   const displayMin = String(Math.round(mi/5)*5 % 60).padStart(2,'0');
 
   return (
-    <BottomSheet open={open} onClose={onClose} title={title} onConfirm={confirm}>
+    <BottomSheet open={open} onClose={onClose} title={title} onConfirm={confirm} noDragClose={true}>
       <div style={{ padding:'20px 20px 28px', display:'flex', justifyContent:'center', alignItems:'center', gap:10, touchAction:'none' }}>
         <WheelColumn items={hours} value={String(h).padStart(2,'0')}
           onChange={(v) => setH(+v)} compact={true} loop={true} width={80}/>
@@ -1878,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v316</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v317</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
