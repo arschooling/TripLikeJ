@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v318</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v319</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7313,30 +7313,43 @@ function MiniCalendar({ startIso, endIso, onRange }) {
 }
 
 const CITY_DB = [
-  { key:'tokyo',     kor:'도쿄',     flag:'🇯🇵', zone:'Asia/Tokyo',          currency:'JPY', lat:35.6762, lon:139.6503 },
-  { key:'osaka',     kor:'오사카',   flag:'🇯🇵', zone:'Asia/Tokyo',          currency:'JPY', lat:34.6937, lon:135.5023 },
-  { key:'paris',     kor:'파리',     flag:'🇫🇷', zone:'Europe/Paris',        currency:'EUR', lat:48.8566, lon:2.3522   },
-  { key:'newyork',   kor:'뉴욕',     flag:'🇺🇸', zone:'America/New_York',    currency:'USD', lat:40.7128, lon:-74.0060 },
-  { key:'london',    kor:'런던',     flag:'🇬🇧', zone:'Europe/London',       currency:'GBP', lat:51.5074, lon:-0.1278  },
-  { key:'bangkok',   kor:'방콕',     flag:'🇹🇭', zone:'Asia/Bangkok',        currency:'THB', lat:13.7563, lon:100.5018 },
-  { key:'bali',      kor:'발리',     flag:'🇮🇩', zone:'Asia/Makassar',       currency:'IDR', lat:-8.3405, lon:115.0920 },
-  { key:'singapore', kor:'싱가포르', flag:'🇸🇬', zone:'Asia/Singapore',      currency:'SGD', lat:1.3521,  lon:103.8198 },
-  { key:'barcelona', kor:'바르셀로나',flag:'🇪🇸', zone:'Europe/Madrid',       currency:'EUR', lat:41.3851, lon:2.1734   },
-  { key:'rome',      kor:'로마',     flag:'🇮🇹', zone:'Europe/Rome',         currency:'EUR', lat:41.9028, lon:12.4964  },
-  { key:'prague',    kor:'프라하',   flag:'🇨🇿', zone:'Europe/Prague',       currency:'CZK', lat:50.0755, lon:14.4378  },
-  { key:'sydney',    kor:'시드니',   flag:'🇦🇺', zone:'Australia/Sydney',    currency:'AUD', lat:-33.8688, lon:151.2093 },
-  { key:'dubai',     kor:'두바이',   flag:'🇦🇪', zone:'Asia/Dubai',          currency:'AED', lat:25.2048, lon:55.2708  },
-  { key:'istanbul',  kor:'이스탄불', flag:'🇹🇷', zone:'Europe/Istanbul',     currency:'TRY', lat:41.0082, lon:28.9784  },
-  { key:'vietnam',   kor:'하노이',   flag:'🇻🇳', zone:'Asia/Ho_Chi_Minh',   currency:'VND', lat:21.0285, lon:105.8542 },
-  { key:'hawaii',    kor:'하와이',   flag:'🇺🇸', zone:'Pacific/Honolulu',    currency:'USD', lat:21.3069, lon:-157.8583 },
-  { key:'taipei',    kor:'타이베이', flag:'🇹🇼', zone:'Asia/Taipei',         currency:'TWD', lat:25.0330, lon:121.5654 },
-  { key:'hongkong',  kor:'홍콩',     flag:'🇭🇰', zone:'Asia/Hong_Kong',      currency:'HKD', lat:22.3193, lon:114.1694 },
-  { key:'maldives',  kor:'몰디브',   flag:'🇲🇻', zone:'Indian/Maldives',     currency:'USD', lat:3.2028,  lon:73.2207  },
-  { key:'losangeles',kor:'LA',       flag:'🇺🇸', zone:'America/Los_Angeles', currency:'USD', lat:34.0522, lon:-118.2437 },
-  { key:'amsterdam', kor:'암스테르담',flag:'🇳🇱', zone:'Europe/Amsterdam',    currency:'EUR', lat:52.3676, lon:4.9041   },
-  { key:'greece',    kor:'산토리니', flag:'🇬🇷', zone:'Europe/Athens',       currency:'EUR', lat:36.3932, lon:25.4615  },
-  { key:'malaysia',  kor:'쿠알라룸푸르',flag:'🇲🇾', zone:'Asia/Kuala_Lumpur', currency:'MYR', lat:3.1390,  lon:101.6869 },
-  { key:'cancun',    kor:'칸쿤',     flag:'🇲🇽', zone:'America/Cancun',      currency:'MXN', lat:21.1619, lon:-86.8515 },
+  { key:'japan',       kor:'일본',       eng:'Japan',          flag:'🇯🇵', zone:'Asia/Tokyo',           currency:'JPY', lat:35.6762,  lon:139.6503  },
+  { key:'france',      kor:'프랑스',     eng:'France',         flag:'🇫🇷', zone:'Europe/Paris',         currency:'EUR', lat:48.8566,  lon:2.3522    },
+  { key:'usa',         kor:'미국',       eng:'USA',            flag:'🇺🇸', zone:'America/New_York',     currency:'USD', lat:40.7128,  lon:-74.0060  },
+  { key:'uk',          kor:'영국',       eng:'United Kingdom', flag:'🇬🇧', zone:'Europe/London',        currency:'GBP', lat:51.5074,  lon:-0.1278   },
+  { key:'thailand',    kor:'태국',       eng:'Thailand',       flag:'🇹🇭', zone:'Asia/Bangkok',         currency:'THB', lat:13.7563,  lon:100.5018  },
+  { key:'indonesia',   kor:'인도네시아', eng:'Indonesia',      flag:'🇮🇩', zone:'Asia/Makassar',        currency:'IDR', lat:-8.3405,  lon:115.0920  },
+  { key:'singapore',   kor:'싱가포르',   eng:'Singapore',      flag:'🇸🇬', zone:'Asia/Singapore',       currency:'SGD', lat:1.3521,   lon:103.8198  },
+  { key:'spain',       kor:'스페인',     eng:'Spain',          flag:'🇪🇸', zone:'Europe/Madrid',        currency:'EUR', lat:40.4168,  lon:-3.7038   },
+  { key:'italy',       kor:'이탈리아',   eng:'Italy',          flag:'🇮🇹', zone:'Europe/Rome',          currency:'EUR', lat:41.9028,  lon:12.4964   },
+  { key:'czechia',     kor:'체코',       eng:'Czech Republic', flag:'🇨🇿', zone:'Europe/Prague',        currency:'CZK', lat:50.0755,  lon:14.4378   },
+  { key:'australia',   kor:'호주',       eng:'Australia',      flag:'🇦🇺', zone:'Australia/Sydney',     currency:'AUD', lat:-33.8688, lon:151.2093  },
+  { key:'uae',         kor:'아랍에미리트',eng:'UAE',            flag:'🇦🇪', zone:'Asia/Dubai',           currency:'AED', lat:25.2048,  lon:55.2708   },
+  { key:'turkey',      kor:'터키',       eng:'Turkey',         flag:'🇹🇷', zone:'Europe/Istanbul',      currency:'TRY', lat:41.0082,  lon:28.9784   },
+  { key:'vietnam',     kor:'베트남',     eng:'Vietnam',        flag:'🇻🇳', zone:'Asia/Ho_Chi_Minh',    currency:'VND', lat:21.0285,  lon:105.8542  },
+  { key:'taiwan',      kor:'대만',       eng:'Taiwan',         flag:'🇹🇼', zone:'Asia/Taipei',          currency:'TWD', lat:25.0330,  lon:121.5654  },
+  { key:'hongkong',    kor:'홍콩',       eng:'Hong Kong',      flag:'🇭🇰', zone:'Asia/Hong_Kong',       currency:'HKD', lat:22.3193,  lon:114.1694  },
+  { key:'maldives',    kor:'몰디브',     eng:'Maldives',       flag:'🇲🇻', zone:'Indian/Maldives',      currency:'USD', lat:3.2028,   lon:73.2207   },
+  { key:'netherlands', kor:'네덜란드',   eng:'Netherlands',    flag:'🇳🇱', zone:'Europe/Amsterdam',     currency:'EUR', lat:52.3676,  lon:4.9041    },
+  { key:'greece',      kor:'그리스',     eng:'Greece',         flag:'🇬🇷', zone:'Europe/Athens',        currency:'EUR', lat:37.9838,  lon:23.7275   },
+  { key:'malaysia',    kor:'말레이시아', eng:'Malaysia',       flag:'🇲🇾', zone:'Asia/Kuala_Lumpur',    currency:'MYR', lat:3.1390,   lon:101.6869  },
+  { key:'mexico',      kor:'멕시코',     eng:'Mexico',         flag:'🇲🇽', zone:'America/Mexico_City',  currency:'MXN', lat:19.4326,  lon:-99.1332  },
+  { key:'canada',      kor:'캐나다',     eng:'Canada',         flag:'🇨🇦', zone:'America/Toronto',      currency:'CAD', lat:43.6532,  lon:-79.3832  },
+  { key:'germany',     kor:'독일',       eng:'Germany',        flag:'🇩🇪', zone:'Europe/Berlin',        currency:'EUR', lat:52.5200,  lon:13.4050   },
+  { key:'portugal',    kor:'포르투갈',   eng:'Portugal',       flag:'🇵🇹', zone:'Europe/Lisbon',        currency:'EUR', lat:38.7169,  lon:-9.1395   },
+  { key:'switzerland', kor:'스위스',     eng:'Switzerland',    flag:'🇨🇭', zone:'Europe/Zurich',        currency:'CHF', lat:47.3769,  lon:8.5417    },
+  { key:'austria',     kor:'오스트리아', eng:'Austria',        flag:'🇦🇹', zone:'Europe/Vienna',        currency:'EUR', lat:48.2082,  lon:16.3738   },
+  { key:'croatia',     kor:'크로아티아', eng:'Croatia',        flag:'🇭🇷', zone:'Europe/Zagreb',        currency:'EUR', lat:45.8150,  lon:15.9819   },
+  { key:'cambodia',    kor:'캄보디아',   eng:'Cambodia',       flag:'🇰🇭', zone:'Asia/Phnom_Penh',      currency:'KHR', lat:11.5564,  lon:104.9282  },
+  { key:'philippines', kor:'필리핀',     eng:'Philippines',    flag:'🇵🇭', zone:'Asia/Manila',          currency:'PHP', lat:14.5995,  lon:120.9842  },
+  { key:'newzealand',  kor:'뉴질랜드',   eng:'New Zealand',    flag:'🇳🇿', zone:'Pacific/Auckland',     currency:'NZD', lat:-36.8485, lon:174.7633  },
+  { key:'morocco',     kor:'모로코',     eng:'Morocco',        flag:'🇲🇦', zone:'Africa/Casablanca',    currency:'MAD', lat:33.5731,  lon:-7.5898   },
+  { key:'peru',        kor:'페루',       eng:'Peru',           flag:'🇵🇪', zone:'America/Lima',         currency:'PEN', lat:-12.0464, lon:-77.0428  },
+  { key:'hawaii',      kor:'하와이',     eng:'Hawaii',         flag:'🇺🇸', zone:'Pacific/Honolulu',     currency:'USD', lat:21.3069,  lon:-157.8583 },
+  { key:'korea',       kor:'한국',       eng:'Korea',          flag:'🇰🇷', zone:'Asia/Seoul',           currency:'KRW', lat:37.5665,  lon:126.9780  },
+  { key:'china',       kor:'중국',       eng:'China',          flag:'🇨🇳', zone:'Asia/Shanghai',        currency:'CNY', lat:39.9042,  lon:116.4074  },
+  { key:'india',       kor:'인도',       eng:'India',          flag:'🇮🇳', zone:'Asia/Kolkata',         currency:'INR', lat:28.6139,  lon:77.2090   },
+  { key:'brazil',      kor:'브라질',     eng:'Brazil',         flag:'🇧🇷', zone:'America/Sao_Paulo',    currency:'BRL', lat:-23.5505, lon:-46.6333  },
 ];
 
 function NewTripSheet({ open, onClose, onSubmit }) {
@@ -7345,7 +7358,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const HP_STEP  = isKorean ? 5 : 6;
 
   const [step,         setStep]         = React.useState(1);
-  const [selectedDest, setSelectedDest] = React.useState(null); // step 1: 나라/도시
+  const [selectedDest, setSelectedDest] = React.useState(null); // step 1: 나라
+  const [destQuery,    setDestQuery]    = React.useState('');
   const [cities,       setCities]       = React.useState(['']);
   const [startIso,     setStartIso]     = React.useState('');
   const [endIso,       setEndIso]       = React.useState('');
@@ -7379,7 +7393,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
 
   React.useEffect(() => {
     if (!open) return;
-    setStep(1); setSelectedDest(null); setCities(['']); setStartIso(''); setEndIso('');
+    setStep(1); setSelectedDest(null); setDestQuery(''); setCities(['']); setStartIso(''); setEndIso('');
     setHotels([{ name:'', from:1, to:1 }]); setSkipHotel(false);
     setArrAirport(''); setDepAirport('');
     setPlaces([]); setLoading(false); setSelected(new Set());
@@ -7472,27 +7486,92 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         {/* 컨텐츠 */}
         <div style={{ overflowY:'auto', flex:1, padding:'14px 20px' }}>
 
-          {/* Step 1: 나라/도시 선택 */}
-          {step === 1 && (
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:8 }}>
-              {CITY_DB.map(city => {
-                const sel = selectedDest?.key === city.key;
-                return (
-                  <button key={city.key} onClick={() => setSelectedDest(city)} style={{
-                    border:`1.5px solid ${sel ? COLORS.ink : COLORS.line}`,
-                    borderRadius:14, padding:'14px 8px 10px',
-                    background: sel ? COLORS.ink : COLORS.card,
-                    cursor:'pointer', display:'flex', flexDirection:'column',
-                    alignItems:'center', gap:5,
+          {/* Step 1: 나라 검색 */}
+          {step === 1 && (() => {
+            const q = destQuery.trim().toLowerCase();
+            const suggestions = q.length === 0
+              ? CITY_DB
+              : CITY_DB.filter(c =>
+                  c.kor.includes(destQuery.trim()) ||
+                  c.eng.toLowerCase().startsWith(q) ||
+                  c.eng.toLowerCase().includes(q)
+                ).sort((a, b) => {
+                  // 시작 글자 우선
+                  const aKorStart = a.kor.startsWith(destQuery.trim());
+                  const bKorStart = b.kor.startsWith(destQuery.trim());
+                  const aEngStart = a.eng.toLowerCase().startsWith(q);
+                  const bEngStart = b.eng.toLowerCase().startsWith(q);
+                  return (bKorStart || bEngStart ? 1 : 0) - (aKorStart || aEngStart ? 1 : 0);
+                });
+            return (
+              <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+                {/* 검색 입력 */}
+                <div style={{ position:'relative' }}>
+                  <input
+                    autoFocus
+                    value={destQuery}
+                    onChange={e => { setDestQuery(e.target.value); setSelectedDest(null); }}
+                    placeholder="나라 이름 (한글 또는 영어)"
+                    style={{
+                      width:'100%', boxSizing:'border-box',
+                      padding:'12px 40px 12px 16px',
+                      border:`1.5px solid ${selectedDest ? COLORS.ink : COLORS.line}`,
+                      borderRadius:14, outline:'none',
+                      background: COLORS.card,
+                      fontFamily:SANS, fontSize:15, color:COLORS.ink,
+                      transition:'border-color 0.2s',
+                    }}
+                  />
+                  {destQuery.length > 0 && (
+                    <button onClick={() => { setDestQuery(''); setSelectedDest(null); }} style={{
+                      position:'absolute', right:12, top:'50%', transform:'translateY(-50%)',
+                      background:'none', border:'none', cursor:'pointer',
+                      color:COLORS.mute, fontSize:18, lineHeight:1, padding:4,
+                    }}>×</button>
+                  )}
+                </div>
+                {/* 선택된 나라 표시 */}
+                {selectedDest && (
+                  <div style={{
+                    display:'flex', alignItems:'center', gap:10,
+                    padding:'10px 14px', borderRadius:12,
+                    background: COLORS.ink, color:'#fff',
                   }}>
-                    <span style={{ fontSize:28 }}>{city.flag}</span>
-                    <span style={{ fontFamily:SANS, fontSize:12, fontWeight:sel?600:400,
-                      color: sel ? '#fff' : COLORS.ink, textAlign:'center', lineHeight:1.3 }}>{city.kor}</span>
-                  </button>
-                );
-              })}
-            </div>
-          )}
+                    <span style={{ fontSize:22 }}>{selectedDest.flag}</span>
+                    <span style={{ fontFamily:SANS, fontSize:14, fontWeight:600 }}>{selectedDest.kor}</span>
+                    <span style={{ fontFamily:SANS, fontSize:12, opacity:0.6, marginLeft:2 }}>{selectedDest.eng}</span>
+                    <span style={{ marginLeft:'auto', fontSize:16 }}>✓</span>
+                  </div>
+                )}
+                {/* 제안 목록 */}
+                {!selectedDest && (
+                  <div style={{
+                    maxHeight:260, overflowY:'auto',
+                    borderRadius:14, border:`1px solid ${COLORS.line}`,
+                    background:COLORS.card,
+                  }}>
+                    {suggestions.length === 0 ? (
+                      <div style={{ padding:'20px 16px', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                        검색 결과가 없어요
+                      </div>
+                    ) : suggestions.map((city, idx) => (
+                      <button key={city.key} onClick={() => { setSelectedDest(city); setDestQuery(city.kor); }} style={{
+                        width:'100%', display:'flex', alignItems:'center', gap:12,
+                        padding:'12px 16px',
+                        background:'none', border:'none', cursor:'pointer',
+                        borderBottom: idx < suggestions.length - 1 ? `1px solid ${COLORS.line}` : 'none',
+                        textAlign:'left',
+                      }}>
+                        <span style={{ fontSize:22, flexShrink:0 }}>{city.flag}</span>
+                        <span style={{ fontFamily:SANS, fontSize:15, color:COLORS.ink, fontWeight:500 }}>{city.kor}</span>
+                        <span style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginLeft:2 }}>{city.eng}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {/* Step 2: 도시 이름 */}
           {step === 2 && (
