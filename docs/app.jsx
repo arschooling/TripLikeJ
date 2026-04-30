@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v345</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v346</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7322,7 +7322,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
   };
 }
 
-function MiniCalendar({ startIso, endIso, onRange }) {
+function MiniCalendar({ startIso, endIso, onRange, actionRef }) {
   const today = new Date();
   const [vy, setVy] = React.useState(today.getFullYear());
   const [vm, setVm] = React.useState(today.getMonth());
@@ -7359,12 +7359,8 @@ function MiniCalendar({ startIso, endIso, onRange }) {
     setPicking(false);
   }, [pickY, pickM]);
 
-  // 휠 멈추면 600ms 후 자동 확정 (완료 버튼 없음)
-  React.useEffect(() => {
-    if (!picking) return;
-    const t = setTimeout(confirmPicker, 600);
-    return () => clearTimeout(t);
-  }, [picking, pickY, pickM]);
+  // 부모에서 "다음" 누를 때 picker 닫기용 ref
+  if (actionRef) actionRef.current = { isPicking: () => picking, confirm: confirmPicker };
 
   return (
     <div>
@@ -7654,7 +7650,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const [step,         setStep]         = React.useState(1);
   const [selectedDest, setSelectedDest] = React.useState(null); // step 1: 나라
   const [destQuery,    setDestQuery]    = React.useState('');
-  const destInputRef = React.useRef(null);
+  const destInputRef  = React.useRef(null);
+  const miniCalRef    = React.useRef(null);
   const [cities,       setCities]       = React.useState(['']);
   const [cityDrag,     setCityDrag]     = React.useState(null);
   const cityCardRefs = React.useRef({});
@@ -7845,7 +7842,14 @@ function NewTripSheet({ open, onClose, onSubmit }) {
       }
       setCities(['']);
     }
-    if (step < TOTAL) { setStep(s => s + 1); return; }
+    if (step < TOTAL) {
+      // 날짜 step에서 년/월 picker가 열려 있으면 달력으로만 돌아오기
+      if (step === 3 && miniCalRef.current?.isPicking?.()) {
+        miniCalRef.current.confirm();
+        return;
+      }
+      setStep(s => s + 1); return;
+    }
     // step === HP_STEP: 도시별 순차 진행
     if (!isLastCity) {
       setCityStep(s => s + 1);
@@ -8132,7 +8136,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   {dayCount-1}박 {dayCount}일
                 </div>
               )}
-              <MiniCalendar startIso={startIso} endIso={endIso} onRange={(s,e) => { setStartIso(s); setEndIso(e); }}/>
+              <MiniCalendar startIso={startIso} endIso={endIso} onRange={(s,e) => { setStartIso(s); setEndIso(e); }} actionRef={miniCalRef}/>
             </div>
           )}
 
