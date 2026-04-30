@@ -1869,7 +1869,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v293</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v294</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7150,13 +7150,15 @@ function MiniCalendar({ startIso, endIso, onRange }) {
   const today = new Date();
   const [vy, setVy] = React.useState(today.getFullYear());
   const [vm, setVm] = React.useState(today.getMonth());
-  const [picking, setPicking] = React.useState(false); // 년/월 피커 표시
-  const todayIso  = today.toISOString().slice(0, 10);
-  const toIso     = (y, m, d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-  const dim       = new Date(vy, vm + 1, 0).getDate();
-  const firstDow  = new Date(vy, vm, 1).getDay();
-  const prevMo    = () => vm === 0 ? (setVy(y=>y-1), setVm(11)) : setVm(m=>m-1);
-  const nextMo    = () => vm === 11 ? (setVy(y=>y+1), setVm(0)) : setVm(m=>m+1);
+  const [picking, setPicking] = React.useState(false);
+  const [pickY, setPickY] = React.useState(String(today.getFullYear()));
+  const [pickM, setPickM] = React.useState(String(today.getMonth()));
+  const todayIso = today.toISOString().slice(0, 10);
+  const toIso    = (y, m, d) => `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const dim      = new Date(vy, vm + 1, 0).getDate();
+  const firstDow = new Date(vy, vm, 1).getDay();
+  const prevMo   = () => vm === 0 ? (setVy(y=>y-1), setVm(11)) : setVm(m=>m-1);
+  const nextMo   = () => vm === 11 ? (setVy(y=>y+1), setVm(0)) : setVm(m=>m+1);
   const tap = d => {
     const iso = toIso(vy, vm, d);
     if (iso < todayIso) return;
@@ -7166,48 +7168,46 @@ function MiniCalendar({ startIso, endIso, onRange }) {
   };
   const cells = [...Array(firstDow).fill(null), ...Array.from({length:dim},(_,i)=>i+1)];
   const thisYear = today.getFullYear();
-  const years = Array.from({ length: 4 }, (_, i) => thisYear + i);
-  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const yearItems  = Array.from({ length: 6 }, (_, i) => String(thisYear + i));
+  const monthItems = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+  const openPicker = () => {
+    setPickY(String(vy));
+    setPickM(String(vm));
+    setPicking(true);
+  };
+  const confirmPicker = () => {
+    setVy(+pickY);
+    setVm(+pickM);
+    setPicking(false);
+  };
 
   return (
     <div>
       <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginBottom:10 }}>
-        <button onClick={prevMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>‹</button>
-        <button onClick={() => setPicking(p => !p)} style={{
+        {picking ? (
+          <div style={{ width:32 }}/>
+        ) : (
+          <button onClick={prevMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>‹</button>
+        )}
+        <button onClick={picking ? confirmPicker : openPicker} style={{
           background:'none', border:'none', cursor:'pointer',
           fontFamily:SANS, fontSize:14, fontWeight:600, color:COLORS.ink,
           display:'flex', alignItems:'center', gap:4,
         }}>
-          {MONTH_NAMES_SHORT[vm]} {vy}
-          <span style={{ fontSize:10, color:COLORS.mute }}>{picking ? '▲' : '▼'}</span>
+          {picking ? '완료' : `${MONTH_NAMES_SHORT[vm]} ${vy}`}
         </button>
-        <button onClick={nextMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>›</button>
+        {picking ? (
+          <div style={{ width:32 }}/>
+        ) : (
+          <button onClick={nextMo} style={{ background:'none', border:'none', cursor:'pointer', fontSize:20, padding:'0 10px', color:COLORS.ink }}>›</button>
+        )}
       </div>
 
       {picking ? (
-        <div>
-          {/* 년도 선택 */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6, marginBottom:10 }}>
-            {years.map(y => (
-              <button key={y} onClick={() => setVy(y)} style={{
-                padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer',
-                background: y === vy ? COLORS.ink : COLORS.softer,
-                color: y === vy ? COLORS.bg : COLORS.ink,
-                fontFamily:SANS, fontSize:13, fontWeight: y === vy ? 600 : 400,
-              }}>{y}</button>
-            ))}
-          </div>
-          {/* 월 선택 */}
-          <div style={{ display:'grid', gridTemplateColumns:'repeat(4,1fr)', gap:6 }}>
-            {months.map((m, i) => (
-              <button key={i} onClick={() => { setVm(i); setPicking(false); }} style={{
-                padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer',
-                background: i === vm ? COLORS.ink : COLORS.softer,
-                color: i === vm ? COLORS.bg : COLORS.ink,
-                fontFamily:SANS, fontSize:13, fontWeight: i === vm ? 600 : 400,
-              }}>{m}</button>
-            ))}
-          </div>
+        <div style={{ display:'flex', justifyContent:'center', gap:8 }}>
+          <WheelColumn items={yearItems} value={pickY} onChange={setPickY} width={80}/>
+          <WheelColumn items={monthItems} value={monthItems[+pickM]} onChange={v => setPickM(String(monthItems.indexOf(v)))} width={80}/>
         </div>
       ) : (
         <>
