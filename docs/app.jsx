@@ -1879,7 +1879,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v326</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v327</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7355,6 +7355,46 @@ const CITY_DB = [
   { key:'brazil',      kor:'브라질',     eng:'Brazil',         flag:'🇧🇷', zone:'America/Sao_Paulo',    currency:'BRL', lat:-23.5505, lon:-46.6333  },
 ];
 
+const CITIES_BY_KEY = {
+  japan:       [{kor:'도쿄',eng:'Tokyo'},{kor:'오사카',eng:'Osaka'},{kor:'교토',eng:'Kyoto'},{kor:'삿포로',eng:'Sapporo'},{kor:'후쿠오카',eng:'Fukuoka'},{kor:'나고야',eng:'Nagoya'},{kor:'나라',eng:'Nara'},{kor:'고베',eng:'Kobe'},{kor:'히로시마',eng:'Hiroshima'},{kor:'오키나와',eng:'Okinawa'},{kor:'하코다테',eng:'Hakodate'}],
+  france:      [{kor:'파리',eng:'Paris'},{kor:'니스',eng:'Nice'},{kor:'마르세유',eng:'Marseille'},{kor:'리옹',eng:'Lyon'},{kor:'보르도',eng:'Bordeaux'},{kor:'스트라스부르',eng:'Strasbourg'},{kor:'몽생미셸',eng:'Mont Saint-Michel'},{kor:'칸',eng:'Cannes'}],
+  usa:         [{kor:'뉴욕',eng:'New York'},{kor:'로스앤젤레스',eng:'Los Angeles'},{kor:'샌프란시스코',eng:'San Francisco'},{kor:'시카고',eng:'Chicago'},{kor:'라스베가스',eng:'Las Vegas'},{kor:'마이애미',eng:'Miami'},{kor:'보스턴',eng:'Boston'},{kor:'워싱턴',eng:'Washington'},{kor:'시애틀',eng:'Seattle'},{kor:'샌디에이고',eng:'San Diego'}],
+  uk:          [{kor:'런던',eng:'London'},{kor:'에든버러',eng:'Edinburgh'},{kor:'맨체스터',eng:'Manchester'},{kor:'옥스퍼드',eng:'Oxford'},{kor:'캠브리지',eng:'Cambridge'},{kor:'바스',eng:'Bath'},{kor:'요크',eng:'York'},{kor:'리버풀',eng:'Liverpool'}],
+  thailand:    [{kor:'방콕',eng:'Bangkok'},{kor:'치앙마이',eng:'Chiang Mai'},{kor:'푸켓',eng:'Phuket'},{kor:'파타야',eng:'Pattaya'},{kor:'코사무이',eng:'Koh Samui'},{kor:'아유타야',eng:'Ayutthaya'},{kor:'크라비',eng:'Krabi'}],
+  indonesia:   [{kor:'발리',eng:'Bali'},{kor:'자카르타',eng:'Jakarta'},{kor:'롬복',eng:'Lombok'},{kor:'코모도',eng:'Komodo'},{kor:'요그야카르타',eng:'Yogyakarta'},{kor:'수라바야',eng:'Surabaya'}],
+  singapore:   [{kor:'싱가포르',eng:'Singapore'}],
+  spain:       [{kor:'바르셀로나',eng:'Barcelona'},{kor:'마드리드',eng:'Madrid'},{kor:'세비야',eng:'Seville'},{kor:'그라나다',eng:'Granada'},{kor:'발렌시아',eng:'Valencia'},{kor:'빌바오',eng:'Bilbao'},{kor:'말라가',eng:'Malaga'},{kor:'산세바스티안',eng:'San Sebastian'}],
+  italy:       [{kor:'로마',eng:'Rome'},{kor:'밀라노',eng:'Milan'},{kor:'베네치아',eng:'Venice'},{kor:'피렌체',eng:'Florence'},{kor:'나폴리',eng:'Naples'},{kor:'아말피',eng:'Amalfi'},{kor:'시칠리아',eng:'Sicily'},{kor:'볼로냐',eng:'Bologna'},{kor:'토리노',eng:'Turin'},{kor:'친퀘테레',eng:'Cinque Terre'},{kor:'소렌토',eng:'Sorrento'}],
+  czechia:     [{kor:'프라하',eng:'Prague'},{kor:'체스키크룸로프',eng:'Cesky Krumlov'},{kor:'브르노',eng:'Brno'}],
+  australia:   [{kor:'시드니',eng:'Sydney'},{kor:'멜버른',eng:'Melbourne'},{kor:'브리즈번',eng:'Brisbane'},{kor:'골드코스트',eng:'Gold Coast'},{kor:'케언즈',eng:'Cairns'},{kor:'퍼스',eng:'Perth'},{kor:'애들레이드',eng:'Adelaide'}],
+  uae:         [{kor:'두바이',eng:'Dubai'},{kor:'아부다비',eng:'Abu Dhabi'}],
+  turkey:      [{kor:'이스탄불',eng:'Istanbul'},{kor:'카파도키아',eng:'Cappadocia'},{kor:'안탈리아',eng:'Antalya'},{kor:'이즈미르',eng:'Izmir'},{kor:'보드룸',eng:'Bodrum'},{kor:'에페소',eng:'Ephesus'}],
+  vietnam:     [{kor:'하노이',eng:'Hanoi'},{kor:'호치민',eng:'Ho Chi Minh'},{kor:'다낭',eng:'Da Nang'},{kor:'호이안',eng:'Hoi An'},{kor:'나트랑',eng:'Nha Trang'},{kor:'하롱베이',eng:'Ha Long Bay'},{kor:'후에',eng:'Hue'},{kor:'달랏',eng:'Da Lat'}],
+  taiwan:      [{kor:'타이베이',eng:'Taipei'},{kor:'타이중',eng:'Taichung'},{kor:'타이난',eng:'Tainan'},{kor:'가오슝',eng:'Kaohsiung'},{kor:'화롄',eng:'Hualien'},{kor:'지우펀',eng:'Jiufen'}],
+  hongkong:    [{kor:'홍콩',eng:'Hong Kong'}],
+  maldives:    [{kor:'말레',eng:'Male'},{kor:'마푸시',eng:'Maafushi'}],
+  netherlands: [{kor:'암스테르담',eng:'Amsterdam'},{kor:'로테르담',eng:'Rotterdam'},{kor:'헤이그',eng:'The Hague'},{kor:'위트레흐트',eng:'Utrecht'},{kor:'잔세스칸스',eng:'Zaanse Schans'}],
+  greece:      [{kor:'아테네',eng:'Athens'},{kor:'산토리니',eng:'Santorini'},{kor:'미코노스',eng:'Mykonos'},{kor:'테살로니키',eng:'Thessaloniki'},{kor:'크레타',eng:'Crete'},{kor:'로도스',eng:'Rhodes'}],
+  malaysia:    [{kor:'쿠알라룸푸르',eng:'Kuala Lumpur'},{kor:'페낭',eng:'Penang'},{kor:'코타키나발루',eng:'Kota Kinabalu'},{kor:'말라카',eng:'Malacca'},{kor:'랑카위',eng:'Langkawi'}],
+  mexico:      [{kor:'멕시코시티',eng:'Mexico City'},{kor:'칸쿤',eng:'Cancun'},{kor:'과달라하라',eng:'Guadalajara'},{kor:'오아하카',eng:'Oaxaca'},{kor:'툴룸',eng:'Tulum'}],
+  canada:      [{kor:'밴쿠버',eng:'Vancouver'},{kor:'토론토',eng:'Toronto'},{kor:'몬트리올',eng:'Montreal'},{kor:'퀘벡',eng:'Quebec'},{kor:'밴프',eng:'Banff'},{kor:'캘거리',eng:'Calgary'},{kor:'오타와',eng:'Ottawa'}],
+  germany:     [{kor:'베를린',eng:'Berlin'},{kor:'뮌헨',eng:'Munich'},{kor:'함부르크',eng:'Hamburg'},{kor:'프랑크푸르트',eng:'Frankfurt'},{kor:'쾰른',eng:'Cologne'},{kor:'드레스덴',eng:'Dresden'},{kor:'하이델베르크',eng:'Heidelberg'},{kor:'로텐부르크',eng:'Rothenburg'}],
+  portugal:    [{kor:'리스본',eng:'Lisbon'},{kor:'포르투',eng:'Porto'},{kor:'알가르브',eng:'Algarve'},{kor:'신트라',eng:'Sintra'},{kor:'코임브라',eng:'Coimbra'}],
+  switzerland: [{kor:'취리히',eng:'Zurich'},{kor:'루체른',eng:'Lucerne'},{kor:'제네바',eng:'Geneva'},{kor:'인터라켄',eng:'Interlaken'},{kor:'베른',eng:'Bern'},{kor:'체르마트',eng:'Zermatt'}],
+  austria:     [{kor:'빈',eng:'Vienna'},{kor:'잘츠부르크',eng:'Salzburg'},{kor:'인스브루크',eng:'Innsbruck'},{kor:'그라츠',eng:'Graz'},{kor:'할슈타트',eng:'Hallstatt'}],
+  croatia:     [{kor:'두브로브니크',eng:'Dubrovnik'},{kor:'스플리트',eng:'Split'},{kor:'자그레브',eng:'Zagreb'},{kor:'흐바르',eng:'Hvar'},{kor:'플리트비체',eng:'Plitvice'}],
+  cambodia:    [{kor:'씨엠립',eng:'Siem Reap'},{kor:'프놈펜',eng:'Phnom Penh'},{kor:'시하누크빌',eng:'Sihanoukville'}],
+  philippines: [{kor:'마닐라',eng:'Manila'},{kor:'세부',eng:'Cebu'},{kor:'보라카이',eng:'Boracay'},{kor:'팔라완',eng:'Palawan'},{kor:'다바오',eng:'Davao'},{kor:'바기오',eng:'Baguio'}],
+  newzealand:  [{kor:'오클랜드',eng:'Auckland'},{kor:'퀸스타운',eng:'Queenstown'},{kor:'크라이스트처치',eng:'Christchurch'},{kor:'웰링턴',eng:'Wellington'},{kor:'로토루아',eng:'Rotorua'}],
+  morocco:     [{kor:'마라케시',eng:'Marrakech'},{kor:'페스',eng:'Fes'},{kor:'카사블랑카',eng:'Casablanca'},{kor:'쉐프샤우엔',eng:'Chefchaouen'},{kor:'에사우이라',eng:'Essaouira'}],
+  peru:        [{kor:'리마',eng:'Lima'},{kor:'쿠스코',eng:'Cusco'},{kor:'마추픽추',eng:'Machu Picchu'},{kor:'아레키파',eng:'Arequipa'}],
+  hawaii:      [{kor:'호놀룰루',eng:'Honolulu'},{kor:'마우이',eng:'Maui'},{kor:'카우아이',eng:'Kauai'},{kor:'빅아일랜드',eng:'Big Island'}],
+  korea:       [{kor:'서울',eng:'Seoul'},{kor:'부산',eng:'Busan'},{kor:'제주',eng:'Jeju'},{kor:'경주',eng:'Gyeongju'},{kor:'인천',eng:'Incheon'},{kor:'전주',eng:'Jeonju'},{kor:'강릉',eng:'Gangneung'},{kor:'춘천',eng:'Chuncheon'}],
+  china:       [{kor:'베이징',eng:'Beijing'},{kor:'상하이',eng:'Shanghai'},{kor:'청두',eng:'Chengdu'},{kor:'시안',eng:"Xi'an"},{kor:'구이린',eng:'Guilin'},{kor:'항저우',eng:'Hangzhou'},{kor:'쑤저우',eng:'Suzhou'},{kor:'장자제',eng:'Zhangjiajie'},{kor:'샤먼',eng:'Xiamen'}],
+  india:       [{kor:'뭄바이',eng:'Mumbai'},{kor:'델리',eng:'Delhi'},{kor:'아그라',eng:'Agra'},{kor:'자이푸르',eng:'Jaipur'},{kor:'고아',eng:'Goa'},{kor:'바라나시',eng:'Varanasi'},{kor:'첸나이',eng:'Chennai'}],
+  brazil:      [{kor:'상파울루',eng:'São Paulo'},{kor:'리우데자네이루',eng:'Rio de Janeiro'},{kor:'살바도르',eng:'Salvador'},{kor:'이과수',eng:'Iguazu'}],
+};
+
 function NewTripSheet({ open, onClose, onSubmit }) {
   const isKorean = React.useMemo(() => navigator.language.startsWith('ko'), []);
   const TOTAL    = isKorean ? 5 : 6;
@@ -7447,7 +7487,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const TITLES = { 1:'어느 나라로 가요?', 2:'도시를 알려줘요', 3:'언제 가요?', 4:'숙소는요?', 5:'어느 공항으로?', [HP_STEP]:'가고 싶은 곳을 골라요' };
 
   const handleNext = () => {
-    if (step === 1 && selectedDest && cities[0] === '') setCities([selectedDest.kor || selectedDest.key]);
+    if (step === 1) setCities(['']);
     if (step < TOTAL) { setStep(s => s + 1); return; }
     const selPlaces = places.filter(p => selected.has(p.id));
     const tripData  = generateTripData({
@@ -7555,7 +7595,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   />
                   {/* ghost 탭 영역 (타이핑 끝 ~ 오른쪽) */}
                   {ghostSuffix && (
-                    <div onClick={acceptGhost} style={{
+                    <div onMouseDown={e => { e.preventDefault(); acceptGhost(); }} style={{
                       position:'absolute', top:0, bottom:0,
                       left: typedPx, right: 36,
                       zIndex:2, cursor:'pointer',
@@ -7577,19 +7617,51 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           {/* Step 2: 도시 이름 */}
           {step === 2 && (
             <div>
-              {cities.map((city, i) => (
-                <div key={i} style={{ display:'flex', gap:8, marginBottom:10, alignItems:'center' }}>
-                  <input value={city} autoFocus={i===0}
-                    onChange={e => setCities(prev => prev.map((c,j) => j===i ? e.target.value : c))}
-                    onKeyDown={e => { if (e.key==='Enter' && city.trim()) setStep(3); }}
-                    placeholder={i===0 ? '도시 이름' : `도시 ${i+1}`}
-                    style={{ flex:1, border:'none', borderBottom:`1.5px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:16, color:COLORS.ink, padding:'8px 0' }}
-                  />
-                  {cities.length > 1 && (
-                    <button onClick={() => setCities(prev => prev.filter((_,j)=>j!==i))} style={{ background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:20, lineHeight:1 }}>×</button>
-                  )}
-                </div>
-              ))}
+              {cities.map((city, i) => {
+                const cityList = selectedDest ? (CITIES_BY_KEY[selectedDest.key] || []) : [];
+                const qRaw = city;
+                const q = qRaw.toLowerCase();
+                const cityGhostMatch = qRaw.length === 0 ? null :
+                  cityList.find(c => c.kor.startsWith(qRaw) && c.kor !== qRaw) ||
+                  cityList.find(c => c.eng.toLowerCase().startsWith(q) && c.eng.toLowerCase() !== q) ||
+                  null;
+                const cityGhostIsKor = cityGhostMatch && cityGhostMatch.kor.startsWith(qRaw);
+                const cityGhostFull  = cityGhostMatch ? (cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng) : '';
+                const cityGhostSuffix = cityGhostFull ? cityGhostFull.slice(qRaw.length) : '';
+                let cityTypedPx = 16 + qRaw.length * 14;
+                try { const cv=document.createElement('canvas'); const cx=cv.getContext('2d'); cx.font=`15px ${SANS},sans-serif`; cityTypedPx=16+cx.measureText(qRaw).width; } catch(_){}
+                const acceptCityGhost = () => {
+                  if (!cityGhostMatch) return;
+                  setCities(prev => prev.map((c,j) => j===i ? (cityGhostIsKor ? cityGhostMatch.kor : cityGhostMatch.eng) : c));
+                };
+                return (
+                  <div key={i} style={{ display:'flex', gap:8, marginBottom:10, alignItems:'center' }}>
+                    <div style={{ flex:1, position:'relative', borderRadius:14, background:COLORS.card, border:`1.5px solid ${COLORS.line}` }}>
+                      {cityGhostSuffix && (
+                        <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:15, lineHeight:'normal', borderRadius:14 }}>
+                          <span style={{ color:'transparent', whiteSpace:'pre' }}>{qRaw}</span>
+                          <span style={{ color:COLORS.mute, opacity:0.55, whiteSpace:'pre' }}>{cityGhostSuffix}</span>
+                        </div>
+                      )}
+                      <input value={city} autoFocus={i===0}
+                        onChange={e => setCities(prev => prev.map((c,j) => j===i ? e.target.value : c))}
+                        onKeyDown={e => { if (e.key==='Enter' && city.trim()) setStep(3); }}
+                        placeholder={cityGhostSuffix ? '' : (i===0 ? '도시 이름 (한글 또는 영어)' : `도시 ${i+1}`)}
+                        style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, position:'relative', zIndex:1 }}
+                      />
+                      {cityGhostSuffix && (
+                        <div onMouseDown={e => { e.preventDefault(); acceptCityGhost(); }} style={{ position:'absolute', top:0, bottom:0, left:cityTypedPx, right:cities.length>1?36:8, zIndex:2, cursor:'pointer' }}/>
+                      )}
+                      {city.length > 0 && (
+                        <button onClick={() => setCities(prev => prev.map((c,j) => j===i ? '' : c))} style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:18, lineHeight:1, padding:4, zIndex:3 }}>×</button>
+                      )}
+                    </div>
+                    {cities.length > 1 && (
+                      <button onClick={() => setCities(prev => prev.filter((_,j)=>j!==i))} style={{ background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:20, lineHeight:1, flexShrink:0 }}>×</button>
+                    )}
+                  </div>
+                );
+              })}
               <button onClick={() => setCities(prev=>[...prev,''])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:13, padding:'6px 0', marginTop:4 }}>
                 <span style={{ fontSize:18, lineHeight:1 }}>+</span> 도시 추가
               </button>
