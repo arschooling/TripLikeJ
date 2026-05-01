@@ -114,18 +114,43 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
 
 // ─── Photo placeholder ──────────────────────────────────────
 function Photo({ hue=20, label='', height=180, small=false }) {
-  const bg=`oklch(0.88 0.035 ${hue})`, bg2=`oklch(0.80 0.045 ${hue})`;
-  const ink=`oklch(0.36 0.04 ${hue})`;
+  const bg  = `oklch(0.90 0.04 ${hue})`;
+  const bg2 = `oklch(0.82 0.055 ${hue})`;
+  const ink = `oklch(0.38 0.06 ${hue})`;
+  const initial = label ? label.trim()[0].toUpperCase() : '';
+
+  if (small) {
+    // 파스텔 아바타: 이름 첫 글자 + 파스텔 배경
+    return (
+      <div style={{
+        width:'100%', height,
+        background:`linear-gradient(135deg, ${bg} 0%, ${bg2} 100%)`,
+        display:'flex', alignItems:'center', justifyContent:'center',
+        overflow:'hidden',
+      }}>
+        <div style={{ position:'absolute', inset:0,
+          background:`radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.45), transparent 65%)` }}/>
+        {initial && (
+          <span style={{ fontFamily:SANS, fontSize: height * 0.38, fontWeight:600,
+            color:ink, opacity:0.75, userSelect:'none', position:'relative' }}>
+            {initial}
+          </span>
+        )}
+      </div>
+    );
+  }
+
+  // 큰 플레이스홀더 (여행 카드 등)
   return (
     <div style={{
       width:'100%', height,
       background:`repeating-linear-gradient(135deg, ${bg} 0 14px, ${bg2} 14px 15px), linear-gradient(180deg, ${bg} 0%, ${bg2} 100%)`,
       position:'relative', overflow:'hidden',
-      display:'flex', alignItems:'flex-end', padding:small?8:14, boxSizing:'border-box',
+      display:'flex', alignItems:'flex-end', padding:14, boxSizing:'border-box',
     }}>
       <div style={{ position:'absolute', inset:0,
         background:`radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.35), transparent 60%)` }}/>
-      {label && !small && <div style={{
+      {label && <div style={{
         fontFamily:MONO, fontSize:10, letterSpacing:'0.14em',
         color:ink, opacity:0.72, textTransform:'uppercase', position:'relative',
       }}>{label}</div>}
@@ -1981,7 +2006,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v399</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v400</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3450,7 +3475,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
         <div style={{ width:58, height:58, borderRadius:12, flexShrink:0, overflow:'hidden' }}>
           {photoUrl
             ? <img src={photoUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"/>
-            : <Photo hue={hue} height={58} small/>}
+            : <Photo hue={hue} height={58} small label={item.name}/>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink,
@@ -8507,8 +8532,11 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                         transform: sel ? 'scale(1)' : 'scale(0.97)',
                         opacity: sel ? 1 : 0.72,
                       }}>
-                        <div style={{ height:88, position:'relative', background: p.photo ? 'transparent' : COLORS.softer }}>
-                          {p.photo && <img src={p.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy"/>}
+                        <div style={{ height:88, position:'relative' }}>
+                          {p.photo
+                            ? <img src={p.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy"/>
+                            : (() => { const h = p.name.split('').reduce((a,c)=>(a*31+c.charCodeAt(0))&0xffff,0)%360; return <Photo hue={h} height={88} small label={p.name}/>; })()
+                          }
                           {sel && (
                             <div style={{ position:'absolute', top:7, right:7, width:20, height:20, borderRadius:'50%', background:COLORS.accent, display:'flex', alignItems:'center', justifyContent:'center' }}>
                               <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
