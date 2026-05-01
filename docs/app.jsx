@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v411</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v412</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3302,8 +3302,8 @@ function NearbySheet({ stop, initialTab, onClose }) {
           [lon, lat] = f.geometry.coordinates;
         }
         const FSQ_KEY = 'fsq3NEq0tlfJbkAFehfJgiG1E7ydUm5VrfMTAW0WaZ+Y9I0=';
-        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json' };
-        const parseFSQ = (res, isFood) => (res.results || []).map(p => ({
+        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json', 'X-Places-Api-Version': '2025-06-17' };
+        const parseFSQ = (res, isFood) => (res.results || res.places || []).map(p => ({
           name: p.name,
           type: p.categories?.[0]?.name || (isFood ? 'Restaurant' : 'Attraction'),
           cuisine: isFood ? (p.categories?.[0]?.name || '') : '',
@@ -3315,8 +3315,8 @@ function NearbySheet({ stop, initialTab, onClose }) {
           wikipedia: '', image: '',
         })).filter(p => p.name && p.lat);
         const [hR, fR] = await Promise.all([
-          fetch(`https://api.foursquare.com/v3/places/search?ll=${lat},${lon}&radius=1000&categories=10000,16000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
-          fetch(`https://api.foursquare.com/v3/places/search?ll=${lat},${lon}&radius=600&categories=13000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
+          fetch(`https://places-api.foursquare.com/places/search?ll=${lat},${lon}&radius=1500&fsq_category_ids=10000,16000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
+          fetch(`https://places-api.foursquare.com/places/search?ll=${lat},${lon}&radius=800&fsq_category_ids=13000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
         ]);
         const hotspotsParsed = parseFSQ(hR, false);
         const foodParsed = parseFSQ(fR, true);
@@ -3347,11 +3347,12 @@ function NearbySheet({ stop, initialTab, onClose }) {
         try {
           const FSQ_KEY = 'fsq3NEq0tlfJbkAFehfJgiG1E7ydUm5VrfMTAW0WaZ+Y9I0=';
           const fsqRes = await fetch(
-            `https://api.foursquare.com/v3/places/${item.fsq_id}/photos?limit=1&fields=prefix,suffix`,
-            { headers: { 'Authorization': FSQ_KEY, 'Accept': 'application/json' } }
+            `https://places-api.foursquare.com/places/${item.fsq_id}/photos?limit=1&fields=prefix,suffix`,
+            { headers: { 'Authorization': FSQ_KEY, 'Accept': 'application/json', 'X-Places-Api-Version': '2025-06-17' } }
           ).then(r => r.json());
-          if (fsqRes?.[0]?.prefix && fsqRes?.[0]?.suffix) {
-            url = `${fsqRes[0].prefix}400x300${fsqRes[0].suffix}`;
+          const photos = fsqRes?.results || fsqRes?.photos || fsqRes;
+          if (Array.isArray(photos) && photos[0]?.prefix && photos[0]?.suffix) {
+            url = `${photos[0].prefix}400x300${photos[0].suffix}`;
           }
         } catch(_) {}
       }
@@ -8012,18 +8013,23 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     (async () => {
       try {
         const FSQ_KEY = 'fsq3NEq0tlfJbkAFehfJgiG1E7ydUm5VrfMTAW0WaZ+Y9I0=';
-        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json' };
+        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json', 'X-Places-Api-Version': '2025-06-17' };
         const allPlaces = [];
         for (let ci = 0; ci < validCities.length; ci++) {
           const city = validCities[ci];
           const cityEng = korToEng[city.trim()] || city;
           const searchQ = countryEng && cityEng !== countryEng ? `${cityEng}, ${countryEng}` : cityEng;
+          // Photon으로 도시 좌표 먼저 구한 뒤 ll= 방식으로 검색 (near= 파라미터 deprecated)
+          const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=1`).then(r => r.json());
+          const f = geo.features?.[0];
+          if (!f) continue;
+          const [gLon, gLat] = f.geometry.coordinates;
           const res = await fetch(
-            `https://api.foursquare.com/v3/places/search?near=${encodeURIComponent(searchQ)}&categories=10000,16000&sort=POPULARITY&limit=30&fields=fsq_id,name,categories,geocodes`,
+            `https://places-api.foursquare.com/places/search?ll=${gLat},${gLon}&radius=8000&fsq_category_ids=10000,16000&sort=POPULARITY&limit=30&fields=fsq_id,name,categories,geocodes`,
             { headers: fsqHeaders }
           ).then(r => r.json());
           if (res.message) { setPlaceErr(`API 오류: ${res.message}`); setLoading(false); return; }
-          const list = (res.results || []).map((p, idx) => ({
+          const list = (res.results || res.places || []).map((p, idx) => ({
             id: `${ci}_${p.fsq_id || idx}`,
             fsq_id: p.fsq_id || null,
             name: p.name,
@@ -8045,11 +8051,12 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             if (p.fsq_id) {
               try {
                 const fsqRes = await fetch(
-                  `https://api.foursquare.com/v3/places/${p.fsq_id}/photos?limit=1&fields=prefix,suffix`,
-                  { headers: { 'Authorization': FSQ_KEY, 'Accept': 'application/json' } }
+                  `https://places-api.foursquare.com/places/${p.fsq_id}/photos?limit=1&fields=prefix,suffix`,
+                  { headers: { 'Authorization': FSQ_KEY, 'Accept': 'application/json', 'X-Places-Api-Version': '2025-06-17' } }
                 ).then(r => r.json());
-                if (fsqRes?.[0]?.prefix && fsqRes?.[0]?.suffix) {
-                  photo = `${fsqRes[0].prefix}400x300${fsqRes[0].suffix}`;
+                const photoArr = fsqRes?.results || fsqRes?.photos || fsqRes;
+                if (Array.isArray(photoArr) && photoArr[0]?.prefix && photoArr[0]?.suffix) {
+                  photo = `${photoArr[0].prefix}400x300${photoArr[0].suffix}`;
                 }
               } catch (_) {}
             }
