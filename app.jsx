@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v389</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v390</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3299,33 +3299,25 @@ function NearbySheet({ stop, initialTab, onClose }) {
           if (!f) { setHotspots([]); setFood([]); return; }
           [lon, lat] = f.geometry.coordinates;
         }
-        const parse = (d) => {
-          const seen = new Set();
-          return (d.elements||[]).reduce((acc, e) => {
-            const nm = e.tags?.name || e.tags?.['name:en'] || '';
-            if (!nm || seen.has(nm) || !e.lat) return acc;
-            seen.add(nm);
-            acc.push({
-              name: nm,
-              type: e.tags?.amenity || e.tags?.tourism || e.tags?.historic || e.tags?.leisure || '',
-              cuisine: e.tags?.cuisine || '',
-              wikipedia: e.tags?.wikipedia || '',
-              image: e.tags?.image || '',   // ① OSM 직접 첨부 이미지
-              dist: haversineM(lat, lon, e.lat, e.lon),
-              lat: e.lat, lon: e.lon,
-            });
-            return acc;
-          }, []).sort((a,b) => a.dist - b.dist);
-        };
-        const hQ = `[out:json][timeout:10];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo"](around:900,${lat},${lon});node["historic"~"monument|castle|ruins|memorial"](around:900,${lat},${lon});node["leisure"~"park|garden"](around:900,${lat},${lon}););out 30;`;
-        const fQ = `[out:json][timeout:10];(node["amenity"~"restaurant|cafe|bar|fast_food|pub|biergarten|food_court"](around:600,${lat},${lon}););out 30;`;
-        const base = 'https://overpass-api.de/api/interpreter?data=';
+        const FSQ_KEY = 'fsq3NEq0tlfJbkAFehfJgiG1E7ydUm5VrfMTAW0WaZ+Y9I0=';
+        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json' };
+        const parseFSQ = (res, isFood) => (res.results || []).map(p => ({
+          name: p.name,
+          type: p.categories?.[0]?.name || (isFood ? 'Restaurant' : 'Attraction'),
+          cuisine: isFood ? (p.categories?.[0]?.name || '') : '',
+          isFood,
+          fsq_id: p.fsq_id,
+          dist: p.distance || 0,
+          lat: p.geocodes?.main?.latitude,
+          lon: p.geocodes?.main?.longitude,
+          wikipedia: '', image: '',
+        })).filter(p => p.name && p.lat);
         const [hR, fR] = await Promise.all([
-          fetch(base + encodeURIComponent(hQ), { signal:ctrl.signal }).then(r=>r.json()),
-          fetch(base + encodeURIComponent(fQ), { signal:ctrl.signal }).then(r=>r.json()),
+          fetch(`https://api.foursquare.com/v3/places/search?ll=${lat},${lon}&radius=1000&categories=10000,16000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
+          fetch(`https://api.foursquare.com/v3/places/search?ll=${lat},${lon}&radius=600&categories=13000&sort=POPULARITY&limit=20&fields=fsq_id,name,categories,geocodes,distance`, { headers: fsqHeaders, signal: ctrl.signal }).then(r => r.json()),
         ]);
-        const hotspotsParsed = parse(hR);
-        const foodParsed = parse(fR);
+        const hotspotsParsed = parseFSQ(hR, false);
+        const foodParsed = parseFSQ(fR, true);
         ncSet(cacheKey, { hotspots: hotspotsParsed, food: foodParsed });  // 캐시 저장
         setHotspots(hotspotsParsed);
         setFood(foodParsed);
@@ -3354,12 +3346,12 @@ function NearbySheet({ stop, initialTab, onClose }) {
         url = item.image;
       }
 
-      // ② Unsplash 검색 (핫플: 장소명, 음식: 요리 종류 또는 타입)
+      // ② Unsplash 검색 (핫플: 장소명, 음식: 카테고리명 기반)
       if (!url) {
         try {
-          const isFood = ['restaurant','cafe','bar','fast_food','pub','biergarten','food_court'].includes(item.type);
+          const isFood = item.isFood || ['restaurant','cafe','bar','fast_food','pub','biergarten','food_court'].includes(item.type);
           const q = isFood
-            ? (item.cuisine ? item.cuisine.split(';')[0].trim() + ' food' : item.type + ' food')
+            ? (item.cuisine ? item.cuisine.split(';')[0].trim() + ' food' : 'restaurant food')
             : item.name;
           const uRes = await fetch(
             `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=1&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
@@ -8011,45 +8003,25 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     const countryEng = selectedDest?.eng || '';
     (async () => {
       try {
+        const FSQ_KEY = 'fsq3NEq0tlfJbkAFehfJgiG1E7ydUm5VrfMTAW0WaZ+Y9I0=';
+        const fsqHeaders = { 'Authorization': FSQ_KEY, 'Accept': 'application/json' };
         const allPlaces = [];
         for (let ci = 0; ci < validCities.length; ci++) {
           const city = validCities[ci];
-          // 한글이면 영어로 변환, 국가명 붙여서 검색
           const cityEng = korToEng[city.trim()] || city;
           const searchQ = countryEng && cityEng !== countryEng ? `${cityEng}, ${countryEng}` : cityEng;
-          // Nominatim으로 도시 행정 경계(bounding box) 가져오기
-          const geo = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQ)}&format=json&limit=3&addressdetails=0`,
-            { headers: { 'User-Agent': 'TripLikeJ/1.0' } }
+          const res = await fetch(
+            `https://api.foursquare.com/v3/places/search?near=${encodeURIComponent(searchQ)}&categories=10000,16000&sort=POPULARITY&limit=30&fields=fsq_id,name,categories,geocodes`,
+            { headers: fsqHeaders }
           ).then(r => r.json());
-          // 도시·지역 유형 우선 선택
-          const PRIO = ['city','town','village','borough','suburb','quarter','neighbourhood','island','region','state'];
-          const f = geo.find(g => PRIO.includes(g.type) || PRIO.includes(g.class)) || geo[0];
-          if (!f) continue;
-          const lat = parseFloat(f.lat), lon = parseFloat(f.lon);
-          // bounding box 사용 (Nominatim: [south, north, west, east])
-          let areaQ;
-          if (f.boundingbox) {
-            const [s, n, w, e] = f.boundingbox.map(Number);
-            // 너무 좁은 bbox(관광지 단일 노드 등)면 반경으로 대체
-            const broad = (n - s) > 0.04 && (e - w) > 0.04;
-            areaQ = broad ? `(${s},${w},${n},${e})` : `(around:10000,${lat},${lon})`;
-          } else {
-            areaQ = `(around:10000,${lat},${lon})`;
-          }
-          const q = `[out:json][timeout:30];(node["tourism"~"attraction|museum|viewpoint|gallery|theme_park|zoo|aquarium"]${areaQ};node["historic"~"monument|castle|ruins|memorial"]${areaQ};node["leisure"~"park|garden"]${areaQ};way["tourism"~"attraction|museum|theme_park|zoo|aquarium"]${areaQ};way["historic"~"monument|castle|ruins"]${areaQ};);out center 50;`;
-          const ov = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(q)}`).then(r => r.json());
-          const list = (ov.elements || []).filter(e => e.tags?.name).map(e => {
-            const tags = e.tags;
-            const type = tags.tourism || tags.historic || tags.leisure || 'attraction';
-            const elat = e.lat ?? e.center?.lat;
-            const elon = e.lon ?? e.center?.lon;
-            return {
-              id: `${ci}_${e.id}`, name: tags['name:en'] || tags.name,
-              lat: elat, lon: elon, wikipedia: tags.wikipedia, photo: null,
-              type, cityIdx: ci,
-            };
-          }).filter(p => p.lat && p.lon);
+          const list = (res.results || []).map((p, idx) => ({
+            id: `${ci}_${p.fsq_id || idx}`,
+            name: p.name,
+            type: p.categories?.[0]?.name || 'Attraction',
+            lat: p.geocodes?.main?.latitude,
+            lon: p.geocodes?.main?.longitude,
+            photo: null, cityIdx: ci,
+          })).filter(p => p.name && p.lat && p.lon);
           allPlaces.push(...list);
         }
         setPlaces(allPlaces);
@@ -8067,18 +8039,15 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               ).then(r => r.json());
               if (uRes.results?.[0]?.urls?.small) photo = uRes.results[0].urls.small;
             } catch (_) {}
-            // 2. Wikipedia fallback
-            if (!photo && p.wikipedia) {
-              const t = p.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
-              const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
-              photo = d.thumbnail?.source || null;
-            }
+            // 2. Wikipedia fallback (이름 검색)
             if (!photo) {
-              const sr = await fetch(
-                `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=400&origin=*`
-              ).then(r => r.json());
-              const pages = sr.query?.pages;
-              if (pages) photo = Object.values(pages)[0]?.thumbnail?.source || null;
+              try {
+                const sr = await fetch(
+                  `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=400&origin=*`
+                ).then(r => r.json());
+                const pages = sr.query?.pages;
+                if (pages) photo = Object.values(pages)[0]?.thumbnail?.source || null;
+              } catch (_) {}
             }
             if (photo) setPlaces(prev => prev.map(pl => pl.id === p.id ? { ...pl, photo } : pl));
           } catch (_) {}
@@ -8094,13 +8063,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
 
   const canNext = step===1 ? !!(selectedDest || destQuery.trim()) : step===2 ? cities.some(c=>c.trim()) : step===3 ? (!!(startIso&&endIso) || calPicking) : true;
 
-  // 장소 우선순위 정렬 (wikipedia 유무 + 유형 중요도)
-  const PLACE_TYPE_SCORE = { museum:6, zoo:5, aquarium:5, theme_park:5, castle:4, ruins:4, monument:3, gallery:3, viewpoint:3, park:2, garden:2, attraction:1 };
-  const sortByPriority = (arr) => [...arr].sort((a,b) => {
-    const as = (a.wikipedia?10:0) + (PLACE_TYPE_SCORE[a.type]||1);
-    const bs = (b.wikipedia?10:0) + (PLACE_TYPE_SCORE[b.type]||1);
-    return bs - as;
-  });
+  // Foursquare는 이미 인기순 정렬 → 순서 유지
+  const sortByPriority = (arr) => [...arr];
 
   const TITLES = { 1:'어느 나라로 가요?', 2:'도시를 알려줘요', 3:'언제 가요?', 4:'어느 공항으로?', 5:'숙소는요?' };
   const currentCityName = validCities[cityStep] || '';

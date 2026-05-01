@@ -1,4 +1,4 @@
-const V = 'tlj-v389';
+const V = 'tlj-v390';
 const CACHE = [
   './', './index.html',
   './react.min.js', './react-dom.min.js',
