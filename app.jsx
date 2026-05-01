@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v377</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v378</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7271,20 +7271,20 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                           transition:'border-color 0.12s, background 0.12s', overflow:'hidden' }}>
                         {/* 여행 헤더 — 탭으로 펼치기/접기 */}
                         <div onClick={() => !isDropTarget && toggleTripExpand(t.id)}
-                          style={{ padding:'12px 16px', display:'flex', alignItems:'center', gap:10,
+                          style={{ padding:'14px 16px', display:'flex', alignItems:'center', gap:13,
                             cursor:'pointer' }}>
-                          <div style={{ width:36, height:36, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
-                            <Photo hue={t.hue ?? 25} height={36} small/>
+                          <div style={{ width:52, height:52, borderRadius:13, overflow:'hidden', flexShrink:0 }}>
+                            <Photo hue={t.hue ?? 25} height={52} small/>
                           </div>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>{t.title||'새 여행'}</div>
-                            {t.dates && <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, marginTop:1 }}>{t.dates}</div>}
+                            <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{t.title||'새 여행'}</div>
+                            {t.dates && <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:2 }}>{t.dates}</div>}
                           </div>
                           {isDropTarget ? (
                             <div style={{ fontFamily:MONO, fontSize:9.5, color:'#4F6BED' }}>여기에 추가</div>
                           ) : (
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.accent }}>{members.length}명</div>
+                              <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent }}>{members.length}명</div>
                               {members.length > 0 && (
                                 <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}
                                   style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
