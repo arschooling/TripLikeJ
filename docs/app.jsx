@@ -1933,6 +1933,17 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
 function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount }) {
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
+  const [expandedTripId, setExpandedTripId] = React.useState(null);
+  const [tripMembersCache, setTripMembersCache] = React.useState({});
+
+  const toggleTripExpand = async (tripId, memberUids) => {
+    if (expandedTripId === tripId) { setExpandedTripId(null); return; }
+    setExpandedTripId(tripId);
+    if (!tripMembersCache[tripId] && memberUids.length) {
+      const profiles = await window.fbGetUsersById(memberUids).catch(() => []);
+      setTripMembersCache(prev => ({ ...prev, [tripId]: profiles }));
+    }
+  };
   const handleRestore = async () => {
     if (restoring || !onRestore) return;
     setRestoring(true); setRestoreErr('');
@@ -1981,7 +1992,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v373</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v374</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -1996,46 +2007,90 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                   onShare={() => onShare(t)}
                   onDelete={() => onDelete(t.id)}
                   wrapStyle={{ borderRadius:16, border:`1px solid ${COLORS.line}` }}>
-                  <button onClick={() => onSelect(t.id)} style={{
-                    display:'block', width:'100%', background:'none', border:'none',
-                    padding:0, margin:0, textAlign:'left', cursor:'pointer',
-                    WebkitTapHighlightColor:'transparent',
-                  }}>
-                    <div style={{ position:'relative' }}>
+                  <div style={{ background:COLORS.card, borderRadius:16, overflow:'hidden' }}>
+                    <button onClick={() => onSelect(t.id)} style={{
+                      display:'block', width:'100%', background:'none', border:'none',
+                      padding:0, margin:0, textAlign:'left', cursor:'pointer',
+                      WebkitTapHighlightColor:'transparent',
+                    }}>
                       <Photo hue={hue} label={label} height={130}/>
-                      {companionCount > 0 && (
-                        <div style={{
-                          position:'absolute', top:10, right:12,
-                          display:'flex', alignItems:'center', gap:4,
-                          background:`oklch(0.88 0.06 ${hue})`,
-                          borderRadius:20, padding:'4px 10px',
-                        }}>
-                          <Icon name="users" size={11} color={`oklch(0.38 0.09 ${hue})`} stroke={2}/>
-                          <span style={{ fontFamily:SANS, fontSize:10, color:`oklch(0.38 0.09 ${hue})`, fontWeight:500 }}>{companionCount}명</span>
+                      <div style={{ padding:'14px 18px 16px', position:'relative' }}>
+                        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+                          {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
                         </div>
-                      )}
-                    </div>
-                    <div style={{ padding:'14px 18px 16px', position:'relative' }}>
-                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
-                        {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
-                      </div>
-                      <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
-                        {t.title || '새 여행'}
-                      </div>
-                      {isSample && (
-                        <div style={{ position:'absolute', top:14, right:16 }}>
-                          <div style={{
-                            display:'flex', alignItems:'center', gap:3,
-                            background:'#FFF5EB', borderRadius:20, padding:'4px 10px',
-                            border:'1px solid rgba(193,79,46,0.15)',
-                          }}>
-                            <Icon name="sparkle" size={10} color={COLORS.accent} stroke={1.8}/>
-                            <span style={{ fontFamily:SANS, fontSize:10, color:COLORS.accent, fontWeight:500 }}>샘플</span>
+                        <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
+                          {t.title || '새 여행'}
+                        </div>
+                        {isSample && (
+                          <div style={{ position:'absolute', top:14, right:16 }}>
+                            <div style={{
+                              display:'flex', alignItems:'center', gap:3,
+                              background:'#FFF5EB', borderRadius:20, padding:'4px 10px',
+                              border:'1px solid rgba(193,79,46,0.15)',
+                            }}>
+                              <Icon name="sparkle" size={10} color={COLORS.accent} stroke={1.8}/>
+                              <span style={{ fontFamily:SANS, fontSize:10, color:COLORS.accent, fontWeight:500 }}>샘플</span>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                    </div>
-                  </button>
+                        )}
+                      </div>
+                    </button>
+                    {/* 동행인 드롭다운 탭 */}
+                    {companionCount > 0 && (() => {
+                      const companionUids = (t.members||[]).filter(uid => uid !== myUid);
+                      const isExp = expandedTripId === t.id;
+                      const profiles = tripMembersCache[t.id] || [];
+                      return (
+                        <>
+                          <button onClick={() => toggleTripExpand(t.id, companionUids)} style={{
+                            width:'100%', border:'none', borderTop:`1px solid ${COLORS.line}`,
+                            background:'none', cursor:'pointer', padding:'9px 18px',
+                            display:'flex', alignItems:'center', gap:8,
+                            WebkitTapHighlightColor:'transparent',
+                          }}>
+                            <Icon name="users" size={12} color={`oklch(0.45 0.07 ${hue})`} stroke={2}/>
+                            <span style={{ fontFamily:MONO, fontSize:9.5, color:`oklch(0.45 0.07 ${hue})`, letterSpacing:'0.06em' }}>
+                              동행인 {companionCount}명
+                            </span>
+                            <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2}
+                              style={{ marginLeft:'auto', transform: isExp ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
+                          </button>
+                          {isExp && (
+                            <div style={{ padding:'0 12px 12px', display:'flex', flexDirection:'column', gap:6 }}>
+                              {profiles.length === 0
+                                ? companionUids.map(uid => (
+                                    <div key={uid} style={{ background:COLORS.softer, borderRadius:10, padding:'9px 12px',
+                                      display:'flex', alignItems:'center', gap:10 }}>
+                                      <div style={{ width:30, height:30, borderRadius:15, background:COLORS.line, flexShrink:0 }}/>
+                                      <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>불러오는 중...</div>
+                                    </div>
+                                  ))
+                                : profiles.map(p => (
+                                    <div key={p.uid} style={{ background:COLORS.softer, borderRadius:10, padding:'9px 12px',
+                                      display:'flex', alignItems:'center', gap:10 }}>
+                                      {p.photoURL
+                                        ? <img src={p.photoURL} style={{ width:30, height:30, borderRadius:15, objectFit:'cover', flexShrink:0 }}/>
+                                        : <div style={{ width:30, height:30, borderRadius:15, background:`oklch(0.82 0.05 ${hue})`, flexShrink:0,
+                                            display:'flex', alignItems:'center', justifyContent:'center',
+                                            fontFamily:SANS, fontSize:13, color:`oklch(0.4 0.08 ${hue})`, fontWeight:600 }}>
+                                            {(p.displayName||'?')[0].toUpperCase()}
+                                          </div>
+                                      }
+                                      <div style={{ flex:1, minWidth:0 }}>
+                                        <div style={{ fontFamily:SANS, fontSize:13, fontWeight:500, color:COLORS.ink,
+                                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.displayName}</div>
+                                        {p.email && <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginTop:1,
+                                          overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{p.email}</div>}
+                                      </div>
+                                    </div>
+                                  ))
+                              }
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
                 </TripSwipeCard>
               );
             })}
@@ -7224,12 +7279,13 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                                   <div style={{ fontFamily:MONO, fontSize:9, color:'#B8860B',
                                     background:'#FFF8E1', borderRadius:6, padding:'2px 6px' }}>미수락</div>
                                 )}
-                                <div style={{ display:'flex', gap:4, flexWrap:'wrap', justifyContent:'flex-end' }}>
-                                  {(trips||[]).filter(t => (tripCompanions[t.id]||[]).some(m => m.uid === c.uid)).map(t => (
-                                    <div key={t.id} style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED',
-                                      background:'#EEF2FF', borderRadius:6, padding:'2px 6px' }}>{t.title||'여행'}</div>
-                                  ))}
-                                </div>
+                                {(() => {
+                                  const sharedCount = (trips||[]).filter(t => (tripCompanions[t.id]||[]).some(m => m.uid === c.uid)).length;
+                                  return sharedCount > 0 ? (
+                                    <div style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED',
+                                      background:'#EEF2FF', borderRadius:6, padding:'2px 6px' }}>{sharedCount}개 여행</div>
+                                  ) : null;
+                                })()}
                               </div>
                             </div>
                           </SwipeableRow>
