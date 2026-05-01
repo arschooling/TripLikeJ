@@ -1941,7 +1941,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
   };
 
   return (
-    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:87, position:'relative' }}>
+    <div style={{ minHeight:'100vh', background:COLORS.bg, paddingBottom:90, position:'relative' }}>
       {/* 프로필 버튼 */}
       <button onClick={onOpenCompanion} style={{
         position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', right:20, zIndex:10,
@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v378</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v379</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2286,7 +2286,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const { startIso, endIso } = parseTripDates();
 
   return (
-    <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:87, position:'relative' }}>
+    <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:90, position:'relative' }}>
       {/* My Trips 뒤로 버튼 */}
       {onBack && (
         <button onClick={onBack} style={{
