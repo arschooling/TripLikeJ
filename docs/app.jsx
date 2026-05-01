@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v426</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v427</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3274,6 +3274,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
     setTab(initialTab || 'hotspot');
     setHotspots(null); setFood(null);
     setSheetY(0); sheetYRef.current = 0;
+    setEntered(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
   }, [stop, initialTab]);
 
@@ -3287,7 +3288,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
       : (stop.title || '').replace(/\s+/g, '_');
     const cacheKey = `nearby_places_${stopKey}`;
     const cached = ncGet(cacheKey, NC_PLACES_TTL);
-    if (cached) {
+    if (cached && Array.isArray(cached.hotspots) && Array.isArray(cached.food)) {
       setHotspots(cached.hotspots);
       setFood(cached.food);
       return;
@@ -3394,7 +3395,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
   };
   const fmtDist = m => m < 1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(1)}km`;
   const currentData = tab === 'hotspot' ? hotspots : food;
-  const loading = currentData === null;
+  const loading = !Array.isArray(currentData);
 
   const renderItem = (item) => {
     const hue = item.name.split('').reduce((h,c) => (h*31 + c.charCodeAt(0)) & 0xffff, 0) % 360;
