@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v393</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v397</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -9518,6 +9518,13 @@ function App() {
   const myRole = (trip?.permissions || {})[authUser?.uid];
   const canEdit = myRole !== 'view';
   const unreadCount = notifs.filter(n => !n.read).length;
+
+  // ── 홈화면 아이콘 뱃지 (Web App Badge API) ─────────────────
+  React.useEffect(() => {
+    if (!('setAppBadge' in navigator)) return;
+    if (unreadCount > 0) navigator.setAppBadge(unreadCount).catch(() => {});
+    else                 navigator.clearAppBadge().catch(() => {});
+  }, [unreadCount]);
 
   // ── Render ─────────────────────────────────────────────
   let screen, label;
