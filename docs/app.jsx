@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v392</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v393</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8864,6 +8864,13 @@ function App() {
   const [addCompanionOpen,     setAddCompanionOpen]     = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
   const [companionsScreenOpen, setCompanionsScreenOpen] = React.useState(false);
   const [notifOpen, setNotifOpen]               = React.useState(false);
+  const openNotifs = () => {
+    // 알림 벨 탭 = 사용자 제스처 → iOS에서도 권한 요청 가능
+    if (window.fbInitPush && authUser && Notification?.permission !== 'granted') {
+      window.fbInitPush(authUser.uid).catch(() => {});
+    }
+    setNotifOpen(true);
+  };
   const [notifs, setNotifs]                     = React.useState([]);
   const notifyTripEditTimer                     = React.useRef(null);
   const updateSampleTimer                       = React.useRef(null);
@@ -8955,8 +8962,10 @@ function App() {
         setAuthState('in');
         // Firestore는 백그라운드에서 실제 데이터로 업데이트
         fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
-        // FCM 푸시 알림 초기화 (백그라운드)
-        if (window.fbInitPush) window.fbInitPush(fbUser.uid).catch(() => {});
+        // FCM 푸시 알림 초기화: 이미 허용된 경우에만 자동 갱신 (iOS는 제스처 없이 requestPermission 불가)
+        if (window.fbInitPush && Notification?.permission === 'granted') {
+          window.fbInitPush(fbUser.uid).catch(() => {});
+        }
       } else {
         setAuthUser(null); setUserData(null);
         setTrip(null); setActiveTripId(null); setUserTrips([]);
@@ -9548,7 +9557,7 @@ function App() {
         onAddItemToFirstDay={addItemToFirstDay}
         editing={editing} setEditing={setEditing}
         userData={userData} onOpenCompanion={() => setProfileSheetOpen(true)}
-        onOpenNotifs={() => setNotifOpen(true)} unreadCount={unreadCount}
+        onOpenNotifs={openNotifs} unreadCount={unreadCount}
         onLoadSample={async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const patch = {
@@ -9602,7 +9611,7 @@ function App() {
         userData={userData}
         myUid={authUser?.uid}
         onOpenCompanion={() => setProfileSheetOpen(true)}
-        onOpenNotifs={() => setNotifOpen(true)} unreadCount={unreadCount}
+        onOpenNotifs={openNotifs} unreadCount={unreadCount}
         onSelect={(id) => {
           const found = userTrips.find(t => t.id === id);
           let tripToShow = found;
