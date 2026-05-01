@@ -1983,7 +1983,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v423</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v424</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3263,7 +3263,6 @@ function NearbySheet({ stop, initialTab, onClose }) {
   const [tab, setTab] = React.useState('hotspot');
   const [hotspots, setHotspots] = React.useState(null);
   const [food, setFood]         = React.useState(null);
-  const [photos, setPhotos]     = React.useState({});
   const [entered, setEntered]   = React.useState(false);
   const [sheetY, setSheetY]     = React.useState(0);
   const sheetRef  = React.useRef(null);
@@ -3338,7 +3337,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
               isFood, fsq_id: null, dist: 0,
               lat: p.location?.latitude,
               lon: p.location?.longitude,
-              photoName: p.photos?.[0]?.name || null,
+              photo: p.photos?.[0]?.name ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=600&key=${GPLACES_KEY}` : null,
             };
           }).filter(p => p.name && p.lat && p.lon);
         };
@@ -3360,40 +3359,6 @@ function NearbySheet({ stop, initialTab, onClose }) {
     return () => ctrl.abort();
   }, [stop]);
 
-  // 사진 fetch: ① Google Places 사진 → ② Wikipedia 검색 (fallback)
-  React.useEffect(() => {
-    [...(hotspots||[]), ...(food||[])].forEach(async (item) => {
-      if (item.name in photos) return;
-      const photoKey = `nearby_photo_${item.name}`;
-      const cachedUrl = ncGet(photoKey, NC_PHOTO_TTL);
-      if (cachedUrl !== undefined) {
-        setPhotos(p => ({...p, [item.name]: cachedUrl || null}));
-        return;
-      }
-      setPhotos(p => ({...p, [item.name]: null}));
-
-      let url = '';
-
-      // ① Google Places 사진 (photoName이 있으면 바로 URL 구성)
-      if (item.photoName) {
-        url = `https://places.googleapis.com/v1/${item.photoName}/media?maxWidthPx=600&key=${GPLACES_KEY}`;
-      }
-
-      // ② Wikipedia 검색 (fallback)
-      if (!url) {
-        try {
-          const res = await fetch(
-            `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(item.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=600&origin=*`
-          ).then(r=>r.json());
-          const page = Object.values(res.query?.pages || {})[0];
-          if (page?.thumbnail?.source) url = page.thumbnail.source;
-        } catch(_) {}
-      }
-
-      ncSet(photoKey, url);
-      if (url) setPhotos(p => ({...p, [item.name]: url}));
-    });
-  }, [hotspots, food]);
 
   // 드래그-투-클로즈
   React.useEffect(() => {
@@ -3433,7 +3398,6 @@ function NearbySheet({ stop, initialTab, onClose }) {
   const loading = currentData === null;
 
   const renderItem = (item) => {
-    const photoUrl = photos[item.name];
     const hue = item.name.split('').reduce((h,c) => (h*31 + c.charCodeAt(0)) & 0xffff, 0) % 360;
     return (
       <button key={item.name} onClick={() => window.open(mapsSearchUrl(item.name), '_blank')}
@@ -3441,8 +3405,8 @@ function NearbySheet({ stop, initialTab, onClose }) {
           background:'transparent', cursor:'pointer', textAlign:'left',
           display:'flex', alignItems:'center', gap:12 }}>
         <div style={{ width:58, height:58, borderRadius:12, flexShrink:0, overflow:'hidden' }}>
-          {photoUrl
-            ? <img src={photoUrl} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"/>
+          {item.photo
+            ? <img src={item.photo} style={{ width:'100%', height:'100%', objectFit:'cover' }} loading="lazy"/>
             : <Photo hue={hue} height={58} small label={item.name}/>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
@@ -4524,7 +4488,7 @@ async function prefetchRoutes(trip) {
           fsq_id: null, dist: 0,
           lat: p.location?.latitude,
           lon: p.location?.longitude,
-          photoName: p.photos?.[0]?.name || null,
+          photo: p.photos?.[0]?.name ? `https://places.googleapis.com/v1/${p.photos[0].name}/media?maxWidthPx=600&key=${GPLACES_KEY}` : null,
         };
       }).filter(p => p.name && p.lat && p.lon);
     };
