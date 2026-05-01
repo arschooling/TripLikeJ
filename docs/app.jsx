@@ -1885,7 +1885,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v359</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v360</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6791,6 +6791,68 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
   const [removing, setRemoving]         = React.useState(null);
   const [addTripFor, setAddTripFor]     = React.useState(null);
 
+  // ── 드래그로 여행 추가 ──────────────────────────────────────
+  const [dragContact, setDragContact]   = React.useState(null);
+  const [dragPos, setDragPos]           = React.useState({x:0, y:0});
+  const [dragOverTripId, setDragOverTripId] = React.useState(null);
+  const dragContactRef    = React.useRef(null);
+  const dragOverTripIdRef = React.useRef(null);
+  const tripCardRefs      = React.useRef({});
+  const longPressRef      = React.useRef(null);
+  const tripsRef          = React.useRef(trips);
+  tripsRef.current        = trips;
+  const tripCompanionsRef = React.useRef(tripCompanions);
+  tripCompanionsRef.current = tripCompanions;
+
+  React.useEffect(() => {
+    if (!dragContact) return;
+    const onMove = (e) => {
+      e.preventDefault();
+      const t = e.touches[0];
+      setDragPos({x: t.clientX, y: t.clientY});
+      let over = null;
+      Object.entries(tripCardRefs.current).forEach(([id, el]) => {
+        if (!el) return;
+        const r = el.getBoundingClientRect();
+        if (t.clientX >= r.left && t.clientX <= r.right && t.clientY >= r.top && t.clientY <= r.bottom) over = id;
+      });
+      dragOverTripIdRef.current = over;
+      setDragOverTripId(over);
+    };
+    const onEnd = async () => {
+      const contact = dragContactRef.current;
+      const overId  = dragOverTripIdRef.current;
+      setDragContact(null); dragContactRef.current = null;
+      setDragOverTripId(null); dragOverTripIdRef.current = null;
+      if (overId && contact) {
+        const trip = (tripsRef.current||[]).find(t => t.id === overId);
+        const already = (tripCompanionsRef.current[overId]||[]).some(m => m.uid === contact.uid);
+        if (already) return;
+        try {
+          const res = await fbSendTripInvite(
+            {uid:authUser.uid, displayName:authUser.displayName, email:authUser.email, photoURL:authUser.photoURL||''},
+            contact.email, overId, trip?.title||''
+          );
+          if (res?.error) alert(res.error);
+        } catch(e) { alert('초대 실패.'); }
+      }
+    };
+    window.addEventListener('touchmove', onMove, {passive:false});
+    window.addEventListener('touchend', onEnd);
+    return () => { window.removeEventListener('touchmove', onMove); window.removeEventListener('touchend', onEnd); };
+  }, [!!dragContact]);
+
+  const startLongPress = (e, contact) => {
+    const touch = e.touches[0];
+    longPressRef.current = setTimeout(() => {
+      if (navigator.vibrate) navigator.vibrate(25);
+      dragContactRef.current = contact;
+      setDragContact(contact);
+      setDragPos({x: touch.clientX, y: touch.clientY});
+    }, 450);
+  };
+  const cancelLongPress = () => clearTimeout(longPressRef.current);
+
   const tripIds = (trips||[]).map(t=>t.id).join(',');
   React.useEffect(() => {
     if (!open || !authUser) return;
@@ -6885,7 +6947,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
         fontFamily:SANS, fontSize:size*0.4, color:COLORS.mute }}>{(u?.displayName||'?')[0]}</div>;
 
   return (
-    <div style={{ position:'fixed', inset:0, zIndex:220, background:COLORS.bg, overflowY:'auto',
+    <div style={{ position:'fixed', inset:0, zIndex:220, background:COLORS.bg, overflowY:'scroll', overflowX:'clip',
       paddingBottom:'calc(32px + env(safe-area-inset-bottom,0px))' }}>
       <div style={{
         position:'sticky', top:0, background:COLORS.bg, zIndex:5,
@@ -7027,8 +7089,10 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                       {displayContacts.map(c => {
                         const pendingInv = pendingInvMap[c.uid];
                         return (
-                          <SwipeableRow key={c.uid}
+                          <div key={c.uid} style={{ opacity: dragContact && dragContact.uid !== c.uid ? 0.45 : 1, transition:'opacity 0.15s' }}>
+                          <SwipeableRow
                             cardSwipe
+                            disabled={!!dragContact}
                             onEdit={pendingInv ? async () => {
                               try {
                                 await fbCancelInvite(pendingInv.id);
@@ -7043,8 +7107,11 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                             }}
                             deleteLabel="삭제"
                             wrapStyle={{ borderRadius:14 }}>
-                            <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px',
-                              display:'flex', alignItems:'center', gap:12 }}>
+                            <div style={{ background: dragContact?.uid === c.uid ? COLORS.softer : COLORS.card, borderRadius:14, padding:'12px 14px',
+                              display:'flex', alignItems:'center', gap:12 }}
+                              onTouchStart={(e) => startLongPress(e, c)}
+                              onTouchMove={cancelLongPress}
+                              onTouchEnd={cancelLongPress}>
                               <Avatar u={c}/>
                               <div style={{ flex:1, minWidth:0 }}>
                                 <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
@@ -7064,6 +7131,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                               </div>
                             </div>
                           </SwipeableRow>
+                          </div>
                         );
                       })}
                     </div>
@@ -7081,9 +7149,12 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
                   {(trips||[]).map(t => {
                     const members = tripCompanions[t.id] || [];
+                    const isDropTarget = dragOverTripId === t.id;
                     return (
-                      <div key={t.id} style={{ background:COLORS.card, borderRadius:16,
-                        border:`1px solid ${COLORS.line}` }}>
+                      <div key={t.id} ref={el => tripCardRefs.current[t.id] = el}
+                        style={{ background: isDropTarget ? '#EEF2FF' : COLORS.card, borderRadius:16,
+                          border:`${isDropTarget ? 2 : 1}px solid ${isDropTarget ? '#4F6BED' : COLORS.line}`,
+                          transition:'border-color 0.12s, background 0.12s' }}>
                         <div style={{ padding:'12px 16px', display:'flex', alignItems:'center', gap:10 }}>
                           <div style={{ width:36, height:36, borderRadius:10, overflow:'hidden', flexShrink:0 }}>
                             <Photo hue={t.hue ?? 25} height={36} small/>
@@ -7092,7 +7163,9 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                             <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>{t.title||'새 여행'}</div>
                             {t.dates && <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, marginTop:1 }}>{t.dates}</div>}
                           </div>
-                          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.accent }}>{members.length}명</div>
+                          <div style={{ fontFamily:MONO, fontSize:9.5, color: isDropTarget ? '#4F6BED' : COLORS.accent }}>
+                            {isDropTarget ? '여기에 추가' : `${members.length}명`}
+                          </div>
                         </div>
                         {members.length > 0 ? (
                           <div style={{ padding:'0 12px 12px', display:'flex', flexDirection:'column', gap:6 }}>
@@ -7160,6 +7233,24 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
               border:`1px solid ${COLORS.line}`, background:'transparent', cursor:'pointer',
               fontFamily:SANS, fontSize:13, color:COLORS.mute,
             }}>취소</button>
+          </div>
+        </div>
+      )}
+
+      {/* 드래그 고스트 카드 */}
+      {dragContact && (
+        <div style={{
+          position:'fixed', zIndex:9999, pointerEvents:'none',
+          left: dragPos.x - 120, top: dragPos.y - 28,
+          width: 240, background: COLORS.card, borderRadius:14,
+          padding:'10px 14px', display:'flex', alignItems:'center', gap:10,
+          boxShadow:'0 12px 32px rgba(0,0,0,0.22)',
+          transform:'scale(1.05)', opacity:0.96,
+        }}>
+          <Avatar u={dragContact} size={32}/>
+          <div style={{ flex:1, minWidth:0 }}>
+            <div style={{ fontFamily:SANS, fontSize:13, fontWeight:500, color:COLORS.ink, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{dragContact.displayName}</div>
+            <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>여행 카드에 올려 추가</div>
           </div>
         </div>
       )}
