@@ -431,10 +431,14 @@ window.fbGetContacts = async (uid) => {
 };
 
 window.fbRemoveContact = async (myUid, contactUid) => {
-  const batch = _fbDb.batch();
-  batch.update(_fbDb.collection('users').doc(myUid),      { contacts: firebase.firestore.FieldValue.arrayRemove(contactUid) });
-  batch.update(_fbDb.collection('users').doc(contactUid), { contacts: firebase.firestore.FieldValue.arrayRemove(myUid) });
-  await batch.commit();
+  // 내 문서에서 상대방 제거 (보안 규칙상 본인 문서만 쓰기 가능)
+  await _fbDb.collection('users').doc(myUid).update({
+    contacts: firebase.firestore.FieldValue.arrayRemove(contactUid),
+  });
+  // 상대방 문서에서 나 제거 (권한 없을 수 있으니 별도 처리, 실패해도 OK)
+  _fbDb.collection('users').doc(contactUid).update({
+    contacts: firebase.firestore.FieldValue.arrayRemove(myUid),
+  }).catch(() => {});
 };
 
 // ─── Notifications ──────────────────────────────────────────
