@@ -1,8 +1,8 @@
-const V = 'tlj-v390';
+const V = 'tlj-v391';
 const CACHE = [
   './', './index.html',
   './react.min.js', './react-dom.min.js',
-  './firebase-sdk.min.js', './firebase.js',
+  './firebase-sdk.min.js', './firebase-messaging.js', './firebase.js',
   './dnd-hotel.js', './bundle.min.js',
   './adam-light.otf', './adam-medium.otf',
 ];
@@ -30,5 +30,34 @@ self.addEventListener('message', e => {
 self.addEventListener('fetch', e => {
   e.respondWith(
     caches.match(e.request).then(r => r || fetch(e.request))
+  );
+});
+
+// FCM 백그라운드 푸시 수신
+self.addEventListener('push', e => {
+  if (!e.data) return;
+  let data = {};
+  try { data = e.data.json(); } catch (_) { data = { notification: { title: 'TripLikeJ', body: e.data.text() } }; }
+  const n = data.notification || {};
+  e.waitUntil(
+    self.registration.showNotification(n.title || 'TripLikeJ', {
+      body: n.body || '',
+      icon: n.icon || './icon-192.png',
+      badge: './icon-192.png',
+      data: { url: data.fcmOptions?.link || './' },
+    })
+  );
+});
+
+// 푸시 알림 클릭 시 앱 열기
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const url = e.notification.data?.url || './';
+  e.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
+      const c = cs.find(w => w.url.includes('TripLikeJ'));
+      if (c) { c.focus(); c.navigate(url); }
+      else clients.openWindow(url);
+    })
   );
 });

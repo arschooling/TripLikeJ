@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v390</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v391</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8949,6 +8949,8 @@ function App() {
         setAuthState('in');
         // Firestore는 백그라운드에서 실제 데이터로 업데이트
         fbGetOrCreateUser(fbUser).then(setUserData).catch(() => {});
+        // FCM 푸시 알림 초기화 (백그라운드)
+        if (window.fbInitPush) window.fbInitPush(fbUser.uid).catch(() => {});
       } else {
         setAuthUser(null); setUserData(null);
         setTrip(null); setActiveTripId(null); setUserTrips([]);

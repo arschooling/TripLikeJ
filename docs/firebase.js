@@ -678,3 +678,27 @@ window.fbNotifyTripEdit = async (tripId, editorUid, editorName, editorPhoto, tri
     tripId, tripTitle: tripTitle || '',
   })));
 };
+
+// ─── FCM 푸시 알림 ────────────────────────────────────────────
+const VAPID_KEY = 'BLWRMiI4aTE95xIUSBgp-ZAcU5zqgDMUgd85V2NKpIvFyqxaqKMNdU-tL-m7nlA_TaQ3U_tV1xPiBp915bLhpgg';
+
+window.fbInitPush = async (uid) => {
+  try {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') return;
+    const reg = await navigator.serviceWorker.ready;
+    const messaging = firebase.messaging();
+    const token = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (token) {
+      await _fbDb.collection('users').doc(uid).update({ fcmToken: token });
+    }
+    // 토큰 갱신 처리
+    messaging.onTokenRefresh(async () => {
+      const newToken = await messaging.getToken({ vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+      if (newToken) await _fbDb.collection('users').doc(uid).update({ fcmToken: newToken });
+    });
+  } catch (e) {
+    console.warn('FCM init:', e);
+  }
+};
