@@ -114,43 +114,18 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
 
 // ─── Photo placeholder ──────────────────────────────────────
 function Photo({ hue=20, label='', height=180, small=false }) {
-  const bg  = `oklch(0.90 0.04 ${hue})`;
-  const bg2 = `oklch(0.82 0.055 ${hue})`;
-  const ink = `oklch(0.38 0.06 ${hue})`;
-  const initial = label ? label.trim()[0].toUpperCase() : '';
-
-  if (small) {
-    // 파스텔 아바타: 이름 첫 글자 + 파스텔 배경
-    return (
-      <div style={{
-        width:'100%', height,
-        background:`linear-gradient(135deg, ${bg} 0%, ${bg2} 100%)`,
-        display:'flex', alignItems:'center', justifyContent:'center',
-        overflow:'hidden',
-      }}>
-        <div style={{ position:'absolute', inset:0,
-          background:`radial-gradient(ellipse at 35% 30%, rgba(255,255,255,0.45), transparent 65%)` }}/>
-        {initial && (
-          <span style={{ fontFamily:SANS, fontSize: height * 0.38, fontWeight:600,
-            color:ink, opacity:0.75, userSelect:'none', position:'relative' }}>
-            {initial}
-          </span>
-        )}
-      </div>
-    );
-  }
-
-  // 큰 플레이스홀더 (여행 카드 등)
+  const bg=`oklch(0.88 0.035 ${hue})`, bg2=`oklch(0.80 0.045 ${hue})`;
+  const ink=`oklch(0.36 0.04 ${hue})`;
   return (
     <div style={{
       width:'100%', height,
       background:`repeating-linear-gradient(135deg, ${bg} 0 14px, ${bg2} 14px 15px), linear-gradient(180deg, ${bg} 0%, ${bg2} 100%)`,
       position:'relative', overflow:'hidden',
-      display:'flex', alignItems:'flex-end', padding:14, boxSizing:'border-box',
+      display:'flex', alignItems:'flex-end', padding:small?8:14, boxSizing:'border-box',
     }}>
       <div style={{ position:'absolute', inset:0,
         background:`radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.35), transparent 60%)` }}/>
-      {label && <div style={{
+      {label && !small && <div style={{
         fontFamily:MONO, fontSize:10, letterSpacing:'0.14em',
         color:ink, opacity:0.72, textTransform:'uppercase', position:'relative',
       }}>{label}</div>}
@@ -2006,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v400</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v401</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3366,12 +3341,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
 
       let url = '';
 
-      // ① OSM image 태그 (API 호출 없음)
-      if (item.image) {
-        url = item.image;
-      }
-
-      // ② Unsplash 검색 (장소 이름 우선, 결과 없으면 음식 카테고리로 폴백)
+      // ① Unsplash 검색 (장소 이름 우선, 결과 없으면 음식 카테고리로 폴백)
       if (!url) {
         try {
           const isFood = item.isFood || ['restaurant','cafe','bar','fast_food','pub','biergarten','food_court'].includes(item.type);
@@ -3402,16 +3372,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
         } catch(_) {}
       }
 
-      // ③ Wikipedia 태그로 섬네일
-      if (!url && item.wikipedia) {
-        try {
-          const t = item.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
-          const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r=>r.json());
-          if (d.thumbnail?.source) url = d.thumbnail.source;
-        } catch(_) {}
-      }
-
-      // ④ Wikipedia/Commons: 검색+이미지를 1번 요청으로 (generator=search)
+      // ② Wikipedia 이름 검색 폴백
       if (!url) {
         try {
           const res = await fetch(
