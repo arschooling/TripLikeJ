@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v385</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v386</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8105,8 +8105,13 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     // 모든 도시 완료 → 여행 생성
     const selPlaces = places.filter(p => selected.has(p.id));
     const resolvedDest = selectedDest || (destQuery.trim() ? { key:'custom', kor:destQuery.trim(), eng:destQuery.trim(), flag:'🌍', zone:null, currency:'USD', lat:0, lon:0 } : null);
+    // 한글 도시명 → 영어 변환 (타이틀용)
+    const _korToEng = {};
+    Object.values(CITIES_BY_KEY).forEach(arr => arr.forEach(c => { if (c.kor && c.eng) _korToEng[c.kor] = c.eng; }));
+    CITY_DB.forEach(c => { if (c.kor && c.eng) _korToEng[c.kor] = c.eng; });
+    const engCities = cities.filter(Boolean).map(c => _korToEng[c.trim()] || c);
     const tripData = generateTripData({
-      cities: cities.filter(Boolean), startIso, endIso,
+      cities: engCities, startIso, endIso,
       hotels: skipHotel ? [] : hotels.filter(h => h.name.trim()),
       arrAirport, depAirport,
       selectedPlaces: selPlaces, selectedDest: resolvedDest,
