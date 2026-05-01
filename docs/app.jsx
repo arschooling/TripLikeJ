@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v384</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v385</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7988,14 +7988,22 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     const validCities = cities.filter(c => c.trim());
     if (!validCities.length) return;
     setLoading(true); setPlaces([]); setSelected(new Set());
+    // 한글 도시명 → 영어 변환 맵 (CITIES_BY_KEY 기반)
+    const korToEng = {};
+    Object.values(CITIES_BY_KEY).forEach(arr => arr.forEach(c => { if (c.kor && c.eng) korToEng[c.kor] = c.eng; }));
+    // 선택된 국가 영어 이름 (Nominatim 검색 정확도 향상용)
+    const countryEng = selectedDest?.eng || '';
     (async () => {
       try {
         const allPlaces = [];
         for (let ci = 0; ci < validCities.length; ci++) {
           const city = validCities[ci];
+          // 한글이면 영어로 변환, 국가명 붙여서 검색
+          const cityEng = korToEng[city.trim()] || city;
+          const searchQ = countryEng && cityEng !== countryEng ? `${cityEng}, ${countryEng}` : cityEng;
           // Nominatim으로 도시 행정 경계(bounding box) 가져오기
           const geo = await fetch(
-            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(city)}&format=json&limit=3&addressdetails=0`,
+            `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQ)}&format=json&limit=3&addressdetails=0`,
             { headers: { 'User-Agent': 'TripLikeJ/1.0' } }
           ).then(r => r.json());
           // 도시·지역 유형 우선 선택
