@@ -1911,7 +1911,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v362</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v363</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6854,13 +6854,15 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
         const trip = (tripsRef.current||[]).find(t => t.id === overId);
         const already = (tripCompanionsRef.current[overId]||[]).some(m => m.uid === contact.uid);
         if (already) return;
+        const fromUser = {uid:authUser.uid, displayName:authUser.displayName, email:authUser.email, photoURL:authUser.photoURL||''};
         try {
-          const res = await fbSendTripInvite(
-            {uid:authUser.uid, displayName:authUser.displayName, email:authUser.email, photoURL:authUser.photoURL||''},
-            contact.email, overId, trip?.title||''
-          );
-          if (res?.error) alert(res.error);
-        } catch(e) { alert('초대 실패.'); }
+          // 이미 동행인으로 연결된 상태 → 수락 없이 바로 여행 공유
+          await fbAddTripMember(fromUser, contact.uid, overId, trip?.title||'');
+          setTripCompanions(prev => ({
+            ...prev,
+            [overId]: [...(prev[overId]||[]), contact],
+          }));
+        } catch(e) { alert('추가 실패.'); }
       }
     };
     window.addEventListener('touchmove', onMove, {passive:false});

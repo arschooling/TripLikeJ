@@ -338,6 +338,21 @@ window.fbGetUsersById = async (uids) => {
   return snaps.filter(s => s.exists).map(s => ({ uid: s.id, ...s.data() }));
 };
 
+window.fbAddTripMember = async (fromUser, toUid, tripId, tripTitle) => {
+  await _fbDb.collection('groups').doc(tripId).update({
+    members: firebase.firestore.FieldValue.arrayUnion(toUid),
+    [`permissions.${toUid}`]: 'edit',
+  });
+  await _fbDb.collection('users').doc(toUid).update({
+    tripIds: firebase.firestore.FieldValue.arrayUnion(tripId),
+  });
+  _fbAddNotification(toUid, {
+    type: 'invite_accepted',
+    fromUid: fromUser.uid, fromName: fromUser.displayName || '', fromPhoto: fromUser.photoURL || '',
+    tripId, tripTitle: tripTitle || '',
+  }).catch(() => {});
+};
+
 window.fbRemoveTripMember = async (tripId, uid) => {
   await _fbDb.collection('groups').doc(tripId).update({
     members: firebase.firestore.FieldValue.arrayRemove(uid),
