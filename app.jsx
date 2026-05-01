@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v397</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v399</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3346,17 +3346,34 @@ function NearbySheet({ stop, initialTab, onClose }) {
         url = item.image;
       }
 
-      // ② Unsplash 검색 (핫플: 장소명, 음식: 카테고리명 기반)
+      // ② Unsplash 검색 (장소 이름 우선, 결과 없으면 음식 카테고리로 폴백)
       if (!url) {
         try {
           const isFood = item.isFood || ['restaurant','cafe','bar','fast_food','pub','biergarten','food_court'].includes(item.type);
-          const q = isFood
-            ? (item.cuisine ? item.cuisine.split(';')[0].trim() + ' food' : 'restaurant food')
-            : item.name;
-          const uRes = await fetch(
-            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q)}&per_page=1&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+          // 이름으로 먼저 검색 (핫플·음식점 모두)
+          const q1 = isFood ? `${item.name} restaurant` : item.name;
+          const uRes1 = await fetch(
+            `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q1)}&per_page=8&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
           ).then(r => r.json());
-          if (uRes.results?.[0]?.urls?.small) url = uRes.results[0].urls.small;
+          const r1 = uRes1.results || [];
+          if (r1.length) {
+            // 상위 결과 중 랜덤 선택
+            const pick = r1[Math.floor(Math.random() * Math.min(r1.length, 5))];
+            if (pick?.urls?.small) url = pick.urls.small;
+          }
+          // 이름 검색 결과 없으면 카테고리로 폴백
+          if (!url && isFood) {
+            const cuisine = item.cuisine ? item.cuisine.split(';')[0].trim() : '';
+            const q2 = cuisine ? cuisine + ' food' : 'restaurant food';
+            const uRes2 = await fetch(
+              `https://api.unsplash.com/search/photos?query=${encodeURIComponent(q2)}&per_page=8&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+            ).then(r => r.json());
+            const r2 = uRes2.results || [];
+            if (r2.length) {
+              const pick = r2[Math.floor(Math.random() * Math.min(r2.length, 5))];
+              if (pick?.urls?.small) url = pick.urls.small;
+            }
+          }
         } catch(_) {}
       }
 
@@ -8033,17 +8050,21 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         setPlaces(allPlaces);
         setSelected(new Set()); // 기본 미선택 — 사용자가 직접 선택
         setLoading(false);
-        // 사진 비동기 로드: Unsplash → Wikipedia fallback
+        // 사진 비동기 로드: Unsplash (상위 결과 랜덤) → Wikipedia fallback
         const UNSPLASH_KEY = 'BWmUabGdXaiSO-REdKlHwznAXADRJipRPLSDlIZltNA';
         allPlaces.forEach(async (p) => {
           try {
             let photo = null;
-            // 1. Unsplash 검색 (landscape 사진, 고품질)
+            // 1. Unsplash 검색 (landscape 사진, 고품질, 상위 5개 중 랜덤)
             try {
               const uRes = await fetch(
-                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(p.name)}&per_page=1&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(p.name)}&per_page=8&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
               ).then(r => r.json());
-              if (uRes.results?.[0]?.urls?.small) photo = uRes.results[0].urls.small;
+              const results = uRes.results || [];
+              if (results.length) {
+                const pick = results[Math.floor(Math.random() * Math.min(results.length, 5))];
+                if (pick?.urls?.small) photo = pick.urls.small;
+              }
             } catch (_) {}
             // 2. Wikipedia fallback (이름 검색)
             if (!photo) {
