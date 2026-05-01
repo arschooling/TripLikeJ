@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v417</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v418</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8021,31 +8021,48 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           const overpassQ = `[out:json][timeout:15];(node(around:8000,${gLat},${gLon})["tourism"~"^(attraction|museum|viewpoint|gallery|monument|theme_park|zoo|aquarium)$"];way(around:8000,${gLat},${gLon})["tourism"~"^(attraction|museum|viewpoint|gallery|monument|theme_park|zoo|aquarium)$"];);out center 50;`;
           const res = await fetch(`https://overpass-api.de/api/interpreter?data=${encodeURIComponent(overpassQ)}`).then(r => r.json());
           const list = (res.elements || [])
-            .map((el, idx) => ({
-              id: `${ci}_${el.id || idx}`,
-              name: el.tags?.['name:ko'] || el.tags?.['name:en'] || el.tags?.name,
-              type: el.tags?.tourism || 'Attraction',
-              lat: el.lat ?? el.center?.lat,
-              lon: el.lon ?? el.center?.lon,
-              photo: null, cityIdx: ci,
-              _notable: !!(el.tags?.wikidata || el.tags?.wikipedia),
-            }))
+            .map((el, idx) => {
+              const rawName = el.tags?.name || '';
+              const koName  = el.tags?.['name:ko'] || '';
+              const enName  = el.tags?.['name:en'] || el.tags?.['name:ja'] || rawName;
+              return {
+                id: `${ci}_${el.id || idx}`,
+                name: koName || enName,       // 표시 이름 (한글 우선)
+                nameOrig: koName ? enName : '', // 원문 (한글이 있을 때만)
+                type: el.tags?.tourism || 'Attraction',
+                lat: el.lat ?? el.center?.lat,
+                lon: el.lon ?? el.center?.lon,
+                photo: null, cityIdx: ci,
+                _notable: !!(el.tags?.wikidata || el.tags?.wikipedia),
+              };
+            })
             .filter(p => p.name && p.lat && p.lon)
-            .sort((a, b) => (b._notable ? 1 : 0) - (a._notable ? 1 : 0)); // 유명 장소 우선
+            // 중복 제거 (같은 이름 = 같은 장소의 node/way 중복)
+            .filter((p, i, arr) => arr.findIndex(x => x.name === p.name) === i)
+            .sort((a, b) => (b._notable ? 1 : 0) - (a._notable ? 1 : 0));
           allPlaces.push(...list);
         }
         setPlaces(allPlaces);
         setSelected(new Set());
         setLoading(false);
-        // 사진 비동기 로드: Wikipedia
+        // 사진 + 한글 이름 비동기 로드 (Wikipedia 한 번 요청으로 둘 다)
         allPlaces.forEach(async (p) => {
           try {
             const sr = await fetch(
-              `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.name)}&gsrlimit=1&prop=pageimages&format=json&pithumbsize=400&origin=*`
+              `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.nameOrig || p.name)}&gsrlimit=1&prop=pageimages|langlinks&lllang=ko&format=json&pithumbsize=400&origin=*`
             ).then(r => r.json());
-            const pages = sr.query?.pages;
-            const photo = pages ? (Object.values(pages)[0]?.thumbnail?.source || null) : null;
-            if (photo) setPlaces(prev => prev.map(pl => pl.id === p.id ? { ...pl, photo } : pl));
+            const page = Object.values(sr.query?.pages || {})[0];
+            const photo = page?.thumbnail?.source || null;
+            const koTitle = page?.langlinks?.[0]?.['*'] || null;
+            setPlaces(prev => prev.map(pl => {
+              if (pl.id !== p.id) return pl;
+              return {
+                ...pl,
+                photo: photo || pl.photo,
+                name: (pl.nameOrig ? pl.name : (koTitle || pl.name)), // 한글 이름으로 업데이트
+                nameOrig: pl.nameOrig || (koTitle ? (pl.name !== koTitle ? pl.name : '') : ''),
+              };
+            }));
           } catch (_) {}
         });
       } catch (e) { setPlaceErr(`네트워크 오류: ${e.message}`); setLoading(false); }
@@ -8494,7 +8511,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                             </div>
                           )}
                         </div>
-                        <div style={{ padding:'7px 9px 9px', fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
+                        <div style={{ padding:'7px 9px 9px' }}>
+                          <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
+                          {p.nameOrig && <div style={{ fontFamily:SANS, fontSize:9.5, color:COLORS.mute, marginTop:2, lineHeight:1.2 }}>{p.nameOrig}</div>}
+                        </div>
                       </button>
                     );
                   })}
