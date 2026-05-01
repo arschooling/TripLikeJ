@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v402</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v404</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8036,6 +8036,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           ).then(r => r.json());
           const list = (res.results || []).map((p, idx) => ({
             id: `${ci}_${p.fsq_id || idx}`,
+            fsq_id: p.fsq_id || null,
             name: p.name,
             type: p.categories?.[0]?.name || 'Attraction',
             lat: p.geocodes?.main?.latitude,
@@ -8047,23 +8048,37 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         setPlaces(allPlaces);
         setSelected(new Set()); // 기본 미선택 — 사용자가 직접 선택
         setLoading(false);
-        // 사진 비동기 로드: Unsplash (상위 결과 랜덤) → Wikipedia fallback
+        // 사진 비동기 로드: ① Foursquare 실제 사진 → ② Unsplash → ③ Wikipedia
         const UNSPLASH_KEY = 'BWmUabGdXaiSO-REdKlHwznAXADRJipRPLSDlIZltNA';
         allPlaces.forEach(async (p) => {
           try {
             let photo = null;
-            // 1. Unsplash 검색 (landscape 사진, 고품질, 상위 5개 중 랜덤)
-            try {
-              const uRes = await fetch(
-                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(p.name)}&per_page=8&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
-              ).then(r => r.json());
-              const results = uRes.results || [];
-              if (results.length) {
-                const pick = results[Math.floor(Math.random() * Math.min(results.length, 5))];
-                if (pick?.urls?.small) photo = pick.urls.small;
-              }
-            } catch (_) {}
-            // 2. Wikipedia fallback (이름 검색)
+            // 1. Foursquare 실제 사진
+            if (p.fsq_id) {
+              try {
+                const fsqRes = await fetch(
+                  `https://api.foursquare.com/v3/places/${p.fsq_id}/photos?limit=1&fields=prefix,suffix`,
+                  { headers: { 'Authorization': FSQ_KEY, 'Accept': 'application/json' } }
+                ).then(r => r.json());
+                if (fsqRes?.[0]?.prefix && fsqRes?.[0]?.suffix) {
+                  photo = `${fsqRes[0].prefix}400x300${fsqRes[0].suffix}`;
+                }
+              } catch (_) {}
+            }
+            // 2. Unsplash (상위 5개 중 랜덤)
+            if (!photo) {
+              try {
+                const uRes = await fetch(
+                  `https://api.unsplash.com/search/photos?query=${encodeURIComponent(p.name)}&per_page=8&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+                ).then(r => r.json());
+                const results = uRes.results || [];
+                if (results.length) {
+                  const pick = results[Math.floor(Math.random() * Math.min(results.length, 5))];
+                  if (pick?.urls?.small) photo = pick.urls.small;
+                }
+              } catch (_) {}
+            }
+            // 3. Wikipedia fallback
             if (!photo) {
               try {
                 const sr = await fetch(
