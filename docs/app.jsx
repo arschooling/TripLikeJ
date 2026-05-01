@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v369</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v370</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2027,10 +2027,11 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                           {companionCount > 0 && (
                             <div style={{
                               display:'flex', alignItems:'center', gap:4,
-                              background:'#EEF2FF', borderRadius:20, padding:'4px 10px',
+                              background:`oklch(0.88 0.06 ${hue})`,
+                              borderRadius:20, padding:'4px 10px',
                             }}>
-                              <Icon name="users" size={11} color="#4F6BED" stroke={2}/>
-                              <span style={{ fontFamily:SANS, fontSize:10, color:'#4F6BED', fontWeight:500 }}>{companionCount}명</span>
+                              <Icon name="users" size={11} color={`oklch(0.38 0.09 ${hue})`} stroke={2}/>
+                              <span style={{ fontFamily:SANS, fontSize:10, color:`oklch(0.38 0.09 ${hue})`, fontWeight:500 }}>{companionCount}명</span>
                             </div>
                           )}
                         </div>
