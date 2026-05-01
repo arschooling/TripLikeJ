@@ -453,6 +453,14 @@ window.fbListenNotifications = (uid, cb) =>
 window.fbDeleteNotification = (uid, notifId) =>
   _fbDb.collection('users').doc(uid).collection('notifications').doc(notifId).delete();
 
+window.fbDeleteAllNotifications = async (uid) => {
+  const snap = await _fbDb.collection('users').doc(uid).collection('notifications').get();
+  if (snap.empty) return;
+  const batch = _fbDb.batch();
+  snap.docs.forEach(d => batch.delete(d.ref));
+  await batch.commit();
+};
+
 window.fbPruneOldNotifications = async (uid) => {
   const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
   const snap = await _fbDb.collection('users').doc(uid).collection('notifications')

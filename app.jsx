@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v409</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v410</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6797,6 +6797,13 @@ function NotificationsScreen({ open, onClose, authUser, notifications, onGoToCom
       fbDeleteNotification(authUser.uid, id).catch(() => {});
   };
 
+  const deleteAllNotifs = () => {
+    if (!authUser?.uid || notifications.length === 0) return;
+    if (!confirm('알림을 모두 삭제할까요?')) return;
+    if (typeof fbDeleteAllNotifications === 'function')
+      fbDeleteAllNotifications(authUser.uid).catch(() => {});
+  };
+
   const COMPANION_TYPES = new Set(['contact_added', 'contact_accepted', 'invite_received', 'trip_copy_received']);
   const TRIP_TYPES      = new Set(['invite_accepted', 'trip_edited']);
 
@@ -6831,7 +6838,13 @@ function NotificationsScreen({ open, onClose, authUser, notifications, onGoToCom
         }}>
           <Icon name="chevron-l" size={17} color={COLORS.ink} stroke={2}/>
         </button>
-        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>Notifications</div>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, flex:1 }}>Notifications</div>
+        {notifications.length > 0 && (
+          <button type="button" onClick={deleteAllNotifs} style={{
+            background:'transparent', border:'none', cursor:'pointer', padding:'4px 8px',
+            fontFamily:SANS, fontSize:13, color:COLORS.mute, flexShrink:0,
+          }}>전체 삭제</button>
+        )}
       </div>
 
       <div style={{ padding:'16px 16px 0' }}>
