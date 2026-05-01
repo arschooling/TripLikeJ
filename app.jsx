@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v414</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v415</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7452,14 +7452,16 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
   const getHotel   = n => hotels.find(h => h.name && n >= h.from && n <= h.to) || null;
 
   // 도시별 장소 분리 → 각각 최적 경로 → 순차 합치기
+  // Foursquare가 인기순으로 반환하므로 원래 인덱스 = 인기도 순위
+  const rankedPlaces = selectedPlaces.map((p, i) => ({ ...p, _popRank: i }));
   const routedPlaces = [];
-  const hasCityIdx = selectedPlaces.some(p => p.cityIdx != null);
+  const hasCityIdx = rankedPlaces.some(p => p.cityIdx != null);
   if (hasCityIdx) {
     citiesList.forEach((_, ci) => {
-      greedyRoute(selectedPlaces.filter(p => (p.cityIdx ?? 0) === ci)).forEach(p => routedPlaces.push(p));
+      greedyRoute(rankedPlaces.filter(p => (p.cityIdx ?? 0) === ci)).forEach(p => routedPlaces.push(p));
     });
   } else {
-    greedyRoute([...selectedPlaces]).forEach(p => routedPlaces.push(p));
+    greedyRoute([...rankedPlaces]).forEach(p => routedPlaces.push(p));
   }
 
   // 하루 시간 상수
@@ -7511,7 +7513,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
       }
       t += travelMin;
 
-      dayItems[dayIdx].push({ time:minToTime(t), title:p.name, loc:p.name, done:false, lat:p.lat, lon:p.lon });
+      dayItems[dayIdx].push({ time:minToTime(t), title:p.name, loc:p.name, done:false, lat:p.lat, lon:p.lon, _popRank:p._popRank ?? 999 });
       t += dur;
       prev = p;
       pIdx++;
@@ -7554,8 +7556,9 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
     }
 
     items.sort((a, b) => a.time.localeCompare(b.time));
-    // 해당 날의 포인트 장소 (좌표 있는 첫 번째 실제 장소)를 타이틀로
-    const pointItem = items.find(it => it.lat && it.lon);
+    // 해당 날의 포인트 장소 — 좌표 있는 항목 중 Foursquare 인기도 순위 가장 높은 것
+    const placeItems = items.filter(it => it.lat && it.lon);
+    const pointItem = placeItems.sort((a, b) => (a._popRank ?? 999) - (b._popRank ?? 999))[0];
     const dayTitle = pointItem ? pointItem.title : `Day ${n}`;
     return {
       n, date:isoToDayDate(iso), weekday:isoToWeekday(iso),
