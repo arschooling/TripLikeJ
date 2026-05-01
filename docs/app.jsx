@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v418</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v419</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8025,15 +8025,17 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               const rawName = el.tags?.name || '';
               const koName  = el.tags?.['name:ko'] || '';
               const enName  = el.tags?.['name:en'] || el.tags?.['name:ja'] || rawName;
+              const wikiTag = el.tags?.wikipedia || ''; // e.g. "en:Kinkaku-ji" or "ja:金閣寺"
               return {
                 id: `${ci}_${el.id || idx}`,
-                name: koName || enName,       // 표시 이름 (한글 우선)
-                nameOrig: koName ? enName : '', // 원문 (한글이 있을 때만)
+                name: koName || enName,
+                nameOrig: koName ? enName : '',
                 type: el.tags?.tourism || 'Attraction',
                 lat: el.lat ?? el.center?.lat,
                 lon: el.lon ?? el.center?.lon,
                 photo: null, cityIdx: ci,
-                _notable: !!(el.tags?.wikidata || el.tags?.wikipedia),
+                wikiTag,  // 직접 Wikipedia 문서 링크
+                _notable: !!(el.tags?.wikidata || wikiTag),
               };
             })
             .filter(p => p.name && p.lat && p.lon)
@@ -8045,13 +8047,25 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         setPlaces(allPlaces);
         setSelected(new Set());
         setLoading(false);
-        // 사진 + 한글 이름 비동기 로드 (Wikipedia 한 번 요청으로 둘 다)
+        // 사진 + 한글 이름 비동기 로드
         allPlaces.forEach(async (p) => {
           try {
-            const sr = await fetch(
-              `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.nameOrig || p.name)}&gsrlimit=1&prop=pageimages|langlinks&lllang=ko&format=json&pithumbsize=400&origin=*`
-            ).then(r => r.json());
-            const page = Object.values(sr.query?.pages || {})[0];
+            let page = null;
+            if (p.wikiTag) {
+              // OSM wikipedia 태그로 정확한 문서 직접 조회 (e.g. "en:Kinkaku-ji")
+              const [lang, ...titleParts] = p.wikiTag.includes(':') ? p.wikiTag.split(':') : ['en', p.wikiTag];
+              const title = titleParts.join(':');
+              const sr = await fetch(
+                `https://${lang}.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages|langlinks&lllang=ko&format=json&pithumbsize=400&origin=*`
+              ).then(r => r.json());
+              page = Object.values(sr.query?.pages || {})[0];
+            } else {
+              // wikipedia 태그 없으면 이름으로 검색
+              const sr = await fetch(
+                `https://en.wikipedia.org/w/api.php?action=query&generator=search&gsrsearch=${encodeURIComponent(p.nameOrig || p.name)}&gsrlimit=1&prop=pageimages|langlinks&lllang=ko&format=json&pithumbsize=400&origin=*`
+              ).then(r => r.json());
+              page = Object.values(sr.query?.pages || {})[0];
+            }
             const photo = page?.thumbnail?.source || null;
             const koTitle = page?.langlinks?.[0]?.['*'] || null;
             setPlaces(prev => prev.map(pl => {
@@ -8059,8 +8073,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               return {
                 ...pl,
                 photo: photo || pl.photo,
-                name: (pl.nameOrig ? pl.name : (koTitle || pl.name)), // 한글 이름으로 업데이트
-                nameOrig: pl.nameOrig || (koTitle ? (pl.name !== koTitle ? pl.name : '') : ''),
+                name: pl.nameOrig ? pl.name : (koTitle || pl.name),
+                nameOrig: pl.nameOrig || (koTitle && koTitle !== pl.name ? pl.name : ''),
               };
             }));
           } catch (_) {}
