@@ -1981,7 +1981,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v387</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v388</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8039,11 +8039,20 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         setPlaces(allPlaces);
         setSelected(new Set()); // 기본 미선택 — 사용자가 직접 선택
         setLoading(false);
-        // 사진 비동기 로드: wikipedia 태그 → 이름 검색 fallback
+        // 사진 비동기 로드: Unsplash → Wikipedia fallback
+        const UNSPLASH_KEY = 'BWmUabGdXaiSO-REdKlHwznAXADRJipRPLSDlIZltNA';
         allPlaces.forEach(async (p) => {
           try {
             let photo = null;
-            if (p.wikipedia) {
+            // 1. Unsplash 검색 (landscape 사진, 고품질)
+            try {
+              const uRes = await fetch(
+                `https://api.unsplash.com/search/photos?query=${encodeURIComponent(p.name)}&per_page=1&orientation=landscape&content_filter=high&client_id=${UNSPLASH_KEY}`
+              ).then(r => r.json());
+              if (uRes.results?.[0]?.urls?.small) photo = uRes.results[0].urls.small;
+            } catch (_) {}
+            // 2. Wikipedia fallback
+            if (!photo && p.wikipedia) {
               const t = p.wikipedia.replace(/^[a-z-]+:/, '').replace(/ /g, '_');
               const d = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(t)}`).then(r => r.json());
               photo = d.thumbnail?.source || null;
