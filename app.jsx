@@ -1982,7 +1982,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v410</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v411</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7918,6 +7918,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const [depAirport,   setDepAirport]   = React.useState('인천국제공항');
   const [places,       setPlaces]       = React.useState([]);
   const [loading,      setLoading]      = React.useState(false);
+  const [placeErr,     setPlaceErr]     = React.useState('');
   const [selected,     setSelected]     = React.useState(new Set());
   const [cityStep,     setCityStep]     = React.useState(0);
   const [showMore,     setShowMore]     = React.useState(false);
@@ -7988,7 +7989,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     setStep(1); setSelectedDest(null); setDestQuery(''); setCities(['']); setStartIso(''); setEndIso('');
     setHotels([{ name:'', from:1, to:1 }]); setSkipHotel(false);
     setArrAirport(''); setDepAirport('인천국제공항');
-    setPlaces([]); setLoading(false); setSelected(new Set());
+    setPlaces([]); setLoading(false); setSelected(new Set()); setPlaceErr('');
     setCityStep(0); setShowMore(false);
   }, [open]);
 
@@ -8002,7 +8003,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     if (step !== HP_STEP || !open) return;
     const validCities = cities.filter(c => c.trim());
     if (!validCities.length) return;
-    setLoading(true); setPlaces([]); setSelected(new Set());
+    setLoading(true); setPlaces([]); setSelected(new Set()); setPlaceErr('');
     // 한글 도시명 → 영어 변환 맵 (CITIES_BY_KEY 기반)
     const korToEng = {};
     Object.values(CITIES_BY_KEY).forEach(arr => arr.forEach(c => { if (c.kor && c.eng) korToEng[c.kor] = c.eng; }));
@@ -8021,6 +8022,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             `https://api.foursquare.com/v3/places/search?near=${encodeURIComponent(searchQ)}&categories=10000,16000&sort=POPULARITY&limit=30&fields=fsq_id,name,categories,geocodes`,
             { headers: fsqHeaders }
           ).then(r => r.json());
+          if (res.message) { setPlaceErr(`API 오류: ${res.message}`); setLoading(false); return; }
           const list = (res.results || []).map((p, idx) => ({
             id: `${ci}_${p.fsq_id || idx}`,
             fsq_id: p.fsq_id || null,
@@ -8064,7 +8066,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             if (photo) setPlaces(prev => prev.map(pl => pl.id === p.id ? { ...pl, photo } : pl));
           } catch (_) {}
         });
-      } catch (_) { setLoading(false); }
+      } catch (e) { setPlaceErr(`네트워크 오류: ${e.message}`); setLoading(false); }
     })();
   }, [step]);
 
@@ -8469,7 +8471,12 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     장소 불러오는 중...
                   </div>
                 )}
-                {!loading && cityPlaces.length === 0 && (
+                {!loading && placeErr && (
+                  <div style={{ textAlign:'center', padding:'24px 0', fontFamily:SANS, fontSize:12, color:'#E03C31' }}>
+                    {placeErr}
+                  </div>
+                )}
+                {!loading && !placeErr && cityPlaces.length === 0 && (
                   <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
                     장소를 찾을 수 없어요
                   </div>
