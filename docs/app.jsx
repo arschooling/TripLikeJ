@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v494</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v495</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -9751,7 +9751,6 @@ function App() {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const defVer = def.nycVersion || 1;
           for (let i = 0; i < normalized.length; i++) {
-            // rome 등 다른 샘플은 건너뜀. nyc는 오너 본인 여행이므로 포함
             if (normalized[i].sampleId && normalized[i].sampleId !== 'nyc') continue;
             const t = normalized[i];
             const needsRestore = (t.days || []).length === 0;
@@ -9766,8 +9765,12 @@ function App() {
                 hotels: def.hotels || [],
                 food  : def.food   || [],
               };
-              normalized[i] = normalizeTrip({ ...t, ...patch }, t.id);
+              normalized[i] = normalizeTrip({ ...t, ...patch, sampleId: undefined, sampleVersion: undefined }, t.id);
               fbSaveGroup(t.id, patch).catch(e => console.warn('nyc update failed', e));
+              // sampleId/sampleVersion 필드 삭제 — NYC는 샘플이 아닌 오너 개인 여행
+              if (t.sampleId === 'nyc' && typeof fbRemoveSampleFields === 'function') {
+                fbRemoveSampleFields(t.id).catch(() => {});
+              }
             }
           }
         }
