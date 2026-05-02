@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v1</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v2</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -4181,7 +4181,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
         display:'flex', flexDirection:'column', position:'relative' }}>
         <div ref={sheetRef} onClick={e => e.stopPropagation()}
           style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
-            paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',
+            paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 4px)',
             maxHeight: '92%',
             overflowY:'auto', overflowX:'hidden' }}>
           <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
@@ -4374,7 +4374,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             display:'flex', alignItems:'flex-end', borderRadius:'22px 22px 0 0', overflow:'hidden',
           }}>
             <div onClick={e => e.stopPropagation()} style={{
-              width:'100%', background:COLORS.bg, borderRadius:'18px 18px 0 0', paddingBottom:40,
+              width:'100%', background:COLORS.bg, borderRadius:'18px 18px 0 0', paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 4px)',
             }}>
               <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
                 <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
