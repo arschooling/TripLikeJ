@@ -2099,7 +2099,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v472</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v473</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8286,22 +8286,102 @@ const CITY_DB = [
 
 const AIRPORTS = [
   // 한국
-  '인천국제공항','김포국제공항','김해국제공항','제주국제공항','대구국제공항','청주국제공항','무안국제공항','양양국제공항',
+  {kor:'인천국제공항',          eng:'Incheon International Airport',                    code:'ICN'},
+  {kor:'김포국제공항',          eng:'Gimpo International Airport',                      code:'GMP'},
+  {kor:'김해국제공항',          eng:'Gimhae International Airport',                     code:'PUS'},
+  {kor:'제주국제공항',          eng:'Jeju International Airport',                       code:'CJU'},
+  {kor:'대구국제공항',          eng:'Daegu International Airport',                      code:'TAE'},
+  {kor:'청주국제공항',          eng:'Cheongju International Airport',                   code:'CJJ'},
+  {kor:'무안국제공항',          eng:'Muan International Airport',                       code:'MWX'},
   // 일본
-  '나리타 국제공항','하네다 국제공항','간사이 국제공항','신치토세 공항','후쿠오카 공항','나고야 중부국제공항','오키나와 나하 공항','히로시마 공항','센다이 공항','나가사키 공항',
+  {kor:'나리타 국제공항',       eng:'Narita International Airport',                     code:'NRT'},
+  {kor:'하네다 국제공항',       eng:'Tokyo Haneda Airport',                             code:'HND'},
+  {kor:'간사이 국제공항',       eng:'Kansai International Airport',                     code:'KIX'},
+  {kor:'신치토세 공항',         eng:'New Chitose Airport',                              code:'CTS'},
+  {kor:'후쿠오카 공항',         eng:'Fukuoka Airport',                                  code:'FUK'},
+  {kor:'나고야 중부국제공항',   eng:'Chubu Centrair International Airport',             code:'NGO'},
+  {kor:'오키나와 나하 공항',    eng:'Naha Airport',                                     code:'OKA'},
+  {kor:'히로시마 공항',         eng:'Hiroshima Airport',                                code:'HIJ'},
+  {kor:'센다이 공항',           eng:'Sendai Airport',                                   code:'SDJ'},
+  {kor:'나가사키 공항',         eng:'Nagasaki Airport',                                 code:'NGS'},
   // 미국
-  'JFK 국제공항','로스앤젤레스 국제공항','오헤어 국제공항','샌프란시스코 국제공항','마이애미 국제공항','시애틀-타코마 국제공항','보스턴 로건 국제공항','댈러스 포트워스 국제공항','라스베이거스 맥캐런 국제공항','워싱턴 덜레스 국제공항','호놀룰루 국제공항','애틀랜타 국제공항',
+  {kor:'JFK 국제공항',          eng:'John F. Kennedy International Airport',            code:'JFK'},
+  {kor:'로스앤젤레스 국제공항', eng:'Los Angeles International Airport',                code:'LAX'},
+  {kor:'오헤어 국제공항',       eng:"O'Hare International Airport",                     code:'ORD'},
+  {kor:'샌프란시스코 국제공항', eng:'San Francisco International Airport',              code:'SFO'},
+  {kor:'마이애미 국제공항',     eng:'Miami International Airport',                      code:'MIA'},
+  {kor:'시애틀-타코마 국제공항',eng:'Seattle-Tacoma International Airport',             code:'SEA'},
+  {kor:'보스턴 로건 국제공항',  eng:'Boston Logan International Airport',               code:'BOS'},
+  {kor:'댈러스 포트워스 국제공항',eng:'Dallas/Fort Worth International Airport',        code:'DFW'},
+  {kor:'라스베이거스 국제공항', eng:'Harry Reid International Airport',                 code:'LAS'},
+  {kor:'워싱턴 덜레스 국제공항',eng:'Washington Dulles International Airport',          code:'IAD'},
+  {kor:'호놀룰루 국제공항',     eng:'Daniel K. Inouye International Airport',           code:'HNL'},
+  {kor:'애틀랜타 국제공항',     eng:'Hartsfield-Jackson Atlanta International Airport', code:'ATL'},
   // 유럽
-  '히드로 공항','파리 샤를드골 공항','프랑크푸르트 공항','암스테르담 스히폴 공항','마드리드 바라하스 공항','바르셀로나 엘프라트 공항','로마 피우미치노 공항','밀라노 말펜사 공항','아테네 국제공항','이스탄불 공항','취리히 공항','비엔나 국제공항','코펜하겐 공항','헬싱키 반타 공항','오슬로 가르데르모엔 공항','스톡홀름 아를란다 공항','리스본 공항','브뤼셀 공항','더블린 공항','뮌헨 공항','베를린 브란덴부르크 공항','프라하 공항',
-  // 중동·아시아
-  '두바이 국제공항','아부다비 국제공항','도하 하마드 국제공항','싱가포르 창이 공항','홍콩 국제공항','타이베이 타오위안 국제공항','방콕 수완나품 공항','방콕 돈므앙 공항','발리 응우라라이 공항','쿠알라룸푸르 국제공항','마닐라 니노이아키노 국제공항','하노이 노이바이 국제공항','호치민 탄손녓 국제공항','자카르타 수카르노하타 국제공항','콜롬보 반다라나이케 국제공항',
-  // 중국·대만
-  '베이징 캐피털 국제공항','베이징 다싱 국제공항','상하이 푸둥 국제공항','상하이 훙차오 국제공항','광저우 바이윈 국제공항','청두 솽류 국제공항',
-  // 오세아니아·기타
-  '시드니 킹스퍼드스미스 공항','멜버른 공항','오클랜드 공항','브리즈번 공항','케언즈 공항',
-  '요하네스버그 올리버탐보 국제공항','케이프타운 국제공항','나이로비 조모케냐타 국제공항',
-  '토론토 피어슨 국제공항','밴쿠버 국제공항','몬트리올 트뤼도 국제공항',
-  '멕시코시티 베니토후아레스 국제공항','상파울루 과룰류스 국제공항','부에노스아이레스 에세이사 국제공항','리마 호르헤차베스 국제공항',
+  {kor:'히드로 공항',           eng:'London Heathrow Airport',                          code:'LHR'},
+  {kor:'파리 샤를드골 공항',    eng:'Paris Charles de Gaulle Airport',                  code:'CDG'},
+  {kor:'프랑크푸르트 공항',     eng:'Frankfurt Airport',                                code:'FRA'},
+  {kor:'암스테르담 스히폴 공항',eng:'Amsterdam Airport Schiphol',                       code:'AMS'},
+  {kor:'마드리드 바라하스 공항',eng:'Adolfo Suárez Madrid–Barajas Airport',             code:'MAD'},
+  {kor:'바르셀로나 엘프라트 공항',eng:'Barcelona–El Prat Airport',                      code:'BCN'},
+  {kor:'로마 피우미치노 공항',  eng:'Leonardo da Vinci International Airport',          code:'FCO'},
+  {kor:'밀라노 말펜사 공항',    eng:'Milan Malpensa Airport',                           code:'MXP'},
+  {kor:'아테네 국제공항',       eng:'Athens International Airport',                     code:'ATH'},
+  {kor:'이스탄불 공항',         eng:'Istanbul Airport',                                 code:'IST'},
+  {kor:'취리히 공항',           eng:'Zurich Airport',                                   code:'ZRH'},
+  {kor:'비엔나 국제공항',       eng:'Vienna International Airport',                     code:'VIE'},
+  {kor:'코펜하겐 공항',         eng:'Copenhagen Airport',                               code:'CPH'},
+  {kor:'헬싱키 반타 공항',      eng:'Helsinki-Vantaa Airport',                          code:'HEL'},
+  {kor:'오슬로 공항',           eng:'Oslo Gardermoen Airport',                          code:'OSL'},
+  {kor:'스톡홀름 아를란다 공항',eng:'Stockholm Arlanda Airport',                        code:'ARN'},
+  {kor:'리스본 공항',           eng:'Humberto Delgado Airport',                         code:'LIS'},
+  {kor:'브뤼셀 공항',           eng:'Brussels Airport',                                 code:'BRU'},
+  {kor:'더블린 공항',           eng:'Dublin Airport',                                   code:'DUB'},
+  {kor:'뮌헨 공항',             eng:'Munich Airport',                                   code:'MUC'},
+  {kor:'베를린 브란덴부르크 공항',eng:'Berlin Brandenburg Airport',                     code:'BER'},
+  {kor:'프라하 공항',           eng:'Václav Havel Airport Prague',                      code:'PRG'},
+  // 중동
+  {kor:'두바이 국제공항',       eng:'Dubai International Airport',                      code:'DXB'},
+  {kor:'아부다비 국제공항',     eng:'Abu Dhabi International Airport',                  code:'AUH'},
+  {kor:'도하 하마드 국제공항',  eng:'Hamad International Airport',                      code:'DOH'},
+  // 아시아
+  {kor:'싱가포르 창이 공항',    eng:'Singapore Changi Airport',                         code:'SIN'},
+  {kor:'홍콩 국제공항',         eng:'Hong Kong International Airport',                  code:'HKG'},
+  {kor:'타이베이 타오위안 국제공항',eng:'Taiwan Taoyuan International Airport',         code:'TPE'},
+  {kor:'방콕 수완나품 공항',    eng:'Suvarnabhumi Airport',                             code:'BKK'},
+  {kor:'방콕 돈므앙 공항',      eng:'Don Mueang International Airport',                 code:'DMK'},
+  {kor:'발리 응우라라이 공항',  eng:'Ngurah Rai International Airport',                 code:'DPS'},
+  {kor:'쿠알라룸푸르 국제공항', eng:'Kuala Lumpur International Airport',               code:'KUL'},
+  {kor:'마닐라 니노이아키노 국제공항',eng:'Ninoy Aquino International Airport',         code:'MNL'},
+  {kor:'하노이 노이바이 국제공항',eng:'Noi Bai International Airport',                  code:'HAN'},
+  {kor:'호치민 탄손녓 국제공항',eng:'Tan Son Nhat International Airport',               code:'SGN'},
+  {kor:'자카르타 수카르노하타 국제공항',eng:'Soekarno-Hatta International Airport',     code:'CGK'},
+  {kor:'콜롬보 반다라나이케 국제공항',eng:'Bandaranaike International Airport',         code:'CMB'},
+  // 중국
+  {kor:'베이징 캐피털 국제공항',eng:'Beijing Capital International Airport',            code:'PEK'},
+  {kor:'베이징 다싱 국제공항',  eng:'Beijing Daxing International Airport',             code:'PKX'},
+  {kor:'상하이 푸둥 국제공항',  eng:'Shanghai Pudong International Airport',            code:'PVG'},
+  {kor:'상하이 훙차오 국제공항',eng:'Shanghai Hongqiao International Airport',          code:'SHA'},
+  {kor:'광저우 바이윈 국제공항',eng:'Guangzhou Baiyun International Airport',           code:'CAN'},
+  {kor:'청두 솽류 국제공항',    eng:'Chengdu Shuangliu International Airport',          code:'CTU'},
+  // 오세아니아
+  {kor:'시드니 킹스퍼드스미스 공항',eng:'Sydney Kingsford Smith Airport',               code:'SYD'},
+  {kor:'멜버른 공항',           eng:'Melbourne Airport',                                code:'MEL'},
+  {kor:'오클랜드 공항',         eng:'Auckland Airport',                                 code:'AKL'},
+  {kor:'브리즈번 공항',         eng:'Brisbane Airport',                                 code:'BNE'},
+  {kor:'케언즈 공항',           eng:'Cairns Airport',                                   code:'CNS'},
+  // 아프리카
+  {kor:'요하네스버그 올리버탐보 국제공항',eng:'O.R. Tambo International Airport',       code:'JNB'},
+  {kor:'케이프타운 국제공항',   eng:'Cape Town International Airport',                  code:'CPT'},
+  {kor:'나이로비 조모케냐타 국제공항',eng:'Jomo Kenyatta International Airport',        code:'NBO'},
+  // 아메리카
+  {kor:'토론토 피어슨 국제공항',eng:'Toronto Pearson International Airport',            code:'YYZ'},
+  {kor:'밴쿠버 국제공항',       eng:'Vancouver International Airport',                  code:'YVR'},
+  {kor:'몬트리올 트뤼도 국제공항',eng:'Montréal-Trudeau International Airport',         code:'YUL'},
+  {kor:'멕시코시티 베니토후아레스 국제공항',eng:'Benito Juárez International Airport',  code:'MEX'},
+  {kor:'상파울루 과룰류스 국제공항',eng:'São Paulo/Guarulhos International Airport',    code:'GRU'},
+  {kor:'부에노스아이레스 에세이사 국제공항',eng:'Ministro Pistarini International Airport',code:'EZE'},
+  {kor:'리마 호르헤차베스 국제공항',eng:'Jorge Chávez International Airport',           code:'LIM'},
 ];
 
 const CITIES_BY_KEY = {
@@ -8904,11 +8984,21 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           {/* Step 4: 공항 */}
           {step === 4 && (() => {
             const makeAirportInput = (value, setValue, label, isAutoFocus, placeholder) => {
-              const ghostMatch = value.length === 0 ? null : AIRPORTS.find(a => a.startsWith(value) && a !== value);
-              const ghostSuffix = ghostMatch ? ghostMatch.slice(value.length) : '';
+              const q = value.toLowerCase();
+              const korMatch = value.length > 0 ? AIRPORTS.find(a => a.kor.startsWith(value) && a.kor !== value) : null;
+              const engMatch = value.length > 0 ? AIRPORTS.find(a => a.eng.toLowerCase().startsWith(q) && a.eng.toLowerCase() !== q) : null;
+              // 코드 매칭: 2자 이상이고 한글/영어 매칭이 없을 때만
+              const codeMatch = (value.length >= 2 && !korMatch && !engMatch) ? AIRPORTS.find(a => a.code.toLowerCase().startsWith(q)) : null;
+              const textMatch = korMatch || engMatch;
+              const ghostFull = korMatch ? korMatch.kor : engMatch ? engMatch.eng : '';
+              const ghostSuffix = ghostFull ? ghostFull.slice(value.length) : '';
               let typedPx = 16 + value.length * 14;
               try { const cv=document.createElement('canvas'); const cx=cv.getContext('2d'); cx.font=`15px ${SANS},sans-serif`; typedPx=16+cx.measureText(value).width; } catch(_){}
-              const acceptGhost = () => { if (ghostMatch) setValue(ghostMatch); };
+              const acceptMatch = () => {
+                if (korMatch) setValue(korMatch.kor);
+                else if (engMatch) setValue(engMatch.eng);
+                else if (codeMatch) setValue(codeMatch.kor);
+              };
               return (
                 <div style={{ marginBottom:18 }}>
                   <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</div>
@@ -8921,17 +9011,24 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     )}
                     <input autoFocus={isAutoFocus} value={value}
                       onChange={e => setValue(e.target.value)}
-                      onKeyDown={e => { if ((e.key==='Tab'||e.key==='ArrowRight') && ghostSuffix) { e.preventDefault(); acceptGhost(); } }}
+                      onKeyDown={e => { if ((e.key==='Tab'||e.key==='ArrowRight') && (ghostSuffix||codeMatch)) { e.preventDefault(); acceptMatch(); } }}
                       placeholder={ghostSuffix ? '' : placeholder}
                       style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, position:'relative', zIndex:1 }}
                     />
                     {ghostSuffix && (
-                      <div onMouseDown={e => { e.preventDefault(); acceptGhost(); }} style={{ position:'absolute', top:0, bottom:0, left:typedPx, right:36, zIndex:2, cursor:'pointer' }}/>
+                      <div onMouseDown={e => { e.preventDefault(); acceptMatch(); }} style={{ position:'absolute', top:0, bottom:0, left:typedPx, right:36, zIndex:2, cursor:'pointer' }}/>
                     )}
                     {value.length > 0 && (
                       <button onClick={() => setValue('')} style={{ position:'absolute', right:8, top:'50%', transform:'translateY(-50%)', background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:18, lineHeight:1, padding:4, zIndex:3 }}>×</button>
                     )}
                   </div>
+                  {codeMatch && (
+                    <div onMouseDown={e => { e.preventDefault(); setValue(codeMatch.kor); }}
+                      style={{ marginTop:6, display:'inline-flex', alignItems:'center', gap:6, background:COLORS.card, border:`1px solid ${COLORS.line}`, borderRadius:20, padding:'5px 12px', cursor:'pointer' }}>
+                      <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>{codeMatch.code}</span>
+                      <span style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink }}>{codeMatch.kor}</span>
+                    </div>
+                  )}
                 </div>
               );
             };
