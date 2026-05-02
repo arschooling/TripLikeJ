@@ -277,7 +277,7 @@ function EditBtn({ editing, onClick, compact }) {
 }
 
 // ─── Swipeable row (swipe-left to reveal edit/delete) ────────
-function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {}, editIcon, editBg, editLabel, deleteLabel, cardSwipe }) {
+function SwipeableRow({ children, onEdit, onDelete, onFlyStart, disabled, isDragging, wrapStyle = {}, editIcon, editBg, editLabel, deleteLabel, cardSwipe }) {
   const [x, setX]             = React.useState(0);
   const [open, setOpen]       = React.useState(false);
   const [flying, setFlying]   = React.useState(false);  // 날아가는 중
@@ -296,6 +296,7 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
   // 카드를 화면 밖으로 날린 뒤 높이를 접고 onDelete 호출
   const flyOff = () => {
     if (flying) return;
+    onFlyStart?.();
     const h = outerRef.current?.offsetHeight || 0;
     if (h) setCollapseH(h); // 현재 높이 고정 (접기 시작점)
     setFlying(true);
@@ -2099,7 +2100,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v473</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v474</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2828,6 +2829,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   const day = trip.days[dayIdx] || { n: dayIdx+1, title:'', date:'', weekday:'', hero:{ hue:25, label:'' }, items:[] };
   const tripYear = extractTripYear(trip);
   const [travelTimes, setTravelTimes] = React.useState({});
+  const [flyingItemIdx, setFlyingItemIdx] = React.useState(null);
 
   React.useEffect(() => {
     const items = day.items || [];
@@ -3015,7 +3017,8 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
             const isDone = done.has(i);
             const dp = itemDragProps(i);
             return (
-              <div key={i} {...dp} style={{ display:'flex', alignItems:'flex-start', marginBottom:12, position:'relative', ...(dp.style || {}) }}>
+              <div key={i} {...dp} style={{ display:'flex', alignItems:'flex-start', marginBottom:12, position:'relative', ...(dp.style || {}),
+                opacity: flyingItemIdx === i ? 0 : 1, transition: flyingItemIdx === i ? 'opacity 0.26s' : 'none' }}>
                 {/* 시간 — marginTop으로 카드 첫째 줄에 맞춤 */}
                 <div style={{ width:32, flexShrink:0, marginTop:11,
                   fontFamily:MONO, fontSize:10.5, color:COLORS.mute,
@@ -3034,8 +3037,9 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   cardSwipe
                   wrapStyle={{ flex:1, marginLeft:12, borderRadius:14 }}
                   disabled={editing}
+                  onFlyStart={() => setFlyingItemIdx(i)}
                   onEdit={() => onOpenStop({ idx: i, stop: it, editing: true })}
-                  onDelete={() => onDeleteItem(i)}>
+                  onDelete={() => { setFlyingItemIdx(null); onDeleteItem(i); }}>
                 {/* 카드 본체 */}
                 <div style={{ position:'relative' }}>
                   {!editing && (
