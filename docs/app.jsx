@@ -2098,7 +2098,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v459</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v460</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6063,7 +6063,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                     {parsed.map((c, i) => (
                       <div key={i} style={{ marginBottom:8 }}>
                         <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>
-                          {c.name}
+                          {c.name} {cats.find(x=>x.name===c.name) ? <span style={{color:COLORS.accent,fontSize:10}}>기존에 추가</span> : <span style={{color:'#2E7D32',fontSize:10}}>새 카테고리</span>}
                         </div>
                         {c.items.map((item, j) => (
                           <div key={j} style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, paddingLeft:8, marginBottom:2 }}>· {item}</div>
