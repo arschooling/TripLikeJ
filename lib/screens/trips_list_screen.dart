@@ -5,6 +5,7 @@ import '../providers/trips_provider.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
 import '../theme/tokens.dart';
+import '../version.dart';
 import '../widgets/photo_placeholder.dart';
 import '../widgets/edit_button.dart';
 import 'home_screen.dart';
@@ -41,6 +42,8 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                 child: Row(
                   children: [
                     Text('My Trips', style: AppText.serif(22)),
+                    const SizedBox(width: 8),
+                    Text(appVersion, style: AppText.mono(9, letterSpacing: 0.8)),
                     const Spacer(),
                     EditButton(
                       editing: _editing,
