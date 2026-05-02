@@ -2131,7 +2131,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v480</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v481</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -9685,17 +9685,14 @@ function App() {
     });
   }, [authUser?.uid]);
 
-  // ── 여행 목록 로드 + 샘플 싱크 ────────────────────────────
-  // Phase 1: 내 여행 먼저 로드 → 카드 즉시 표시
-  // Phase 2: 샘플 싱크 백그라운드 실행 → 조용히 업데이트
+  // ── 여행 목록 로드 ────────────────────────────────────────
   React.useEffect(() => {
     if (!userData?.uid) return;
-    const uid = userData.uid;
     const email = userData.email || '';
     const tripIds = userData.tripIds || [userData.groupId];
     setTripsLoading(true);
 
-    fbLoadTrips(tripIds).then(async rawTrips => {
+    fbLoadTrips(tripIds).then(rawTrips => {
       const normalized = rawTrips.map(t => normalizeTrip(t, t.id));
       // days가 없는 여행은 TRIP_DEFAULT로 자동 복구 — 오너 계정 전용
       if (email === 'arjungtaeng@gmail.com') {
@@ -9715,50 +9712,9 @@ function App() {
           }
         }
       }
-      // Phase 1 완료: 카드 즉시 표시
       setUserTrips(normalized);
       setTripsLoading(false);
       setTripsReady(true);
-
-      // Phase 2: 샘플 싱크 백그라운드 (화면에는 이미 카드 보임)
-      if (typeof fbSyncSample !== 'function') return;
-      const SAMPLES = ['rome'];
-      const syncResults = await Promise.all(
-        SAMPLES.map(sid => fbSyncSample(uid, email, sid).catch(() => null))
-      );
-      const newIds = syncResults
-        .filter(r => r?.tripId && !tripIds.includes(r.tripId))
-        .map(r => r.tripId);
-      if (newIds.length > 0) {
-        // 새 샘플 로드 후 목록에 추가
-        const newTrips = await fbLoadTrips(newIds);
-        setUserTrips(prev => {
-          const updated = [...prev];
-          newTrips.forEach(t => {
-            if (!updated.find(u => u.id === t.id)) updated.push(normalizeTrip(t, t.id));
-          });
-          syncResults.forEach(r => {
-            if (r?.updated && r.tripId && r.tripData) {
-              const idx = updated.findIndex(t => t.id === r.tripId);
-              if (idx >= 0) updated[idx] = normalizeTrip({ ...updated[idx], ...r.tripData, sampleId: updated[idx].sampleId }, r.tripId);
-            }
-          });
-          return updated;
-        });
-        setUserData(prev => ({
-          ...prev,
-          tripIds: [...new Set([...(prev.tripIds || []), ...newIds])],
-        }));
-      } else {
-        // 기존 샘플 업데이트만 반영
-        const hasUpdates = syncResults.some(r => r?.updated && r.tripId && r.tripData);
-        if (hasUpdates) {
-          setUserTrips(prev => prev.map(t => {
-            const r = syncResults.find(u => u?.updated && u.tripId === t.id);
-            return r ? normalizeTrip({ ...t, ...r.tripData, sampleId: t.sampleId }, t.id) : t;
-          }));
-        }
-      }
     }).catch(() => { setTripsLoading(false); setTripsReady(true); });
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
 
