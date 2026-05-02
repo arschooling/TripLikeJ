@@ -1297,24 +1297,25 @@ function PickerSheet({ open, onClose, title, items, getKey, filterFn, renderRow,
 }
 
 // ─── FX ─────────────────────────────────────────────────────
+// unit: 화면 표시 기준 단위 (은행 환율 표시 관행 — JPY·VND는 100단위)
 const FX_CURRENCIES = [
-  { code:'USD', sym:'$',   name:'미국 달러' },
-  { code:'EUR', sym:'€',   name:'유로' },
-  { code:'JPY', sym:'¥',   name:'일본 엔' },
-  { code:'GBP', sym:'£',   name:'영국 파운드' },
-  { code:'CNY', sym:'¥',   name:'중국 위안' },
-  { code:'HKD', sym:'HK$', name:'홍콩 달러' },
-  { code:'TWD', sym:'NT$', name:'대만 달러' },
-  { code:'SGD', sym:'S$',  name:'싱가포르 달러' },
-  { code:'THB', sym:'฿',   name:'태국 바트' },
-  { code:'AUD', sym:'A$',  name:'호주 달러' },
-  { code:'CAD', sym:'C$',  name:'캐나다 달러' },
-  { code:'CHF', sym:'Fr',  name:'스위스 프랑' },
-  { code:'AED', sym:'AED', name:'UAE 디르함' },
-  { code:'MYR', sym:'RM',  name:'말레이시아 링깃' },
-  { code:'VND', sym:'₫',   name:'베트남 동' },
-  { code:'PHP', sym:'₱',   name:'필리핀 페소' },
-  { code:'MXN', sym:'MX$', name:'멕시코 페소' },
+  { code:'USD', sym:'$',   name:'미국 달러',        unit:1   },
+  { code:'EUR', sym:'€',   name:'유로',              unit:1   },
+  { code:'JPY', sym:'¥',   name:'일본 엔',           unit:100 },
+  { code:'GBP', sym:'£',   name:'영국 파운드',       unit:1   },
+  { code:'CNY', sym:'¥',   name:'중국 위안',         unit:1   },
+  { code:'HKD', sym:'HK$', name:'홍콩 달러',         unit:1   },
+  { code:'TWD', sym:'NT$', name:'대만 달러',         unit:1   },
+  { code:'SGD', sym:'S$',  name:'싱가포르 달러',     unit:1   },
+  { code:'THB', sym:'฿',   name:'태국 바트',         unit:1   },
+  { code:'AUD', sym:'A$',  name:'호주 달러',         unit:1   },
+  { code:'CAD', sym:'C$',  name:'캐나다 달러',       unit:1   },
+  { code:'CHF', sym:'Fr',  name:'스위스 프랑',       unit:1   },
+  { code:'AED', sym:'AED', name:'UAE 디르함',         unit:1   },
+  { code:'MYR', sym:'RM',  name:'말레이시아 링깃',   unit:1   },
+  { code:'VND', sym:'₫',   name:'베트남 동',         unit:100 },
+  { code:'PHP', sym:'₱',   name:'필리핀 페소',       unit:1   },
+  { code:'MXN', sym:'MX$', name:'멕시코 페소',       unit:1   },
 ];
 
 function useFxRate(currency) {
@@ -1370,10 +1371,10 @@ function FxCard({ curCode, onSetCurCode }) {
       </div>
       <div style={{ marginTop:5, display:'flex', alignItems:'flex-end', gap:6 }}>
         <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, lineHeight:1 }}>
-          {loading ? '…' : rate ? `₩${Math.round(rate).toLocaleString()}` : '—'}
+          {loading ? '…' : rate ? `₩${Math.round(rate * (cur.unit || 1)).toLocaleString()}` : '—'}
         </div>
         <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, paddingBottom:4 }}>
-          = {cur.sym}1
+          = {cur.sym}{cur.unit > 1 ? cur.unit : 1}
         </div>
       </div>
       <div style={{ marginTop:4, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -2098,7 +2099,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v470</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v471</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
