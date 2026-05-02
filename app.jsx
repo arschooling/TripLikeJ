@@ -1984,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v434</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v435</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5776,6 +5776,11 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
           background:COLORS.bg, borderTop:`1px solid ${COLORS.line}`,
           padding:'12px 16px calc(env(safe-area-inset-bottom,0px) + 12px)',
           display:'flex', gap:8 }}>
+          <button onClick={() => setDraftCats([])} style={{ width:50, padding:'13px', border:`1px solid rgba(193,79,46,0.25)`,
+            borderRadius:14, background:'rgba(193,79,46,0.07)', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Icon name="trash" size={15} color={COLORS.accent} stroke={2}/>
+          </button>
           <button onClick={cancelEdit} style={{ flex:1, padding:'13px', border:`1px solid ${COLORS.line}`,
             borderRadius:14, background:COLORS.card, fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>
             취소
