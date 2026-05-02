@@ -1984,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v431</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v432</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5737,9 +5737,6 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                 <button onMouseDown={e => e.preventDefault()} onClick={() => addItem(ci)} style={{
                   padding:'4px 10px', border:'none', borderRadius:8,
                   background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:12, cursor:'pointer' }}>추가</button>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => { setAddInputCat(null); setAddInputText(''); }} style={{
-                  padding:'4px 6px', border:'none', background:'transparent', cursor:'pointer',
-                  color:COLORS.mute, fontFamily:SANS, fontSize:18, lineHeight:1 }}>×</button>
               </div>
             ) : (
               <button onClick={() => { setAddInputCat(ci); setAddInputText(''); }} style={{
