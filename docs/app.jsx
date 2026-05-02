@@ -734,7 +734,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
           display:'flex', alignItems:'center', gap:6,
         }}>
           {view.y}년 {MONTH_KR[view.mo]}
-          <Icon name={pickingYM?'chevron-d':'chevron-d'} size={12} color={COLORS.mute} stroke={2.5}/>
+          <Icon name={pickingYM?'chevron-u':'chevron-d'} size={12} color={COLORS.mute} stroke={2.5}/>
         </button>
         {!pickingYM && (
           <div style={{ display:'flex', gap:4 }}>
@@ -2073,7 +2073,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v451</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v452</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2257,9 +2257,10 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const [fWidth, setFWidth]   = React.useState(window.innerWidth);  // 측정된 실제 너비
   const fOffsetRef = React.useRef(0);
   const fGesture   = React.useRef({ on:false, startX:0, startY:0, drag:false });
-  const fVelSamples = React.useRef([]);
-  const fWrapRef   = React.useRef(null);
-  const fTrackRef  = React.useRef(null);
+  const fVelSamples  = React.useRef([]);
+  const fWrapRef     = React.useRef(null);
+  const fTrackRef    = React.useRef(null);
+  const fSwipeTimer  = React.useRef(null);
   const fW = () => fWrapRef.current?.offsetWidth || fWidth;
 
   // 마운트 후 실제 너비 측정 (다른 화면 갔다 돌아올 때도 정확히 반영)
@@ -2335,10 +2336,12 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
     fTrans(dur, 'cubic-bezier(0.25,0.46,0.45,0.94)');
     if (toNext) {
       fSet(-w);
-      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i + 1); fSet(0); }, dur + 20);
+      clearTimeout(fSwipeTimer.current);
+      fSwipeTimer.current = setTimeout(() => { fSetNone(); setFeaturedIdx(i => i + 1); fSet(0); }, dur + 20);
     } else if (toPrev) {
       fSet(w);
-      setTimeout(() => { fSetNone(); setFeaturedIdx(i => i - 1); fSet(0); }, dur + 20);
+      clearTimeout(fSwipeTimer.current);
+      fSwipeTimer.current = setTimeout(() => { fSetNone(); setFeaturedIdx(i => i - 1); fSet(0); }, dur + 20);
     } else {
       // 스냅백: 스프링 느낌
       fTrans(380, 'cubic-bezier(0.22,1,0.36,1)');
@@ -2842,12 +2845,12 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
 
   const [done, setDone] = React.useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('done_' + trip.title + '_' + dayIdx) || '[]')); }
+    try { return new Set(JSON.parse(localStorage.getItem('done_' + tripId + '_' + dayIdx) || '[]')); }
     catch(e) { return new Set(); }
   });
   const toggle = (i) => setDone(s => {
     const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i);
-    localStorage.setItem('done_' + trip.title + '_' + dayIdx, JSON.stringify([...n]));
+    localStorage.setItem('done_' + tripId + '_' + dayIdx, JSON.stringify([...n]));
     return n;
   });
   const [editingTitle, setEditingTitle] = React.useState(false);
@@ -4042,6 +4045,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete }) 
         if (feats.length && searchFocused.current) setShowSearch(true);
       } catch(_) {}
     }, 350);
+    return () => clearTimeout(searchTimer.current);
   }, [searchQ]);
 
   const save = () => { onSave(draft); committed.current = { ...draft }; setEditing(false); };
