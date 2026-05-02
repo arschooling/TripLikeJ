@@ -174,11 +174,11 @@ function getCachedDayPhotoUrl(uid, tripId, dayIdx) {
 // ─── DayPhotoImg: Storage URL 비동기 로드 래퍼 ─────────────
 function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey }) {
   const initCached = getCachedDayPhotoUrl(uid, tripId, dayIdx);
-  const [url, setUrl]       = React.useState(initCached ?? null);
+  const [url, setUrl]       = React.useState(initCached != null ? initCached : null);
   const [loaded, setLoaded] = React.useState(false);
   // 캐시에 URL 없으면 fade-in 필요, 있으면 바로 표시
   const [useFade, setUseFade] = React.useState(initCached == null);
-  const prevUrl = React.useRef(initCached ?? null);
+  const prevUrl = React.useRef(initCached != null ? initCached : null);
 
   React.useEffect(() => {
     if (!uid || !tripId) { setUrl(null); return; }
@@ -195,7 +195,7 @@ function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey }) {
   if (!useFade) return <img src={url} alt="" style={style}/>;
   // 처음 로드 or 사진 변경: 파스텔 위에 페이드인
   return (
-    <div style={{ position:'relative', width: style?.width, height: style?.height }}>
+    <div style={{ position:'relative', width: style && style.width, height: style && style.height }}>
       {fallback}
       <img src={url} alt="" onLoad={() => setLoaded(true)}
         style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover',
