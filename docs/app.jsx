@@ -2032,7 +2032,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v433</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v434</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2862,10 +2862,17 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
           <>
             <button onClick={() => !photoUploading && dayPhotoInputRef.current?.click()} style={{
               position:'absolute', bottom:42, right:16, zIndex:5,
-              background:'none', border:'none', cursor: photoUploading ? 'default' : 'pointer', padding:0,
-              display:'flex', alignItems:'center', opacity: photoUploading ? 0.5 : 1,
+              background:'rgba(0,0,0,0.45)', border:'none', cursor: photoUploading ? 'default' : 'pointer',
+              borderRadius:20, padding:'6px 10px',
+              display:'flex', alignItems:'center', gap:5, opacity: photoUploading ? 0.5 : 1,
             }}>
-              <Icon name="camera" size={22} color="#fff" stroke={1.8}/>
+              {photoUploading
+                ? <div className="ptr-spin" style={{ width:16, height:16, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%' }}/>
+                : <Icon name="camera" size={16} color="#fff" stroke={1.8}/>
+              }
+              <span style={{ fontFamily:SANS, fontSize:12, color:'#fff', fontWeight:500 }}>
+                {photoUploading ? '업로드 중...' : '사진 변경'}
+              </span>
             </button>
             <input ref={dayPhotoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleDayPhoto}/>
           </>
