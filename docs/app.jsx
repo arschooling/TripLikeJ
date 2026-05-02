@@ -2100,7 +2100,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v475</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v476</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2830,6 +2830,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   const tripYear = extractTripYear(trip);
   const [travelTimes, setTravelTimes] = React.useState({});
   const [flyingItemIdx, setFlyingItemIdx] = React.useState(null);
+  React.useEffect(() => { setFlyingItemIdx(null); }, [day.items?.length]);
 
   React.useEffect(() => {
     const items = day.items || [];
@@ -3039,7 +3040,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   disabled={editing}
                   onFlyStart={() => setFlyingItemIdx(i)}
                   onEdit={() => onOpenStop({ idx: i, stop: it, editing: true })}
-                  onDelete={() => { setFlyingItemIdx(null); onDeleteItem(i); }}>
+                  onDelete={() => onDeleteItem(i)}>
                 {/* 카드 본체 */}
                 <div style={{ position:'relative' }}>
                   {!editing && (
@@ -9953,7 +9954,6 @@ function App() {
     setOpenStop({ idx: days[0].items.length - 1, stop: newItem, editing: true });
   };
   const deleteItem = (i) => {
-    if (!confirm('이 일정을 삭제할까요?')) return;
     const days = [...trip.days];
     days[dayIdx] = { ...days[dayIdx], items: days[dayIdx].items.filter((_, j) => j !== i) };
     editTrip({ days });
