@@ -1984,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v432</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v433</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5633,16 +5633,14 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
         <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Preparation</div>
         <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginTop:4 }}>
           <div style={{ fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Pack & Go.</div>
-          <div style={{ display:'flex', gap:6, paddingBottom:6 }}>
-            <button onClick={copyAll} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
-              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
-              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
-              <Icon name="copy" size={13} color={COLORS.mute} stroke={1.8}/> 복사
+          <div style={{ display:'flex', gap:2, paddingBottom:6 }}>
+            <button onClick={copyAll} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+              border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
+              <Icon name="copy" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
-            <button onClick={() => setPasteOpen(true)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
-              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
-              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
-              <Icon name="clipboard" size={13} color={COLORS.mute} stroke={1.8}/> 붙여넣기
+            <button onClick={() => setPasteOpen(true)} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+              border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
+              <Icon name="clipboard" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
           </div>
         </div>
