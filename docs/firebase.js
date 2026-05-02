@@ -688,6 +688,28 @@ window.fbNotifyTripEdit = async (tripId, editorUid, editorName, editorPhoto, tri
   })));
 };
 
+// ─── Trip cover photo (Firebase Storage REST API) ────────────
+window.fbUploadTripPhoto = async (uid, tripId, blob) => {
+  const user = _fbAuth.currentUser;
+  if (!user) throw new Error('로그인 필요');
+  const idToken = await user.getIdToken();
+  const bucket = firebaseConfig.storageBucket;
+  const path = `trip_photos/${uid}/${tripId}.jpg`;
+  const encodedPath = encodeURIComponent(path);
+  const uploadUrl = `https://firebasestorage.googleapis.com/v0/b/${bucket}/o?uploadType=media&name=${encodedPath}`;
+  const res = await fetch(uploadUrl, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${idToken}`, 'Content-Type': 'image/jpeg' },
+    body: blob,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || `Upload failed ${res.status}`);
+  }
+  const data = await res.json();
+  return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${encodedPath}?alt=media&token=${data.downloadTokens}`;
+};
+
 // ─── FCM 푸시 알림 ────────────────────────────────────────────
 const VAPID_KEY = 'BLWRMiI4aTE95xIUSBgp-ZAcU5zqgDMUgd85V2NKpIvFyqxaqKMNdU-tL-m7nlA_TaQ3U_tV1xPiBp915bLhpgg';
 

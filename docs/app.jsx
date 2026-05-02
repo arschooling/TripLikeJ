@@ -111,12 +111,27 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'bell':       return <svg {...p}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
     case 'copy':       return <svg {...p}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
     case 'clipboard':  return <svg {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 10h6M9 18h4"/></svg>;
+    case 'camera':     return <svg {...p}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
+    case 'image':      return <svg {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>;
     default: return null;
   }
 };
 
 // ─── Photo placeholder ──────────────────────────────────────
-function Photo({ hue=20, label='', height=180, small=false }) {
+function Photo({ hue=20, label='', height=180, small=false, img=null }) {
+  if (img) {
+    return (
+      <div style={{ width:'100%', height, position:'relative', overflow:'hidden' }}>
+        <img src={img} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+        {label && !small && (
+          <div style={{ position:'absolute', bottom:14, left:14,
+            fontFamily:MONO, fontSize:10, letterSpacing:'0.14em',
+            color:'rgba(255,255,255,0.85)', textTransform:'uppercase',
+            textShadow:'0 1px 4px rgba(0,0,0,0.4)' }}>{label}</div>
+        )}
+      </div>
+    );
+  }
   const bg=`oklch(0.88 0.035 ${hue})`, bg2=`oklch(0.80 0.045 ${hue})`;
   const ink=`oklch(0.36 0.04 ${hue})`;
   return (
@@ -1984,7 +1999,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v429</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v437</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2005,7 +2020,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                     WebkitTapHighlightColor:'transparent',
                   }}>
                     <div style={{ position:'relative' }}>
-                      <Photo hue={hue} label={label} height={130}/>
+                      <Photo hue={hue} label={label} height={130} img={t.coverImg || null}/>
                       {companionCount > 0 && (
                         <div style={{
                           position:'absolute', top:10, right:12,
@@ -2102,18 +2117,51 @@ function isoToWeekday(iso) {
   return WEEKDAY_NAMES[d.getDay()];
 }
 
+const resizeImage = (file, maxPx=1200, quality=0.82) => new Promise((resolve, reject) => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    URL.revokeObjectURL(url);
+    const scale = Math.min(1, maxPx / Math.max(img.width, img.height));
+    const w = Math.round(img.width * scale), h = Math.round(img.height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+    canvas.toBlob(b => b ? resolve(b) : reject(new Error('resize failed')), 'image/jpeg', quality);
+  };
+  img.onerror = reject;
+  img.src = url;
+});
+
 // ─── Home ───────────────────────────────────────────────────
 function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPickCity,
                       curCode, onSetCurCode,
                       onEditTrip, onReorderDays, onAddDay, onDeleteDay, onBack,
                       onAddHotel, onAddHotelFromSearch, onAddHotelViaStop, onDeleteHotel, onReorderHotels,
                       onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
-                      userData, onOpenCompanion, onLoadSample, onOpenNotifs, unreadCount }) {
+                      userData, onOpenCompanion, onLoadSample, onOpenNotifs, unreadCount,
+                      authUser, tripId }) {
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   React.useEffect(() => { if (!editing) setEditingTitle(false); }, [editing]);
   const [sampleLoading, setSampleLoading] = React.useState(false);
   const [sampleErr, setSampleErr] = React.useState('');
+  const [photoUploading, setPhotoUploading] = React.useState(false);
+  const [photoPickerOpen, setPhotoPickerOpen] = React.useState(false);
+  const cameraInputRef  = React.useRef(null);
+  const libraryInputRef = React.useRef(null);
+  const handleCoverPhoto = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !authUser || !tripId) return;
+    e.target.value = '';
+    setPhotoUploading(true);
+    try {
+      const blob = await resizeImage(file, 1200, 0.82);
+      const url = await window.fbUploadTripPhoto(authUser.uid, tripId, blob);
+      onEditTrip({ coverImg: url });
+    } catch(err) { console.error('photo upload:', err); }
+    finally { setPhotoUploading(false); }
+  };
   const handleLoadSample = async () => {
     if (!onLoadSample || sampleLoading) return;
     setSampleLoading(true); setSampleErr('');
@@ -2432,7 +2480,21 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   boxShadow:'0 1px 2px rgba(0,0,0,0.03), 0 12px 28px rgba(0,0,0,0.05)',
                   background:COLORS.card,
                 }}>
-                  <Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170}/>
+                  <div style={{ position:'relative' }}>
+                    <Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170} img={trip.coverImg || null}/>
+                    {editing && i === featuredIdx && (
+                      <button onClick={() => setPhotoPickerOpen(true)}
+                        style={{ position:'absolute', bottom:10, right:10, zIndex:5,
+                          width:36, height:36, borderRadius:18, border:'none',
+                          background:'rgba(255,255,255,0.88)', cursor:'pointer',
+                          display:'flex', alignItems:'center', justifyContent:'center',
+                          boxShadow:'0 2px 8px rgba(0,0,0,0.15)' }}>
+                        {photoUploading
+                          ? <div style={{ width:14, height:14, borderRadius:7, border:`2px solid ${COLORS.ink}`, borderTopColor:'transparent', animation:'ptr-spin 0.7s linear infinite' }}/>
+                          : <Icon name="camera" size={16} color={COLORS.ink} stroke={1.8}/>}
+                      </button>
+                    )}
+                  </div>
                   <div style={{ padding:'16px 18px 18px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
                       <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
@@ -2652,13 +2714,48 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         onClose={() => setDateRangeOpen(false)}
         onPick={(s, e) => { handlePickRange(s, e); setDateRangeOpen(false); }}
       />
+      <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleCoverPhoto}/>
+      <input ref={libraryInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverPhoto}/>
+      {photoPickerOpen && ReactDOM.createPortal(
+        <div onClick={() => setPhotoPickerOpen(false)}
+          style={{ position:'fixed', inset:0, zIndex:1200, background:'rgba(0,0,0,0.38)',
+            display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
+              paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 16px)' }}>
+            <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+              <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+            </div>
+            <div style={{ padding:'4px 16px 8px', fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              사진 선택
+            </div>
+            {[
+              { label:'카메라', icon:'camera', action: () => { setPhotoPickerOpen(false); setTimeout(() => cameraInputRef.current?.click(), 80); } },
+              { label:'사진 보관함', icon:'image', action: () => { setPhotoPickerOpen(false); setTimeout(() => libraryInputRef.current?.click(), 80); } },
+            ].map(({ label, icon, action }) => (
+              <button key={label} onClick={action}
+                style={{ width:'100%', padding:'15px 20px', background:'transparent', border:'none',
+                  display:'flex', alignItems:'center', gap:14, cursor:'pointer',
+                  borderTop:`1px solid ${COLORS.line}` }}>
+                <div style={{ width:40, height:40, borderRadius:12, background:COLORS.softer,
+                  display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name={icon} size={18} color={COLORS.ink} stroke={1.7}/>
+                </div>
+                <span style={{ fontFamily:SANS, fontSize:15, color:COLORS.ink }}>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
 
 // ─── Day screen ─────────────────────────────────────────────
 function DayScreen({ trip, dayIdx, onBack, onOpenStop, onNavDay,
-                     onEditDay, onAddItem, onDeleteItem, onReorderItems, editing, setEditing }) {
+                     onEditDay, onAddItem, onDeleteItem, onReorderItems, editing, setEditing,
+                     tripId, authUser }) {
   const day = trip.days[dayIdx] || { n: dayIdx+1, title:'', date:'', weekday:'', hero:{ hue:25, label:'' }, items:[] };
   const tripYear = extractTripYear(trip);
   const [travelTimes, setTravelTimes] = React.useState({});
@@ -5373,31 +5470,43 @@ function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem,
 function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
   const rawPrep = prepProp || trip.prep || {};
   const prep    = normalizePrepCats(rawPrep);
-  const cats    = prep.cats || [];
+  const storedCats = prep.cats || [];
 
   const [renamingCat,  setRenamingCat]  = React.useState(null);
   const [addInputCat,  setAddInputCat]  = React.useState(null);
   const [addInputText, setAddInputText] = React.useState('');
-  const [editingItem,  setEditingItem]  = React.useState(null); // { ci, ii }
+  const [editingItem,  setEditingItem]  = React.useState(null);
   const [pasteOpen,    setPasteOpen]    = React.useState(false);
   const [pasteText,    setPasteText]    = React.useState('');
   const [copyToast,    setCopyToast]    = React.useState(false);
-  const [undoSnap,     setUndoSnap]     = React.useState(null); // 되돌리기용 스냅샷
-  const undoTimer = React.useRef(null);
+  const [draftCats,    setDraftCats]    = React.useState(null);
 
-  const save = (newCats) => onEditPrep({ ...prep, cats: newCats });
+  // 편집 모드 진입 시 드래프트 생성, 종료 시 폐기
+  React.useEffect(() => {
+    if (editing) setDraftCats(storedCats.map(c => ({ ...c, items: [...(c.items || [])] })));
+    else setDraftCats(null);
+  }, [editing]);
 
-  const saveWithUndo = (newCats) => {
-    clearTimeout(undoTimer.current);
-    setUndoSnap(cats);
-    save(newCats);
-    undoTimer.current = setTimeout(() => setUndoSnap(null), 5000);
+  // 렌더에 사용할 cats: 편집 중이면 드래프트, 아니면 저장된 값
+  const cats = (editing && draftCats != null) ? draftCats : storedCats;
+
+  // 편집 중에는 드래프트만 업데이트 (저장 버튼 누를 때까지 실제 저장 안 함)
+  const save = (newCats) => {
+    if (editing) setDraftCats(newCats);
+    else onEditPrep({ ...prep, cats: newCats });
   };
 
-  const doUndo = () => {
-    clearTimeout(undoTimer.current);
-    if (undoSnap) { save(undoSnap); setUndoSnap(null); }
+  const commitEdit = () => {
+    onEditPrep({ ...prep, cats: draftCats || storedCats });
+    setEditing(false);
   };
+
+  const cancelEdit = () => {
+    setDraftCats(null);
+    setEditing(false);
+  };
+
+  const saveWithUndo = save; // 되돌리기 제거, 별칭만 유지
 
   const parsePasteText = (text) => {
     const result = [];
@@ -5621,16 +5730,14 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
         <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Preparation</div>
         <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginTop:4 }}>
           <div style={{ fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Pack & Go.</div>
-          <div style={{ display:'flex', gap:6, paddingBottom:6 }}>
-            <button onClick={copyAll} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
-              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
-              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
-              <Icon name="copy" size={13} color={COLORS.mute} stroke={1.8}/> 복사
+          <div style={{ display:'flex', gap:2, paddingBottom:6 }}>
+            <button onClick={copyAll} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+              border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
+              <Icon name="copy" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
-            <button onClick={() => setPasteOpen(true)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
-              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
-              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
-              <Icon name="clipboard" size={13} color={COLORS.mute} stroke={1.8}/> 붙여넣기
+            <button onClick={() => { setEditing(true); setPasteOpen(true); }} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+              border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
+              <Icon name="clipboard" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
           </div>
         </div>
@@ -5718,10 +5825,11 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                 <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
                 <input autoFocus value={addInputText} onChange={e => setAddInputText(e.target.value)}
                   placeholder="항목 입력..."
+                  onBlur={() => setTimeout(() => { setAddInputCat(null); setAddInputText(''); }, 150)}
                   onKeyDown={e => { if (e.key==='Enter') addItem(ci); if (e.key==='Escape') { setAddInputCat(null); setAddInputText(''); }}}
                   style={{ flex:1, border:'none', outline:'none', background:'transparent',
                     fontFamily:SANS, fontSize:13.5, color:COLORS.ink, padding:0 }}/>
-                <button onClick={() => addItem(ci)} style={{
+                <button onMouseDown={e => e.preventDefault()} onClick={() => addItem(ci)} style={{
                   padding:'4px 10px', border:'none', borderRadius:8,
                   background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:12, cursor:'pointer' }}>추가</button>
               </div>
@@ -5759,16 +5867,25 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
         </div>
       )}
 
-      {/* 되돌리기 토스트 */}
-      {undoSnap && (
-        <div style={{ position:'fixed', bottom:100, left:'50%', transform:'translateX(-50%)',
-          background:COLORS.ink, color:COLORS.bg, padding:'10px 18px', borderRadius:20,
-          fontFamily:SANS, fontSize:13, zIndex:2000, whiteSpace:'nowrap',
-          boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
-          display:'flex', alignItems:'center', gap:12 }}>
-          삭제됐어요
-          <button onClick={doUndo} style={{ border:'none', background:'transparent', cursor:'pointer',
-            padding:0, fontSize:18, lineHeight:1 }}>↩️</button>
+      {/* 편집 모드 저장/취소 바 */}
+      {editing && (
+        <div style={{ position:'fixed', bottom:0, left:0, right:0, zIndex:500,
+          background:COLORS.bg, borderTop:`1px solid ${COLORS.line}`,
+          padding:'12px 16px calc(env(safe-area-inset-bottom,0px) + 12px)',
+          display:'flex', gap:8 }}>
+          <button onClick={() => setDraftCats([])} style={{ width:50, padding:'13px', border:`1px solid rgba(193,79,46,0.25)`,
+            borderRadius:14, background:'rgba(193,79,46,0.07)', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center' }}>
+            <Icon name="trash" size={15} color={COLORS.accent} stroke={2}/>
+          </button>
+          <button onClick={cancelEdit} style={{ flex:1, padding:'13px', border:`1px solid ${COLORS.line}`,
+            borderRadius:14, background:COLORS.card, fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>
+            취소
+          </button>
+          <button onClick={commitEdit} style={{ flex:2, padding:'13px', border:'none',
+            borderRadius:14, background:COLORS.ink, color:COLORS.bg, fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer' }}>
+            저장
+          </button>
         </div>
       )}
 
@@ -9791,6 +9908,7 @@ function App() {
         editing={editing} setEditing={setEditing}
         userData={userData} onOpenCompanion={() => setProfileSheetOpen(true)}
         onOpenNotifs={openNotifs} unreadCount={unreadCount}
+        authUser={authUser} tripId={activeTripId}
         onLoadSample={async () => {
           const def = JSON.parse(JSON.stringify(window.TRIP_DEFAULT));
           const patch = {
