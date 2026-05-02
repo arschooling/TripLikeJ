@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v11</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v12</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -9845,15 +9845,15 @@ function App() {
   // ── Firestore: private prep listener ──────────────────────
   React.useEffect(() => {
     if (!authUser?.uid) return;
+    const PREP_VERSION = 1;
     return fbListenPrep(authUser.uid, (p) => {
-      // cats 데이터가 없으면 TRIP_DEFAULT.prep으로 초기화 (신규·구형 계정 대응)
-      const hasCats = p?.cats?.length > 0;
-      if (!hasCats) {
-        const def = window.TRIP_DEFAULT?.prep;
-        if (def?.cats?.length > 0) {
-          fbSavePrep(authUser.uid, def).catch(console.error);
-          setPrep(def);
-        }
+      const def = window.TRIP_DEFAULT?.prep;
+      // prepVersion이 현재 버전보다 낮거나 cats 없으면 TRIP_DEFAULT.prep으로 업데이트
+      const needsUpdate = !p?.cats?.length || ((p.prepVersion || 0) < PREP_VERSION);
+      if (needsUpdate && def?.cats?.length > 0) {
+        const updated = { ...def, prepVersion: PREP_VERSION };
+        fbSavePrep(authUser.uid, updated).catch(console.error);
+        setPrep(updated);
       } else {
         setPrep(p);
       }
