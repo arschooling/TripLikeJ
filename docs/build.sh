@@ -6,9 +6,10 @@ BABEL=/tmp/build-tools/node_modules/.bin/babel
 TERSER=/tmp/build-tools/node_modules/.bin/terser
 PRESET=/tmp/build-tools/node_modules/@babel/preset-react
 
-# sw.js 버전 자동 증가
+# sw.js 버전 자동 증가 (500 초과 시 1로 리셋)
 CURRENT=$(grep -o "tlj-v[0-9]*" sw.js | grep -o "[0-9]*")
 NEXT=$((CURRENT + 1))
+if [ $NEXT -gt 500 ]; then NEXT=1; fi
 sed -i '' "s/tlj-v${CURRENT}/tlj-v${NEXT}/" sw.js
 echo "▸ SW 버전: tlj-v${CURRENT} → tlj-v${NEXT}"
 
