@@ -1,6 +1,5 @@
 // Real NYC trip data, parsed from the uploaded itinerary
 window.TRIP_DEFAULT = {
-  nycVersion: 2,
   title: 'New York',
   subtitleKo: '뉴욕 · 10일',
   dates: 'May 4 — May 13, 2025',

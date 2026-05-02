@@ -117,12 +117,6 @@ window.fbDebugRead = function(groupId) {
 window.fbSaveGroup = (groupId, patch) =>
   _fbDb.collection('groups').doc(groupId).set(patch, { merge: true });
 
-window.fbRemoveSampleFields = (groupId) =>
-  _fbDb.collection('groups').doc(groupId).update({
-    sampleId:      firebase.firestore.FieldValue.delete(),
-    sampleVersion: firebase.firestore.FieldValue.delete(),
-  });
-
 // ─── Private prep ─────────────────────────────────────────────
 window.fbListenPrep = (uid, cb) =>
   _fbDb.collection('preps').doc(uid)
