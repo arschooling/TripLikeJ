@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v496</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v499</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2758,7 +2758,11 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       {(() => {
         const hotelList = (trip.hotels || [])
           .map((h, idx) => ({ ...h, _idx: idx }))
-          .sort((a, b) => (a.checkin || '') < (b.checkin || '') ? -1 : (a.checkin || '') > (b.checkin || '') ? 1 : 0);
+          .sort((a, b) => {
+            const ia = dayDateToIso(a.checkin, tripYear) || a.checkin || '';
+            const ib = dayDateToIso(b.checkin, tripYear) || b.checkin || '';
+            return ia < ib ? -1 : ia > ib ? 1 : 0;
+          });
         const total = hotelList.length;
         const openHotel = (idx) => onOpenHotelSheet ? onOpenHotelSheet(idx) : onOpenHotel(idx);
         return (
@@ -4169,7 +4173,8 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete }) 
         transition: sheetY ? 'none' : 'transform 0.34s cubic-bezier(0.32,0.72,0,1)',
         display:'flex', flexDirection:'column', position:'relative' }}>
         <div ref={sheetRef} onClick={e => e.stopPropagation()}
-          style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0', paddingBottom:40,
+          style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
+            paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',
             maxHeight: '92%',
             overflowY:'auto', overflowX:'hidden' }}>
           <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
@@ -5601,9 +5606,9 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
     try { return new Set(JSON.parse(localStorage.getItem(storageKey) || '[]')); }
     catch(e) { return new Set(); }
   });
-  const toggle = (ii) => setChecked(s => {
+  const toggle = (item) => setChecked(s => {
     const n = new Set(s);
-    n.has(ii) ? n.delete(ii) : n.add(ii);
+    n.has(item) ? n.delete(item) : n.add(item);
     localStorage.setItem(storageKey, JSON.stringify([...n]));
     return n;
   });
@@ -5612,9 +5617,9 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
       {(cat.items || []).map((item, ii) => {
         const isEditingThis = editingItem?.ci === ci && editingItem?.ii === ii;
         const dp = getItemDragProps(ii);
-        const isDone = checked.has(ii);
+        const isDone = checked.has(item);
         return (
-          <div key={ii} ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
+          <div key={`${item}__${ii}`} ref={dp.ref} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
             style={{ position:'relative', marginBottom:6, ...(dp.style||{}) }}>
             <SwipeableRow
               cardSwipe
@@ -5627,7 +5632,7 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
               <div style={{ display:'flex', alignItems:'center', gap:12,
                 padding: isEditingThis ? '12px 14px' : '8px 14px',
                 background:COLORS.card, borderRadius:14 }}>
-                <button onClick={() => toggle(ii)} style={{
+                <button onClick={() => toggle(item)} style={{
                   width:18, height:18, borderRadius:9, border:'none', padding:0, cursor:'pointer', flexShrink:0,
                   background: isDone ? COLORS.accent : 'transparent',
                   boxShadow: isDone ? 'none' : `inset 0 0 0 1.5px ${COLORS.line}`,
