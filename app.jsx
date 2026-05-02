@@ -109,6 +109,8 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'minus':      return <svg {...p}><path d="M5 12h14"/></svg>;
     case 'calculator': return <svg {...p}><rect x="4" y="2" width="16" height="20" rx="2"/><path d="M8 6h8M8 10h2M12 10h2M16 10h.01M8 14h2M12 14h2M16 14h2M8 18h2M12 18h2M16 18h2"/></svg>;
     case 'bell':       return <svg {...p}><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>;
+    case 'copy':       return <svg {...p}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
+    case 'clipboard':  return <svg {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 10h6M9 18h4"/></svg>;
     default: return null;
   }
 };
@@ -1982,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v427</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v428</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5377,8 +5379,57 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
   const [addInputCat,  setAddInputCat]  = React.useState(null);
   const [addInputText, setAddInputText] = React.useState('');
   const [editingItem,  setEditingItem]  = React.useState(null); // { ci, ii }
+  const [pasteOpen,    setPasteOpen]    = React.useState(false);
+  const [pasteText,    setPasteText]    = React.useState('');
+  const [copyToast,    setCopyToast]    = React.useState(false);
 
   const save = (newCats) => onEditPrep({ ...prep, cats: newCats });
+
+  const parsePasteText = (text) => {
+    const result = [];
+    let cur = null;
+    for (const rawLine of text.split('\n')) {
+      const line = rawLine.trim();
+      if (!line) continue;
+      const m = line.match(/^(?:[-•*]\s*\[[ xXvV✓]?\]\s*|[-•*]\s+|\[[ xXvV✓]?\]\s*)(.+)/);
+      if (m) {
+        if (!cur) { cur = { name:'기타', items:[] }; result.push(cur); }
+        cur.items.push(m[1].trim());
+      } else {
+        cur = { name: line, items: [] };
+        result.push(cur);
+      }
+    }
+    return result.filter(c => c.items.length > 0);
+  };
+
+  const applyPaste = () => {
+    const parsed = parsePasteText(pasteText);
+    if (!parsed.length) return;
+    const newCats = cats.map(c => ({ ...c, items: [...(c.items || [])] }));
+    for (const p of parsed) {
+      const idx = newCats.findIndex(c => c.name === p.name);
+      if (idx >= 0) {
+        newCats[idx] = { ...newCats[idx], items: [...newCats[idx].items, ...p.items] };
+      } else {
+        newCats.push({ id: 'cat_' + Date.now() + '_' + Math.random().toString(36).slice(2), name: p.name, items: p.items });
+      }
+    }
+    save(newCats);
+    setPasteOpen(false);
+    setPasteText('');
+  };
+
+  const copyAll = () => {
+    const text = cats.map(c => c.name + '\n' + (c.items || []).map(i => `- [ ] ${i}`).join('\n')).join('\n\n');
+    navigator.clipboard?.writeText(text).catch(() => {});
+    setCopyToast(true);
+    setTimeout(() => setCopyToast(false), 2000);
+  };
+
+  const clearCatItems = (ci) => {
+    save(cats.map((c, i) => i !== ci ? c : { ...c, items: [] }));
+  };
 
   // ── Cross-category drag ───────────────────────────────────────
   const [prepDrag, setPrepDrag] = React.useState(null);
@@ -5554,7 +5605,21 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
       {/* 헤더 */}
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:16 }}>
         <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Preparation</div>
-        <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Pack & Go.</div>
+        <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginTop:4 }}>
+          <div style={{ fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Pack & Go.</div>
+          <div style={{ display:'flex', gap:6, paddingBottom:6 }}>
+            <button onClick={copyAll} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
+              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
+              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
+              <Icon name="copy" size={13} color={COLORS.mute} stroke={1.8}/> 복사
+            </button>
+            <button onClick={() => setPasteOpen(true)} style={{ display:'flex', alignItems:'center', gap:5, padding:'7px 11px',
+              border:`1px solid ${COLORS.line}`, borderRadius:10, background:COLORS.card, cursor:'pointer',
+              fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
+              <Icon name="clipboard" size={13} color={COLORS.mute} stroke={1.8}/> 붙여넣기
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* D-day 카드 */}
@@ -5601,6 +5666,13 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                 width:22, height:22, borderRadius:11, border:'none', background:'transparent',
                 cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
                 <Icon name="edit" size={12} color={COLORS.mute} stroke={2}/>
+              </button>
+            )}
+            {editing && (cat.items||[]).length > 0 && (
+              <button onClick={() => clearCatItems(ci)} style={{
+                width:22, height:22, borderRadius:11, border:'none', background:'rgba(193,79,46,0.10)',
+                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                <Icon name="minus" size={12} color={COLORS.accent} stroke={2.5}/>
               </button>
             )}
             {editing && (
@@ -5662,6 +5734,82 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
           <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
         </button>
       </div>
+
+      {/* 복사 완료 토스트 */}
+      {copyToast && (
+        <div style={{ position:'fixed', bottom:100, left:'50%', transform:'translateX(-50%)',
+          background:COLORS.ink, color:COLORS.bg, padding:'10px 18px', borderRadius:20,
+          fontFamily:SANS, fontSize:13, zIndex:2000, whiteSpace:'nowrap',
+          boxShadow:'0 4px 20px rgba(0,0,0,0.18)' }}>
+          클립보드에 복사됐어요
+        </div>
+      )}
+
+      {/* 붙여넣기 시트 */}
+      {pasteOpen && ReactDOM.createPortal(
+        <div style={{ position:'fixed', inset:0, zIndex:1200, background:'rgba(0,0,0,0.46)',
+          display:'flex', flexDirection:'column', justifyContent:'flex-end' }}
+          onClick={() => setPasteOpen(false)}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
+              paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',
+              maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
+            {/* 핸들 */}
+            <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
+              <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+            </div>
+            <div style={{ padding:'8px 20px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>붙여넣기로 가져오기</div>
+              <button onClick={() => setPasteOpen(false)} style={{ border:'none', background:'transparent', cursor:'pointer', padding:4 }}>
+                <Icon name="x" size={18} color={COLORS.mute} stroke={2}/>
+              </button>
+            </div>
+            {/* 텍스트 입력 */}
+            <div style={{ padding:'0 16px', flex:1, overflowY:'auto', display:'flex', flexDirection:'column', gap:12 }}>
+              <textarea
+                autoFocus
+                value={pasteText}
+                onChange={e => setPasteText(e.target.value)}
+                placeholder={'메모장에서 복사한 리스트를 붙여넣으세요.\n\n예:\n의류\n- [ ] 반팔티\n- [ ] 바지\n\n세면·위생\n- [ ] 칫솔\n- [ ] 치약'}
+                style={{ width:'100%', boxSizing:'border-box', height:200, border:`1px solid ${COLORS.line}`,
+                  borderRadius:14, padding:'12px 14px', fontFamily:SANS, fontSize:13.5, color:COLORS.ink,
+                  background:COLORS.card, outline:'none', resize:'none', lineHeight:1.6 }}/>
+              {/* 파싱 미리보기 */}
+              {(() => {
+                const parsed = parsePasteText(pasteText);
+                if (!parsed.length) return null;
+                return (
+                  <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px' }}>
+                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>
+                      미리보기 — {parsed.length}개 카테고리 · {parsed.reduce((s,c)=>s+c.items.length,0)}개 항목
+                    </div>
+                    {parsed.map((c, i) => (
+                      <div key={i} style={{ marginBottom:8 }}>
+                        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>
+                          {c.name} {cats.find(x=>x.name===c.name) ? <span style={{color:COLORS.accent,fontSize:10}}>기존에 추가</span> : <span style={{color:'#2E7D32',fontSize:10}}>새 카테고리</span>}
+                        </div>
+                        {c.items.map((item, j) => (
+                          <div key={j} style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, paddingLeft:8, marginBottom:2 }}>· {item}</div>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
+            <div style={{ padding:'12px 16px 0' }}>
+              <button onClick={applyPaste} disabled={!parsePasteText(pasteText).length}
+                style={{ width:'100%', padding:'14px', border:'none', borderRadius:14, cursor:'pointer',
+                  background: parsePasteText(pasteText).length ? COLORS.ink : COLORS.line,
+                  color: parsePasteText(pasteText).length ? COLORS.bg : COLORS.mute,
+                  fontFamily:SANS, fontSize:14, fontWeight:500 }}>
+                가져오기
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
@@ -9125,7 +9273,7 @@ function App() {
     if (!authUser?.uid) return;
     return fbListenPrep(authUser.uid, (p) => {
       // preps 문서가 없거나 비어있으면 TRIP_DEFAULT.prep으로 초기화
-      const hasData = p && (p.checklist?.length || p.docs?.length || p.pack?.length);
+      const hasData = p && (p.cats?.length || p.checklist?.length || p.docs?.length || p.pack?.length);
       if (!hasData) {
         const def = (window.TRIP_DEFAULT?.prep) || { checklist: [], docs: [], pack: [] };
         fbSavePrep(authUser.uid, def).catch(console.error);
