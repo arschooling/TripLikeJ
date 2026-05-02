@@ -2098,7 +2098,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v454</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v456</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7663,8 +7663,14 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                             } : undefined}
                             editLabel={pendingInv ? '재신청' : undefined} editBg="#4F6BED"
                             onDelete={async () => {
-                              if (pendingInv) await fbCancelInvite(pendingInv.id).catch(() => {});
-                              await removeContact(c, true);
+                              if (pendingInv) {
+                                // 미수락 상태: 초대만 취소하고 contacts에서 제거 (fbRemoveContact 레코드 없음)
+                                await fbCancelInvite(pendingInv.id).catch(() => {});
+                                setSentInvites(prev => prev.filter(i => i.id !== pendingInv.id));
+                                setContacts(prev => prev.filter(x => x.uid !== c.uid));
+                              } else {
+                                await removeContact(c, true);
+                              }
                             }}
                             deleteLabel="삭제"
                             wrapStyle={{ borderRadius:14 }}>
