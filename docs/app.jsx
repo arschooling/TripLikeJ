@@ -2098,7 +2098,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v456</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v457</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -9315,9 +9315,10 @@ function _readCache() {
   if (!localStorage.getItem('tlj_authed')) return null;
   try {
     return {
-      userData: JSON.parse(localStorage.getItem('tlj_userData') || 'null'),
-      trip    : JSON.parse(localStorage.getItem('tlj_trip')     || 'null'),
-      prep    : JSON.parse(localStorage.getItem('tlj_prep')     || 'null'),
+      userData : JSON.parse(localStorage.getItem('tlj_userData')  || 'null'),
+      trip     : JSON.parse(localStorage.getItem('tlj_trip')      || 'null'),
+      prep     : JSON.parse(localStorage.getItem('tlj_prep')      || 'null'),
+      userTrips: JSON.parse(localStorage.getItem('tlj_userTrips') || 'null'),
     };
   } catch(e) { return null; }
 }
@@ -9348,8 +9349,8 @@ function App() {
   const [trip, setTrip]             = React.useState(normalizeTrip(_cache?.trip));
   const [prep, setPrep]             = React.useState(_cache?.prep     || { checklist:[], docs:[], pack:[] });
   const [activeTripId, setActiveTripId] = React.useState(_nav.activeTripId || null);
-  const [userTrips, setUserTrips]       = React.useState([]);
-  const [tripsLoading, setTripsLoading] = React.useState(false);
+  const [userTrips, setUserTrips]       = React.useState(() => (_cache?.userTrips || []));
+  const [tripsLoading, setTripsLoading] = React.useState(!_cache?.userTrips);
   const [tripsReady,   setTripsReady]   = React.useState(false);
   const [profileSheetOpen,     setProfileSheetOpen]     = React.useState(false);
   const [addCompanionOpen,     setAddCompanionOpen]     = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
@@ -9437,6 +9438,11 @@ function App() {
   React.useEffect(() => {
     if (prep) localStorage.setItem('tlj_prep', JSON.stringify(prep));
   }, [prep]);
+  React.useEffect(() => {
+    if (userTrips.length) {
+      try { localStorage.setItem('tlj_userTrips', JSON.stringify(userTrips)); } catch(_) {}
+    }
+  }, [userTrips]);
 
   // ── Firebase auth listener ─────────────────────────────────
   React.useEffect(() => {
@@ -9469,6 +9475,7 @@ function App() {
         localStorage.removeItem('tlj_userData');
         localStorage.removeItem('tlj_trip');
         localStorage.removeItem('tlj_prep');
+        localStorage.removeItem('tlj_userTrips');
         setAuthState('out');
       }
     });
@@ -10195,7 +10202,7 @@ function App() {
         onAddCompanion={(tripId) => setAddCompanionOpen(tripId || false)}
         onViewCompanions={() => { setProfileSheetOpen(false); setCompanionsScreenOpen(true); }}
         onDeleteAccount={() => {
-          ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav'].forEach(k => localStorage.removeItem(k));
+          ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav','tlj_userTrips'].forEach(k => localStorage.removeItem(k));
           setAuthState('out'); setAuthUser(null); setUserData(null);
           setProfileSheetOpen(false);
         }}/>
@@ -10319,7 +10326,7 @@ function App() {
         onAddCompanion={(tripId) => setAddCompanionOpen(tripId || false)}
         onViewCompanions={() => { setProfileSheetOpen(false); setCompanionsScreenOpen(true); }}
         onDeleteAccount={() => {
-          ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav'].forEach(k => localStorage.removeItem(k));
+          ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav','tlj_userTrips'].forEach(k => localStorage.removeItem(k));
           setAuthState('out'); setAuthUser(null); setUserData(null);
           setProfileSheetOpen(false);
         }}/>
