@@ -1985,7 +1985,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v429</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v430</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5472,15 +5472,10 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
   const applyPaste = () => {
     const parsed = parsePasteText(pasteText);
     if (!parsed.length) return;
-    const newCats = cats.map(c => ({ ...c, items: [...(c.items || [])] }));
-    for (const p of parsed) {
-      const idx = newCats.findIndex(c => c.name === p.name);
-      if (idx >= 0) {
-        newCats[idx] = { ...newCats[idx], items: [...newCats[idx].items, ...p.items] };
-      } else {
-        newCats.push({ id: 'cat_' + Date.now() + '_' + Math.random().toString(36).slice(2), name: p.name, items: p.items });
-      }
-    }
+    const newCats = parsed.map((p, i) => {
+      const existing = cats.find(c => c.name === p.name);
+      return { id: existing?.id || ('cat_' + Date.now() + '_' + i), name: p.name, items: p.items };
+    });
     save(newCats);
     setPasteOpen(false);
     setPasteText('');
@@ -5680,7 +5675,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
               display:'flex', alignItems:'center', justifyContent:'center' }}>
               <Icon name="copy" size={15} color={COLORS.mute} stroke={1.8}/>
             </button>
-            <button onClick={() => setPasteOpen(true)} title="붙여넣기" style={{
+            <button onClick={() => { const text = cats.map(c => c.name + '\n' + (c.items||[]).map(i => `- [ ] ${i}`).join('\n')).join('\n\n'); setPasteText(text); setPasteOpen(true); }} title="편집" style={{
               width:36, height:36, borderRadius:10,
               border:`1px solid ${COLORS.line}`, background:COLORS.card, cursor:'pointer',
               display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -5822,18 +5817,14 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
       {/* 붙여넣기 시트 */}
       {pasteOpen && ReactDOM.createPortal(
         <div style={{ position:'fixed', inset:0, zIndex:1200, background:'rgba(0,0,0,0.46)',
-          display:'flex', flexDirection:'column', justifyContent:'flex-end' }}
+          display:'flex', alignItems:'center', justifyContent:'center', padding:24 }}
           onClick={() => setPasteOpen(false)}>
           <div onClick={e => e.stopPropagation()}
-            style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
-              paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 20px)',
-              maxHeight:'88vh', display:'flex', flexDirection:'column' }}>
-            {/* 핸들 */}
-            <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
-              <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
-            </div>
-            <div style={{ padding:'8px 20px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>붙여넣기로 가져오기</div>
+            style={{ background:COLORS.bg, borderRadius:22, width:'100%', maxWidth:480,
+              maxHeight:'82vh', display:'flex', flexDirection:'column',
+              boxShadow:'0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ padding:'20px 20px 12px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+              <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink }}>체크리스트 편집</div>
               <button onClick={() => setPasteOpen(false)} style={{ border:'none', background:'transparent', cursor:'pointer', padding:4 }}>
                 <Icon name="x" size={18} color={COLORS.mute} stroke={2}/>
               </button>
@@ -5844,7 +5835,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                 autoFocus
                 value={pasteText}
                 onChange={e => setPasteText(e.target.value)}
-                placeholder={'메모장에서 복사한 리스트를 붙여넣으세요.\n\n예:\n의류\n- [ ] 반팔티\n- [ ] 바지\n\n세면·위생\n- [ ] 칫솔\n- [ ] 치약'}
+                placeholder={'카테고리 이름\n- [ ] 항목\n- [ ] 항목\n\n카테고리 이름\n- [ ] 항목'}
                 style={{ width:'100%', boxSizing:'border-box', height:200, border:`1px solid ${COLORS.line}`,
                   borderRadius:14, padding:'12px 14px', fontFamily:SANS, fontSize:13.5, color:COLORS.ink,
                   background:COLORS.card, outline:'none', resize:'none', lineHeight:1.6 }}/>
@@ -5877,7 +5868,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
                   background: parsePasteText(pasteText).length ? COLORS.ink : COLORS.line,
                   color: parsePasteText(pasteText).length ? COLORS.bg : COLORS.mute,
                   fontFamily:SANS, fontSize:14, fontWeight:500 }}>
-                가져오기
+                저장
               </button>
             </div>
           </div>
