@@ -448,6 +448,16 @@ window.fbGetContacts = async (uid) => {
   return window.fbGetUsersById(ids);
 };
 
+// contacts 실시간 리스너 — 상대방이 삭제해도 즉시 반영
+window.fbListenContacts = (uid, cb) => {
+  return _fbDb.collection('users').doc(uid).onSnapshot(async snap => {
+    const ids = snap.data()?.contacts || [];
+    if (!ids.length) { cb([]); return; }
+    const users = await window.fbGetUsersById(ids).catch(() => []);
+    cb(users);
+  });
+};
+
 window.fbRemoveContact = async (myUid, contactUid) => {
   // 양쪽 contacts에서 서로 제거 (보안 규칙: 자기 자신을 상대 contacts에서 제거하는 update 허용)
   const batch = _fbDb.batch();
