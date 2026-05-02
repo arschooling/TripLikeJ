@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/trips_list_screen.dart';
+import 'screens/splash_screen.dart';
 import 'theme/colors.dart';
 
 class TripLikeJApp extends StatelessWidget {
@@ -14,7 +14,7 @@ class TripLikeJApp extends StatelessWidget {
         scaffoldBackgroundColor: AppColors.bg,
         colorScheme: ColorScheme.fromSeed(seedColor: AppColors.accent),
       ),
-      home: const TripsListScreen(),
+      home: const SplashScreen(),
     );
   }
 }
