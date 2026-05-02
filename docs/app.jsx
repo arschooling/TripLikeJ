@@ -4492,16 +4492,49 @@ function computeRouteTip(pts, times) {
   const lunch  = foods.find(p => { const m=toMin(p.time); return m && m>=600 && m<=900; }) || foods[0] || null;
   const dinner = foods.find(p => { const m=toMin(p.time); return m && m>=1020; }) || (foods.length>1 ? foods[foods.length-1] : null);
   const dinnerIsLunch = dinner && lunch && dinner === lunch;
-  const startIdx = hotel ? pts.indexOf(hotel) : 0;
-  const n = pts.length;
-  const visited = Array(n).fill(false);
-  const order = [startIdx]; visited[startIdx] = true;
-  for (let step=1; step<n; step++) {
-    let best=-1, bestD=Infinity;
-    const last=order[order.length-1];
-    for (let j=0; j<n; j++) { if (!visited[j]) { const d=dist2(pts[last],pts[j]); if (d<bestD){bestD=d;best=j;} } }
-    visited[best]=true; order.push(best);
-  }
+
+  // hotel · lunch · dinner 은 위치 고정 (anchor) — 그 사이 구간별로만 greedy
+  const pinnedIdxs = [];
+  if (hotel)                 { pinnedIdxs.push(pts.indexOf(hotel)); }
+  if (lunch)                 { const i=pts.indexOf(lunch);  if (!pinnedIdxs.includes(i)) pinnedIdxs.push(i); }
+  if (!dinnerIsLunch&&dinner){ const i=pts.indexOf(dinner); if (!pinnedIdxs.includes(i)) pinnedIdxs.push(i); }
+  pinnedIdxs.sort((a,b)=>a-b);
+  const pinnedSet = new Set(pinnedIdxs);
+
+  // anchor 사이 구간 분리
+  const boundaries = [-1, ...pinnedIdxs, pts.length];
+  const sections = boundaries.slice(0,-1).map((b,i) => {
+    const seg=[];
+    for (let j=b+1; j<boundaries[i+1]; j++) { if (!pinnedSet.has(j)) seg.push(j); }
+    return seg;
+  });
+
+  // 구간 내 greedy NN (lastIdx=-1 이면 첫 요소부터)
+  const greedySeg = (segIdxs, lastIdx) => {
+    const rem=[...segIdxs], result=[];
+    let last=lastIdx;
+    while (rem.length) {
+      if (last===-1) { result.push(rem.shift()); }
+      else {
+        let best=0, bestD=Infinity;
+        rem.forEach((idx,i)=>{ const d=dist2(pts[last],pts[idx]); if(d<bestD){bestD=d;best=i;} });
+        result.push(rem.splice(best,1)[0]);
+      }
+      last=result[result.length-1];
+    }
+    return result;
+  };
+
+  // 최종 순서 조립: [구간0] [pin0] [구간1] [pin1] …
+  const order=[];
+  let lastIdx=-1;
+  sections.forEach((seg,i) => {
+    const opt=greedySeg(seg,lastIdx);
+    order.push(...opt);
+    if (opt.length) lastIdx=opt[opt.length-1];
+    if (i<pinnedIdxs.length) { order.push(pinnedIdxs[i]); lastIdx=pinnedIdxs[i]; }
+  });
+
   const isOptimal = order.every((v,i) => v===i);
   const totalTransit = Object.values(times).reduce((s,t) => s+(t.transit||0), 0);
   const longestLeg   = Object.entries(times).sort((a,b)=>(b[1].transit||0)-(a[1].transit||0))[0];
