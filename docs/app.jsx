@@ -112,6 +112,7 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'copy':       return <svg {...p}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
     case 'clipboard':  return <svg {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 10h6M9 18h4"/></svg>;
     case 'camera':     return <svg {...p}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
+    case 'image':      return <svg {...p}><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>;
     default: return null;
   }
 };
@@ -1998,7 +1999,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v436</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v437</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2146,7 +2147,9 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const [sampleLoading, setSampleLoading] = React.useState(false);
   const [sampleErr, setSampleErr] = React.useState('');
   const [photoUploading, setPhotoUploading] = React.useState(false);
-  const coverFileRef = React.useRef(null);
+  const [photoPickerOpen, setPhotoPickerOpen] = React.useState(false);
+  const cameraInputRef  = React.useRef(null);
+  const libraryInputRef = React.useRef(null);
   const handleCoverPhoto = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !authUser || !tripId) return;
@@ -2480,7 +2483,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   <div style={{ position:'relative' }}>
                     <Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170} img={trip.coverImg || null}/>
                     {editing && i === featuredIdx && (
-                      <button onClick={() => coverFileRef.current?.click()}
+                      <button onClick={() => setPhotoPickerOpen(true)}
                         style={{ position:'absolute', bottom:10, right:10, zIndex:5,
                           width:36, height:36, borderRadius:18, border:'none',
                           background:'rgba(255,255,255,0.88)', cursor:'pointer',
@@ -2711,7 +2714,40 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         onClose={() => setDateRangeOpen(false)}
         onPick={(s, e) => { handlePickRange(s, e); setDateRangeOpen(false); }}
       />
-      <input ref={coverFileRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverPhoto}/>
+      <input ref={cameraInputRef}  type="file" accept="image/*" capture="environment" style={{ display:'none' }} onChange={handleCoverPhoto}/>
+      <input ref={libraryInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCoverPhoto}/>
+      {photoPickerOpen && ReactDOM.createPortal(
+        <div onClick={() => setPhotoPickerOpen(false)}
+          style={{ position:'fixed', inset:0, zIndex:1200, background:'rgba(0,0,0,0.38)',
+            display:'flex', flexDirection:'column', justifyContent:'flex-end' }}>
+          <div onClick={e => e.stopPropagation()}
+            style={{ background:COLORS.bg, borderRadius:'22px 22px 0 0',
+              paddingBottom:'calc(env(safe-area-inset-bottom,0px) + 16px)' }}>
+            <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px' }}>
+              <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+            </div>
+            <div style={{ padding:'4px 16px 8px', fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.06em', textTransform:'uppercase' }}>
+              사진 선택
+            </div>
+            {[
+              { label:'카메라', icon:'camera', action: () => { setPhotoPickerOpen(false); setTimeout(() => cameraInputRef.current?.click(), 80); } },
+              { label:'사진 보관함', icon:'image', action: () => { setPhotoPickerOpen(false); setTimeout(() => libraryInputRef.current?.click(), 80); } },
+            ].map(({ label, icon, action }) => (
+              <button key={label} onClick={action}
+                style={{ width:'100%', padding:'15px 20px', background:'transparent', border:'none',
+                  display:'flex', alignItems:'center', gap:14, cursor:'pointer',
+                  borderTop:`1px solid ${COLORS.line}` }}>
+                <div style={{ width:40, height:40, borderRadius:12, background:COLORS.softer,
+                  display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <Icon name={icon} size={18} color={COLORS.ink} stroke={1.7}/>
+                </div>
+                <span style={{ fontFamily:SANS, fontSize:15, color:COLORS.ink }}>{label}</span>
+              </button>
+            ))}
+          </div>
+        </div>,
+        document.body
+      )}
     </div>
   );
 }
