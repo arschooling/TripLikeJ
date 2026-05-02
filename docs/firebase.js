@@ -63,7 +63,7 @@ window.fbGetOrCreateUser = async (fbUser) => {
   // groups 컬렉션에서 내가 멤버인 여행 중 tripIds에 없는 것도 추가 (다른 유저가 직접 추가한 경우)
   const memberSnap = await _fbDb.collection('groups').where('members', 'array-contains', fbUser.uid).get();
   const memberTripIds = memberSnap.docs.map(d => d.id);
-  const extraIds = memberTripIds.filter(id => !validTripIds.includes(id));
+  const extraIds = memberTripIds.filter(id => !validTripIds.includes(id)).sort();
   const allTripIds = [...validTripIds, ...extraIds];
 
   if (JSON.stringify(allTripIds) !== JSON.stringify(existing.tripIds || [])) {
@@ -628,6 +628,14 @@ window.fbDeleteAccount = async (uid, tripIds) => {
   batch.delete(_fbDb.collection('users').doc(uid));
   batch.delete(_fbDb.collection('preps').doc(uid));
   await batch.commit();
+
+  // notifications 서브컬렉션 삭제 (부모 문서 삭제로 자동 삭제 안됨)
+  const notifSnap = await _fbDb.collection('users').doc(uid).collection('notifications').get();
+  if (!notifSnap.empty) {
+    const nb = _fbDb.batch();
+    notifSnap.docs.forEach(d => nb.delete(d.ref));
+    await nb.commit();
+  }
 
   // Firebase Auth 계정 삭제
   await user.delete();

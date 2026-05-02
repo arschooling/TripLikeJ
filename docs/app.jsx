@@ -153,15 +153,17 @@ function invalidateDayPhotoCache(uid, tripId, dayIdx) {
 }
 
 // ─── DayPhotoImg: Storage URL 비동기 로드 래퍼 ─────────────
-function DayPhotoImg({ uid, tripId, dayIdx, style, fallback }) {
+const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style, fallback }) {
   const [url, setUrl] = React.useState(null);
   React.useEffect(() => {
     if (!uid || !tripId) { setUrl(null); return; }
-    getDayPhotoUrl(uid, tripId, dayIdx).then(setUrl);
+    let alive = true;
+    getDayPhotoUrl(uid, tripId, dayIdx).then(u => { if (alive) setUrl(u); });
+    return () => { alive = false; };
   }, [uid, tripId, dayIdx]);
   if (!url) return fallback || null;
   return <img src={url} alt="" style={style}/>;
-}
+});
 
 // ─── Photo placeholder ──────────────────────────────────────
 function Photo({ hue=20, label='', height=180, small=false }) {
@@ -211,7 +213,7 @@ function EditBtn({ editing, onClick, compact }) {
 }
 
 // ─── Swipeable row (swipe-left to reveal edit/delete) ────────
-function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {}, editIcon, editBg, editLabel, deleteLabel, cardSwipe }) {
+const SwipeableRow = React.memo(function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapStyle = {}, editIcon, editBg, editLabel, deleteLabel, cardSwipe }) {
   const [x, setX]             = React.useState(0);
   const [open, setOpen]       = React.useState(false);
   const [flying, setFlying]   = React.useState(false);  // 날아가는 중
@@ -390,7 +392,7 @@ function SwipeableRow({ children, onEdit, onDelete, disabled, isDragging, wrapSt
       </div>
     </div>
   );
-}
+});
 
 // ─── Swipe-back edge gesture wrapper ─────────────────────────
 function SwipeBackLayer({ onBack, children }) {
@@ -1738,7 +1740,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
       setContacts(candidates);
       setLoading(false);
     }).catch(() => setLoading(false));
-  }, [open, trip && trip.id]);
+  }, [open, trip?.id]);
 
   React.useEffect(() => {
     setEmail(''); setMsg(''); setSelected(new Set());
@@ -1983,6 +1985,10 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
 function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount }) {
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
+  const sortedTrips = React.useMemo(
+    () => [...trips].sort((a, b) => (b.sampleId ? 1 : 0) - (a.sampleId ? 1 : 0)),
+    [trips]
+  );
   const handleRestore = async () => {
     if (restoring || !onRestore) return;
     setRestoring(true); setRestoreErr('');
@@ -2032,12 +2038,12 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v433</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v438</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
         : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
-            {[...trips].sort((a, b) => (b.sampleId ? 1 : 0) - (a.sampleId ? 1 : 0)).map(t => {
+            {sortedTrips.map(t => {
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
               const companionCount = (t.members || []).filter(uid => uid !== myUid).length;
@@ -2175,12 +2181,15 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const { itemProps: hotelDragProps, isTouchDragging: isHotelDragging } = useDragReorder(onReorderHotels, editing);
   const tripYear = extractTripYear(trip);
   const todayIso = new Date().toISOString().slice(0, 10);
+  const dayIsos = React.useMemo(
+    () => trip.days.map(d => dayDateToIso(d.date, tripYear) || ''),
+    [trip.days, tripYear]
+  );
   const calcFeaturedIdx = () => {
-    const isos = trip.days.map(d => dayDateToIso(d.date, tripYear) || '');
-    const todayIdx = isos.findIndex(iso => iso === todayIso);
+    const todayIdx = dayIsos.findIndex(iso => iso === todayIso);
     if (todayIdx >= 0) return todayIdx;
-    const future = isos.findIndex(iso => iso > todayIso);
-    if (future === 0 || isos.every(iso => !iso)) return 0;
+    const future = dayIsos.findIndex(iso => iso > todayIso);
+    if (future === 0 || dayIsos.every(iso => !iso)) return 0;
     if (future < 0) return trip.days.length - 1;
     return future - 1;
   };
@@ -2760,12 +2769,12 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
 
   const [done, setDone] = React.useState(() => {
-    try { return new Set(JSON.parse(localStorage.getItem('done_' + trip.title + '_' + dayIdx) || '[]')); }
+    try { return new Set(JSON.parse(localStorage.getItem('done_' + (tripId || trip.title) + '_' + dayIdx) || '[]')); }
     catch(e) { return new Set(); }
   });
   const toggle = (i) => setDone(s => {
     const n = new Set(s); n.has(i) ? n.delete(i) : n.add(i);
-    localStorage.setItem('done_' + trip.title + '_' + dayIdx, JSON.stringify([...n]));
+    localStorage.setItem('done_' + (tripId || trip.title) + '_' + dayIdx, JSON.stringify([...n]));
     return n;
   });
   const [editingTitle, setEditingTitle] = React.useState(false);
@@ -2782,7 +2791,9 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   const dayPhotoInputRef = React.useRef(null);
   React.useEffect(() => {
     if (!authUid || !tripId) return;
-    getDayPhotoUrl(authUid, tripId, dayIdx).then(url => setDayPhoto(url || null));
+    let alive = true;
+    getDayPhotoUrl(authUid, tripId, dayIdx).then(url => { if (alive) setDayPhoto(url || null); });
+    return () => { alive = false; };
   }, [authUid, tripId, dayIdx]);
   const handleDayPhoto = async (e) => {
     const file = e.target.files?.[0];
@@ -4624,6 +4635,7 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
     clearTimeout(timerRef.current);
     if (!query.trim()) { setResults([]); return; }
     setLoading(true);
+    let alive = true;
     timerRef.current = setTimeout(async () => {
       try {
         const [bLat, bLon] = cityBias || [];
@@ -4631,10 +4643,11 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
         const j = await (await fetch(
           `https://photon.komoot.io/api/?q=${encodeURIComponent(query)}&limit=6&lang=en${bias}`
         )).json();
-        setResults(j?.features || []);
-      } catch(_) { setResults([]); }
-      setLoading(false);
+        if (alive) setResults(j?.features || []);
+      } catch(_) { if (alive) setResults([]); }
+      if (alive) setLoading(false);
     }, 350);
+    return () => { alive = false; clearTimeout(timerRef.current); };
   }, [query]);
 
   const formatAddr = (props) => {
@@ -5137,7 +5150,7 @@ function MapScreen({ trip, onEditItem }) {
 }
 
 // ─── Food ───────────────────────────────────────────────────
-function FoodCatItems({ catItems, allFood, onEditFood, editing }) {
+const FoodCatItems = React.memo(function FoodCatItems({ catItems, allFood, onEditFood, editing }) {
   const reorder = (from, to) => {
     const globalFrom = catItems[from].idx;
     const globalTo   = catItems[to].idx;
@@ -5215,7 +5228,7 @@ function FoodCatItems({ catItems, allFood, onEditFood, editing }) {
       })}
     </>
   );
-}
+});
 
 function FoodScreen({ trip, onEditFood, editing, setEditing }) {
   const [query,       setQuery]       = React.useState('');
@@ -5226,21 +5239,21 @@ function FoodScreen({ trip, onEditFood, editing, setEditing }) {
   const allFood = trip.food || [];
   const cats = [...new Set(allFood.map(f => f.cat).filter(Boolean))];
 
-  const qLow = query.toLowerCase();
-  const matchesQuery = (f) => !query
-    || (f.name||'').toLowerCase().includes(qLow)
-    || (f.detail||'').toLowerCase().includes(qLow)
-    || (f.note||'').toLowerCase().includes(qLow);
-
-  // Group: if searching, flat list; otherwise by category
-  const grouped = {};
-  allFood.forEach((f, idx) => {
-    if (!matchesQuery(f)) return;
-    const key = f.cat || '기타';
-    (grouped[key] = grouped[key] || []).push({ ...f, idx });
-  });
-  const groupEntries = Object.entries(grouped);
-  const totalFiltered = groupEntries.reduce((s, [,items]) => s + items.length, 0);
+  const { groupEntries, totalFiltered } = React.useMemo(() => {
+    const qLow = query.toLowerCase();
+    const grouped = {};
+    allFood.forEach((f, idx) => {
+      const matches = !query
+        || (f.name||'').toLowerCase().includes(qLow)
+        || (f.detail||'').toLowerCase().includes(qLow)
+        || (f.note||'').toLowerCase().includes(qLow);
+      if (!matches) return;
+      const key = f.cat || '기타';
+      (grouped[key] = grouped[key] || []).push({ ...f, idx });
+    });
+    const entries = Object.entries(grouped);
+    return { groupEntries: entries, totalFiltered: entries.reduce((s, [,items]) => s + items.length, 0) };
+  }, [allFood, query]);
 
   const addFood = (cat) => {
     onEditFood([...allFood, { cat, name:'새 맛집', detail:'', price:'', note:'' }]);
@@ -5383,7 +5396,7 @@ function normalizePrepCats(raw) {
   return { cats: result };
 }
 
-function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem, setEditingItem, getItemDragProps, prepDrag, emptyDropRef }) {
+const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem, setEditingItem, getItemDragProps, prepDrag, emptyDropRef }) {
   const deleteItem = (ii) => {
     const next = cats.map((c, i) => i !== ci ? c : { ...c, items: c.items.filter((_, j) => j !== ii) });
     (saveWithUndo || save)(next);
@@ -5459,7 +5472,7 @@ function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem,
       })}
     </>
   );
-}
+});
 
 function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
   const rawPrep = prepProp || trip.prep || {};
@@ -6290,25 +6303,44 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
 
   // onSheetChange는 각 open/close 함수에서 직접 동기 호출 (탭바 딜레이 방지)
 
-  // KRW 환산 합계 (총 금액 표시용)
-  const krwTotalOut = entries.filter(e=>e.type==='out').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
-  const krwTotalIn  = entries.filter(e=>e.type==='in' ).reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
+  // entries 단일 패스로 모든 통계 계산
+  const budgetStats = React.useMemo(() => {
+    const byCurrency = {};
+    let krwTotalOut = 0, krwTotalIn = 0, hasShared = false;
+    let krwSharedOut = 0, krwPersonalOut = 0, krwSharedIn = 0, krwPersonalIn = 0;
+    entries.forEach(e => {
+      const cur = e.currency || 'KRW';
+      const krw = toKrw(e.amount, cur);
+      const scope = e.scope || 'personal';
+      const isOut = e.type === 'out';
+      const isShared = scope === 'shared';
+      if (!byCurrency[cur]) byCurrency[cur] = { out: 0, inc: 0 };
+      if (isOut) {
+        krwTotalOut += krw;
+        byCurrency[cur].out += e.amount;
+        if (isShared) { hasShared = true; krwSharedOut += krw; }
+        else krwPersonalOut += krw;
+      } else {
+        krwTotalIn += krw;
+        byCurrency[cur].inc += e.amount;
+        if (isShared) { hasShared = true; krwSharedIn += krw; }
+        else krwPersonalIn += krw;
+      }
+    });
+    return { krwTotalOut, krwTotalIn, byCurrency, hasShared, krwSharedOut, krwPersonalOut, krwSharedIn, krwPersonalIn };
+  }, [entries]);
+  const { krwTotalOut, krwTotalIn, byCurrency, hasShared, krwSharedOut, krwPersonalOut, krwSharedIn, krwPersonalIn } = budgetStats;
 
-  // 통화별 수입/지출 원액
-  const byCurrency = {};
-  entries.forEach(e => {
-    const cur = e.currency || 'KRW';
-    if (!byCurrency[cur]) byCurrency[cur] = { out: 0, inc: 0 };
-    if (e.type==='out') byCurrency[cur].out += e.amount;
-    else                byCurrency[cur].inc += e.amount;
-  });
-
-  // 공동/개인 KRW 합계 (지출/수입 각각)
-  const hasShared = entries.some(e => (e.scope||'personal')==='shared');
-  const krwSharedOut   = entries.filter(e=>e.type==='out'&&(e.scope||'personal')==='shared').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
-  const krwPersonalOut = entries.filter(e=>e.type==='out'&&(e.scope||'personal')==='personal').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
-  const krwSharedIn    = entries.filter(e=>e.type==='in' &&(e.scope||'personal')==='shared').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
-  const krwPersonalIn  = entries.filter(e=>e.type==='in' &&(e.scope||'personal')==='personal').reduce((s,e)=>s+toKrw(e.amount,e.currency||'KRW'),0);
+  const entriesByDate = React.useMemo(() => {
+    const indexed = entries.map((e, i) => ({ ...e, _i: i }));
+    const byDate = {};
+    indexed.forEach(e => {
+      const d = e.date || '날짜 없음';
+      if (!byDate[d]) byDate[d] = [];
+      byDate[d].push(e);
+    });
+    return Object.keys(byDate).sort((a, b) => b.localeCompare(a)).map(date => ({ date, items: byDate[date] }));
+  }, [entries]);
 
   const currentCats = form.type === 'out' ? outCats : inCats;
 
@@ -6495,24 +6527,14 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:8 }}>아직 기록이 없어요</div>
           <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.mute }}>여행 수입과 지출을 기록해 보세요</div>
         </div>
-      ) : (() => {
-        const indexed = [...entries].map((e,i) => ({ ...e, _i:i }));
-        // 날짜별 그룹핑 (최근 날짜 위)
-        const byDate = {};
-        indexed.forEach(e => {
-          const d = e.date || '날짜 없음';
-          if (!byDate[d]) byDate[d] = [];
-          byDate[d].push(e);
-        });
-        const sortedDates = Object.keys(byDate).sort((a,b) => b.localeCompare(a));
-        return (
+      ) : (
           <div style={{ padding:'0 16px' }}>
-            {sortedDates.map(date => (
+            {entriesByDate.map(({ date, items }) => (
               <div key={date} style={{ marginBottom:16 }}>
                 <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em',
                   textTransform:'uppercase', padding:'4px 2px 8px' }}>{date}</div>
                 <div>
-                  {byDate[date].map((e, i) => {
+                  {items.map((e, i) => {
                     const dp = entryDragProps(e._i);
                     return (
                     <div key={e.id||e._i} ref={dp.ref} data-entry-idx={e._i} onTouchStart={dp.onTouchStart} onTouchMove={dp.onTouchMove} onTouchEnd={dp.onTouchEnd}
@@ -6555,8 +6577,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
               </div>
             ))}
           </div>
-        );
-      })()}
+      )}
 
       {/* 입력/수정 시트 */}
       {(sheetOpen || sheetEntered) && ReactDOM.createPortal(
@@ -6754,7 +6775,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
 }
 
 // ─── Tab bar (no edit toggle) ──────────────────────────────
-function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
+const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
   const tabs = [
     { id:'home',   icon:'sight',  label:'일정' },
     { id:'map',    icon:'map',    label:'지도' },
@@ -6804,7 +6825,7 @@ function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
       </button>
     </div>
   );
-}
+});
 
 // ─── APP ───────────────────────────────────────────────────
 const NAV_KEY = 'nav_state';
@@ -9205,7 +9226,7 @@ function App() {
   // 편집 버튼 토글 핸들러
   const stopSheetEditRef = React.useRef(null); // StopSheet의 setEditing 연결용
 
-  const handleEditToggle = () => {
+  const handleEditToggle = React.useCallback(() => {
     // StopSheet가 열려있으면 팝업 편집 모드 토글
     if (openStop && stopSheetEditRef.current) {
       stopSheetEditRef.current();
@@ -9223,7 +9244,7 @@ function App() {
         setEditing(false);    // 변경 없으면 그냥 닫기
       }
     }
-  };
+  }, [openStop, editing, canEdit, trip, prep]);
 
   // ── 앱 준비되면 loginPending 해제 (trips 로딩 완료 후) ────────
   React.useEffect(() => {
@@ -9232,15 +9253,21 @@ function App() {
     }
   }, [loginPending, authState, tripsReady]);
 
-  // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용) ──────────────────
+  // ── 로컬 캐시 저장 (새로고침 시 즉시 표시용, debounce 500ms) ──
   React.useEffect(() => {
-    if (userData) localStorage.setItem('tlj_userData', JSON.stringify(userData));
+    if (!userData) return;
+    const t = setTimeout(() => { try { localStorage.setItem('tlj_userData', JSON.stringify(userData)); } catch(_) {} }, 500);
+    return () => clearTimeout(t);
   }, [userData]);
   React.useEffect(() => {
-    if (trip) localStorage.setItem('tlj_trip', JSON.stringify(trip));
+    if (!trip) return;
+    const t = setTimeout(() => { try { localStorage.setItem('tlj_trip', JSON.stringify(trip)); } catch(_) {} }, 500);
+    return () => clearTimeout(t);
   }, [trip]);
   React.useEffect(() => {
-    if (prep) localStorage.setItem('tlj_prep', JSON.stringify(prep));
+    if (!prep) return;
+    const t = setTimeout(() => { try { localStorage.setItem('tlj_prep', JSON.stringify(prep)); } catch(_) {} }, 500);
+    return () => clearTimeout(t);
   }, [prep]);
 
   // ── Firebase auth listener ─────────────────────────────────
@@ -9298,9 +9325,12 @@ function App() {
   // ── 여행 목록 로드 + 샘플 싱크 ────────────────────────────
   React.useEffect(() => {
     if (!userData?.uid) return;
+    // tripIds가 undefined면 Firestore 데이터 아직 안 온 fallback → 실제 데이터 올 때까지 대기
+    if (userData.tripIds === undefined) return;
+    let alive = true;
     const uid = userData.uid;
     const email = userData.email || '';
-    const tripIds = userData.tripIds || [userData.groupId];
+    const tripIds = userData.tripIds.length > 0 ? userData.tripIds : (userData.groupId ? [userData.groupId] : []);
     setTripsLoading(true);
 
     // 샘플 싱크: rome만 자동 추가 (nyc는 오너 전용)
@@ -9310,12 +9340,14 @@ function App() {
       : Promise.resolve([null, null]);
 
     syncAll.then(syncResults => {
+      if (!alive) return;
       // 샘플 tripId 수집 (isNew 여부 무관 — effect 재실행 시에도 누락 방지)
       const newIds = syncResults
         .filter(r => r?.tripId && !tripIds.includes(r.tripId))
         .map(r => r.tripId);
       const allIds = [...tripIds, ...newIds];
       return fbLoadTrips(allIds).then(async trips => {
+        if (!alive) return;
         const normalized = trips.map(t => normalizeTrip(t, t.id));
         // days가 없는 여행은 TRIP_DEFAULT로 자동 복구 — 오너 계정 전용
         const isOwner = (email) => email === 'arjungtaeng@gmail.com';
@@ -9354,7 +9386,8 @@ function App() {
           }));
         }
       });
-    }).catch(() => { setTripsLoading(false); setTripsReady(true); });
+    }).catch(() => { if (alive) { setTripsLoading(false); setTripsReady(true); } });
+    return () => { alive = false; };
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
 
   // ── Firestore: shared group listener ──────────────────────
@@ -9379,9 +9412,13 @@ function App() {
       // preps 문서가 없거나 비어있으면 TRIP_DEFAULT.prep으로 초기화
       const hasData = p && (p.cats?.length || p.checklist?.length || p.docs?.length || p.pack?.length);
       if (!hasData) {
-        const def = (window.TRIP_DEFAULT?.prep) || { checklist: [], docs: [], pack: [] };
-        fbSavePrep(authUser.uid, def).catch(console.error);
-        setPrep(def);
+        // TRIP_DEFAULT.prep이 없거나 비어있으면 저장하지 않음 (무한 저장 방지)
+        const def = window.TRIP_DEFAULT?.prep;
+        const defHasData = def && (def.cats?.length || def.checklist?.length || def.docs?.length || def.pack?.length);
+        if (defHasData) {
+          fbSavePrep(authUser.uid, def).catch(console.error);
+          setPrep(def);
+        }
       } else {
         setPrep(p);
       }
@@ -9489,6 +9526,7 @@ function App() {
   // ── Trip-level actions (Firestore) ────────────────────────
   const editTrip = (patch) => {
     const next = { ...(tripRef.current || trip), ...patch };
+    tripRef.current = next;
     setTrip(prev => ({ ...prev, ...patch }));
     // My Trips 목록도 즉시 반영 (색상 등 변경 시 카드가 바로 업데이트)
     if (activeTripId) setUserTrips(prev => prev.map(t => t.id === activeTripId ? { ...t, ...patch } : t));
@@ -9504,8 +9542,9 @@ function App() {
     // 동행인에게 일정 수정 알림 (60초 디바운스)
     if (activeTripId && authUser && typeof fbNotifyTripEdit === 'function') {
       clearTimeout(notifyTripEditTimer.current);
+      const titleForNotif = next.title || trip?.title || '';
       notifyTripEditTimer.current = setTimeout(() => {
-        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', trip?.title || '').catch(() => {});
+        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', titleForNotif).catch(() => {});
       }, 60000);
     }
   };
@@ -9998,7 +10037,12 @@ function App() {
       <NotificationsScreen open={notifOpen} onClose={() => setNotifOpen(false)}
         authUser={authUser} notifications={notifs}
         onGoToCompanions={() => { setNotifOpen(false); setCompanionsScreenOpen(true); }}
-        onGoToTrip={(tripId) => { setNotifOpen(false); setActiveTripId(tripId); setTab('home'); setDayIdx(null); }}/>
+        onGoToTrip={(tripId) => {
+          setNotifOpen(false);
+          const found = userTrips.find(t => t.id === tripId);
+          if (found) { tripRef.current = found; setTrip(found); }
+          setActiveTripId(tripId); setTab('home'); setDayIdx(null);
+        }}/>
       <NewTripSheet
         open={newTripSheetOpen}
         onClose={() => setNewTripSheetOpen(false)}
@@ -10007,7 +10051,9 @@ function App() {
           const hue = pickUniqueHue(existingHues);
           const { tripId } = await fbCreateNewTrip(userData.uid, tripData.title, hue);
           await fbSaveGroup(tripId, { ...tripData, hue }).catch(() => {});
-          setUserTrips(prev => [...prev, { id: tripId, ...tripData, hue, members:[userData.uid] }]);
+          const newTrip = normalizeTrip({ id: tripId, ...tripData, hue, members:[userData.uid] }, tripId);
+          setUserTrips(prev => [...prev, newTrip]);
+          tripRef.current = newTrip; setTrip(newTrip);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}/>
@@ -10123,7 +10169,9 @@ function App() {
           const hue = pickUniqueHue(existingHues);
           const { tripId } = await fbCreateNewTrip(userData.uid, tripData.title, hue);
           await fbSaveGroup(tripId, { ...tripData, hue }).catch(() => {});
-          setUserTrips(prev => [...prev, { id: tripId, ...tripData, hue, members:[userData.uid] }]);
+          const newTrip = normalizeTrip({ id: tripId, ...tripData, hue, members:[userData.uid] }, tripId);
+          setUserTrips(prev => [...prev, newTrip]);
+          tripRef.current = newTrip; setTrip(newTrip);
           setActiveTripId(tripId);
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}/>
@@ -10132,7 +10180,12 @@ function App() {
       <NotificationsScreen open={notifOpen} onClose={() => setNotifOpen(false)}
         authUser={authUser} notifications={notifs}
         onGoToCompanions={() => { setNotifOpen(false); setCompanionsScreenOpen(true); }}
-        onGoToTrip={(tripId) => { setNotifOpen(false); setActiveTripId(tripId); setTab('home'); setDayIdx(null); }}/>
+        onGoToTrip={(tripId) => {
+          setNotifOpen(false);
+          const found = userTrips.find(t => t.id === tripId);
+          if (found) { tripRef.current = found; setTrip(found); }
+          setActiveTripId(tripId); setTab('home'); setDayIdx(null);
+        }}/>
 
       {/* 저장 확인 다이얼로그 */}
       {saveConfirm && ReactDOM.createPortal(
