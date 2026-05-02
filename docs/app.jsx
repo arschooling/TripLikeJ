@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v500</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v1</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3729,7 +3729,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
 }
 
 // ─── Stop sheet (unchanged except pulls editing from open) ─
-function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, onTabBarToggle }) {
+function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, onTabBarToggle, dayOptions, currentDayDate }) {
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
   // 탭바 수정 버튼과 연동
@@ -3752,7 +3752,8 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
   const scrollBeforeKbRef = React.useRef(null);
 
   React.useEffect(() => {
-    setDraft(open.stop); committed.current = open.stop;
+    const initStop = { ...open.stop, _targetDate: currentDayDate || '' };
+    setDraft(initStop); committed.current = initStop;
     setSheetY(0); sheetYRef.current = 0;
     setSheetUp(0); sheetUpRef.current = 0;
     setExpanded(false); expandedRef.current = false;
@@ -3921,7 +3922,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
           </div>
 
           {editing ? (
-            <EditStopForm draft={draft} setDraft={setDraft} cityBias={cityBias}/>
+            <EditStopForm draft={draft} setDraft={setDraft} cityBias={cityBias} dayOptions={dayOptions}/>
           ) : (
             <>
               {/* 타이틀 / 부제 — 뷰 모드에서는 읽기 전용 */}
@@ -3938,7 +3939,8 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
               <div style={{ marginTop:16, display:'flex', flexDirection:'column' }}>
                 {[
                   draft.loc && { icon:'pin', label:'위치', value: draft.loc },
-                  { icon:'clock', label:'시간', value: draft.time + (draft.duration ? ` · ${draft.duration}` : '') },
+                  currentDayDate && { icon:'calendar', label:'날짜 · 시간', value: `${currentDayDate}  ·  ${draft.time}${draft.duration ? `  ·  ${draft.duration}` : ''}` },
+                  !currentDayDate && { icon:'clock', label:'시간', value: draft.time + (draft.duration ? ` · ${draft.duration}` : '') },
                   draft.note && { icon:'book', label:'메모', value: draft.note },
                 ].filter(Boolean).map((r, i, arr) => (
                   <div key={i} style={{
@@ -4499,7 +4501,7 @@ function LocationField({ value, onChange, cityBias }) {
   );
 }
 
-function EditStopForm({ draft, setDraft, cityBias }) {
+function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
   const [showHotelSearch, setShowHotelSearch] = React.useState(false);
   const [timeOpen, setTimeOpen] = React.useState(false);
   const field = (key, label, type='text') => (
@@ -4531,8 +4533,23 @@ function EditStopForm({ draft, setDraft, cityBias }) {
     <div style={{ marginTop:10 }}>
       {field('title', '제목')}
       {field('en', '영문명')}
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, alignItems:'end' }}>
-        <label style={{ display:'block', marginTop:10 }}>
+      <div style={{ display:'grid', gridTemplateColumns: dayOptions?.length > 0 ? '1fr 1fr' : '1fr 1fr', gap:10, alignItems:'end', marginTop:10 }}>
+        {/* 날짜 */}
+        {dayOptions?.length > 0 && (
+          <label style={{ display:'block' }}>
+            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>날짜</div>
+            <select value={draft._targetDate || ''} onChange={e => setDraft({...draft, _targetDate: e.target.value})}
+              style={{ width:'100%', padding:'8px 10px', borderRadius:8,
+                border:`1px solid ${COLORS.line}`, background:COLORS.card,
+                fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}>
+              {dayOptions.map((d, i) => (
+                <option key={d.idx} value={d.date}>DAY {d.idx + 1} · {d.date}</option>
+              ))}
+            </select>
+          </label>
+        )}
+        {/* 시간 */}
+        <label style={{ display:'block' }}>
           <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>시간</div>
           <button type="button" onClick={() => setTimeOpen(true)} style={{
             width:'100%', padding:'8px 10px', borderRadius:8,
@@ -4541,6 +4558,8 @@ function EditStopForm({ draft, setDraft, cityBias }) {
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>{draft.time || '09:00'}</button>
         </label>
+      </div>
+      <div style={{ marginTop:10 }}>
         {field('cat', '카테고리', 'select')}
       </div>
       <TimeWheelSheet open={timeOpen} value={draft.time || '09:00'}
@@ -10114,8 +10133,28 @@ function App() {
       }
     }
 
-    items[openStop.idx] = savedDraft;
-    days[dayIdx] = { ...days[dayIdx], items: sortByTime(items) };
+    // _targetDate 정리 (저장 데이터에는 포함하지 않음)
+    const { _targetDate, ...cleanDraft } = savedDraft;
+    savedDraft = cleanDraft;
+
+    const targetDate = _targetDate || '';
+    const currentDate = (trip.days[dayIdx] || {}).date || '';
+    const dateChanged = targetDate && targetDate !== currentDate;
+
+    if (dateChanged) {
+      // 현재 Day에서 제거
+      const srcItems = days[dayIdx].items.filter((_, i) => i !== openStop.idx);
+      days[dayIdx] = { ...days[dayIdx], items: srcItems };
+      // 대상 Day에 추가
+      const targetIdx = days.findIndex(d => (d.date || '') === targetDate);
+      if (targetIdx >= 0) {
+        const destItems = sortByTime([...days[targetIdx].items, savedDraft]);
+        days[targetIdx] = { ...days[targetIdx], items: destItems };
+      }
+    } else {
+      items[openStop.idx] = savedDraft;
+      days[dayIdx] = { ...days[dayIdx], items: sortByTime(items) };
+    }
     editTrip({ days, hotels });
     setOpenStop(null);
   };
@@ -10556,6 +10595,8 @@ function App() {
         onSave={saveStop}
         onRegisterEdit={fn => { stopSheetEditRef.current = fn; }}
         onTabBarToggle={() => setTabBarVisible(v => !v)}
+        dayOptions={(trip?.days || []).map((d, i) => ({ date: d.date, idx: i }))}
+        currentDayDate={trip?.days?.[dayIdx]?.date || ''}
         />
       <HotelSheet
         open={hotelDetailSheet !== null}
