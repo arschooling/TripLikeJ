@@ -1984,7 +1984,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v433</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v434</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -5638,7 +5638,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
               border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
               <Icon name="copy" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
-            <button onClick={() => setPasteOpen(true)} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
+            <button onClick={() => { setEditing(true); setPasteOpen(true); }} style={{ width:36, height:36, display:'flex', alignItems:'center', justifyContent:'center',
               border:'none', background:'transparent', cursor:'pointer', borderRadius:10 }}>
               <Icon name="clipboard" size={17} color={COLORS.mute} stroke={1.7}/>
             </button>
