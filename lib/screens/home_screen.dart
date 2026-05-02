@@ -29,6 +29,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _tab = 0;
   bool _editing = false;
+  final Set<int> _visitedTabs = {0};
 
   @override
   Widget build(BuildContext context) {
@@ -111,13 +112,18 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: IndexedStack(
                     index: _tab,
                     children: [
-                      _ScheduleTab(
-                        tripIndex: widget.tripIndex,
-                        editing: _editing,
-                      ),
-                      MapScreen(tripIndex: widget.tripIndex),
-                      FoodScreen(tripIndex: widget.tripIndex),
-                      PrepScreen(tripIndex: widget.tripIndex),
+                      _visitedTabs.contains(0)
+                          ? _ScheduleTab(tripIndex: widget.tripIndex, editing: _editing)
+                          : const SizedBox.shrink(),
+                      _visitedTabs.contains(1)
+                          ? MapScreen(tripIndex: widget.tripIndex)
+                          : const SizedBox.shrink(),
+                      _visitedTabs.contains(2)
+                          ? FoodScreen(tripIndex: widget.tripIndex)
+                          : const SizedBox.shrink(),
+                      _visitedTabs.contains(3)
+                          ? PrepScreen(tripIndex: widget.tripIndex)
+                          : const SizedBox.shrink(),
                     ],
                   ),
                 ),
@@ -128,7 +134,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             ),
             FloatingTabBar(
               index: _tab,
-              onChanged: (i) => setState(() => _tab = i),
+              onChanged: (i) => setState(() {
+                _tab = i;
+                _visitedTabs.add(i);
+              }),
             ),
           ],
         ),
@@ -150,27 +159,44 @@ class _ScheduleTab extends ConsumerStatefulWidget {
 }
 
 class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
+  static Map<String, double>? _cachedRates;
+  static DateTime? _cacheExpiry;
+  static const _cacheTtl = Duration(hours: 6);
+
   Map<String, double>? _rates;
   bool _loadingRates = false;
 
   @override
   void initState() {
     super.initState();
-    _fetchRates();
+    final isFresh = _cachedRates != null &&
+        _cacheExpiry != null &&
+        DateTime.now().isBefore(_cacheExpiry!);
+    if (isFresh) {
+      _rates = _cachedRates;
+    } else {
+      _fetchRates();
+    }
   }
 
   Future<void> _fetchRates() async {
     setState(() => _loadingRates = true);
     try {
-      final response = await http.get(
-          Uri.parse('https://v6.frankfurter.app/latest?from=USD&to=KRW,JPY'));
+      final response = await http
+          .get(Uri.parse('https://v6.frankfurter.app/latest?from=USD&to=KRW,JPY'))
+          .timeout(const Duration(seconds: 10));
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
         final rates = Map<String, dynamic>.from(data['rates'] as Map);
+        final parsed = rates.map((k, v) => MapEntry(k, (v as num).toDouble()));
+        _cachedRates = parsed;
+        _cacheExpiry = DateTime.now().add(_cacheTtl);
         setState(() {
-          _rates = rates.map((k, v) => MapEntry(k, (v as num).toDouble()));
+          _rates = parsed;
           _loadingRates = false;
         });
+      } else {
+        setState(() => _loadingRates = false);
       }
     } catch (_) {
       setState(() => _loadingRates = false);
