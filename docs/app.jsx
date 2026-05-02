@@ -2032,7 +2032,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v439</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v440</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3603,25 +3603,9 @@ function NearbySheet({ stop, initialTab, onClose }) {
 }
 
 // ─── Stop sheet (unchanged except pulls editing from open) ─
-function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, onTabBarToggle, uid, tripId, stopIdx }) {
+function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, onTabBarToggle }) {
   if (!open) return null;
   const [editing, setEditing] = React.useState(!!open.editing);
-  const [stopPhotoUploading, setStopPhotoUploading] = React.useState(false);
-  const stopPhotoInputRef = React.useRef(null);
-  const handleStopPhoto = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file || !uid || !tripId) return;
-    setStopPhotoUploading(true);
-    try {
-      const dataUrl = await resizeImage(file);
-      const key = `stop_${stopIdx ?? 0}_${Date.now()}`;
-      const url = await window.fbUploadDayPhoto(uid, tripId, key, dataUrl);
-      setDraft(d => ({ ...d, photo: url }));
-    } catch(_) {} finally {
-      setStopPhotoUploading(false);
-      e.target.value = '';
-    }
-  };
   // 탭바 수정 버튼과 연동
   React.useEffect(() => {
     onRegisterEdit?.(() => setEditing(e => !e));
@@ -3774,26 +3758,13 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
         <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 2px' }}>
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
-        {/* 헤더: 제목 + 카메라 + 수정 */}
+        {/* 헤더: 제목 + 수정 */}
         <div style={{ padding:'8px 16px 10px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
           <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink, flex:1, minWidth:0,
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
             {draft.title}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
-            {uid && tripId && (
-              <button onClick={e => { e.stopPropagation(); !stopPhotoUploading && stopPhotoInputRef.current?.click(); }} style={{
-                border:'none', background:COLORS.softer, borderRadius:10,
-                padding:'6px 8px', cursor: stopPhotoUploading ? 'default' : 'pointer',
-                display:'flex', alignItems:'center',
-                opacity: stopPhotoUploading ? 0.5 : 1,
-              }}>
-                {stopPhotoUploading
-                  ? <div className="ptr-spin" style={{ width:13, height:13, border:'2px solid rgba(0,0,0,0.2)', borderTopColor:COLORS.ink, borderRadius:'50%' }}/>
-                  : <Icon name="camera" size={13} color={COLORS.mute} stroke={2}/>
-                }
-              </button>
-            )}
             {!editing && (
               <button onClick={(e) => { e.stopPropagation(); setEditing(true); }} style={{
                 border:'none', background:COLORS.softer, borderRadius:10,
@@ -3805,7 +3776,6 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
               </button>
             )}
           </div>
-          <input ref={stopPhotoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleStopPhoto}/>
         </div>
         {/* 사진 영역 */}
         <div>
@@ -10161,7 +10131,7 @@ function App() {
         onSave={saveStop}
         onRegisterEdit={fn => { stopSheetEditRef.current = fn; }}
         onTabBarToggle={() => setTabBarVisible(v => !v)}
-        uid={authUser?.uid} tripId={activeTripId} stopIdx={openStop?.idx}/>
+        />
       <HotelSheet
         open={hotelDetailSheet !== null}
         onClose={() => setHotelDetailSheet(null)}
