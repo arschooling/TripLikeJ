@@ -134,10 +134,31 @@ function resizeImage(file, maxWidth=800, quality=0.75) {
     img.src = url;
   });
 }
-// 캐시: Storage URL을 메모리에 저장 (세션 중 재요청 방지)
+// 캐시: Storage URL + 이미지 데이터를 메모리/localStorage에 저장
 const _dayPhotoCache = {};
-const _LS_PREFIX = 'tlj_ph_';
+const _imgDataCache  = {};
+const _LS_PREFIX  = 'tlj_ph_';
+const _IMG_PREFIX = 'tlj_imgb_';
+
+function getCachedDayPhotoData(uid, tripId, dayIdx) {
+  const key = `${uid}_${tripId}_${dayIdx}`;
+  if (_imgDataCache[key]) return _imgDataCache[key];
+  try {
+    const v = localStorage.getItem(_IMG_PREFIX + key);
+    if (v) { _imgDataCache[key] = v; return v; }
+  } catch(_) {}
+  return null;
+}
+function setCachedDayPhotoData(uid, tripId, dayIdx, dataUrl) {
+  const key = `${uid}_${tripId}_${dayIdx}`;
+  _imgDataCache[key] = dataUrl;
+  try { localStorage.setItem(_IMG_PREFIX + key, dataUrl); } catch(_) {}
+}
+
 async function getDayPhotoUrl(uid, tripId, dayIdx) {
+  // 캐시된 이미지 데이터가 있으면 네트워크 요청 없이 즉시 반환
+  const cached = getCachedDayPhotoData(uid, tripId, dayIdx);
+  if (cached) return cached;
   const key = `${uid}_${tripId}_${dayIdx}`;
   if (_dayPhotoCache[key] !== undefined) return _dayPhotoCache[key];
   try {
@@ -157,11 +178,15 @@ async function getDayPhotoUrl(uid, tripId, dayIdx) {
 function invalidateDayPhotoCache(uid, tripId, dayIdx) {
   const key = `${uid}_${tripId}_${dayIdx}`;
   delete _dayPhotoCache[key];
+  delete _imgDataCache[key];
   try { localStorage.removeItem(_LS_PREFIX + key); } catch(_) {}
+  try { localStorage.removeItem(_IMG_PREFIX + key); } catch(_) {}
 }
-// 동기 캐시 조회 — 메모리 또는 localStorage에 있으면 즉시 반환, 없으면 undefined
+// 동기 캐시 조회 — 이미지 데이터 또는 URL을 즉시 반환, 없으면 undefined
 function getCachedDayPhotoUrl(uid, tripId, dayIdx) {
   if (!uid || !tripId) return null;
+  const cached = getCachedDayPhotoData(uid, tripId, dayIdx);
+  if (cached) return cached;
   const key = `${uid}_${tripId}_${dayIdx}`;
   if (_dayPhotoCache[key] !== undefined) return _dayPhotoCache[key];
   try {
@@ -2073,7 +2098,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v452</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v453</span></div>
       </div>
       {loading
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2217,6 +2242,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       const dataUrl = await resizeImage(file);
       invalidateDayPhotoCache(myUid, trip.id, idx);
       const url = await window.fbUploadDayPhoto(myUid, trip.id, idx, dataUrl);
+      setCachedDayPhotoData(myUid, trip.id, idx, dataUrl);
       _dayPhotoCache[`${myUid}_${trip.id}_${idx}`] = url;
       try { localStorage.setItem(_LS_PREFIX + `${myUid}_${trip.id}_${idx}`, url); } catch(_) {}
       setCardPhotoVersions(v => ({ ...v, [idx]: (v[idx] || 0) + 1 }));
@@ -2877,9 +2903,10 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
       const dataUrl = await resizeImage(file);
       invalidateDayPhotoCache(authUid, tripId, dayIdx);
       const url = await window.fbUploadDayPhoto(authUid, tripId, dayIdx, dataUrl);
+      setCachedDayPhotoData(authUid, tripId, dayIdx, dataUrl);
       _dayPhotoCache[`${authUid}_${tripId}_${dayIdx}`] = url;
       try { localStorage.setItem(_LS_PREFIX + `${authUid}_${tripId}_${dayIdx}`, url); } catch(_) {}
-      setDayPhoto(url);
+      setDayPhoto(dataUrl);
       onPhotoUploaded?.();
     } catch(_) {} finally {
       setPhotoUploading(false);
@@ -5744,6 +5771,7 @@ function PrepScreen({ trip, prep: prepProp, onEditPrep, editing, setEditing }) {
     })(),
     onTouchStart: e => {
       if (prepDragRef.current) return;
+      clearTimeout(prepTimer.current);
       const startY = e.touches[0].clientY;
       prepTimer.current = setTimeout(() => {
         const el = prepItemEls.current[`${ci}_${ii}`];
@@ -7365,6 +7393,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
   }, [!!dragContact]);
 
   const startLongPress = (e, contact) => {
+    clearTimeout(longPressRef.current);
     const touch = e.touches[0];
     longPressRef.current = setTimeout(() => {
       if (navigator.vibrate) navigator.vibrate(25);
