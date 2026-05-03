@@ -2135,7 +2135,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v14</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v15</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7091,11 +7091,16 @@ function SplashScreen({ visible }) {
   const [hiding, setHiding] = React.useState(false);
 
   React.useEffect(() => {
-    const t = setInterval(() => {
+    let alive = true;
+    let timer;
+    const tick = () => {
+      if (!alive) return;
       setIdx(i => (i + 1) % SPLASH_PLACES.length);
       setAnimKey(k => k + 1);
-    }, 700);
-    return () => clearInterval(t);
+      timer = setTimeout(tick, 700);
+    };
+    timer = setTimeout(tick, 700);
+    return () => { alive = false; clearTimeout(timer); };
   }, []);
 
   React.useEffect(() => {
