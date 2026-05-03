@@ -351,14 +351,14 @@ window.fbDeleteDayPhoto = async (uid, tripId, dayIdx) => {
 
 window.fbUploadTicket = async (uid, tripId, ticketId, file) => {
   const storage = firebase.storage();
-  const ref = storage.ref(`user-files/${uid}/${tripId}/tickets/${ticketId}`);
+  const ref = storage.ref(`user-photos/${uid}/${tripId}/ticket_${ticketId}`);
   await ref.put(file, { contentType: file.type });
   return await ref.getDownloadURL();
 };
 
 window.fbDeleteTicket = async (uid, tripId, ticketId) => {
   const storage = firebase.storage();
-  await storage.ref(`user-files/${uid}/${tripId}/tickets/${ticketId}`).delete();
+  await storage.ref(`user-photos/${uid}/${tripId}/ticket_${ticketId}`).delete();
 };
 
 window.fbDeleteTripPhotos = async (uid, tripId, dayCount) => {
