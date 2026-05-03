@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v46</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v47</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2509,18 +2509,35 @@ function TicketViewer({ ticket, onClose }) {
               }}>
                 {isImg ? (() => {
                   const crop = file.crop || cropRegions[file.id];
+                  if (crop) {
+                    const cw = crop.x2 - crop.x1, ch = crop.y2 - crop.y1;
+                    return (
+                      <div onClick={e => e.stopPropagation()} style={{
+                        position:'relative', overflow:'hidden',
+                        maxWidth:'100%', maxHeight:'100%',
+                        borderRadius:14, background:'#fff',
+                        aspectRatio:`${cw} / ${ch}`,
+                      }}>
+                        <img src={file.url} draggable={false} alt=""
+                          onLoad={e => { if (!file.crop) handleImgLoad(e, file.id); }}
+                          style={{
+                            position:'absolute',
+                            width:`${100/cw}%`, height:'auto',
+                            left:`${-crop.x1/cw*100}%`,
+                            transform:`translateY(-${crop.y1*100}%)`,
+                          }}/>
+                      </div>
+                    );
+                  }
                   return (
                     <img src={file.url} draggable={false} alt=""
                       onLoad={e => { if (!file.crop) handleImgLoad(e, file.id); }}
                       onClick={e => e.stopPropagation()}
                       style={{
                         maxWidth:'100%', maxHeight:'100%',
-                        width: crop ? '100%' : 'auto',
-                        height:'auto',
+                        width:'auto', height:'auto',
                         objectFit:'contain',
-                        borderRadius:14, display:'block',
-                        background:'#fff',
-                        ...(crop ? { objectViewBox: `inset(${crop.y1*100}% ${(1-crop.x2)*100}% ${(1-crop.y2)*100}% ${crop.x1*100}%)` } : {}),
+                        borderRadius:14, display:'block', background:'#fff',
                       }}/>
                   );
                 })() : (
