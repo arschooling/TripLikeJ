@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v43</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v44</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2356,15 +2356,24 @@ function TicketViewer({ ticket, onClose }) {
     if (headerRef.current) setHeaderH(headerRef.current.offsetHeight);
   }, []);
 
-  // BarcodeDetector: 화면의 img 요소에서 직접 감지 → object-view-box CSS로 크롭
-  // (crossOrigin 없이 이미 로드된 img 사용 → Firebase Storage CORS 이슈 없음)
   const [cropRegions, setCropRegions] = React.useState({});
   const handleImgLoad = async (e, fileId) => {
     if (!('BarcodeDetector' in window) || fileId in cropRegions) return;
     const img = e.target;
+    let bitmap = null;
     try {
-      const detector = new BarcodeDetector();
-      const barcodes = await detector.detect(img);
+      const formats = await BarcodeDetector.getSupportedFormats();
+      const detector = new BarcodeDetector({ formats });
+      let barcodes;
+      try {
+        barcodes = await detector.detect(img);
+      } catch (_) {
+        // iOS Safari가 크로스 오리진 img에서 SecurityError를 던질 수 있음 → fetch→ImageBitmap으로 우회
+        const resp = await fetch(img.src);
+        if (!resp.ok) throw new Error('fetch failed');
+        bitmap = await createImageBitmap(await resp.blob());
+        barcodes = await detector.detect(bitmap);
+      }
       if (!barcodes.length) { setCropRegions(p => ({...p, [fileId]: null})); return; }
       const bc = barcodes.reduce((a, b) =>
         a.boundingBox.width * a.boundingBox.height >= b.boundingBox.width * b.boundingBox.height ? a : b
@@ -2378,7 +2387,11 @@ function TicketViewer({ ticket, onClose }) {
         x2: Math.min(1, (x + width + pad) / W),
         y2: Math.min(1, (y + height + pad) / H),
       }}));
-    } catch (_) { setCropRegions(p => ({...p, [fileId]: null})); }
+    } catch (_) {
+      setCropRegions(p => ({...p, [fileId]: null}));
+    } finally {
+      if (bitmap) bitmap.close();
+    }
   };
 
   const getW = () => containerRef.current?.offsetWidth || window.innerWidth;
