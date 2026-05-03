@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v38</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v39</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2571,19 +2571,28 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
     }
   };
   const [ticketViewer, setTicketViewer] = React.useState(null);
-  const [ticketEditCard, setTicketEditCard] = React.useState(null);
+  const [ticketEditCardId, setTicketEditCardId] = React.useState(null);
   const [ticketEditName, setTicketEditName] = React.useState('');
   const handleSaveCardName = () => {
-    if (!ticketEditCard) return;
+    if (!ticketEditCardId) return;
     onEditTrip({ tickets: (trip.tickets || []).map(t =>
-      t.id === ticketEditCard.id ? { ...t, name: ticketEditName } : t
+      t.id === ticketEditCardId ? { ...t, name: ticketEditName } : t
     )});
-    setTicketEditCard(null);
+    setTicketEditCardId(null);
   };
   const handleEditAddFile = () => {
-    const cardId = ticketEditCard?.id;
-    setTicketEditCard(null);
-    setTimeout(() => openTicketPicker('addTo', cardId), 80);
+    openTicketPicker('addTo', ticketEditCardId);
+  };
+  const handleDeleteTicketFile = async (fileId) => {
+    if (!myUid || !ticketEditCardId) return;
+    try {
+      await window.fbDeleteTicket(myUid, trip.id, fileId).catch(() => {});
+      onEditTrip({ tickets: (trip.tickets || []).map(t =>
+        t.id === ticketEditCardId
+          ? { ...t, files: getTicketFiles(t).filter(f => f.id !== fileId) }
+          : t
+      )});
+    } catch(err) { console.warn('Delete file failed:', err); }
   };
   const [ticketUploading, setTicketUploading] = React.useState(null); // null | 'new' | cardId
   const [ticketDeleting, setTicketDeleting] = React.useState(null);
@@ -3237,7 +3246,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 const isImg = firstFile?.type?.startsWith('image/');
                 return (
                   <SwipeableRow key={card.id} cardSwipe
-                    onEdit={() => { setTicketEditCard(card); setTicketEditName(card.name || ''); }}
+                    onEdit={() => { setTicketEditCardId(card.id); setTicketEditName(card.name || ''); }}
                     onDelete={() => handleTicketDeleteCard(card)}
                     wrapStyle={{ borderRadius:16 }}>
                     <div onClick={() => setTicketViewer(card)} style={{
@@ -3303,62 +3312,104 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       <input ref={cardPhotoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCardPhoto}/>
       <input ref={ticketInputRef} type="file" accept="image/*,.pdf,application/pdf" multiple style={{ display:'none' }} onChange={handleTicketUpload}/>
       {ticketViewer && ReactDOM.createPortal(<TicketViewer ticket={ticketViewer} onClose={() => setTicketViewer(null)}/>, document.body)}
-      {ticketEditCard && ReactDOM.createPortal(
-        <div onClick={() => setTicketEditCard(null)} style={{
-          position:'fixed', inset:0, zIndex:1200,
-          background:'rgba(20,16,14,0.42)',
-          display:'flex', alignItems:'flex-end', justifyContent:'center',
-          padding:'0 0 max(env(safe-area-inset-bottom,16px),16px)',
-        }}>
-          <div onClick={e => e.stopPropagation()} style={{
-            background:COLORS.bg, width:'100%', maxWidth:480,
-            borderRadius:22, padding:'12px 18px 8px',
-            boxShadow:'0 24px 60px rgba(0,0,0,0.22)',
+      {ticketEditCardId && (() => {
+        const editCard = (trip.tickets || []).find(t => t.id === ticketEditCardId);
+        const editFiles = editCard ? getTicketFiles(editCard) : [];
+        const isAdding = ticketUploading === ticketEditCardId;
+        return ReactDOM.createPortal(
+          <div onClick={() => setTicketEditCardId(null)} style={{
+            position:'fixed', inset:0, zIndex:1200,
+            background:'rgba(20,16,14,0.42)',
+            display:'flex', alignItems:'flex-end', justifyContent:'center',
+            padding:'0 0 max(env(safe-area-inset-bottom,16px),16px)',
           }}>
-            {/* Handle */}
-            <div style={{ display:'flex', justifyContent:'center', marginBottom:10 }}>
-              <div style={{ width:40, height:4, background:COLORS.line, borderRadius:2 }}/>
-            </div>
-            {/* Title row */}
-            <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
-              <button onClick={() => setTicketEditCard(null)} style={{
-                border:'none', background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'4px 2px',
-              }}>취소</button>
-              <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>바우처 수정</div>
-              <button onClick={handleSaveCardName} style={{
-                border:'none', background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
-              }}>저장</button>
-            </div>
-            {/* Name input */}
-            <div style={{ marginBottom:12 }}>
-              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:6 }}>카드 이름</div>
-              <input
-                value={ticketEditName}
-                onChange={e => setTicketEditName(e.target.value)}
-                style={{
-                  width:'100%', padding:'10px 12px', borderRadius:10,
-                  border:`1px solid ${COLORS.line}`, background:COLORS.card,
-                  fontFamily:SANS, fontSize:14, color:COLORS.ink,
-                  outline:'none', boxSizing:'border-box',
-                }}
-              />
-            </div>
-            {/* Add file button */}
-            <button onClick={handleEditAddFile} style={{
-              padding:'11px 0', marginBottom:8, borderRadius:12,
-              border:`1.5px dashed ${COLORS.line}`,
-              background:'transparent', cursor:'pointer',
-              display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-              fontFamily:SANS, fontSize:13, color:COLORS.mute, width:'100%',
+            <div onClick={e => e.stopPropagation()} style={{
+              background:COLORS.bg, width:'100%', maxWidth:480,
+              borderRadius:22, padding:'12px 18px 8px',
+              boxShadow:'0 24px 60px rgba(0,0,0,0.22)',
             }}>
-              <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 파일 추가
-            </button>
-          </div>
-        </div>,
-        document.body
-      )}
+              {/* Handle */}
+              <div style={{ display:'flex', justifyContent:'center', marginBottom:10 }}>
+                <div style={{ width:40, height:4, background:COLORS.line, borderRadius:2 }}/>
+              </div>
+              {/* Title row */}
+              <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
+                <button onClick={() => setTicketEditCardId(null)} style={{
+                  border:'none', background:'transparent', cursor:'pointer',
+                  fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'4px 2px',
+                }}>취소</button>
+                <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>바우처 수정</div>
+                <button onClick={handleSaveCardName} style={{
+                  border:'none', background:'transparent', cursor:'pointer',
+                  fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
+                }}>저장</button>
+              </div>
+              {/* Name input */}
+              <div style={{ marginBottom:14 }}>
+                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:6 }}>카드 이름</div>
+                <input
+                  value={ticketEditName}
+                  onChange={e => setTicketEditName(e.target.value)}
+                  style={{
+                    width:'100%', padding:'10px 12px', borderRadius:10,
+                    border:`1px solid ${COLORS.line}`, background:COLORS.card,
+                    fontFamily:SANS, fontSize:14, color:COLORS.ink,
+                    outline:'none', boxSizing:'border-box',
+                  }}
+                />
+              </div>
+              {/* File list */}
+              {editFiles.length > 0 && (
+                <div style={{ marginBottom:10 }}>
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:6 }}>파일 ({editFiles.length})</div>
+                  <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
+                    {editFiles.map((f, i) => {
+                      const isImg = f.type?.startsWith('image/');
+                      return (
+                        <div key={f.id || i} style={{
+                          display:'flex', alignItems:'center', gap:10,
+                          background:COLORS.card, borderRadius:10, padding:'8px 10px',
+                        }}>
+                          <div style={{ width:40, height:40, borderRadius:7, overflow:'hidden',
+                            background:COLORS.softer, flexShrink:0,
+                            display:'flex', alignItems:'center', justifyContent:'center' }}>
+                            {isImg
+                              ? <img src={f.url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/>
+                              : <Icon name="file" size={16} color={COLORS.mute} stroke={1.5}/>}
+                          </div>
+                          <div style={{ flex:1, fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.08em' }}>
+                            {f.type === 'application/pdf' ? 'PDF' : 'IMAGE'} {editFiles.length > 1 ? `· ${i + 1}/${editFiles.length}` : ''}
+                          </div>
+                          <button onClick={() => handleDeleteTicketFile(f.id)} style={{
+                            width:28, height:28, borderRadius:14, border:'none',
+                            background:'rgba(193,79,46,0.12)', cursor:'pointer', flexShrink:0,
+                            display:'flex', alignItems:'center', justifyContent:'center',
+                          }}>
+                            <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              {/* Add file button */}
+              <button onClick={handleEditAddFile} disabled={isAdding} style={{
+                padding:'11px 0', marginBottom:8, borderRadius:12,
+                border:`1.5px dashed ${COLORS.line}`,
+                background:'transparent', cursor: isAdding ? 'default' : 'pointer',
+                display:'flex', gap:8, alignItems:'center', justifyContent:'center',
+                fontFamily:SANS, fontSize:13, color:COLORS.mute, width:'100%',
+                opacity: isAdding ? 0.5 : 1,
+              }}>
+                <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>
+                {isAdding ? '업로드 중...' : '파일 추가'}
+              </button>
+            </div>
+          </div>,
+          document.body
+        );
+      })()}
       {/* 날짜 달력 팝업 */}
       <DateRangeSheet
         open={dateRangeOpen}
