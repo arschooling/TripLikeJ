@@ -344,6 +344,11 @@ window.fbUploadDayPhoto = async (uid, tripId, dayIdx, blob) => {
   return await ref.getDownloadURL();
 };
 
+window.fbDeleteDayPhoto = async (uid, tripId, dayIdx) => {
+  const storage = firebase.storage();
+  await storage.ref(`user-photos/${uid}/${tripId}/${dayIdx}`).delete();
+};
+
 window.fbDeleteTripPhotos = async (uid, tripId, dayCount) => {
   const storage = firebase.storage();
   const tasks = [];

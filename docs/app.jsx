@@ -112,6 +112,7 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'copy':       return <svg {...p}><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>;
     case 'clipboard':  return <svg {...p}><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 14h6M9 10h6M9 18h4"/></svg>;
     case 'camera':     return <svg {...p}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
+    case 'trash':      return <svg {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
     default: return null;
   }
 };
@@ -227,7 +228,7 @@ function getCachedDayPhotoUrl(uid, tripId, dayIdx) {
 }
 
 // ─── DayPhotoImg: Storage URL 비동기 로드 래퍼 ─────────────
-const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey }) {
+const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey, onResolved }) {
   const initCached = getCachedDayPhotoUrl(uid, tripId, dayIdx);
   const [url, setUrl]       = React.useState(initCached != null ? initCached : null);
   const [loaded, setLoaded] = React.useState(false);
@@ -243,6 +244,7 @@ const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style
       prevUrl.current = u;
       setUrl(u);
       if (u && changed) { setLoaded(false); setUseFade(true); }
+      onResolved?.(!!u);
     });
     return () => { alive = false; };
   }, [uid, tripId, dayIdx, refreshKey]);
@@ -2211,7 +2213,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v22</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v23</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2343,9 +2345,26 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   React.useEffect(() => { if (!editing) setEditingTitle(false); }, [editing]);
   const [cardPhotoUploading, setCardPhotoUploading] = React.useState(null);
+  const [cardPhotoDeleting, setCardPhotoDeleting] = React.useState(null);
   const [cardPhotoVersions, setCardPhotoVersions] = React.useState({});
+  const [cardHasPhotos, setCardHasPhotos] = React.useState({});
   const cardPhotoInputRef = React.useRef(null);
   const cardPhotoTargetIdx = React.useRef(null);
+  const handleCardPhotoDelete = async (idx) => {
+    if (!myUid || cardPhotoDeleting !== null || cardPhotoUploading !== null) return;
+    setCardPhotoDeleting(idx);
+    try {
+      await window.fbDeleteDayPhoto(myUid, trip.id, idx);
+      invalidateDayPhotoCache(myUid, trip.id, idx);
+      setCardHasPhotos(v => ({ ...v, [idx]: false }));
+      setCardPhotoVersions(v => ({ ...v, [idx]: (v[idx] || 0) + 1 }));
+      onPhotoUploaded?.();
+    } catch(err) {
+      console.warn('Card photo delete failed:', err);
+    } finally {
+      setCardPhotoDeleting(null);
+    }
+  };
   const handleCardPhoto = async (e) => {
     const file = e.target.files?.[0];
     const idx = cardPhotoTargetIdx.current;
@@ -2359,6 +2378,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       _dayPhotoCache[`${myUid}_${trip.id}_${idx}`] = url;
       try { localStorage.setItem(_LS_PREFIX + `${myUid}_${trip.id}_${idx}`, url); } catch(_) {}
       setCardPhotoVersions(v => ({ ...v, [idx]: (v[idx] || 0) + 1 }));
+      setCardHasPhotos(v => ({ ...v, [idx]: true }));
       onPhotoUploaded?.();
     } catch(err) {
       console.warn('Card photo upload failed:', err);
@@ -2699,19 +2719,33 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     <DayPhotoImg uid={myUid} tripId={trip.id} dayIdx={i}
                       style={{ width:'100%', height:170, objectFit:'cover', display:'block' }}
                       fallback={<Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170}/>}
-                      refreshKey={(cardPhotoVersions[i] || 0) + (photoVer || 0)}/>
+                      refreshKey={(cardPhotoVersions[i] || 0) + (photoVer || 0)}
+                      onResolved={(has) => setCardHasPhotos(v => v[i] === has ? v : { ...v, [i]: has })}/>
                     {editing && (
-                      <button onClick={() => { if (cardPhotoUploading === null) { cardPhotoTargetIdx.current = i; cardPhotoInputRef.current?.click(); } }} style={{
-                        position:'absolute', bottom:10, right:10, zIndex:5,
-                        background:'none', border:'none', cursor: cardPhotoUploading === i ? 'default' : 'pointer',
-                        padding:0, display:'flex', alignItems:'center',
-                        opacity: cardPhotoUploading !== null && cardPhotoUploading !== i ? 0.3 : 1,
-                      }}>
-                        {cardPhotoUploading === i
-                          ? <div className="ptr-spin" style={{ width:22, height:22, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%' }}/>
-                          : <Icon name="camera" size={22} color="#fff" stroke={1.8}/>
-                        }
-                      </button>
+                      <div style={{ position:'absolute', bottom:10, right:10, zIndex:5, display:'flex', gap:8, alignItems:'center' }}>
+                        {cardHasPhotos[i] && (
+                          <button onClick={() => handleCardPhotoDelete(i)} style={{
+                            background:'none', border:'none', cursor: cardPhotoDeleting === i ? 'default' : 'pointer',
+                            padding:0, display:'flex', alignItems:'center',
+                            opacity: (cardPhotoDeleting !== null && cardPhotoDeleting !== i) || cardPhotoUploading !== null ? 0.3 : 1,
+                          }}>
+                            {cardPhotoDeleting === i
+                              ? <div className="ptr-spin" style={{ width:22, height:22, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%' }}/>
+                              : <Icon name="trash" size={20} color="#fff" stroke={1.8}/>
+                            }
+                          </button>
+                        )}
+                        <button onClick={() => { if (cardPhotoUploading === null && cardPhotoDeleting === null) { cardPhotoTargetIdx.current = i; cardPhotoInputRef.current?.click(); } }} style={{
+                          background:'none', border:'none', cursor: cardPhotoUploading === i ? 'default' : 'pointer',
+                          padding:0, display:'flex', alignItems:'center',
+                          opacity: (cardPhotoUploading !== null && cardPhotoUploading !== i) || cardPhotoDeleting !== null ? 0.3 : 1,
+                        }}>
+                          {cardPhotoUploading === i
+                            ? <div className="ptr-spin" style={{ width:22, height:22, border:'2px solid rgba(255,255,255,0.4)', borderTopColor:'#fff', borderRadius:'50%' }}/>
+                            : <Icon name="camera" size={22} color="#fff" stroke={1.8}/>
+                          }
+                        </button>
+                      </div>
                     )}
                   </div>
                   <div style={{ padding:'16px 18px 18px' }}>
@@ -3049,6 +3083,20 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
     }
     e.target.value = '';
   };
+  const handleDeleteDayPhoto = async () => {
+    if (!authUid || photoUploading) return;
+    setPhotoUploading(true);
+    try {
+      await window.fbDeleteDayPhoto(authUid, tripId, dayIdx);
+      invalidateDayPhotoCache(authUid, tripId, dayIdx);
+      setDayPhoto(null);
+      onPhotoUploaded?.();
+    } catch(err) {
+      console.warn('Day photo delete failed:', err);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
   return (
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
       <div style={{ position:'relative', background: heroBg }}>
@@ -3068,6 +3116,14 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
         </button>
         <div style={{ position:'absolute', top:'calc(16px + env(safe-area-inset-top, 0px))', right:16, zIndex:5,
           display:'flex', gap:8, alignItems:'center' }}>
+          {editing && dayPhoto && !photoUploading && (
+            <button onClick={handleDeleteDayPhoto} style={{
+              background:'none', border:'none', cursor:'pointer',
+              padding:0, display:'flex', alignItems:'center',
+            }}>
+              <Icon name="trash" size={20} color="#fff" stroke={1.8}/>
+            </button>
+          )}
           {editing && (
             <button onClick={() => !photoUploading && dayPhotoInputRef.current?.click()} style={{
               background:'none', border:'none', cursor: photoUploading ? 'default' : 'pointer',
