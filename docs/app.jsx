@@ -118,18 +118,39 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
 
 // ─── Day photo helpers ──────────────────────────────────────
 function resizeImage(file, maxWidth=800, quality=0.75) {
-  return new Promise(resolve => {
+  return new Promise((resolve, reject) => {
     const img = new Image();
     const url = URL.createObjectURL(file);
+    let settled = false;
+    const cleanup = () => { URL.revokeObjectURL(url); };
+    // 15초 타임아웃 — 손상된 이미지 / 무한 대기 방지
+    const timer = setTimeout(() => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      reject(new Error('이미지 로딩 타임아웃'));
+    }, 15000);
     img.onload = () => {
-      URL.revokeObjectURL(url);
-      const scale = Math.min(1, maxWidth / img.width);
-      const w = Math.round(img.width * scale);
-      const h = Math.round(img.height * scale);
-      const c = document.createElement('canvas');
-      c.width = w; c.height = h;
-      c.getContext('2d').drawImage(img, 0, 0, w, h);
-      resolve(c.toDataURL('image/jpeg', quality));
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      cleanup();
+      try {
+        const scale = Math.min(1, maxWidth / img.width);
+        const w = Math.round(img.width * scale);
+        const h = Math.round(img.height * scale);
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', quality));
+      } catch (e) { reject(e); }
+    };
+    img.onerror = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      cleanup();
+      reject(new Error('이미지 디코딩 실패'));
     };
     img.src = url;
   });
@@ -647,6 +668,16 @@ function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='
     startY.current = null;
   };
   // Also handle mouse drag on the handle area for desktop testing
+  const dragListenersRef = React.useRef(null);
+  React.useEffect(() => () => {
+    // unmount 시 진행중인 드래그 리스너 정리 (모달 닫혀도 leak 방지)
+    if (dragListenersRef.current) {
+      const { move, up } = dragListenersRef.current;
+      window.removeEventListener('mousemove', move);
+      window.removeEventListener('mouseup', up);
+      dragListenersRef.current = null;
+    }
+  }, []);
   const onMouseDown = (e) => {
     startY.current = e.clientY;
     const move = (ev) => {
@@ -656,9 +687,15 @@ function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='
     const up = () => {
       window.removeEventListener('mousemove', move);
       window.removeEventListener('mouseup', up);
-      if (drag > 80) onClose(); else setDrag(0);
+      dragListenersRef.current = null;
+      // setDrag 콜백 형태로 최신 값 읽어 stale closure 회피
+      setDrag(d => {
+        if (d > 80) onClose();
+        return 0;
+      });
       startY.current = null;
     };
+    dragListenersRef.current = { move, up };
     window.addEventListener('mousemove', move);
     window.addEventListener('mouseup', up);
   };
@@ -2163,7 +2200,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v16</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v17</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2312,7 +2349,10 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       try { localStorage.setItem(_LS_PREFIX + `${myUid}_${trip.id}_${idx}`, url); } catch(_) {}
       setCardPhotoVersions(v => ({ ...v, [idx]: (v[idx] || 0) + 1 }));
       onPhotoUploaded?.();
-    } catch(_) {} finally {
+    } catch(err) {
+      console.warn('Card photo upload failed:', err);
+      alert('사진 업로드에 실패했어요. 다시 시도해 주세요.');
+    } finally {
       setCardPhotoUploading(null);
       e.target.value = '';
     }
@@ -2989,7 +3029,10 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
       try { localStorage.setItem(_LS_PREFIX + `${authUid}_${tripId}_${dayIdx}`, url); } catch(_) {}
       setDayPhoto(dataUrl);
       onPhotoUploaded?.();
-    } catch(_) {} finally {
+    } catch(err) {
+      console.warn('Day photo upload failed:', err);
+      alert('사진 업로드에 실패했어요. 다시 시도해 주세요.');
+    } finally {
       setPhotoUploading(false);
     }
     e.target.value = '';

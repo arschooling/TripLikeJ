@@ -26,7 +26,17 @@ const _googleProvider = () => {
 window.fbSignIn         = async () => { await _load(); return _fbAuth.signInWithPopup(_googleProvider()); };
 window.fbSignInRedirect = async () => { await _load(); return _fbAuth.signInWithRedirect(_googleProvider()); };
 window.fbSignOut        = async () => { await _load(); return _fbAuth.signOut(); };
-window.fbOnAuth         = (cb)      => { _load().then(() => _fbAuth.onAuthStateChanged(cb)); };
+window.fbOnAuth         = (cb)      => {
+  // _load() 비동기 → 그 사이 unmount되면 cancelled 플래그로 차단,
+  // 콜백 등록 후 진짜 unsubscribe 함수 반환해 호출자가 정리 가능
+  let unsub = () => {};
+  let cancelled = false;
+  _load().then(() => {
+    if (cancelled) return;
+    unsub = _fbAuth.onAuthStateChanged(cb);
+  });
+  return () => { cancelled = true; unsub(); };
+};
 
 // ─── User document ───────────────────────────────────────────
 window.fbGetOrCreateUser = async (fbUser) => {

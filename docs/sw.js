@@ -1,4 +1,4 @@
-const V = 'tlj-v16';
+const V = 'tlj-v17';
 // index.html은 캐시하지 않음 — 항상 네트워크에서 받아야 버전 감지가 동작함
 const CACHE = [
   './react.min.js', './react-dom.min.js',
@@ -78,9 +78,11 @@ self.addEventListener('push', e => {
 self.addEventListener('notificationclick', e => {
   e.notification.close();
   const url = e.notification.data?.url || './';
+  // SW 등록 스코프 기준 정확 매칭 — 'TripLikeJ' 부분 매칭은 다른 탭 잘못 잡을 수 있음
+  const scope = self.registration.scope;
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cs => {
-      const c = cs.find(w => w.url.includes('TripLikeJ'));
+      const c = cs.find(w => w.url.startsWith(scope));
       if (c) { c.focus(); c.navigate(url); }
       else clients.openWindow(url);
     })
