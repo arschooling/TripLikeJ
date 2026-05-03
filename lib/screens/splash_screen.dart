@@ -31,13 +31,13 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 150),
     )..addStatusListener(_onStatus);
     _fade = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
     _ctrl.forward();
 
-    // 최소 10초 표시 — 10개 도시 전체 순환 (도시당 ~1초)
-    Future.delayed(const Duration(milliseconds: 10000), () {
+    // 최소 4초 표시 — 10개 도시 전체 순환 (도시당 400ms)
+    Future.delayed(const Duration(milliseconds: 4000), () {
       if (!mounted) return;
       _minTimeElapsed = true;
       _tryNavigate();
@@ -46,7 +46,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   void _onStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      Future.delayed(const Duration(milliseconds: 200), () {
+      Future.delayed(const Duration(milliseconds: 100), () {
         if (mounted) _ctrl.reverse();
       });
     } else if (status == AnimationStatus.dismissed) {
