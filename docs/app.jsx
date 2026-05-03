@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v45</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v46</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2380,12 +2380,11 @@ function TicketViewer({ ticket, onClose }) {
       );
       const { x, y, width, height } = bc.boundingBox;
       const W = img.naturalWidth, H = img.naturalHeight;
-      const pad = Math.max(width, height) * 0.25;
       setCropRegions(p => ({...p, [fileId]: {
-        x1: Math.max(0, (x - pad) / W),
-        y1: Math.max(0, (y - pad) / H),
-        x2: Math.min(1, (x + width + pad) / W),
-        y2: Math.min(1, (y + height + pad) / H),
+        x1: x / W,
+        y1: y / H,
+        x2: (x + width) / W,
+        y2: (y + height) / H,
       }}));
     } catch (_) {
       setCropRegions(p => ({...p, [fileId]: null}));
@@ -2668,12 +2667,11 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             a.boundingBox.width * a.boundingBox.height >= b.boundingBox.width * b.boundingBox.height ? a : b
           );
           const { x, y, width, height } = bc.boundingBox;
-          const pad = Math.max(width, height) * 0.25;
           return {
-            x1: Math.max(0, (x - pad) / W),
-            y1: Math.max(0, (y - pad) / H),
-            x2: Math.min(1, (x + width + pad) / W),
-            y2: Math.min(1, (y + height + pad) / H),
+            x1: x / W,
+            y1: y / H,
+            x2: (x + width) / W,
+            y2: (y + height) / H,
           };
         } catch (_) { return undefined; }
       };
