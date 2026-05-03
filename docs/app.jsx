@@ -2213,7 +2213,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v25</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v26</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8723,6 +8723,254 @@ const CITIES_BY_KEY = {
   palau:       [{kor:'코로르',eng:'Koror'},{kor:'록아일랜드',eng:'Rock Islands'},{kor:'펠렐리우',eng:'Peleliu'},{kor:'응게룰무드',eng:'Ngermid'},{kor:'젤리피시레이크',eng:'Jellyfish Lake'}],
 };
 
+// 도시명 → 가장 가까운 국제공항 (AIRPORTS 목록 기준)
+const CITY_AIRPORT_MAP = {
+  // 일본
+  '도쿄':'나리타 국제공항','Tokyo':'나리타 국제공항',
+  '닛코':'나리타 국제공항','Nikko':'나리타 국제공항',
+  '하코네':'나리타 국제공항','Hakone':'나리타 국제공항',
+  '시즈오카':'나리타 국제공항','Shizuoka':'나리타 국제공항',
+  '오사카':'간사이 국제공항','Osaka':'간사이 국제공항',
+  '교토':'간사이 국제공항','Kyoto':'간사이 국제공항',
+  '나라':'간사이 국제공항','Nara':'간사이 국제공항',
+  '고베':'간사이 국제공항','Kobe':'간사이 국제공항',
+  '삿포로':'신치토세 공항','Sapporo':'신치토세 공항',
+  '하코다테':'신치토세 공항','Hakodate':'신치토세 공항',
+  '아사히카와':'신치토세 공항','Asahikawa':'신치토세 공항',
+  '후쿠오카':'후쿠오카 공항','Fukuoka':'후쿠오카 공항',
+  '구마모토':'후쿠오카 공항','Kumamoto':'후쿠오카 공항',
+  '오이타':'후쿠오카 공항','Oita':'후쿠오카 공항',
+  '미야자키':'후쿠오카 공항','Miyazaki':'후쿠오카 공항',
+  '나가사키':'나가사키 공항','Nagasaki':'나가사키 공항',
+  '나고야':'나고야 중부국제공항','Nagoya':'나고야 중부국제공항',
+  '오키나와':'오키나와 나하 공항','Okinawa':'오키나와 나하 공항',
+  '히로시마':'히로시마 공항','Hiroshima':'히로시마 공항',
+  '센다이':'센다이 공항','Sendai':'센다이 공항',
+  '아오모리':'센다이 공항','Aomori':'센다이 공항',
+  // 미국
+  '뉴욕':'JFK 국제공항','New York':'JFK 국제공항',
+  '보스턴':'보스턴 로건 국제공항','Boston':'보스턴 로건 국제공항',
+  '필라델피아':'JFK 국제공항','Philadelphia':'JFK 국제공항',
+  '워싱턴':'워싱턴 덜레스 국제공항','Washington DC':'워싱턴 덜레스 국제공항',
+  '마이애미':'마이애미 국제공항','Miami':'마이애미 국제공항',
+  '올랜도':'마이애미 국제공항','Orlando':'마이애미 국제공항',
+  '애틀랜타':'애틀랜타 국제공항','Atlanta':'애틀랜타 국제공항',
+  '시카고':'오헤어 국제공항','Chicago':'오헤어 국제공항',
+  '내슈빌':'애틀랜타 국제공항','Nashville':'애틀랜타 국제공항',
+  '로스앤젤레스':'로스앤젤레스 국제공항','Los Angeles':'로스앤젤레스 국제공항',
+  '라스베가스':'라스베이거스 국제공항','Las Vegas':'라스베이거스 국제공항',
+  '그랜드캐니언':'라스베이거스 국제공항','Grand Canyon':'라스베이거스 국제공항',
+  '샌프란시스코':'샌프란시스코 국제공항','San Francisco':'샌프란시스코 국제공항',
+  '요세미티':'샌프란시스코 국제공항','Yosemite':'샌프란시스코 국제공항',
+  '샌디에이고':'로스앤젤레스 국제공항','San Diego':'로스앤젤레스 국제공항',
+  '시애틀':'시애틀-타코마 국제공항','Seattle':'시애틀-타코마 국제공항',
+  '포틀랜드':'시애틀-타코마 국제공항','Portland':'시애틀-타코마 국제공항',
+  '호놀룰루':'호놀룰루 국제공항','Honolulu':'호놀룰루 국제공항',
+  '와이키키':'호놀룰루 국제공항','Waikiki':'호놀룰루 국제공항',
+  '오스틴':'댈러스 포트워스 국제공항','Austin':'댈러스 포트워스 국제공항',
+  // 영국
+  '런던':'히드로 공항','London':'히드로 공항',
+  '에든버러':'히드로 공항','Edinburgh':'히드로 공항',
+  '맨체스터':'히드로 공항','Manchester':'히드로 공항',
+  '옥스퍼드':'히드로 공항','Oxford':'히드로 공항',
+  '캠브리지':'히드로 공항','Cambridge':'히드로 공항',
+  '바스':'히드로 공항','Bath':'히드로 공항',
+  '요크':'히드로 공항','York':'히드로 공항',
+  '리버풀':'히드로 공항','Liverpool':'히드로 공항',
+  '버밍엄':'히드로 공항','Birmingham':'히드로 공항',
+  '글래스고':'히드로 공항','Glasgow':'히드로 공항',
+  '브라이턴':'히드로 공항','Brighton':'히드로 공항',
+  '윈저':'히드로 공항','Windsor':'히드로 공항',
+  '코츠월즈':'히드로 공항','Cotswolds':'히드로 공항',
+  // 프랑스
+  '파리':'파리 샤를드골 공항','Paris':'파리 샤를드골 공항',
+  '니스':'파리 샤를드골 공항','Nice':'파리 샤를드골 공항',
+  '마르세유':'파리 샤를드골 공항','Marseille':'파리 샤를드골 공항',
+  '리옹':'파리 샤를드골 공항','Lyon':'파리 샤를드골 공항',
+  '보르도':'파리 샤를드골 공항','Bordeaux':'파리 샤를드골 공항',
+  '몽생미셸':'파리 샤를드골 공항','Mont Saint-Michel':'파리 샤를드골 공항',
+  '칸':'파리 샤를드골 공항','Cannes':'파리 샤를드골 공항',
+  '모나코':'파리 샤를드골 공항','Monaco':'파리 샤를드골 공항',
+  '샤모니':'파리 샤를드골 공항','Chamonix':'파리 샤를드골 공항',
+  '스트라스부르':'파리 샤를드골 공항','Strasbourg':'파리 샤를드골 공항',
+  // 독일
+  '베를린':'베를린 브란덴부르크 공항','Berlin':'베를린 브란덴부르크 공항',
+  '뮌헨':'뮌헨 공항','Munich':'뮌헨 공항',
+  '프랑크푸르트':'프랑크푸르트 공항','Frankfurt':'프랑크푸르트 공항',
+  '쾰른':'프랑크푸르트 공항','Cologne':'프랑크푸르트 공항',
+  '함부르크':'베를린 브란덴부르크 공항','Hamburg':'베를린 브란덴부르크 공항',
+  '드레스덴':'베를린 브란덴부르크 공항','Dresden':'베를린 브란덴부르크 공항',
+  '하이델베르크':'프랑크푸르트 공항','Heidelberg':'프랑크푸르트 공항',
+  '로텐부르크':'뮌헨 공항','Rothenburg':'뮌헨 공항',
+  '뉘른베르크':'뮌헨 공항','Nuremberg':'뮌헨 공항',
+  '퓌센':'뮌헨 공항','Füssen':'뮌헨 공항',
+  // 네덜란드
+  '암스테르담':'암스테르담 스히폴 공항','Amsterdam':'암스테르담 스히폴 공항',
+  '로테르담':'암스테르담 스히폴 공항','Rotterdam':'암스테르담 스히폴 공항',
+  '헤이그':'암스테르담 스히폴 공항','The Hague':'암스테르담 스히폴 공항',
+  '잔세스칸스':'암스테르담 스히폴 공항','Zaanse Schans':'암스테르담 스히폴 공항',
+  '델프트':'암스테르담 스히폴 공항','Delft':'암스테르담 스히폴 공항',
+  // 스페인
+  '마드리드':'마드리드 바라하스 공항','Madrid':'마드리드 바라하스 공항',
+  '세비야':'마드리드 바라하스 공항','Seville':'마드리드 바라하스 공항',
+  '그라나다':'마드리드 바라하스 공항','Granada':'마드리드 바라하스 공항',
+  '톨레도':'마드리드 바라하스 공항','Toledo':'마드리드 바라하스 공항',
+  '살라망카':'마드리드 바라하스 공항','Salamanca':'마드리드 바라하스 공항',
+  '세고비아':'마드리드 바라하스 공항','Segovia':'마드리드 바라하스 공항',
+  '바르셀로나':'바르셀로나 엘프라트 공항','Barcelona':'바르셀로나 엘프라트 공항',
+  '이비사':'바르셀로나 엘프라트 공항','Ibiza':'바르셀로나 엘프라트 공항',
+  '마요르카':'바르셀로나 엘프라트 공항','Mallorca':'바르셀로나 엘프라트 공항',
+  '발렌시아':'바르셀로나 엘프라트 공항','Valencia':'바르셀로나 엘프라트 공항',
+  // 이탈리아
+  '로마':'로마 피우미치노 공항','Rome':'로마 피우미치노 공항',
+  '나폴리':'로마 피우미치노 공항','Naples':'로마 피우미치노 공항',
+  '피렌체':'로마 피우미치노 공항','Florence':'로마 피우미치노 공항',
+  '팔레르모':'로마 피우미치노 공항','Palermo':'로마 피우미치노 공항',
+  '시칠리아':'로마 피우미치노 공항','Sicily':'로마 피우미치노 공항',
+  '밀라노':'밀라노 말펜사 공항','Milan':'밀라노 말펜사 공항',
+  '베네치아':'밀라노 말펜사 공항','Venice':'밀라노 말펜사 공항',
+  '볼로냐':'밀라노 말펜사 공항','Bologna':'밀라노 말펜사 공항',
+  '토리노':'밀라노 말펜사 공항','Turin':'밀라노 말펜사 공항',
+  '베로나':'밀라노 말펜사 공항','Verona':'밀라노 말펜사 공항',
+  '코모호수':'밀라노 말펜사 공항','Lake Como':'밀라노 말펜사 공항',
+  '제노바':'밀라노 말펜사 공항','Genoa':'밀라노 말펜사 공항',
+  '친퀘테레':'밀라노 말펜사 공항','Cinque Terre':'밀라노 말펜사 공항',
+  // 그리스
+  '아테네':'아테네 국제공항','Athens':'아테네 국제공항',
+  '산토리니':'아테네 국제공항','Santorini':'아테네 국제공항',
+  '미코노스':'아테네 국제공항','Mykonos':'아테네 국제공항',
+  '크레타':'아테네 국제공항','Crete':'아테네 국제공항',
+  '테살로니키':'아테네 국제공항','Thessaloniki':'아테네 국제공항',
+  '로도스':'아테네 국제공항','Rhodes':'아테네 국제공항',
+  '코르푸':'아테네 국제공항','Corfu':'아테네 국제공항',
+  // 터키
+  '이스탄불':'이스탄불 공항','Istanbul':'이스탄불 공항',
+  '카파도키아':'이스탄불 공항','Cappadocia':'이스탄불 공항',
+  '안탈리아':'이스탄불 공항','Antalya':'이스탄불 공항',
+  // 스위스
+  '취리히':'취리히 공항','Zurich':'취리히 공항',
+  '루체른':'취리히 공항','Lucerne':'취리히 공항',
+  '제네바':'취리히 공항','Geneva':'취리히 공항',
+  '인터라켄':'취리히 공항','Interlaken':'취리히 공항',
+  '체르마트':'취리히 공항','Zermatt':'취리히 공항',
+  // 오스트리아
+  '빈':'비엔나 국제공항','Vienna':'비엔나 국제공항',
+  '잘츠부르크':'비엔나 국제공항','Salzburg':'비엔나 국제공항',
+  '할슈타트':'비엔나 국제공항','Hallstatt':'비엔나 국제공항',
+  // 덴마크
+  '코펜하겐':'코펜하겐 공항','Copenhagen':'코펜하겐 공항',
+  // 핀란드
+  '헬싱키':'헬싱키 반타 공항','Helsinki':'헬싱키 반타 공항',
+  '로바니에미':'헬싱키 반타 공항','Rovaniemi':'헬싱키 반타 공항',
+  // 노르웨이
+  '오슬로':'오슬로 공항','Oslo':'오슬로 공항',
+  '베르겐':'오슬로 공항','Bergen':'오슬로 공항',
+  '트롬소':'오슬로 공항','Tromsø':'오슬로 공항',
+  // 스웨덴
+  '스톡홀름':'스톡홀름 아를란다 공항','Stockholm':'스톡홀름 아를란다 공항',
+  '예테보리':'스톡홀름 아를란다 공항','Gothenburg':'스톡홀름 아를란다 공항',
+  // 포르투갈
+  '리스본':'리스본 공항','Lisbon':'리스본 공항',
+  '포르투':'리스본 공항','Porto':'리스본 공항',
+  '신트라':'리스본 공항','Sintra':'리스본 공항',
+  '알가르브':'리스본 공항','Algarve':'리스본 공항',
+  // 벨기에
+  '브뤼셀':'브뤼셀 공항','Brussels':'브뤼셀 공항',
+  '브뤼헤':'브뤼셀 공항','Bruges':'브뤼셀 공항',
+  '겐트':'브뤼셀 공항','Ghent':'브뤼셀 공항',
+  '안트베르펜':'브뤼셀 공항','Antwerp':'브뤼셀 공항',
+  // 아일랜드
+  '더블린':'더블린 공항','Dublin':'더블린 공항',
+  '코크':'더블린 공항','Cork':'더블린 공항',
+  '갤웨이':'더블린 공항','Galway':'더블린 공항',
+  // 체코
+  '프라하':'프라하 공항','Prague':'프라하 공항',
+  '체스키크룸로프':'프라하 공항','Cesky Krumlov':'프라하 공항',
+  '카를로비바리':'프라하 공항','Karlovy Vary':'프라하 공항',
+  // UAE
+  '두바이':'두바이 국제공항','Dubai':'두바이 국제공항',
+  '아부다비':'아부다비 국제공항','Abu Dhabi':'아부다비 국제공항',
+  // 카타르
+  '도하':'도하 하마드 국제공항','Doha':'도하 하마드 국제공항',
+  // 싱가포르
+  '싱가포르':'싱가포르 창이 공항','Singapore':'싱가포르 창이 공항',
+  '센토사':'싱가포르 창이 공항','Sentosa':'싱가포르 창이 공항',
+  '마리나베이':'싱가포르 창이 공항','Marina Bay':'싱가포르 창이 공항',
+  // 홍콩
+  '홍콩':'홍콩 국제공항','Hong Kong':'홍콩 국제공항',
+  '마카오':'홍콩 국제공항','Macau':'홍콩 국제공항',
+  // 대만
+  '타이베이':'타이베이 타오위안 국제공항','Taipei':'타이베이 타오위안 국제공항',
+  '지우펀':'타이베이 타오위안 국제공항','Jiufen':'타이베이 타오위안 국제공항',
+  '예류':'타이베이 타오위안 국제공항','Yehliu':'타이베이 타오위안 국제공항',
+  // 태국
+  '방콕':'방콕 수완나품 공항','Bangkok':'방콕 수완나품 공항',
+  '파타야':'방콕 수완나품 공항','Pattaya':'방콕 수완나품 공항',
+  '아유타야':'방콕 수완나품 공항','Ayutthaya':'방콕 수완나품 공항',
+  // 인도네시아
+  '발리':'발리 응우라라이 공항','Bali':'발리 응우라라이 공항',
+  '자카르타':'자카르타 수카르노하타 국제공항','Jakarta':'자카르타 수카르노하타 국제공항',
+  // 말레이시아
+  '쿠알라룸푸르':'쿠알라룸푸르 국제공항','Kuala Lumpur':'쿠알라룸푸르 국제공항',
+  '페낭':'쿠알라룸푸르 국제공항','Penang':'쿠알라룸푸르 국제공항',
+  // 필리핀
+  '마닐라':'마닐라 니노이아키노 국제공항','Manila':'마닐라 니노이아키노 국제공항',
+  // 베트남
+  '하노이':'하노이 노이바이 국제공항','Hanoi':'하노이 노이바이 국제공항',
+  '하롱베이':'하노이 노이바이 국제공항','Ha Long Bay':'하노이 노이바이 국제공항',
+  '호치민':'호치민 탄손녓 국제공항','Ho Chi Minh':'호치민 탄손녓 국제공항',
+  // 중국
+  '베이징':'베이징 캐피털 국제공항','Beijing':'베이징 캐피털 국제공항',
+  '상하이':'상하이 푸둥 국제공항','Shanghai':'상하이 푸둥 국제공항',
+  '광저우':'광저우 바이윈 국제공항','Guangzhou':'광저우 바이윈 국제공항',
+  '청두':'청두 솽류 국제공항','Chengdu':'청두 솽류 국제공항',
+  // 스리랑카
+  '콜롬보':'콜롬보 반다라나이케 국제공항','Colombo':'콜롬보 반다라나이케 국제공항',
+  '캔디':'콜롬보 반다라나이케 국제공항','Kandy':'콜롬보 반다라나이케 국제공항',
+  '갈레':'콜롬보 반다라나이케 국제공항','Galle':'콜롬보 반다라나이케 국제공항',
+  // 오스트레일리아
+  '시드니':'시드니 킹스퍼드스미스 공항','Sydney':'시드니 킹스퍼드스미스 공항',
+  '블루마운틴':'시드니 킹스퍼드스미스 공항','Blue Mountains':'시드니 킹스퍼드스미스 공항',
+  '멜버른':'멜버른 공항','Melbourne':'멜버른 공항',
+  '브리즈번':'브리즈번 공항','Brisbane':'브리즈번 공항',
+  '골드코스트':'브리즈번 공항','Gold Coast':'브리즈번 공항',
+  '케언즈':'케언즈 공항','Cairns':'케언즈 공항',
+  '그레이트배리어리프':'케언즈 공항','Great Barrier Reef':'케언즈 공항',
+  // 뉴질랜드
+  '오클랜드':'오클랜드 공항','Auckland':'오클랜드 공항',
+  '로토루아':'오클랜드 공항','Rotorua':'오클랜드 공항',
+  // 캐나다
+  '토론토':'토론토 피어슨 국제공항','Toronto':'토론토 피어슨 국제공항',
+  '나이아가라폭포':'토론토 피어슨 국제공항','Niagara Falls':'토론토 피어슨 국제공항',
+  '밴쿠버':'밴쿠버 국제공항','Vancouver':'밴쿠버 국제공항',
+  '휘슬러':'밴쿠버 국제공항','Whistler':'밴쿠버 국제공항',
+  '빅토리아':'밴쿠버 국제공항','Victoria':'밴쿠버 국제공항',
+  '몬트리올':'몬트리올 트뤼도 국제공항','Montreal':'몬트리올 트뤼도 국제공항',
+  '퀘벡시티':'몬트리올 트뤼도 국제공항','Quebec City':'몬트리올 트뤼도 국제공항',
+  // 멕시코
+  '멕시코시티':'멕시코시티 베니토후아레스 국제공항','Mexico City':'멕시코시티 베니토후아레스 국제공항',
+  // 페루
+  '리마':'리마 호르헤차베스 국제공항','Lima':'리마 호르헤차베스 국제공항',
+  '마추픽추':'리마 호르헤차베스 국제공항','Machu Picchu':'리마 호르헤차베스 국제공항',
+  '쿠스코':'리마 호르헤차베스 국제공항','Cusco':'리마 호르헤차베스 국제공항',
+  // 브라질
+  '상파울루':'상파울루 과룰류스 국제공항','São Paulo':'상파울루 과룰류스 국제공항',
+  '리우데자네이루':'상파울루 과룰류스 국제공항','Rio de Janeiro':'상파울루 과룰류스 국제공항',
+  // 아르헨티나
+  '부에노스아이레스':'부에노스아이레스 에세이사 국제공항','Buenos Aires':'부에노스아이레스 에세이사 국제공항',
+  // 남아프리카
+  '요하네스버그':'요하네스버그 올리버탐보 국제공항','Johannesburg':'요하네스버그 올리버탐보 국제공항',
+  '케이프타운':'케이프타운 국제공항','Cape Town':'케이프타운 국제공항',
+  '가든루트':'케이프타운 국제공항','Garden Route':'케이프타운 국제공항',
+  // 케냐
+  '나이로비':'나이로비 조모케냐타 국제공항','Nairobi':'나이로비 조모케냐타 국제공항',
+  '마사이마라':'나이로비 조모케냐타 국제공항','Maasai Mara':'나이로비 조모케냐타 국제공항',
+  // 한국 (출발지로 도착하는 경우)
+  '서울':'인천국제공항','Seoul':'인천국제공항',
+  '부산':'김해국제공항','Busan':'김해국제공항',
+  '제주':'제주국제공항','Jeju':'제주국제공항',
+};
+
 function NewTripSheet({ open, onClose, onSubmit }) {
   const isKorean = React.useMemo(() => navigator.language.startsWith('ko'), []);
   const TOTAL    = 6;
@@ -9235,14 +9483,17 @@ function NewTripSheet({ open, onClose, onSubmit }) {
 
           {/* Step 4: 공항 */}
           {step === 4 && (() => {
-            const makeAirportInput = (value, setValue, label, isAutoFocus, placeholder) => {
+            const firstCity = (cities[0] || '').trim();
+            const citySuggest = firstCity ? (CITY_AIRPORT_MAP[firstCity] || null) : null;
+            const makeAirportInput = (value, setValue, label, isAutoFocus, placeholder, cityHint) => {
               const q = value.toLowerCase();
               const korMatch = value.length > 0 ? AIRPORTS.find(a => a.kor.startsWith(value) && a.kor !== value) : null;
               const engMatch = value.length > 0 ? AIRPORTS.find(a => a.eng.toLowerCase().startsWith(q) && a.eng.toLowerCase() !== q) : null;
               // 코드 매칭: 2자 이상이고 한글/영어 매칭이 없을 때만
               const codeMatch = (value.length >= 2 && !korMatch && !engMatch) ? AIRPORTS.find(a => a.code.toLowerCase().startsWith(q)) : null;
-              const textMatch = korMatch || engMatch;
-              const ghostFull = korMatch ? korMatch.kor : engMatch ? engMatch.eng : '';
+              // 도시 기반 제안: 필드가 비어있고 타이핑 매칭이 없을 때만
+              const cityGhost = (!value && cityHint && !korMatch && !engMatch) ? cityHint : null;
+              const ghostFull = korMatch ? korMatch.kor : engMatch ? engMatch.eng : cityGhost || '';
               const ghostSuffix = ghostFull ? ghostFull.slice(value.length) : '';
               let typedPx = 16 + value.length * 14;
               try { const cv=document.createElement('canvas'); const cx=cv.getContext('2d'); cx.font=`15px ${SANS},sans-serif`; typedPx=16+cx.measureText(value).width; } catch(_){}
@@ -9250,6 +9501,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                 if (korMatch) setValue(korMatch.kor);
                 else if (engMatch) setValue(engMatch.eng);
                 else if (codeMatch) setValue(codeMatch.kor);
+                else if (cityGhost) setValue(cityGhost);
               };
               return (
                 <div style={{ marginBottom:18 }}>
@@ -9287,7 +9539,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             return (
               <div>
                 {makeAirportInput(depAirport, setDepAirport, '출발 공항', true, '예) 인천국제공항')}
-                {makeAirportInput(arrAirport, setArrAirport, '도착 공항', false, '예) 나리타 국제공항')}
+                {makeAirportInput(arrAirport, setArrAirport, '도착 공항', false, '예) 나리타 국제공항', citySuggest)}
                 <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, lineHeight:1.5 }}>
                   비행기를 이용하지 않는다면 넘어가세요.
                 </div>
