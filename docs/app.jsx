@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v50</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v51</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -4190,6 +4190,7 @@ function ncSet(key, data) {
 
 function NearbySheet({ stop, initialTab, onClose }) {
   const [tab, setTab] = React.useState('hotspot');
+  const [sort, setSort] = React.useState('relevance');
   const [hotspots, setHotspots] = React.useState(null);
   const [food, setFood]         = React.useState(null);
   const [entered, setEntered]   = React.useState(false);
@@ -4335,7 +4336,10 @@ function NearbySheet({ stop, initialTab, onClose }) {
     monument:'기념비', castle:'성', ruins:'유적', memorial:'기념관', historic:'유적지',
   };
   const fmtDist = m => m < 1000 ? `${Math.round(m)}m` : `${(m/1000).toFixed(1)}km`;
-  const currentData = tab === 'hotspot' ? hotspots : food;
+  const rawData = tab === 'hotspot' ? hotspots : food;
+  const currentData = Array.isArray(rawData) && sort === 'distance'
+    ? [...rawData].sort((a, b) => (a.dist || 0) - (b.dist || 0))
+    : rawData;
   const loading = !Array.isArray(currentData);
 
   const renderItem = (item) => {
@@ -4383,17 +4387,25 @@ function NearbySheet({ stop, initialTab, onClose }) {
         <div style={{ padding:'10px 18px 12px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:12 }}>
           <div style={{ fontFamily:SERIF, fontSize:19, color:COLORS.ink, flex:1, minWidth:0,
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{stop.title}</div>
-          <div style={{ display:'flex', background:COLORS.softer, borderRadius:12, padding:3, gap:2, flexShrink:0 }}>
-            {[{v:'hotspot',label:'핫플'},{v:'food',label:'음식점'}].map(({v,label}) => (
-              <button key={v} onClick={() => setTab(v)}
-                style={{ padding:'7px 13px', border:'none', borderRadius:9, cursor:'pointer',
-                  background: tab===v ? COLORS.card : 'transparent',
-                  fontFamily:SANS, fontSize:12, fontWeight:600,
-                  color: tab===v ? COLORS.ink : COLORS.mute,
-                  boxShadow: tab===v ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
-                {label}
-              </button>
-            ))}
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            <button onClick={() => setSort(s => s === 'relevance' ? 'distance' : 'relevance')}
+              style={{ border:'none', background:COLORS.softer, borderRadius:10, padding:'6px 10px',
+                fontFamily:MONO, fontSize:10, cursor:'pointer', letterSpacing:'0.04em',
+                color: sort === 'distance' ? COLORS.accent : COLORS.mute }}>
+              {sort === 'distance' ? '거리순' : '관련도순'}
+            </button>
+            <div style={{ display:'flex', background:COLORS.softer, borderRadius:12, padding:3, gap:2 }}>
+              {[{v:'hotspot',label:'핫플'},{v:'food',label:'음식점'}].map(({v,label}) => (
+                <button key={v} onClick={() => setTab(v)}
+                  style={{ padding:'7px 13px', border:'none', borderRadius:9, cursor:'pointer',
+                    background: tab===v ? COLORS.card : 'transparent',
+                    fontFamily:SANS, fontSize:12, fontWeight:600,
+                    color: tab===v ? COLORS.ink : COLORS.mute,
+                    boxShadow: tab===v ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
         {/* 목록 */}
