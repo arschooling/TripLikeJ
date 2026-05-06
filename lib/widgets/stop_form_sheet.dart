@@ -67,25 +67,18 @@ class StopFormState extends State<StopFormContent> {
 
   TripStop _buildStop() => buildCurrentStop();
 
-  void _pickTime() {
-    String selected = _time.isEmpty ? '12:00' : _time;
-    showGeneralDialog(
+  Future<void> _pickTime() async {
+    final result = await showGeneralDialog<String>(
       context: context,
       barrierDismissible: false,
       barrierColor: Colors.transparent,
-      pageBuilder: (ctx, _, __) => BottomSheetModal(
-        title: '시간 선택',
-        onCancel: () => Navigator.pop(ctx),
-        onConfirm: () {
-          setState(() => _time = selected);
-          Navigator.pop(ctx);
-        },
-        child: TimeWheelContent(
-          initialTime: selected,
-          onTimeSelected: (t) => selected = t,
-        ),
+      pageBuilder: (ctx, _, __) => _TimePickerDialog(
+        initialTime: _time.isEmpty ? '12:00' : _time,
       ),
     );
+    if (result != null && mounted) {
+      setState(() => _time = result);
+    }
   }
 
   Widget _field(String label, TextEditingController ctrl,
@@ -225,6 +218,37 @@ class StopFormState extends State<StopFormContent> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TimePickerDialog extends StatefulWidget {
+  final String initialTime;
+  const _TimePickerDialog({required this.initialTime});
+
+  @override
+  State<_TimePickerDialog> createState() => _TimePickerDialogState();
+}
+
+class _TimePickerDialogState extends State<_TimePickerDialog> {
+  late String _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.initialTime;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomSheetModal(
+      title: '시간 선택',
+      onCancel: () => Navigator.pop(context),
+      onConfirm: () => Navigator.pop(context, _selected),
+      child: TimeWheelContent(
+        initialTime: widget.initialTime,
+        onTimeSelected: (t) => setState(() => _selected = t),
       ),
     );
   }
