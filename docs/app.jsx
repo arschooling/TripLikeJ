@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v76</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v77</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2495,14 +2495,14 @@ function TicketViewer({ ticket, onClose, onEdit, onDelete }) {
             background:'rgba(255,255,255,0.15)', cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>
-            <Icon name="edit-2" size={15} color="#fff" stroke={2}/>
+            <Icon name="edit" size={15} color="#fff" stroke={2}/>
           </button>}
           {onDelete && <button onClick={onDelete} style={{
             width:36, height:36, borderRadius:18, border:'none',
             background:'rgba(255,255,255,0.15)', cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>
-            <Icon name="trash-2" size={15} color="#ff6b6b" stroke={2}/>
+            <Icon name="trash" size={15} color="#ff6b6b" stroke={2}/>
           </button>}
         </div>
       </div>
