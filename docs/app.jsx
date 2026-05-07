@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v77</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v78</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3377,15 +3377,28 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 );
               })}
               {tickets.length === 0 && !ticketUploading && (
-                <button onClick={() => openTicketPicker('new')} style={{
-                  aspectRatio:'1/1', background:'transparent',
-                  border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
-                  color:COLORS.mute, cursor:'pointer',
-                  display:'flex', alignItems:'center', justifyContent:'center',
-                  gridColumn:'1 / -1', width:'100%',
-                }}>
-                  <Icon name="plus" size={20} color={COLORS.mute} stroke={2}/>
-                </button>
+                <>
+                  <button onClick={() => openTicketPicker('new')} style={{
+                    display:'flex', flexDirection:'column', alignItems:'stretch', gap:6, minWidth:0,
+                    background:'transparent', border:'none', cursor:'pointer', padding:0,
+                  }}>
+                    <div style={{ width:'100%', paddingBottom:'100%', position:'relative',
+                      background:'transparent', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
+                      display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      <div style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center' }}>
+                        <Icon name="plus" size={20} color={COLORS.mute} stroke={2}/>
+                      </div>
+                    </div>
+                    <div style={{ fontFamily:SANS, fontSize:10, color:COLORS.mute, textAlign:'center' }}>추가</div>
+                  </button>
+                  {[0,1,2].map(i => (
+                    <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:6, minWidth:0 }}>
+                      <div style={{ width:'100%', paddingBottom:'100%', position:'relative',
+                        background:COLORS.softer, borderRadius:14, opacity:0.5 }}/>
+                      <div style={{ fontFamily:SANS, fontSize:10, color:'transparent' }}>·</div>
+                    </div>
+                  ))}
+                </>
               )}
             </div>
           </>
