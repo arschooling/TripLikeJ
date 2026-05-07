@@ -656,10 +656,39 @@ class _DayCard extends StatelessWidget {
                           color: AppColors.accent),
                     ),
                     Text(day.title, style: AppText.serif(16)),
-                    if (day.date.isNotEmpty)
-                      Text(day.date,
-                          style:
-                              AppText.sans(12, color: AppColors.mute)),
+                    if (day.date.isNotEmpty || day.weekday.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            if (day.weekday.isNotEmpty) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: AppColors.accent
+                                      .withValues(alpha: 0.12),
+                                  borderRadius: BorderRadius.circular(5),
+                                ),
+                                child: Text(
+                                  day.weekday.toUpperCase(),
+                                  style: AppText.mono(9.5,
+                                      color: AppColors.accent,
+                                      letterSpacing: 0.8),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                            ],
+                            if (day.date.isNotEmpty)
+                              Text(
+                                day.date,
+                                style: AppText.sans(13,
+                                    color: AppColors.ink,
+                                    weight: FontWeight.w500),
+                              ),
+                          ],
+                        ),
+                      ),
                   ],
                 ),
               ),
