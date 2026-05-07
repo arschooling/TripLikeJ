@@ -2233,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v87</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v88</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -10889,6 +10889,11 @@ function App() {
         incoming.prep = defaultPrep;
         fbSaveGroup(activeTripId, { prep: defaultPrep }).catch(() => {});
       }
+      // 샘플 로마 여행에 tickets 없으면 ROME_DEFAULT에서 채우고 저장
+      if (incoming.sampleId === 'rome' && !incoming.tickets?.length && window.ROME_DEFAULT?.tickets?.length) {
+        incoming.tickets = JSON.parse(JSON.stringify(window.ROME_DEFAULT.tickets));
+        fbSaveGroup(activeTripId, { tickets: incoming.tickets }).catch(() => {});
+      }
       tripRef.current = incoming;
       setTrip(incoming);
     });
@@ -11509,6 +11514,10 @@ function App() {
               hotels: tripToShow.hotels, food: tripToShow.food,
               budget: tripToShow.budget, prep: tripToShow.prep,
               tickets: tripToShow.tickets }).catch(() => {});
+          }
+          // days 있는 rome 샘플에 tickets 없으면 ROME_DEFAULT로 즉시 채워 표시
+          if (tripToShow && tripToShow.sampleId === 'rome' && !tripToShow.tickets?.length && window.ROME_DEFAULT?.tickets?.length) {
+            tripToShow = { ...tripToShow, tickets: JSON.parse(JSON.stringify(window.ROME_DEFAULT.tickets)) };
           }
           if (tripToShow) { tripRef.current = tripToShow; setTrip(tripToShow); }
           setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false); setOpenStop(null);
