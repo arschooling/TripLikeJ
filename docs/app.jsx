@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v60</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v61</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3146,19 +3146,17 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               borderRadius:16, overflow:'hidden',
               cursor: editing ? 'grab' : 'pointer',
               background: COLORS.card,
-              display:'flex', alignItems:'stretch',
+              display:'flex', alignItems:'center',
             }}>
-              {/* 사진 */}
-              <div style={{ width:64, flexShrink:0, overflow:'hidden' }}>
+              {/* 사진 - 원래 모양 (64x64 좌측 라운드) */}
+              <div style={{ width:64, height:64, borderRadius:'10px 0 0 10px', overflow:'hidden', flexShrink:0 }}>
                 <DayPhotoImg uid={myUid} tripId={trip.id} dayIdx={i}
-                  style={{ width:64, height:'100%', minHeight:80, objectFit:'cover', display:'block' }}
-                  fallback={<Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} height={80} small/>}
+                  style={{ width:64, height:64, objectFit:'cover', display:'block' }}
+                  fallback={<Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} height={64} small/>}
                   refreshKey={(cardPhotoVersions[i] || 0) + (photoVer || 0)}/>
               </div>
-              {/* 제목 + 요일·날짜 */}
+              {/* 요일·날짜 위, 제목 아래 */}
               <div style={{ flex:1, minWidth:0, padding:'0 12px', display:'flex', flexDirection:'column', justifyContent:'center', gap:3 }}>
-                <div style={{ fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
-                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.title}</div>
                 {(d.weekday || d.date) && (
                   <div style={{ display:'flex', gap:4, alignItems:'center' }}>
                     {d.weekday && <span style={{ fontFamily:MONO, fontSize:9.5, color:wdColor, letterSpacing:'0.08em' }}>{d.weekday.toUpperCase()}</span>}
@@ -3166,6 +3164,8 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     {d.date && <span style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{d.date}</span>}
                   </div>
                 )}
+                <div style={{ fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.title}</div>
               </div>
               {/* 우측: DAY 컬럼 or 편집 버튼 */}
               {editing ? (
@@ -3184,8 +3184,8 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               ) : (
                 <div style={{ width:54, flexShrink:0,
                   display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center' }}>
-                  <span style={{ fontFamily:MONO, fontSize:8, color:COLORS.mute, letterSpacing:'0.12em' }}>DAY</span>
-                  <span style={{ fontFamily:MONO, fontSize:24, color:wdColor, fontWeight:700, lineHeight:1.1 }}>
+                  <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em' }}>DAY</span>
+                  <span style={{ fontFamily:MONO, fontSize:28, color:wdColor, fontWeight:700, lineHeight:1.1 }}>
                     {String(d.n).padStart(2,'0')}
                   </span>
                 </div>

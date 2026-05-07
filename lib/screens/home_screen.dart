@@ -620,7 +620,7 @@ class _DayCard extends StatelessWidget {
                     ? AppColors.sundayRed
                     : AppColors.mute;
             return Row(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 if (editing)
                   GestureDetector(
@@ -658,10 +658,9 @@ class _DayCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(day.title, style: AppText.serif(16)),
                       if (day.date.isNotEmpty || day.weekday.isNotEmpty)
                         Padding(
-                          padding: const EdgeInsets.only(top: 3),
+                          padding: const EdgeInsets.only(bottom: 3),
                           child: Row(
                             children: [
                               if (day.weekday.isNotEmpty)
@@ -681,6 +680,7 @@ class _DayCard extends StatelessWidget {
                             ],
                           ),
                         ),
+                      Text(day.title, style: AppText.serif(16)),
                     ],
                   ),
                 ),
@@ -697,12 +697,12 @@ class _DayCard extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text('DAY',
-                            style: AppText.mono(8,
+                            style: AppText.mono(11,
                                 color: AppColors.mute,
                                 letterSpacing: 1.2)),
                         Text(
                           day.n.toString().padLeft(2, '0'),
-                          style: AppText.mono(24,
+                          style: AppText.mono(28,
                               color: wdColor,
                               letterSpacing: 0,
                               weight: FontWeight.w700),
