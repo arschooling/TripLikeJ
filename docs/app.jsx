@@ -992,9 +992,17 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
 
   const YEARS_LIST  = Array.from({length:12}, (_,i) => String(today.getFullYear()-2+i));
 
+  const applyYM = () => { setView({ y:+tmpY, mo:MONTH_KR.indexOf(tmpMo) }); setShowYM(false); };
+
   return (
-    <BottomSheet open={open} onClose={onClose} title="기간 선택" noDragClose={showYM}
-      onConfirm={() => { if(!start){onClose();return;} onPick(toIso(start),toIso(end)); onClose(); }}>
+    <BottomSheet open={open}
+      onClose={() => { if (showYM) { setShowYM(false); } else { onClose(); } }}
+      title="기간 선택" noDragClose={showYM}
+      confirmLabel={showYM ? '선택' : '완료'}
+      onConfirm={() => {
+        if (showYM) { applyYM(); return; }
+        if(!start){onClose();return;} onPick(toIso(start),toIso(end)); onClose();
+      }}>
 
       {/* 시작/종료 상태 바 */}
       {!showYM && <div style={{margin:'4px 16px 14px', display:'flex', borderRadius:14, border:`1px solid ${COLORS.line}`, overflow:'hidden'}}>
@@ -2225,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v83</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v84</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
