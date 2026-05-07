@@ -2233,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v86</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v87</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -11494,19 +11494,21 @@ function App() {
             const def = JSON.parse(JSON.stringify(localSrc));
             const defPrep = def.prep?.cats?.length ? def.prep : (window.TRIP_DEFAULT?.prep || {});
             tripToShow = normalizeTrip({ ...found,
-              title : found.title || def.title,
-              dates : def.dates  || '',
-              hotel : def.hotel  || '',
-              days  : def.days   || [],
-              hotels: def.hotels || [],
-              food  : def.food   || [],
-              budget: def.budget || {},
-              prep  : found.prep || defPrep,
+              title  : found.title || def.title,
+              dates  : def.dates  || '',
+              hotel  : def.hotel  || '',
+              days   : def.days   || [],
+              hotels : def.hotels || [],
+              food   : def.food   || [],
+              budget : def.budget || {},
+              prep   : found.prep || defPrep,
+              tickets: found.tickets?.length ? found.tickets : (def.tickets || []),
             }, id);
             fbSaveGroup(id, { title: tripToShow.title, dates: tripToShow.dates,
               hotel: tripToShow.hotel, days: tripToShow.days,
               hotels: tripToShow.hotels, food: tripToShow.food,
-              budget: tripToShow.budget, prep: tripToShow.prep }).catch(() => {});
+              budget: tripToShow.budget, prep: tripToShow.prep,
+              tickets: tripToShow.tickets }).catch(() => {});
           }
           if (tripToShow) { tripRef.current = tripToShow; setTrip(tripToShow); }
           setActiveTripId(id); setTab('home'); setDayIdx(null); setHotelIdx(null); setEditing(false); setOpenStop(null);
@@ -11516,12 +11518,15 @@ function App() {
             if (!trips || !trips.length) return;
             let fresh = normalizeTrip(trips[0], id);
             if (!fresh.days?.length) return;
-            if (!(fresh.budget?.entries?.length) && found.sampleId) {
+            if (found.sampleId) {
               const localSrc = found.sampleId === 'rome' ? window.ROME_DEFAULT : window.TRIP_DEFAULT;
               const def = JSON.parse(JSON.stringify(localSrc));
-              if (def.budget?.entries?.length) {
-                fresh = { ...fresh, budget: def.budget };
-                fbSaveGroup(id, { budget: fresh.budget }).catch(() => {});
+              let patch = {};
+              if (!(fresh.budget?.entries?.length) && def.budget?.entries?.length) patch.budget = def.budget;
+              if (!(fresh.tickets?.length) && def.tickets?.length) patch.tickets = def.tickets;
+              if (Object.keys(patch).length) {
+                fresh = { ...fresh, ...patch };
+                fbSaveGroup(id, patch).catch(() => {});
               }
             }
             tripRef.current = fresh; setTrip(fresh);
