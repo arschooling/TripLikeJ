@@ -660,9 +660,8 @@ class _DayCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(day.title, style: AppText.serif(16)),
                       Padding(
-                        padding: const EdgeInsets.only(top: 3),
+                        padding: const EdgeInsets.only(bottom: 3),
                         child: Text(
                           'Day ${day.n.toString().padLeft(2, '0')}',
                           style: AppText.mono(9.5,
@@ -670,6 +669,7 @@ class _DayCard extends StatelessWidget {
                               letterSpacing: 1.0),
                         ),
                       ),
+                      Text(day.title, style: AppText.serif(16)),
                       if (day.items.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
@@ -689,27 +689,56 @@ class _DayCard extends StatelessWidget {
                         color: AppColors.mute, size: 18),
                   )
                 else
-                  SizedBox(
-                    width: 58,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        if (day.weekday.isNotEmpty)
-                          Text(day.weekday.toUpperCase(),
-                              style: AppText.mono(11,
-                                  color: wdColor,
-                                  letterSpacing: 1.0)),
-                        if (day.date.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.only(top: 2),
-                            child: Text(day.date,
-                                style: AppText.sans(11,
-                                    color: wdColor)),
-                          ),
-                      ],
-                    ),
-                  ),
+                  Builder(builder: (context) {
+                    final parts = day.date.split(' ');
+                    final month = parts.isNotEmpty
+                        ? parts[0].toUpperCase()
+                        : '';
+                    final dayNum =
+                        parts.length > 1 ? parts[1] : '';
+                    return SizedBox(
+                      width: 60,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          if (day.weekday.isNotEmpty)
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                day.weekday.toUpperCase(),
+                                textAlign: TextAlign.center,
+                                style: AppText.mono(13,
+                                    color: wdColor,
+                                    letterSpacing: 1.0),
+                              ),
+                            ),
+                          if (month.isNotEmpty)
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                month,
+                                textAlign: TextAlign.center,
+                                style: AppText.mono(10,
+                                    color: AppColors.mute,
+                                    letterSpacing: 1.0),
+                              ),
+                            ),
+                          if (dayNum.isNotEmpty)
+                            SizedBox(
+                              width: 60,
+                              child: Text(
+                                dayNum,
+                                textAlign: TextAlign.center,
+                                style: AppText.mono(24,
+                                    color: wdColor,
+                                    letterSpacing: 0,
+                                    weight: FontWeight.w700),
+                              ),
+                            ),
+                        ],
+                      ),
+                    );
+                  }),
               ],
             );
           }),
