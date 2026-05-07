@@ -694,8 +694,9 @@ class _DayCard extends StatelessWidget {
                     final month = parts.isNotEmpty
                         ? parts[0].toUpperCase()
                         : '';
-                    final dayNum =
-                        parts.length > 1 ? parts[1] : '';
+                    final dayNum = parts.length > 1
+                        ? parts[1].replaceAll(',', '')
+                        : '';
                     return SizedBox(
                       width: 60,
                       child: Column(
