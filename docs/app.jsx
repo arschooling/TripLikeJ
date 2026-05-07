@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v65</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v66</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3329,7 +3329,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 </div>
               </div>
             </div>
-            <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:8 }}>
+            <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
               {tickets.map((card) => {
                 const cardFiles = getTicketFiles(card);
                 const firstFile = cardFiles[0];
@@ -3340,30 +3340,28 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     onDelete={() => handleTicketDeleteCard(card)}
                     wrapStyle={{ borderRadius:16 }}>
                     <div onClick={() => setTicketViewer(card)} style={{
-                      background:COLORS.card, borderRadius:16, padding:'12px 14px',
-                      display:'flex', gap:12, alignItems:'center', cursor:'pointer',
+                      background:COLORS.card, borderRadius:16,
+                      overflow:'hidden', cursor:'pointer',
                     }}>
-                      {/* Thumbnail */}
-                      <div style={{ width:52, height:52, borderRadius:10, overflow:'hidden',
-                        background:COLORS.softer, flexShrink:0,
-                        display:'flex', alignItems:'center', justifyContent:'center' }}>
+                      {/* Thumbnail - 전체 너비, 정사각형 */}
+                      <div style={{ width:'100%', aspectRatio:'1', background:COLORS.softer,
+                        display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                         {isImg ? (
                           <img src={firstFile.url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/>
                         ) : (
-                          <Icon name="file" size={22} color={COLORS.mute} stroke={1.5}/>
+                          <Icon name="file" size={32} color={COLORS.mute} stroke={1.5}/>
                         )}
                       </div>
                       {/* Info */}
-                      <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ padding:'10px 12px' }}>
                         <div style={{ fontFamily:MONO, fontSize:9, color:COLORS.accent, letterSpacing:'0.12em' }}>
                           {cardFiles.length > 1 ? `${cardFiles.length} FILES` : (firstFile?.type === 'application/pdf' ? 'PDF' : 'IMAGE')}
                         </div>
-                        <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, marginTop:2,
+                        <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginTop:2,
                           overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>
                           {card.name}
                         </div>
                       </div>
-                      <Icon name="chevron" size={16} color={COLORS.mute} stroke={1.8}/>
                     </div>
                   </SwipeableRow>
                 );
@@ -3374,7 +3372,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   border:`1.5px dashed ${COLORS.line}`, borderRadius:16,
                   color:COLORS.mute, cursor:'pointer',
                   display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-                  fontFamily:SANS, fontSize:13, width:'100%',
+                  fontFamily:SANS, fontSize:13, width:'100%', gridColumn:'1 / -1',
                 }}>
                   <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 파일 추가
                 </button>
