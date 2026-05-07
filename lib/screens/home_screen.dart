@@ -633,7 +633,7 @@ class _DayCard extends StatelessWidget {
                   ),
                 ),
               SizedBox(
-                width: 54,
+                width: 44,
                 height: 80,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -659,7 +659,7 @@ class _DayCard extends StatelessWidget {
                 height: 80,
                 small: true,
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
