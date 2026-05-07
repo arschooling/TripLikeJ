@@ -2214,7 +2214,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v70</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v71</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -3335,7 +3335,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 </div>
               </div>
             </div>
-            <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'repeat(4, 1fr)', gap:8 }}>
+            <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr', gap:8 }}>
               {tickets.map((card) => {
                 const cardFiles = getTicketFiles(card);
                 const firstFile = cardFiles[0];
@@ -3350,7 +3350,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       overflow:'hidden', cursor:'pointer',
                     }}>
                       {/* Thumbnail */}
-                      <div style={{ width:'100%', height:65, background:COLORS.softer,
+                      <div style={{ width:'100%', height:90, background:COLORS.softer,
                         display:'flex', alignItems:'center', justifyContent:'center', overflow:'hidden' }}>
                         {isImg ? (
                           <img src={firstFile.url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/>
@@ -3359,11 +3359,11 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                         )}
                       </div>
                       {/* Info */}
-                      <div style={{ padding:'8px 8px' }}>
-                        <div style={{ fontFamily:MONO, fontSize:8, color:COLORS.accent, letterSpacing:'0.10em' }}>
+                      <div style={{ padding:'10px 12px' }}>
+                        <div style={{ fontFamily:MONO, fontSize:9, color:COLORS.accent, letterSpacing:'0.12em' }}>
                           {cardFiles.length > 1 ? `${cardFiles.length} FILES` : (firstFile?.type === 'application/pdf' ? 'PDF' : 'IMAGE')}
                         </div>
-                        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.ink, marginTop:2,
+                        <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginTop:2,
                           overflow:'hidden', display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical' }}>
                           {card.name}
                         </div>
