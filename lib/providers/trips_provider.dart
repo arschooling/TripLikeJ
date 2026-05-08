@@ -219,6 +219,12 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
       title: '${hotel.name} 숙박', en: hotel.name,
       loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
     );
+    final departStop = TripStop(
+      time: '', cat: StopCategory.hotel,
+      title: '${hotel.name} 출발', en: hotel.name,
+      loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
+      anchor: 'start',
+    );
 
     // 체크인 날: 체크인 스탑 + 당일 귀환 앵커
     if (inIdx >= 0) {
@@ -229,19 +235,19 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
       ));
       pushItem(inIdx, sleepStop);
     }
-    // 체크아웃 날: 기상 앵커(시작) + 체크아웃 스탑
+    // 체크아웃 날: 출발 앵커(시작) + 체크아웃 스탑
     if (outIdx >= 0 && outIdx != inIdx) {
-      pushItem(outIdx, sleepStop.copyWith(anchor: 'start'));
+      pushItem(outIdx, departStop);
       pushItem(outIdx, TripStop(
         time: hotel.checkoutTime ?? '12:00', cat: StopCategory.hotel,
         title: '${hotel.name} 체크아웃', en: hotel.name,
         loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
       ));
     }
-    // 중간 날: 기상 앵커(시작) + 귀환 앵커(끝)
+    // 중간 날: 출발 앵커(시작) + 귀환 앵커(끝)
     if (inIdx >= 0 && outIdx > inIdx + 1) {
       for (var di = inIdx + 1; di < outIdx; di++) {
-        pushItem(di, sleepStop.copyWith(anchor: 'start'));
+        pushItem(di, departStop);
         pushItem(di, sleepStop);
       }
     }

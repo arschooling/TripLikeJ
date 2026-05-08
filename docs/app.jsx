@@ -2233,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v92</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v93</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -11278,22 +11278,23 @@ function App() {
     };
 
     const base = { en: hotel.name, loc: hotel.area || '', note: hotel.address || '', _hotelRef: hotel.name };
-    const sleepStop = { ...base, time: '', cat: 'hotel', title: `${hotel.name} 숙박` };
+    const sleepStop   = { ...base, time: '', cat: 'hotel', title: `${hotel.name} 숙박` };
+    const departStop  = { ...base, time: '', cat: 'hotel', title: `${hotel.name} 출발`, _anchor: 'start' };
 
     // Check-in day: 체크인 스탑 + 당일 귀환 앵커(하루 끝)
     if (inIdx >= 0) {
       push(inIdx, { ...base, time: hotel.checkinTime || '15:00', cat: 'hotel', title: `${hotel.name} 체크인` });
       push(inIdx, sleepStop);
     }
-    // Checkout day: 기상 앵커(하루 시작) + 체크아웃 스탑
+    // Checkout day: 출발 앵커(하루 시작) + 체크아웃 스탑
     if (outIdx >= 0 && outIdx !== inIdx) {
-      push(outIdx, { ...sleepStop, _anchor: 'start' });
+      push(outIdx, departStop);
       push(outIdx, { ...base, time: hotel.checkoutTime || '12:00', cat: 'hotel', title: `${hotel.name} 체크아웃` });
     }
-    // Intermediate nights: 기상 앵커(시작) + 귀환 앵커(끝)
+    // Intermediate nights: 출발 앵커(시작) + 귀환 앵커(끝)
     if (inIdx >= 0 && outIdx > inIdx + 1) {
       for (let di = inIdx + 1; di < outIdx; di++) {
-        push(di, { ...sleepStop, _anchor: 'start' });
+        push(di, departStop);
         push(di, sleepStop);
       }
     }
@@ -11302,13 +11303,21 @@ function App() {
 
   // ── 앵커 스탑 마이그레이션: 기존 여행에 start/end 앵커 일괄 적용 ──
   React.useEffect(() => {
-    if (!trip?.hotels?.length || !trip?.days?.length) return;
-    if ((trip._anchorsVersion || 0) >= 1) return;
+    if (!trip?.days?.length) return;
+    if ((trip._anchorsVersion || 0) >= 2) return;
     let days = [...trip.days];
-    for (const hotel of trip.hotels) {
+    for (const hotel of trip.hotels || []) {
       days = syncHotelToDays(days, hotel, null);
     }
-    editTrip({ days, _anchorsVersion: 1 });
+    // 첫날 flight 스탑 있으면 마지막 날 공항 출발 추가
+    const firstHasFlight = days[0]?.items?.some(it => it.cat === 'flight');
+    const lastIdx = days.length - 1;
+    const lastHasFlight = days[lastIdx]?.items?.some(it => it.cat === 'flight');
+    if (firstHasFlight && !lastHasFlight && lastIdx > 0) {
+      const airportStop = { time: '', cat: 'flight', title: '공항 출발', en: 'Airport Departure', loc: '' };
+      days[lastIdx] = { ...days[lastIdx], items: sortByTime([...days[lastIdx].items, airportStop]) };
+    }
+    editTrip({ days, _anchorsVersion: 2 });
   }, [trip?.id, trip?._anchorsVersion]);
 
   // ── Hotel actions ──────────────────────────────────────
