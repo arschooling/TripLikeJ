@@ -2233,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v98</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v99</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -2241,7 +2241,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
             {sortedTrips.map(t => {
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
-              const companionCount = (t.members || []).filter(uid => uid !== myUid).length;
+              const companionCount = myUid ? (t.members || []).filter(uid => uid !== myUid).length : 0;
               const isSample = !!t.sampleId;
               return (
                 <TripSwipeCard key={t.id}
