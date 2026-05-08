@@ -2233,7 +2233,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v88</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v90</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -11129,7 +11129,11 @@ function App() {
   };
   const sortByTime = (items) => {
     const toMin = t => { const m = (t||'').match(/^(\d{1,2}):(\d{2})/); return m ? +m[1]*60 + +m[2] : Infinity; };
-    return [...items].sort((a, b) => toMin(a.time) - toMin(b.time));
+    return [...items].sort((a, b) => {
+      if (a._anchor === 'start' && b._anchor !== 'start') return -1;
+      if (b._anchor === 'start' && a._anchor !== 'start') return 1;
+      return toMin(a.time) - toMin(b.time);
+    });
   };
 
   const saveStop = (draft) => {
@@ -11256,40 +11260,42 @@ function App() {
 
     const push = (di, item) => {
       if (di < 0) return;
-      const items = [...result[di].items, item]
-        .sort((a,b) => (a.time||'99:99').localeCompare(b.time||'99:99'));
-      result[di] = { ...result[di], items };
+      result[di] = { ...result[di], items: sortByTime([...result[di].items, item]) };
     };
 
+    const base = { en: hotel.name, loc: hotel.area || '', note: hotel.address || '', _hotelRef: hotel.name };
+    const sleepStop = { ...base, time: '', cat: 'hotel', title: `${hotel.name} 숙박` };
+
+    // Check-in day: 체크인 스탑 + 당일 귀환 앵커(하루 끝)
     if (inIdx >= 0) {
-      push(inIdx, {
-        time: hotel.checkinTime || '15:00', cat: 'hotel',
-        title: `${hotel.name} 체크인`, en: hotel.name,
-        loc: hotel.area || '', note: hotel.address || '',
-        _hotelRef: hotel.name,
-      });
+      push(inIdx, { ...base, time: hotel.checkinTime || '15:00', cat: 'hotel', title: `${hotel.name} 체크인` });
+      push(inIdx, sleepStop);
     }
+    // Checkout day: 기상 앵커(하루 시작) + 체크아웃 스탑
     if (outIdx >= 0 && outIdx !== inIdx) {
-      push(outIdx, {
-        time: hotel.checkoutTime || '12:00', cat: 'hotel',
-        title: `${hotel.name} 체크아웃`, en: hotel.name,
-        loc: hotel.area || '', note: hotel.address || '',
-        _hotelRef: hotel.name,
-      });
+      push(outIdx, { ...sleepStop, _anchor: 'start' });
+      push(outIdx, { ...base, time: hotel.checkoutTime || '12:00', cat: 'hotel', title: `${hotel.name} 체크아웃` });
     }
-    // Intermediate nights: days strictly between checkin and checkout
+    // Intermediate nights: 기상 앵커(시작) + 귀환 앵커(끝)
     if (inIdx >= 0 && outIdx > inIdx + 1) {
       for (let di = inIdx + 1; di < outIdx; di++) {
-        push(di, {
-          time: '', cat: 'hotel',
-          title: `${hotel.name} 숙박`, en: hotel.name,
-          loc: hotel.area || '', note: hotel.address || '',
-          _hotelRef: hotel.name,
-        });
+        push(di, { ...sleepStop, _anchor: 'start' });
+        push(di, sleepStop);
       }
     }
     return result;
   };
+
+  // ── 앵커 스탑 마이그레이션: 기존 여행에 start/end 앵커 일괄 적용 ──
+  React.useEffect(() => {
+    if (!trip?.hotels?.length || !trip?.days?.length) return;
+    if ((trip._anchorsVersion || 0) >= 1) return;
+    let days = [...trip.days];
+    for (const hotel of trip.hotels) {
+      days = syncHotelToDays(days, hotel, null);
+    }
+    editTrip({ days, _anchorsVersion: 1 });
+  }, [trip?.id, trip?._anchorsVersion]);
 
   // ── Hotel actions ──────────────────────────────────────
   const editHotel = (patch) => {

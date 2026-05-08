@@ -201,34 +201,48 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
       outIdx = (inIdx + nights).clamp(0, result.length - 1);
     }
 
+    int sortKey(TripStop s) {
+      if (s.anchor == 'start') return -1;
+      if (s.time.isEmpty) return 99 * 60 + 99;
+      final m = RegExp(r'^(\d{1,2}):(\d{2})').firstMatch(s.time);
+      return m != null ? int.parse(m[1]!) * 60 + int.parse(m[2]!) : 99 * 60 + 99;
+    }
+
     void pushItem(int di, TripStop item) {
       if (di < 0) return;
-      final items = [...result[di].items, item]
-        ..sort((a, b) => (a.time.isEmpty ? '99:99' : a.time).compareTo(b.time.isEmpty ? '99:99' : b.time));
+      final items = [...result[di].items, item]..sort((a, b) => sortKey(a).compareTo(sortKey(b)));
       result[di] = result[di].copyWith(items: items);
     }
 
+    final sleepStop = TripStop(
+      time: '', cat: StopCategory.hotel,
+      title: '${hotel.name} 숙박', en: hotel.name,
+      loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
+    );
+
+    // 체크인 날: 체크인 스탑 + 당일 귀환 앵커
     if (inIdx >= 0) {
       pushItem(inIdx, TripStop(
         time: hotel.checkinTime ?? '15:00', cat: StopCategory.hotel,
         title: '${hotel.name} 체크인', en: hotel.name,
         loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
       ));
+      pushItem(inIdx, sleepStop);
     }
+    // 체크아웃 날: 기상 앵커(시작) + 체크아웃 스탑
     if (outIdx >= 0 && outIdx != inIdx) {
+      pushItem(outIdx, sleepStop.copyWith(anchor: 'start'));
       pushItem(outIdx, TripStop(
         time: hotel.checkoutTime ?? '12:00', cat: StopCategory.hotel,
         title: '${hotel.name} 체크아웃', en: hotel.name,
         loc: hotel.area, note: hotel.address, hotelRef: hotel.name,
       ));
     }
+    // 중간 날: 기상 앵커(시작) + 귀환 앵커(끝)
     if (inIdx >= 0 && outIdx > inIdx + 1) {
       for (var di = inIdx + 1; di < outIdx; di++) {
-        pushItem(di, TripStop(
-          time: '', cat: StopCategory.hotel,
-          title: '${hotel.name} 숙박', en: hotel.name,
-          loc: hotel.area, hotelRef: hotel.name,
-        ));
+        pushItem(di, sleepStop.copyWith(anchor: 'start'));
+        pushItem(di, sleepStop);
       }
     }
     return result;

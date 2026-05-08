@@ -30,6 +30,7 @@ class TripStop {
   final String? price;
   final String? duration;
   final String? hotelRef;
+  final String? anchor; // 'start' → 하루 시작 앵커 (정렬 최선두)
 
   const TripStop({
     required this.time,
@@ -41,11 +42,13 @@ class TripStop {
     this.price,
     this.duration,
     this.hotelRef,
+    this.anchor,
   });
 
   TripStop copyWith({
     String? time, StopCategory? cat, String? title, String? en,
-    String? loc, String? note, String? price, String? duration, String? hotelRef,
+    String? loc, String? note, String? price, String? duration,
+    String? hotelRef, String? anchor,
   }) => TripStop(
     time: time ?? this.time,
     cat: cat ?? this.cat,
@@ -56,6 +59,7 @@ class TripStop {
     price: price ?? this.price,
     duration: duration ?? this.duration,
     hotelRef: hotelRef ?? this.hotelRef,
+    anchor: anchor ?? this.anchor,
   );
 
   Map<String, dynamic> toJson() => {
@@ -64,6 +68,7 @@ class TripStop {
     if (price != null) 'price': price,
     if (duration != null) 'duration': duration,
     if (hotelRef != null) '_hotelRef': hotelRef,
+    if (anchor != null) '_anchor': anchor,
   };
 
   factory TripStop.fromJson(Map<String, dynamic> j) => TripStop(
@@ -76,6 +81,7 @@ class TripStop {
     price: j['price'],
     duration: j['duration'],
     hotelRef: j['_hotelRef'],
+    anchor: j['_anchor'],
   );
 }
 
