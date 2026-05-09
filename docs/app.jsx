@@ -38,7 +38,7 @@ const STRINGS = {
   ko: {
     myTrips:'My Trips', addTrip:'+ 새 여행 추가', emptyTrips:'아직 여행이 없어요',
     loading:'로딩 중...', settings:'설정', darkMode:'다크 모드', darkModeDesc:'어두운 배경으로 전환',
-    language:'언어', langKo:'한국어', langEn:'영어', appearance:'화면',
+    language:'언어', langKo:'한국어', langEn:'영어', langJa:'일본어', langZh:'중국어', appearance:'화면',
     companions:'동행인', companionsDesc:'함께하는 여행 친구', view:'보기', addComp:'추가',
     logout:'로그아웃', deleteAccount:'계정 탈퇴', confirmDelete:'정말 탈퇴할까요?',
     confirmDeleteDesc:'모든 여행 데이터가 영구 삭제되며 복구할 수 없어요. Google 계정으로 재인증 후 진행됩니다.',
@@ -48,12 +48,32 @@ const STRINGS = {
   en: {
     myTrips:'My Trips', addTrip:'+ Add New Trip', emptyTrips:'No trips yet',
     loading:'Loading...', settings:'Settings', darkMode:'Dark Mode', darkModeDesc:'Switch to dark background',
-    language:'Language', langKo:'Korean', langEn:'English', appearance:'Appearance',
+    language:'Language', langKo:'Korean', langEn:'English', langJa:'Japanese', langZh:'Chinese', appearance:'Appearance',
     companions:'Companions', companionsDesc:'Travel together with friends', view:'View', addComp:'Add',
     logout:'Sign Out', deleteAccount:'Delete Account', confirmDelete:'Delete your account?',
     confirmDeleteDesc:'All trip data will be permanently deleted and cannot be recovered. You will need to re-authenticate with Google.',
     cancel:'Cancel', withdraw:'Delete', deleting:'Deleting...',
     deleteError:'An error occurred. Please try again.',
+  },
+  ja: {
+    myTrips:'My Trips', addTrip:'+ 旅行を追加', emptyTrips:'旅行がまだありません',
+    loading:'読み込み中...', settings:'設定', darkMode:'ダークモード', darkModeDesc:'暗い背景に切り替える',
+    language:'言語', langKo:'韓国語', langEn:'英語', langJa:'日本語', langZh:'中国語', appearance:'外観',
+    companions:'同行者', companionsDesc:'一緒に旅する友達', view:'表示', addComp:'追加',
+    logout:'ログアウト', deleteAccount:'アカウント削除', confirmDelete:'本当に退会しますか？',
+    confirmDeleteDesc:'すべての旅行データが完全に削除され、復元できません。Google アカウントで再認証後に進みます。',
+    cancel:'キャンセル', withdraw:'退会する', deleting:'削除中...',
+    deleteError:'エラーが発生しました。もう一度お試しください。',
+  },
+  zh: {
+    myTrips:'My Trips', addTrip:'+ 添加旅行', emptyTrips:'还没有旅行',
+    loading:'加载中...', settings:'设置', darkMode:'深色模式', darkModeDesc:'切换到深色背景',
+    language:'语言', langKo:'韩语', langEn:'英语', langJa:'日语', langZh:'中文', appearance:'外观',
+    companions:'同行者', companionsDesc:'一起旅行的朋友', view:'查看', addComp:'添加',
+    logout:'登出', deleteAccount:'注销账户', confirmDelete:'确定要注销吗？',
+    confirmDeleteDesc:'所有旅行数据将被永久删除，无法恢复。需要通过 Google 账户重新验证后才能继续。',
+    cancel:'取消', withdraw:'注销', deleting:'删除中...',
+    deleteError:'发生错误，请重试。',
   },
 };
 function useT() {
@@ -2312,7 +2332,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v118</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v119</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -10680,13 +10700,9 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
   );
 }
 
-// ─── SettingsSheet ────────────────────────────────────────────────────────
-function SettingsSheet({ open, onClose }) {
-  const { darkMode, lang, setDarkMode, setLang } = React.useContext(SettingsCtx);
-  const t = useT();
-  if (!open) return null;
-
-  const Row = ({ icon, title, subtitle, right }) => (
+// ─── SettingsSheet sub-components (module-level for stable identity) ─────────
+function _SettingsRow({ icon, title, subtitle, right }) {
+  return (
     <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
       <div style={{ width:36, height:36, borderRadius:10, background:COLORS.softer, flexShrink:0,
         display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -10699,8 +10715,9 @@ function SettingsSheet({ open, onClose }) {
       {right}
     </div>
   );
-
-  const Toggle = ({ value, onChange }) => (
+}
+function _SettingsToggle({ value, onChange }) {
+  return (
     <div onClick={() => onChange(!value)} style={{
       width:44, height:26, borderRadius:13, cursor:'pointer', flexShrink:0,
       background: value ? COLORS.accent : COLORS.soft, position:'relative',
@@ -10714,17 +10731,29 @@ function SettingsSheet({ open, onClose }) {
       }}/>
     </div>
   );
-
-  const LangOption = ({ code, flag, label }) => (
-    <div onClick={() => setLang(code)} style={{
-      display:'flex', alignItems:'center', gap:14, padding:'14px 16px',
-      cursor:'pointer',
-    }}>
-      <span style={{ fontSize:22 }}>{flag}</span>
-      <div style={{ flex:1, fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{label}</div>
-      {lang === code && <Icon name="check" size={16} color={COLORS.accent} stroke={2.5}/>}
+}
+function _SettingsLangOption({ code, flag, label, divider }) {
+  const { lang, setLang } = React.useContext(SettingsCtx);
+  return (
+    <div>
+      <div onClick={() => setLang(code)} style={{
+        display:'flex', alignItems:'center', gap:14, padding:'14px 16px',
+        cursor:'pointer', WebkitTapHighlightColor:'transparent',
+      }}>
+        <span style={{ fontSize:22 }}>{flag}</span>
+        <div style={{ flex:1, fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{label}</div>
+        {lang === code && <Icon name="check" size={16} color={COLORS.accent} stroke={2.5}/>}
+      </div>
+      {divider && <div style={{ height:0.5, background:COLORS.line, margin:'0 16px' }}/>}
     </div>
   );
+}
+
+// ─── SettingsSheet ────────────────────────────────────────────────────────
+function SettingsSheet({ open, onClose }) {
+  const { darkMode, setDarkMode } = React.useContext(SettingsCtx);
+  const t = useT();
+  if (!open) return null;
 
   return (
     <div style={{ position:'fixed', inset:0, zIndex:210, background:'rgba(0,0,0,0.4)',
@@ -10747,19 +10776,20 @@ function SettingsSheet({ open, onClose }) {
           {/* Appearance */}
           <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`, marginBottom:16 }}>
-            <Row
+            <_SettingsRow
               icon="moon"
               title={t('darkMode')}
               subtitle={t('darkModeDesc')}
-              right={<Toggle value={darkMode} onChange={setDarkMode}/>}
+              right={<_SettingsToggle value={darkMode} onChange={setDarkMode}/>}
             />
           </div>
           {/* Language */}
           <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}` }}>
-            <LangOption code="ko" flag="🇰🇷" label={t('langKo')}/>
-            <div style={{ height:0.5, background:COLORS.line, margin:'0 16px' }}/>
-            <LangOption code="en" flag="🇺🇸" label={t('langEn')}/>
+            <_SettingsLangOption code="ko" flag="🇰🇷" label={t('langKo')} divider={true}/>
+            <_SettingsLangOption code="en" flag="🇺🇸" label={t('langEn')} divider={true}/>
+            <_SettingsLangOption code="ja" flag="🇯🇵" label={t('langJa')} divider={true}/>
+            <_SettingsLangOption code="zh" flag="🇨🇳" label={t('langZh')} divider={false}/>
           </div>
         </div>
       </div>
@@ -12058,7 +12088,7 @@ function App() {
 
   return (
     <SettingsCtx.Provider value={{ darkMode, lang, setDarkMode, setLang }}>
-    <div style={{ minHeight:'100vh', fontFamily:'-apple-system, system-ui, sans-serif', background:'#F5F2EC' }}>
+    <div style={{ minHeight:'100vh', fontFamily:'-apple-system, system-ui, sans-serif', background:COLORS.bg }}>
       <div style={{ overflowX:'hidden' }}>
         <div key={slideKey}
           style={{ animation: slideDir ? `tab${slideDir === 'from-right' ? 'SlideFromRight' : 'SlideFromLeft'} 0.28s cubic-bezier(0.22,1,0.36,1)` : 'none' }}

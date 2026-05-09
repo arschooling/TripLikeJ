@@ -67,7 +67,7 @@ class SettingsScreen extends ConsumerWidget {
                     children: [
                       _LangRow(
                         flag: '🇰🇷',
-                        label: '한국어',
+                        label: s.langKorean,
                         selected: lang == 'ko',
                         onTap: () => ref
                             .read(settingsLanguageProvider.notifier)
@@ -77,11 +77,31 @@ class SettingsScreen extends ConsumerWidget {
                       ),
                       _LangRow(
                         flag: '🇺🇸',
-                        label: 'English',
+                        label: s.langEnglish,
                         selected: lang == 'en',
                         onTap: () => ref
                             .read(settingsLanguageProvider.notifier)
                             .setValue('en'),
+                        c: c,
+                        showDivider: true,
+                      ),
+                      _LangRow(
+                        flag: '🇯🇵',
+                        label: s.langJapanese,
+                        selected: lang == 'ja',
+                        onTap: () => ref
+                            .read(settingsLanguageProvider.notifier)
+                            .setValue('ja'),
+                        c: c,
+                        showDivider: true,
+                      ),
+                      _LangRow(
+                        flag: '🇨🇳',
+                        label: s.langChinese,
+                        selected: lang == 'zh',
+                        onTap: () => ref
+                            .read(settingsLanguageProvider.notifier)
+                            .setValue('zh'),
                         c: c,
                         showDivider: false,
                       ),
