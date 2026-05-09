@@ -166,7 +166,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
                       width: 3,
                       height: 3,
                       margin: const EdgeInsets.only(top: 2),
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: c.accent,
                       ),

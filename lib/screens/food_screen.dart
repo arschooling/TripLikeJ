@@ -263,8 +263,8 @@ class _FoodCard extends StatelessWidget {
             if (editing)
               GestureDetector(
                 onTap: onDelete,
-                child: const Padding(
-                  padding: EdgeInsets.only(left: 8),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 8),
                   child: Icon(Icons.remove_circle,
                       color: c.accent, size: 20),
                 ),
