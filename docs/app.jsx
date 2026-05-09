@@ -2266,7 +2266,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v105</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v106</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -7840,7 +7840,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
 }
 
 // ─── Tab bar (no edit toggle) ──────────────────────────────
-const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit }) {
+const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit, canUndo, onUndo }) {
   const tabs = [
     { id:'home',   icon:'sight',  label:'일정' },
     { id:'map',    icon:'map',    label:'지도' },
@@ -7848,6 +7848,15 @@ const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEd
     { id:'prep',   icon:'user',   label:'준비' },
     { id:'budget', icon:'wallet', label:'여비' },
   ];
+  const lpTimer = React.useRef(null);
+  const handleTouchStart = () => {
+    if (!canUndo || !onUndo) return;
+    lpTimer.current = setTimeout(() => {
+      onUndo();
+      try { navigator.vibrate(30); } catch(_) {}
+    }, 600);
+  };
+  const handleTouchEnd = () => clearTimeout(lpTimer.current);
   return (
     <div style={{
       position:'fixed', left:14, right:14,
@@ -7880,12 +7889,22 @@ const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEd
         </button>
       ))}
       <div style={{ width:'0.5px', height:28, background:COLORS.line, margin:'0 2px' }}/>
-      <button onClick={onToggleEdit} disabled={!canEdit && !editing} style={{
-        width:40, height:40, borderRadius:20, border:'none', cursor: canEdit ? 'pointer' : 'default',
-        background: editing ? COLORS.accent : 'transparent',
-        display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-        opacity: (!canEdit && !editing) ? 0.3 : 1,
-      }}>
+      {_isDesktopDevice && canUndo && onUndo && (
+        <button onClick={onUndo} title="되돌리기" style={{
+          width:32, height:32, borderRadius:16, border:'none', cursor:'pointer',
+          background:'rgba(26,24,22,0.06)',
+          display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+          fontFamily:SANS, fontSize:15, lineHeight:1,
+        }}>↩</button>
+      )}
+      <button onClick={onToggleEdit} disabled={!canEdit && !editing}
+        onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd} onTouchCancel={handleTouchEnd}
+        style={{
+          width:40, height:40, borderRadius:20, border:'none', cursor: canEdit ? 'pointer' : 'default',
+          background: editing ? COLORS.accent : 'transparent',
+          display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
+          opacity: (!canEdit && !editing) ? 0.3 : 1,
+        }}>
         <Icon name={editing ? 'check' : 'edit'} size={17} color={editing ? '#fff' : COLORS.mute} stroke={1.8}/>
       </button>
     </div>
@@ -11775,7 +11794,8 @@ function App() {
       </div>
       <TabBar tab={tab} setTab={changeTab}
         visible={tabBarVisible && !saveConfirm}
-        editing={openStop ? false : editing} canEdit={canEdit} onToggleEdit={handleEditToggle}/>
+        editing={openStop ? false : editing} canEdit={canEdit} onToggleEdit={handleEditToggle}
+        canUndo={!!undoState} onUndo={doUndo}/>
       <StopSheet open={openStop} dayHue={dayHue}
         onClose={() => { setOpenStop(null); setTabBarPeeking(false); }}
         onSave={saveStop}
