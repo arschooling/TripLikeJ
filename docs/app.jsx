@@ -23,7 +23,7 @@ const COLORS = {
 const LIGHT_COLORS = { ...COLORS };
 const DARK_COLORS = {
   bg:'#1C1917', card:'#252220', ink:'#F0EDE7', mute:'#9B9690',
-  line:'rgba(255,255,255,0.10)', accent:'#B51E00', soft:'#2E2A26', softer:'#282420',
+  line:'rgba(255,255,255,0.10)', accent:'#911D06', soft:'#2E2A26', softer:'#282420',
 };
 
 // ─── Settings: load from localStorage & apply initial theme ──────────────
@@ -2337,7 +2337,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v126</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v127</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
