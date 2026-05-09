@@ -2332,7 +2332,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v119</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v120</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -10850,27 +10850,20 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
             <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{authUser.displayName}</div>
             <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{authUser.email}</div>
           </div>
-          <button onClick={() => { fbSignOut(); onClose(); }} style={{
-            border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px',
-            background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute, cursor:'pointer',
-          }}>{t('logout')}</button>
+          <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
+            <button onClick={() => { onClose(); setTimeout(onOpenSettings, 80); }} style={{
+              border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 10px',
+              background:'transparent', cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+            }}>
+              <Icon name="gear" size={16} color={COLORS.mute} stroke={1.8}/>
+            </button>
+            <button onClick={() => { fbSignOut(); onClose(); }} style={{
+              border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px',
+              background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute, cursor:'pointer',
+            }}>{t('logout')}</button>
+          </div>
         </div>
         <div style={{ overflowY:'auto', flex:1, padding:'14px 16px' }}>
-          {/* 설정 카드 */}
-          <div onClick={() => { onClose(); setTimeout(onOpenSettings, 100); }} style={{
-            background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`,
-            padding:'14px 16px', display:'flex', alignItems:'center', gap:12, marginBottom:10,
-            cursor:'pointer',
-          }}>
-            <div style={{ width:40, height:40, borderRadius:20, background:COLORS.softer, flexShrink:0,
-              display:'flex', alignItems:'center', justifyContent:'center' }}>
-              <Icon name="gear" size={18} color={COLORS.mute} stroke={1.8}/>
-            </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{t('settings')}</div>
-            </div>
-            <Icon name="chevron-right" size={16} color={COLORS.mute}/>
-          </div>
           {/* 동행인 카드 */}
           <div style={{
             background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`,
@@ -11913,6 +11906,7 @@ function App() {
 
   // ── 여행 목록 화면 ─────────────────────────────────────────
   if (!activeTripId) return (
+    <SettingsCtx.Provider value={{ darkMode, lang, setDarkMode, setLang }}>
     <>
       <TripsScreen
         trips={userTrips}
@@ -12030,6 +12024,7 @@ function App() {
           setTab('home'); setDayIdx(null); setHotelIdx(null);
         }}/>
     </>
+    </SettingsCtx.Provider>
   );
 
   if (!trip || !(trip.days?.length)) return (
