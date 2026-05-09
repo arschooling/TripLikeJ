@@ -371,7 +371,7 @@ class _PrepSectionState extends State<_PrepSection> {
                   trailing: widget.editing
                       ? GestureDetector(
                           onTap: () => widget.onDelete(idx),
-                          child: const Icon(Icons.remove_circle,
+                          child: Icon(Icons.remove_circle,
                               color: c.accent, size: 18),
                         )
                       : null,
