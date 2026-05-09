@@ -2266,7 +2266,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v103</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v104</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -6544,7 +6544,7 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
   );
 });
 
-function PrepScreen({ trip, onEditPrep, editing, setEditing }) {
+function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
   const rawPrep = trip?.prep || window.TRIP_DEFAULT?.prep || {};
   const prep    = normalizePrepCats(rawPrep);
   const cats    = prep.cats || [];
@@ -6556,21 +6556,13 @@ function PrepScreen({ trip, onEditPrep, editing, setEditing }) {
   const [pasteOpen,    setPasteOpen]    = React.useState(false);
   const [pasteText,    setPasteText]    = React.useState('');
   const [copyToast,    setCopyToast]    = React.useState(false);
-  const [undoSnap,     setUndoSnap]     = React.useState(null); // 되돌리기용 스냅샷
-  const undoTimer = React.useRef(null);
 
   const save = (newCats) => onEditPrep({ ...prep, cats: newCats });
 
   const saveWithUndo = (newCats) => {
-    clearTimeout(undoTimer.current);
-    setUndoSnap(cats);
+    const prevCats = cats;
     save(newCats);
-    undoTimer.current = setTimeout(() => setUndoSnap(null), 5000);
-  };
-
-  const doUndo = () => {
-    clearTimeout(undoTimer.current);
-    if (undoSnap) { save(undoSnap); setUndoSnap(null); }
+    onScheduleUndo?.(() => save(prevCats));
   };
 
   const parsePasteText = (text) => {
@@ -6935,19 +6927,6 @@ function PrepScreen({ trip, onEditPrep, editing, setEditing }) {
           fontFamily:SANS, fontSize:13, zIndex:2000, whiteSpace:'nowrap',
           boxShadow:'0 4px 20px rgba(0,0,0,0.18)' }}>
           클립보드에 복사됐어요
-        </div>
-      )}
-
-      {/* 되돌리기 토스트 */}
-      {undoSnap && (
-        <div style={{ position:'fixed', bottom:100, left:'50%', transform:'translateX(-50%)',
-          background:COLORS.ink, color:COLORS.bg, padding:'10px 18px', borderRadius:20,
-          fontFamily:SANS, fontSize:13, zIndex:2000, whiteSpace:'nowrap',
-          boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
-          display:'flex', alignItems:'center', gap:12 }}>
-          삭제됐어요
-          <button onClick={doUndo} style={{ border:'none', background:'transparent', cursor:'pointer',
-            padding:0, fontSize:18, lineHeight:1 }}>↩️</button>
         </div>
       )}
 
@@ -11597,7 +11576,7 @@ function App() {
   }
   else if (tab === 'food')   { screen = <FoodScreen trip={trip} onEditFood={food => editTrip({ food })} onDeleteFood={(idx) => { const snap = { food: trip.food }; const food = trip.food.filter((_, i) => i !== idx); editTrip({ food }); scheduleUndo(() => editTrip(snap)); }} editing={editing} setEditing={setEditing}/>; label='Food'; }
   else if (tab === 'budget') { screen = <BudgetScreen trip={trip} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={v => { setBudgetSheetOpen(v); if (!v) setTabBarVisible(true); }} onTabBarToggle={() => setTabBarVisible(v => !v)}/>; label='Budget'; }
-  else                       { screen = <PrepScreen trip={trip} onEditPrep={editPrep} editing={editing} setEditing={setEditing}/>; label='Prep'; }
+  else                       { screen = <PrepScreen trip={trip} onEditPrep={editPrep} onScheduleUndo={scheduleUndo} editing={editing} setEditing={setEditing}/>; label='Prep'; }
 
   const dayHue = dayIdx !== null && trip
     ? ((dayIdx === 0 ? (trip.hue ?? trip.days[0]?.hero?.hue) : trip.days[dayIdx]?.hero?.hue) ?? 30)
@@ -11864,19 +11843,6 @@ function App() {
         }}/>
 
       {/* 되돌리기 토스트 */}
-      {undoState && ReactDOM.createPortal(
-        <div style={{ position:'fixed', bottom:100, left:'50%', transform:'translateX(-50%)',
-          background:COLORS.ink, color:COLORS.bg, padding:'10px 18px', borderRadius:20,
-          fontFamily:SANS, fontSize:13, zIndex:3000, whiteSpace:'nowrap',
-          boxShadow:'0 4px 20px rgba(0,0,0,0.18)',
-          display:'flex', alignItems:'center', gap:12 }}>
-          삭제됐어요
-          <button onClick={doUndo} style={{ border:'none', background:'transparent', cursor:'pointer',
-            padding:0, fontSize:18, lineHeight:1, color:COLORS.bg }}>↩</button>
-        </div>,
-        document.body
-      )}
-
       {/* 저장 확인 다이얼로그 */}
       {saveConfirm && ReactDOM.createPortal(
         <div style={{ position:'fixed', inset:0, zIndex:700,
