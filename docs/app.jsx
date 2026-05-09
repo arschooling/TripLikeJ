@@ -39,6 +39,7 @@ const STRINGS = {
     myTrips:'My Trips', addTrip:'+ 새 여행 추가', emptyTrips:'아직 여행이 없어요',
     loading:'로딩 중...', settings:'설정', darkMode:'다크 모드', darkModeDesc:'어두운 배경으로 전환',
     language:'언어', langKo:'한국어', langEn:'영어', langJa:'일본어', langZh:'중국어', appearance:'화면',
+    schedule:'일정', map:'지도', food:'맛집', prep:'준비', budget:'여비',
     companions:'동행인', companionsDesc:'함께하는 여행 친구', view:'보기', addComp:'추가',
     logout:'로그아웃', deleteAccount:'계정 탈퇴', confirmDelete:'정말 탈퇴할까요?',
     confirmDeleteDesc:'모든 여행 데이터가 영구 삭제되며 복구할 수 없어요. Google 계정으로 재인증 후 진행됩니다.',
@@ -49,6 +50,7 @@ const STRINGS = {
     myTrips:'My Trips', addTrip:'+ Add New Trip', emptyTrips:'No trips yet',
     loading:'Loading...', settings:'Settings', darkMode:'Dark Mode', darkModeDesc:'Switch to dark background',
     language:'Language', langKo:'Korean', langEn:'English', langJa:'Japanese', langZh:'Chinese', appearance:'Appearance',
+    schedule:'Schedule', map:'Map', food:'Food', prep:'Prep', budget:'Budget',
     companions:'Companions', companionsDesc:'Travel together with friends', view:'View', addComp:'Add',
     logout:'Sign Out', deleteAccount:'Delete Account', confirmDelete:'Delete your account?',
     confirmDeleteDesc:'All trip data will be permanently deleted and cannot be recovered. You will need to re-authenticate with Google.',
@@ -59,6 +61,7 @@ const STRINGS = {
     myTrips:'My Trips', addTrip:'+ 旅行を追加', emptyTrips:'旅行がまだありません',
     loading:'読み込み中...', settings:'設定', darkMode:'ダークモード', darkModeDesc:'暗い背景に切り替える',
     language:'言語', langKo:'韓国語', langEn:'英語', langJa:'日本語', langZh:'中国語', appearance:'外観',
+    schedule:'日程', map:'地図', food:'グルメ', prep:'準備', budget:'予算',
     companions:'同行者', companionsDesc:'一緒に旅する友達', view:'表示', addComp:'追加',
     logout:'ログアウト', deleteAccount:'アカウント削除', confirmDelete:'本当に退会しますか？',
     confirmDeleteDesc:'すべての旅行データが完全に削除され、復元できません。Google アカウントで再認証後に進みます。',
@@ -69,6 +72,7 @@ const STRINGS = {
     myTrips:'My Trips', addTrip:'+ 添加旅行', emptyTrips:'还没有旅行',
     loading:'加载中...', settings:'设置', darkMode:'深色模式', darkModeDesc:'切换到深色背景',
     language:'语言', langKo:'韩语', langEn:'英语', langJa:'日语', langZh:'中文', appearance:'外观',
+    schedule:'日程', map:'地图', food:'美食', prep:'准备', budget:'预算',
     companions:'同行者', companionsDesc:'一起旅行的朋友', view:'查看', addComp:'添加',
     logout:'登出', deleteAccount:'注销账户', confirmDelete:'确定要注销吗？',
     confirmDeleteDesc:'所有旅行数据将被永久删除，无法恢复。需要通过 Google 账户重新验证后才能继续。',
@@ -2277,6 +2281,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
 }
 
 function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loading, userData, onOpenCompanion, myUid, onOpenNotifs, unreadCount, photoVer }) {
+  const t = useT();
   const [restoring, setRestoring] = React.useState(false);
   const [restoreErr, setRestoreErr] = React.useState('');
   const sortedTrips = React.useMemo(
@@ -2332,10 +2337,10 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v120</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v121</span></div>
       </div>
       {loading && trips.length === 0
-        ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
+        ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
         : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
             {sortedTrips.map(t => {
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
@@ -2412,7 +2417,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
             <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
               border:`1.5px dashed ${COLORS.line}`, borderRadius:16, color:COLORS.mute, cursor:'pointer',
               display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:13.5 }}>
-              <Icon name="plus" size={15} color={COLORS.mute} stroke={2}/>새 여행 추가
+              <Icon name="plus" size={15} color={COLORS.mute} stroke={2}/>{t('addTrip')}
             </button>
           </div>
       }
@@ -3787,7 +3792,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
         <button onClick={onBack} style={{
           position:'absolute', top:'calc(16px + env(safe-area-inset-top, 0px))', left:16, zIndex:5,
           width:38, height:38, borderRadius:19, border:'none',
-          background:'rgba(255,255,255,0.88)',
+          background:`${COLORS.card}E0`,
           display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
         }}>
           <Icon name="chevron-l" size={18} color={COLORS.ink} stroke={2}/>
@@ -4143,7 +4148,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
         <button onClick={onBack} style={{
           position:'absolute', top:'calc(16px + env(safe-area-inset-top, 0px))', left:16, zIndex:5,
           width:38, height:38, borderRadius:19, border:'none',
-          background:'rgba(255,255,255,0.88)',
+          background:`${COLORS.card}E0`,
           display:'flex', alignItems:'center', justifyContent:'center', cursor:'pointer',
         }}>
           <Icon name="chevron-l" size={18} color={COLORS.ink} stroke={2}/>
@@ -5046,7 +5051,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             {!editing && (
               <button onClick={e => { e.stopPropagation(); setEditing(true); }} style={{
                 position:'absolute', top:12, right:12, zIndex:5,
-                border:'none', background:'rgba(255,255,255,0.92)', borderRadius:14,
+                border:'none', background:`${COLORS.card}EB`, borderRadius:14,
                 padding:'7px 13px', cursor:'pointer',
                 fontFamily:SANS, fontSize:12, fontWeight:500, color:COLORS.ink,
                 display:'flex', gap:5, alignItems:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.12)',
@@ -7907,12 +7912,14 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
 
 // ─── Tab bar (no edit toggle) ──────────────────────────────
 const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEdit, onToggleEdit, canUndo, onUndo }) {
+  const t = useT();
+  const { darkMode } = React.useContext(SettingsCtx);
   const tabs = [
-    { id:'home',   icon:'sight',  label:'일정' },
-    { id:'map',    icon:'map',    label:'지도' },
-    { id:'food',   icon:'food',   label:'맛집' },
-    { id:'prep',   icon:'user',   label:'준비' },
-    { id:'budget', icon:'wallet', label:'여비' },
+    { id:'home',   icon:'sight',  label:t('schedule') },
+    { id:'map',    icon:'map',    label:t('map') },
+    { id:'food',   icon:'food',   label:t('food') },
+    { id:'prep',   icon:'user',   label:t('prep') },
+    { id:'budget', icon:'wallet', label:t('budget') },
   ];
   const lpTimer = React.useRef(null);
   const handleTouchStart = () => {
@@ -7928,7 +7935,7 @@ const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEd
       position:'fixed', left:14, right:14,
       bottom:0,
       zIndex:1050,
-      background:'rgba(255,255,255,0.88)',
+      background: darkMode ? 'rgba(28,25,23,0.90)' : 'rgba(255,255,255,0.88)',
       backdropFilter:'blur(20px) saturate(180%)',
       WebkitBackdropFilter:'blur(20px) saturate(180%)',
       borderRadius:26,
@@ -8014,7 +8021,7 @@ function SplashScreen({ visible }) {
 
   return (
     <div style={{
-      position:'fixed', inset:0, background:'#F5F2EC',
+      position:'fixed', inset:0, background:COLORS.bg,
       display:'flex', flexDirection:'column',
       alignItems:'center', justifyContent:'center',
       zIndex:9999,
@@ -8023,13 +8030,13 @@ function SplashScreen({ visible }) {
     }} onTransitionEnd={() => setHiding(false)}>
       <div style={{
         fontFamily:"'Instrument Serif',Georgia,serif",
-        fontSize:34, color:'#1A1816', letterSpacing:'-0.5px',
+        fontSize:34, color:COLORS.ink, letterSpacing:'-0.5px',
         animation:'splashIn 0.5s ease both',
       }}>Trip Like J</div>
       <div style={{
         marginTop:14, height:22, overflow:'hidden',
         fontFamily:'-apple-system,sans-serif',
-        fontSize:13, color:'#7A756D', letterSpacing:'0.04em', textAlign:'center',
+        fontSize:13, color:COLORS.mute, letterSpacing:'0.04em', textAlign:'center',
       }}>
         <span key={animKey} style={{ display:'block', animation:'destSlide 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
           {SPLASH_PLACES[idx]}
@@ -8037,7 +8044,7 @@ function SplashScreen({ visible }) {
       </div>
       <div style={{
         position:'absolute', bottom:0, left:0, height:2,
-        background:'#C14F2E',
+        background:COLORS.accent,
         animation:'barGrow 2.2s cubic-bezier(0.4,0,0.2,1) forwards',
         borderRadius:'0 2px 2px 0',
       }}/>
