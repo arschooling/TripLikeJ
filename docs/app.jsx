@@ -2266,7 +2266,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v106</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v107</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -10762,6 +10762,7 @@ function App() {
   const [budgetSheetOpen, setBudgetSheetOpen] = React.useState(false);
   const [newTripSheetOpen, setNewTripSheetOpen] = React.useState(false);
   const [saveConfirm, setSaveConfirm] = React.useState(false); // 저장 확인 다이얼로그
+  const [undoConfirm, setUndoConfirm] = React.useState(false); // 되돌리기 확인 다이얼로그
   const lastScrollTop    = React.useRef(0);
   const savedHomeScrollY = React.useRef(0);
   const navGoingBack     = React.useRef(false);
@@ -10807,7 +10808,9 @@ function App() {
 
   // 삭제 후 되돌리기 상태 등록 (편집 종료/저장 전까지 유지)
   const scheduleUndo = (restore) => setUndoState({ restore });
-  const doUndo = () => { if (undoState?.restore) undoState.restore(); setUndoState(null); };
+  const doUndo = () => setUndoConfirm(true);
+  const confirmUndo = () => { if (undoState?.restore) undoState.restore(); setUndoState(null); setUndoConfirm(false); };
+  const cancelUndo  = () => { setUndoState(null); setUndoConfirm(false); };
 
   // ── 앱 준비되면 loginPending 해제 (trips 로딩 완료 후) ────────
   React.useEffect(() => {
@@ -11793,7 +11796,7 @@ function App() {
         </div>
       </div>
       <TabBar tab={tab} setTab={changeTab}
-        visible={tabBarVisible && !saveConfirm}
+        visible={tabBarVisible && !saveConfirm && !undoConfirm}
         editing={openStop ? false : editing} canEdit={canEdit} onToggleEdit={handleEditToggle}
         canUndo={!!undoState} onUndo={doUndo}/>
       <StopSheet open={openStop} dayHue={dayHue}
@@ -11890,6 +11893,36 @@ function App() {
                 borderRadius:14, background:COLORS.ink, cursor:'pointer',
                 fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff',
               }}>저장</button>
+            </div>
+          </div>
+        </div>,
+        document.body
+      )}
+
+      {undoConfirm && ReactDOM.createPortal(
+        <div style={{ position:'fixed', inset:0, zIndex:700,
+          background:'rgba(0,0,0,0.45)',
+          display:'flex', alignItems:'center', justifyContent:'center', padding:'24px' }}>
+          <div style={{ background:COLORS.bg, borderRadius:22, padding:'28px 24px 20px',
+            width:'100%', maxWidth:320, textAlign:'center',
+            boxShadow:'0 20px 60px rgba(0,0,0,0.25)' }}>
+            <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:8 }}>
+              되돌릴까요?
+            </div>
+            <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.mute, marginBottom:24, lineHeight:1.5 }}>
+              방금 삭제한 내용이 복구됩니다.
+            </div>
+            <div style={{ display:'flex', gap:10 }}>
+              <button onClick={cancelUndo} style={{
+                flex:1, padding:'13px', border:`1.5px solid ${COLORS.line}`,
+                borderRadius:14, background:'transparent', cursor:'pointer',
+                fontFamily:SANS, fontSize:14, color:COLORS.mute,
+              }}>아니요</button>
+              <button onClick={confirmUndo} style={{
+                flex:1, padding:'13px', border:'none',
+                borderRadius:14, background:COLORS.ink, cursor:'pointer',
+                fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff',
+              }}>되돌리기</button>
             </div>
           </div>
         </div>,
