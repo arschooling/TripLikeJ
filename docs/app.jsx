@@ -2337,7 +2337,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v121</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v122</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -3248,12 +3248,12 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     </div>
                     <button onClick={() => !fGesture.current.drag && onOpenDay(i)} style={{
                       marginTop:16, width:'100%', border:'none', cursor:'pointer',
-                      background:COLORS.ink, color:COLORS.bg, borderRadius:12,
+                      background:COLORS.accent, color:'#fff', borderRadius:12,
                       padding:'13px 16px', fontFamily:SANS, fontSize:14, fontWeight:500,
                       display:'flex', justifyContent:'space-between', alignItems:'center',
                     }}>
                       <span>{i === 0 ? '첫날 일정 보기' : `Day ${d.n} 일정 보기`}</span>
-                      <Icon name="chevron" size={16} color={COLORS.bg}/>
+                      <Icon name="chevron" size={16} color="#fff"/>
                     </button>
                   </div>
                 </div>
@@ -4284,12 +4284,12 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
 
           <div style={{ padding:'16px 16px 0', display:'flex', gap:8 }}>
             <button onClick={() => window.open(mapsDirectionsUrl(addr), '_blank')} style={{
-              flex:1, background:COLORS.ink, color:COLORS.bg,
+              flex:1, background:COLORS.accent, color:'#fff',
               border:'none', borderRadius:12, padding:'13px', cursor:'pointer',
               fontFamily:SANS, fontSize:14, fontWeight:500,
               display:'flex', gap:6, alignItems:'center', justifyContent:'center',
             }}>
-              <Icon name="nav" size={14} color={COLORS.bg} stroke={1.8}/> 길찾기
+              <Icon name="nav" size={14} color="#fff" stroke={1.8}/> 길찾기
             </button>
             <button onClick={() => window.open(mapsSearchUrl(addr), '_blank')} style={{
               width:60, background:COLORS.card, border:`1px solid ${COLORS.line}`,
@@ -10892,7 +10892,7 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               }}>{t('view')}</button>
               <button onClick={() => { onClose(); setTimeout(() => onAddCompanion(null), 100); }} style={{
                 padding:'7px 13px', borderRadius:10, border:'none',
-                background:COLORS.ink, cursor:'pointer',
+                background:COLORS.accent, cursor:'pointer',
                 fontFamily:SANS, fontSize:12, fontWeight:600, color:'#fff',
               }}>{t('addComp')}</button>
             </div>
