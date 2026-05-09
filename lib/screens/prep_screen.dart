@@ -33,6 +33,7 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null || widget.tripIndex >= trips.length) {
@@ -124,11 +125,12 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
   }
 
   void _addItem(BuildContext ctx, TripPrep prep, String section) {
+    final c = ctx.colors;
     String text = '';
     showDialog(
       context: ctx,
       builder: (dCtx) => AlertDialog(
-        backgroundColor: AppColors.card,
+        backgroundColor: c.card,
         shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppRadius.sheet)),
         title: Text('항목 추가', style: AppText.serif(16)),
@@ -138,9 +140,9 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
           style: AppText.sans(14),
           decoration: InputDecoration(
             hintText: '항목 이름',
-            hintStyle: AppText.sans(14, color: AppColors.mute),
+            hintStyle: AppText.sans(14, color: c.mute),
             filled: true,
-            fillColor: AppColors.softer,
+            fillColor: c.softer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.input),
               borderSide: BorderSide.none,
@@ -152,7 +154,7 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dCtx),
-            child: Text('취소', style: AppText.sans(13, color: AppColors.mute)),
+            child: Text('취소', style: AppText.sans(13, color: c.mute)),
           ),
           TextButton(
             onPressed: () {
@@ -187,7 +189,7 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
             },
             child: Text('추가',
                 style: AppText.sans(13,
-                    color: AppColors.accent, weight: FontWeight.w600)),
+                    color: c.accent, weight: FontWeight.w600)),
           ),
         ],
       ),
@@ -208,13 +210,14 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
       decoration: BoxDecoration(
-        color: highlight ? AppColors.accent.withValues(alpha: 0.1) : AppColors.card,
+        color: highlight ? c.accent.withValues(alpha: 0.1) : c.card,
         borderRadius: BorderRadius.circular(AppRadius.card),
         border: highlight
-            ? Border.all(color: AppColors.accent.withValues(alpha: 0.3))
+            ? Border.all(color: c.accent.withValues(alpha: 0.3))
             : null,
         boxShadow: highlight
             ? null
@@ -231,9 +234,9 @@ class _StatCard extends StatelessWidget {
           Text(
             value,
             style: AppText.serif(
-                28, color: highlight ? AppColors.accent : AppColors.ink),
+                28, color: highlight ? c.accent : c.ink),
           ),
-          Text(label, style: AppText.sans(12, color: AppColors.mute)),
+          Text(label, style: AppText.sans(12, color: c.mute)),
         ],
       ),
     );
@@ -270,6 +273,7 @@ class _PrepSectionState extends State<_PrepSection> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -283,7 +287,7 @@ class _PrepSectionState extends State<_PrepSection> {
                 Text(
                   widget.name,
                   style: AppText.sans(13,
-                      color: AppColors.mute, weight: FontWeight.w500),
+                      color: c.mute, weight: FontWeight.w500),
                 ),
                 const SizedBox(width: 6),
                 Text(
@@ -296,7 +300,7 @@ class _PrepSectionState extends State<_PrepSection> {
                       ? Icons.keyboard_arrow_up_rounded
                       : Icons.keyboard_arrow_down_rounded,
                   size: 18,
-                  color: AppColors.mute,
+                  color: c.mute,
                 ),
               ],
             ),
@@ -315,15 +319,15 @@ class _PrepSectionState extends State<_PrepSection> {
               onDismissed: (_) => widget.onDelete(idx),
               background: Container(
                 alignment: Alignment.centerRight,
-                color: AppColors.accent,
+                color: c.accent,
                 padding: const EdgeInsets.only(right: 16),
                 child:
-                    const Icon(Icons.delete_rounded, color: Colors.white, size: 20),
+                    Icon(Icons.delete_rounded, color: Colors.white, size: 20),
               ),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: c.card,
                   borderRadius: BorderRadius.circular(AppRadius.card),
                   boxShadow: [
                     BoxShadow(
@@ -345,9 +349,9 @@ class _PrepSectionState extends State<_PrepSection> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color:
-                            checked ? AppColors.accent : Colors.transparent,
+                            checked ? c.accent : Colors.transparent,
                         border: Border.all(
-                          color: checked ? AppColors.accent : AppColors.line,
+                          color: checked ? c.accent : c.line,
                           width: 1.5,
                         ),
                       ),
@@ -361,14 +365,14 @@ class _PrepSectionState extends State<_PrepSection> {
                     item,
                     style: AppText.sans(
                       13,
-                      color: checked ? AppColors.mute : AppColors.ink,
+                      color: checked ? c.mute : c.ink,
                     ),
                   ),
                   trailing: widget.editing
                       ? GestureDetector(
                           onTap: () => widget.onDelete(idx),
                           child: const Icon(Icons.remove_circle,
-                              color: AppColors.accent, size: 18),
+                              color: c.accent, size: 18),
                         )
                       : null,
                 ),
@@ -383,12 +387,12 @@ class _PrepSectionState extends State<_PrepSection> {
                 padding:
                     const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
-                  color: AppColors.soft,
+                  color: c.soft,
                   borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
                 alignment: Alignment.center,
                 child: Text('+ 추가',
-                    style: AppText.sans(13, color: AppColors.mute)),
+                    style: AppText.sans(13, color: c.mute)),
               ),
             ),
           const SizedBox(height: AppSpacing.sectionGap),

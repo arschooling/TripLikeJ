@@ -6,7 +6,7 @@ class AppText {
     TextStyle(
       fontFamily: 'InstrumentSerif',
       fontSize: size,
-      color: color ?? AppColors.ink,
+      color: color ?? AppColors.light.ink,
       fontWeight: weight ?? FontWeight.w400,
       height: height ?? 1.2,
     );
@@ -14,7 +14,7 @@ class AppText {
   static TextStyle sans(double size, {Color? color, FontWeight weight = FontWeight.w400, double? height}) =>
     TextStyle(
       fontSize: size,
-      color: color ?? AppColors.ink,
+      color: color ?? AppColors.light.ink,
       fontWeight: weight,
       height: height ?? 1.35,
     );
@@ -23,7 +23,7 @@ class AppText {
     TextStyle(
       fontFamily: 'JetBrainsMono',
       fontSize: size,
-      color: color ?? AppColors.mute,
+      color: color ?? AppColors.light.mute,
       letterSpacing: letterSpacing,
       fontWeight: weight,
     );

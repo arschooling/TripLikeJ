@@ -21,6 +21,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null || widget.tripIndex >= trips.length) {
@@ -30,7 +31,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
 
     if (trip.days.isEmpty) {
       return Center(
-        child: Text('일정이 없습니다', style: AppText.sans(14, color: AppColors.mute)),
+        child: Text('일정이 없습니다', style: AppText.sans(14, color: c.mute)),
       );
     }
 
@@ -60,13 +61,13 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                   decoration: BoxDecoration(
-                    color: active ? AppColors.ink : AppColors.soft,
+                    color: active ? c.ink : c.soft,
                     borderRadius: BorderRadius.circular(AppRadius.chip),
                   ),
                   child: Text(
                     'Day ${trip.days[i].n}',
                     style: AppText.sans(12,
-                        color: active ? Colors.white : AppColors.ink),
+                        color: active ? Colors.white : c.ink),
                   ),
                 ),
               );
@@ -79,14 +80,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
               ? Center(
                   child: Text(
                     '장소 정보가 없습니다',
-                    style: AppText.sans(14, color: AppColors.mute),
+                    style: AppText.sans(14, color: c.mute),
                   ),
                 )
               : ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.pagePad),
                   itemCount: stopsWithLoc.length,
-                  separatorBuilder: (_, __) => const Divider(
-                    color: AppColors.line,
+                  separatorBuilder: (_, __) => Divider(
+                    color: c.line,
                     height: 1,
                   ),
                   itemBuilder: (ctx, i) {
@@ -101,7 +102,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                             height: 36,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: AppColors.ink.withValues(alpha: 0.08),
+                              color: c.ink.withValues(alpha: 0.08),
                             ),
                             alignment: Alignment.center,
                             child: Text(
@@ -116,7 +117,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               children: [
                                 Text(stop.title, style: AppText.sans(14, weight: FontWeight.w600)),
                                 const SizedBox(height: 2),
-                                Text(stop.loc, style: AppText.sans(12, color: AppColors.mute)),
+                                Text(stop.loc, style: AppText.sans(12, color: c.mute)),
                               ],
                             ),
                           ),
@@ -126,14 +127,14 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               padding: const EdgeInsets.symmetric(
                                   horizontal: 10, vertical: 6),
                               decoration: BoxDecoration(
-                                color: AppColors.accent.withValues(alpha: 0.12),
+                                color: c.accent.withValues(alpha: 0.12),
                                 borderRadius:
                                     BorderRadius.circular(AppRadius.chip),
                               ),
                               child: Text(
                                 '지도에서 보기',
                                 style: AppText.sans(11,
-                                    color: AppColors.accent,
+                                    color: c.accent,
                                     weight: FontWeight.w500),
                               ),
                             ),

@@ -81,23 +81,24 @@ class StopFormState extends State<StopFormContent> {
     }
   }
 
-  Widget _field(String label, TextEditingController ctrl,
+  Widget _field(BuildContext context, String label, TextEditingController ctrl,
       {TextInputType? keyboardType, int maxLines = 1}) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(11, color: AppColors.mute)),
+        Text(label, style: AppText.sans(11, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: AppText.sans(14),
+          style: AppText.sans(14, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             filled: true,
-            fillColor: AppColors.softer,
+            fillColor: c.softer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.input),
               borderSide: BorderSide.none,
@@ -111,6 +112,7 @@ class StopFormState extends State<StopFormContent> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return SingleChildScrollView(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -120,7 +122,7 @@ class StopFormState extends State<StopFormContent> {
           // Time picker
           Row(
             children: [
-              Text('시간', style: AppText.sans(11, color: AppColors.mute)),
+              Text('시간', style: AppText.sans(11, color: c.mute)),
               const SizedBox(width: 12),
               GestureDetector(
                 onTap: _pickTime,
@@ -128,12 +130,12 @@ class StopFormState extends State<StopFormContent> {
                   padding:
                       const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.softer,
+                    color: c.softer,
                     borderRadius: BorderRadius.circular(AppRadius.input),
                   ),
                   child: Text(
                     _time.isEmpty ? '--:--' : _time,
-                    style: AppText.mono(14, color: AppColors.ink, letterSpacing: 1),
+                    style: AppText.mono(14, color: c.ink, letterSpacing: 1),
                   ),
                 ),
               ),
@@ -141,7 +143,7 @@ class StopFormState extends State<StopFormContent> {
           ),
           const SizedBox(height: 14),
           // Category chips
-          Text('카테고리', style: AppText.sans(11, color: AppColors.mute)),
+          Text('카테고리', style: AppText.sans(11, color: c.mute)),
           const SizedBox(height: 6),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -155,7 +157,7 @@ class StopFormState extends State<StopFormContent> {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: active ? AppColors.ink : AppColors.softer,
+                      color: active ? c.ink : c.softer,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
                     child: Row(
@@ -169,7 +171,7 @@ class StopFormState extends State<StopFormContent> {
                         Text(
                           cat.label,
                           style: AppText.sans(12,
-                              color: active ? Colors.white : AppColors.ink),
+                              color: active ? Colors.white : c.ink),
                         ),
                       ],
                     ),
@@ -179,19 +181,19 @@ class StopFormState extends State<StopFormContent> {
             ),
           ),
           const SizedBox(height: 14),
-          _field('제목', _titleCtrl),
+          _field(context, '제목', _titleCtrl),
           const SizedBox(height: 10),
-          _field('영문명', _enCtrl),
+          _field(context, '영문명', _enCtrl),
           const SizedBox(height: 10),
-          _field('장소', _locCtrl),
+          _field(context, '장소', _locCtrl),
           const SizedBox(height: 10),
-          _field('메모', _noteCtrl, maxLines: 2),
+          _field(context, '메모', _noteCtrl, maxLines: 2),
           const SizedBox(height: 10),
           Row(
             children: [
-              Expanded(child: _field('가격', _priceCtrl)),
+              Expanded(child: _field(context, '가격', _priceCtrl)),
               const SizedBox(width: 10),
-              Expanded(child: _field('소요시간', _durationCtrl)),
+              Expanded(child: _field(context, '소요시간', _durationCtrl)),
             ],
           ),
           const SizedBox(height: 8),
@@ -205,7 +207,7 @@ class StopFormState extends State<StopFormContent> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 decoration: BoxDecoration(
-                  color: AppColors.accent,
+                  color: c.accent,
                   borderRadius: BorderRadius.circular(AppRadius.button),
                 ),
                 alignment: Alignment.center,
@@ -242,6 +244,7 @@ class _TimePickerDialogState extends State<_TimePickerDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return BottomSheetModal(
       title: '시간 선택',
       onCancel: () => Navigator.pop(context),

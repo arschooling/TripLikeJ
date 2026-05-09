@@ -65,6 +65,7 @@ class _TimeWheelContentState extends State<TimeWheelContent> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -78,9 +79,9 @@ class _TimeWheelContentState extends State<TimeWheelContent> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Container(height: 1, color: AppColors.line),
+                  Container(height: 1, color: c.line),
                   const SizedBox(height: 38),
-                  Container(height: 1, color: AppColors.line),
+                  Container(height: 1, color: c.line),
                 ],
               ),
               Row(
@@ -104,7 +105,7 @@ class _TimeWheelContentState extends State<TimeWheelContent> {
                               i.toString().padLeft(2, '0'),
                               style: AppText.mono(
                                 22,
-                                color: active ? AppColors.ink : AppColors.mute,
+                                color: active ? c.ink : c.mute,
                                 letterSpacing: 0.5,
                               ),
                             ),
@@ -119,7 +120,7 @@ class _TimeWheelContentState extends State<TimeWheelContent> {
                     padding: const EdgeInsets.only(bottom: 4),
                     child: Text(
                       ':',
-                      style: AppText.mono(22, color: AppColors.ink, letterSpacing: 0),
+                      style: AppText.mono(22, color: c.ink, letterSpacing: 0),
                     ),
                   ),
                   // Minutes column
@@ -141,7 +142,7 @@ class _TimeWheelContentState extends State<TimeWheelContent> {
                               _minutes[i].toString().padLeft(2, '0'),
                               style: AppText.mono(
                                 22,
-                                color: active ? AppColors.ink : AppColors.mute,
+                                color: active ? c.ink : c.mute,
                                 letterSpacing: 0.5,
                               ),
                             ),

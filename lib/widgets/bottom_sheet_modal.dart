@@ -54,6 +54,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return FadeTransition(
       opacity: _fade,
       child: GestureDetector(
@@ -73,7 +74,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                 constraints: const BoxConstraints(maxWidth: 360),
                 margin: const EdgeInsets.symmetric(horizontal: 18),
                 decoration: BoxDecoration(
-                  color: AppColors.card,
+                  color: c.card,
                   borderRadius: BorderRadius.circular(AppRadius.sheet),
                   boxShadow: [
                     BoxShadow(
@@ -93,7 +94,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                         width: 40,
                         height: 4,
                         decoration: BoxDecoration(
-                          color: AppColors.line,
+                          color: c.line,
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -110,7 +111,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                             },
                             child: Text(
                               '취소',
-                              style: AppText.sans(13, color: AppColors.mute),
+                              style: AppText.sans(13, color: c.mute),
                             ),
                           ),
                           Expanded(
@@ -129,7 +130,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                             child: Text(
                               '완료',
                               style: AppText.sans(13,
-                                  color: AppColors.accent,
+                                  color: c.accent,
                                   weight: FontWeight.w600),
                             ),
                           ),

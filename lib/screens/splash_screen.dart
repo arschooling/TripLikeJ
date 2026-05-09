@@ -82,6 +82,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     ref.listen(tripsProvider, (_, next) {
       if (next.hasValue) {
         _dataReady = true;
@@ -94,7 +95,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     }
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -106,7 +107,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               opacity: _fade,
               child: Text(
                 _destinations[_destIndex],
-                style: AppText.mono(11, letterSpacing: 2.5, color: AppColors.mute),
+                style: AppText.mono(11, letterSpacing: 2.5, color: c.mute),
               ),
             ),
             const Spacer(),
@@ -117,7 +118,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
                 height: 32,
                 child: CircularProgressIndicator(
                   strokeWidth: 1.5,
-                  color: AppColors.accent.withValues(alpha: 0.5),
+                  color: c.accent.withValues(alpha: 0.5),
                 ),
               ),
             ),

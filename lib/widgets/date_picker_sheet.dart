@@ -75,6 +75,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final days = _buildCalendarDays();
     final monthLabel =
         '${_month.year}년 ${_month.month}월';
@@ -98,9 +99,9 @@ class _DatePickerContentState extends State<DatePickerContent> {
         // Weekday headers
         Row(
           children: _weekdays.asMap().entries.map((e) {
-            Color col = AppColors.mute;
-            if (e.key == 0) col = AppColors.sundayRed;
-            if (e.key == 6) col = AppColors.saturdayBlue;
+            Color col = c.mute;
+            if (e.key == 0) col = c.sundayRed;
+            if (e.key == 6) col = c.saturdayBlue;
             return Expanded(
               child: Center(
                 child: Text(
@@ -127,10 +128,10 @@ class _DatePickerContentState extends State<DatePickerContent> {
             final past = _isPast(d);
             final weekday = d.weekday % 7; // 0=Sun, 6=Sat
 
-            Color textColor = AppColors.ink;
-            if (past) textColor = AppColors.disabledDate;
-            if (weekday == 0 && !past && !selected) textColor = AppColors.sundayRed;
-            if (weekday == 6 && !past && !selected) textColor = AppColors.saturdayBlue;
+            Color textColor = c.ink;
+            if (past) textColor = c.disabledDate;
+            if (weekday == 0 && !past && !selected) textColor = c.sundayRed;
+            if (weekday == 6 && !past && !selected) textColor = c.saturdayBlue;
             if (selected) textColor = Colors.white;
 
             return GestureDetector(
@@ -148,7 +149,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
                     height: 30,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: selected ? AppColors.ink : Colors.transparent,
+                      color: selected ? c.ink : Colors.transparent,
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -167,7 +168,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
                       margin: const EdgeInsets.only(top: 2),
                       decoration: const BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.accent,
+                        color: c.accent,
                       ),
                     ),
                 ],
@@ -189,6 +190,7 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -196,10 +198,10 @@ class _NavButton extends StatelessWidget {
         height: 30,
         decoration: const BoxDecoration(
           shape: BoxShape.circle,
-          color: AppColors.soft,
+          color: c.soft,
         ),
         alignment: Alignment.center,
-        child: Icon(icon, size: 18, color: AppColors.ink),
+        child: Icon(icon, size: 18, color: c.ink),
       ),
     );
   }

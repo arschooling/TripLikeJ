@@ -22,6 +22,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null || widget.tripIndex >= trips.length) {
@@ -63,7 +64,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
           child: food.isEmpty && !_editing
               ? Center(
                   child: Text('맛집을 추가해보세요',
-                      style: AppText.sans(14, color: AppColors.mute)))
+                      style: AppText.sans(14, color: c.mute)))
               : ListView(
                   padding: const EdgeInsets.all(AppSpacing.pagePad),
                   children: [
@@ -80,7 +81,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                             child: Text(
                               catName,
                               style: AppText.mono(10,
-                                  color: AppColors.accent,
+                                  color: c.accent,
                                   letterSpacing: 1.2),
                             ),
                           ),
@@ -109,14 +110,14 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                                 padding:
                                     const EdgeInsets.symmetric(vertical: 12),
                                 decoration: BoxDecoration(
-                                  color: AppColors.soft,
+                                  color: c.soft,
                                   borderRadius:
                                       BorderRadius.circular(AppRadius.card),
                                 ),
                                 alignment: Alignment.center,
                                 child: Text('+ $catName 추가',
                                     style: AppText.sans(13,
-                                        color: AppColors.mute)),
+                                        color: c.mute)),
                               ),
                             ),
                           const SizedBox(height: 8),
@@ -130,13 +131,13 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                           padding:
                               const EdgeInsets.symmetric(vertical: 14),
                           decoration: BoxDecoration(
-                            color: AppColors.soft,
+                            color: c.soft,
                             borderRadius:
                                 BorderRadius.circular(AppRadius.card),
                           ),
                           alignment: Alignment.center,
                           child: Text('+ 새 항목 추가',
-                              style: AppText.sans(13, color: AppColors.mute)),
+                              style: AppText.sans(13, color: c.mute)),
                         ),
                       ),
                   ],
@@ -208,12 +209,13 @@ class _FoodCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return GestureDetector(
       onTap: editing ? onEdit : null,
       child: Container(
         padding: const EdgeInsets.all(AppSpacing.cardPadSm),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: c.card,
           borderRadius: BorderRadius.circular(AppRadius.card),
           boxShadow: [
             BoxShadow(
@@ -234,7 +236,7 @@ class _FoodCard extends StatelessWidget {
                   if (food.detail.isNotEmpty) ...[
                     const SizedBox(height: 2),
                     Text(food.detail,
-                        style: AppText.sans(13, color: AppColors.mute)),
+                        style: AppText.sans(13, color: c.mute)),
                   ],
                   if (food.price.isNotEmpty) ...[
                     const SizedBox(height: 6),
@@ -242,7 +244,7 @@ class _FoodCard extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.softer,
+                        color: c.softer,
                         borderRadius:
                             BorderRadius.circular(AppRadius.chip),
                       ),
@@ -253,7 +255,7 @@ class _FoodCard extends StatelessWidget {
                   if (food.note.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(food.note,
-                        style: AppText.sans(12, color: AppColors.mute)),
+                        style: AppText.sans(12, color: c.mute)),
                   ],
                 ],
               ),
@@ -264,7 +266,7 @@ class _FoodCard extends StatelessWidget {
                 child: const Padding(
                   padding: EdgeInsets.only(left: 8),
                   child: Icon(Icons.remove_circle,
-                      color: AppColors.accent, size: 20),
+                      color: c.accent, size: 20),
                 ),
               ),
           ],
@@ -325,21 +327,22 @@ class _FoodFormState extends State<_FoodForm> {
     super.dispose();
   }
 
-  Widget _field(String label, TextEditingController ctrl, {int maxLines = 1}) {
+  Widget _field(BuildContext context, String label, TextEditingController ctrl, {int maxLines = 1}) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(11, color: AppColors.mute)),
+        Text(label, style: AppText.sans(11, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
-          style: AppText.sans(14),
+          style: AppText.sans(14, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             filled: true,
-            fillColor: AppColors.softer,
+            fillColor: c.softer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.input),
               borderSide: BorderSide.none,
@@ -353,21 +356,22 @@ class _FoodFormState extends State<_FoodForm> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox(height: 16),
-        _field('카테고리', _catCtrl),
+        _field(context, '카테고리', _catCtrl),
         const SizedBox(height: 10),
-        _field('이름', _nameCtrl),
+        _field(context, '이름', _nameCtrl),
         const SizedBox(height: 10),
-        _field('설명', _detailCtrl),
+        _field(context, '설명', _detailCtrl),
         const SizedBox(height: 10),
         Row(children: [
-          Expanded(child: _field('가격', _priceCtrl)),
+          Expanded(child: _field(context, '가격', _priceCtrl)),
         ]),
         const SizedBox(height: 10),
-        _field('메모', _noteCtrl, maxLines: 2),
+        _field(context, '메모', _noteCtrl, maxLines: 2),
         const SizedBox(height: 8),
       ],
     );

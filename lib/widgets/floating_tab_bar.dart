@@ -9,6 +9,7 @@ class FloatingTabBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tabs = [
       (icon: Icons.calendar_today_rounded, label: '일정'),
       (icon: Icons.map_rounded, label: '지도'),
@@ -29,7 +30,7 @@ class FloatingTabBar extends StatelessWidget {
             BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6, offset: const Offset(0, 2)),
             BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 30, offset: const Offset(0, 10)),
           ],
-          border: Border.all(color: AppColors.line, width: 0.5),
+          border: Border.all(color: c.line, width: 0.5),
         ),
         child: Row(
           children: tabs.asMap().entries.map((e) {
@@ -41,14 +42,14 @@ class FloatingTabBar extends StatelessWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(e.value.icon, size: 20, color: active ? AppColors.ink : AppColors.mute),
+                    Icon(e.value.icon, size: 20, color: active ? c.ink : c.mute),
                     const SizedBox(height: 3),
                     Text(
                       e.value.label,
                       style: TextStyle(
                         fontSize: 10,
                         fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-                        color: active ? AppColors.ink : AppColors.mute,
+                        color: active ? c.ink : c.mute,
                       ),
                     ),
                   ],

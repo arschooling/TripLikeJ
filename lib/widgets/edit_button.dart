@@ -24,6 +24,7 @@ class EditButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final isMobile = _isMobile(context);
     final showUndoBtn = !isMobile && canUndo && onUndo != null;
 
@@ -37,14 +38,14 @@ class EditButton extends StatelessWidget {
           vertical: compact ? 5 : 6,
         ),
         decoration: BoxDecoration(
-          color: editing ? AppColors.accent : const Color(0x0F1A1816),
+          color: editing ? c.accent : Color(0x0F1A1816),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(mainAxisSize: MainAxisSize.min, children: [
           Icon(
             editing ? Icons.check_rounded : Icons.edit_rounded,
             size: 12,
-            color: editing ? Colors.white : AppColors.ink,
+            color: editing ? Colors.white : c.ink,
           ),
           const SizedBox(width: 5),
           Text(
@@ -52,7 +53,7 @@ class EditButton extends StatelessWidget {
             style: TextStyle(
               fontSize: 11.5,
               fontWeight: FontWeight.w500,
-              color: editing ? Colors.white : AppColors.ink,
+              color: editing ? Colors.white : c.ink,
             ),
           ),
         ]),

@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../l10n/app_strings.dart';
+import '../providers/settings_provider.dart';
 import '../providers/trips_provider.dart';
 import '../theme/colors.dart';
 import '../theme/typography.dart';
@@ -9,6 +11,7 @@ import '../version.dart';
 import '../widgets/photo_placeholder.dart';
 import '../widgets/edit_button.dart';
 import 'home_screen.dart';
+import 'settings_screen.dart';
 
 class TripsListScreen extends ConsumerStatefulWidget {
   const TripsListScreen({super.key});
@@ -22,16 +25,19 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
+    final lang = ref.watch(settingsLanguageProvider);
+    final s = AppStrings(lang);
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         child: tripsAsync.when(
           loading: () =>
-              const Center(child: CircularProgressIndicator(color: AppColors.accent)),
+              Center(child: CircularProgressIndicator(color: c.accent)),
           error: (e, _) => Center(
-            child: Text('오류: $e', style: AppText.sans(14, color: AppColors.mute)),
+            child: Text('${s.errorPrefix}$e', style: AppText.sans(14, color: c.mute)),
           ),
           data: (trips) => Column(
             children: [
@@ -41,10 +47,28 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                     AppSpacing.pagePad, 18, AppSpacing.pagePad, 0),
                 child: Row(
                   children: [
-                    Text('My Trips', style: AppText.serif(22)),
+                    Text('My Trips', style: AppText.serif(22, color: c.ink)),
                     const SizedBox(width: 8),
-                    Text(appVersion, style: AppText.mono(9, letterSpacing: 0.8)),
+                    Text(appVersion, style: AppText.mono(9, letterSpacing: 0.8, color: c.mute)),
                     const Spacer(),
+                    // Settings / profile button
+                    GestureDetector(
+                      onTap: () => Navigator.push(
+                        context,
+                        CupertinoPageRoute(builder: (_) => const SettingsScreen()),
+                      ),
+                      child: Container(
+                        width: 34,
+                        height: 34,
+                        margin: const EdgeInsets.only(right: 8),
+                        decoration: BoxDecoration(
+                          color: c.softer,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: c.line, width: 1),
+                        ),
+                        child: Icon(Icons.person_rounded, size: 18, color: c.mute),
+                      ),
+                    ),
                     EditButton(
                       editing: _editing,
                       canUndo: ref.watch(canUndoProvider),
@@ -61,8 +85,8 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                 child: trips.isEmpty
                     ? Center(
                         child: Text(
-                          '여행을 추가해보세요!',
-                          style: AppText.sans(14, color: AppColors.mute),
+                          s.emptyTrips,
+                          style: AppText.sans(14, color: c.mute),
                         ),
                       )
                     : _editing
@@ -116,14 +140,13 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     decoration: BoxDecoration(
-                      color: AppColors.soft,
+                      color: c.soft,
                       borderRadius: BorderRadius.circular(AppRadius.card),
                     ),
                     alignment: Alignment.center,
                     child: Text(
-                      '+ 새 여행 추가',
-                      style: AppText.sans(14,
-                          color: AppColors.ink, weight: FontWeight.w500),
+                      s.addTrip,
+                      style: AppText.sans(14, color: c.ink, weight: FontWeight.w500),
                     ),
                   ),
                 ),
@@ -159,6 +182,7 @@ class _TripCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null || tripIndex >= trips.length) return const SizedBox.shrink();
@@ -170,7 +194,7 @@ class _TripCard extends ConsumerWidget {
         onTap: editing ? null : onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: c.card,
             borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: [
               BoxShadow(
@@ -193,9 +217,9 @@ class _TripCard extends ConsumerWidget {
                     child: Container(
                       width: 22,
                       height: 22,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: AppColors.accent,
+                        color: c.accent,
                       ),
                       child: const Icon(Icons.remove, size: 14, color: Colors.white),
                     ),
@@ -215,16 +239,16 @@ class _TripCard extends ConsumerWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(trip.title, style: AppText.serif(22)),
+                          Text(trip.title, style: AppText.serif(22, color: c.ink)),
                           if (trip.subtitleKo.isNotEmpty) ...[
                             const SizedBox(height: 2),
                             Text(trip.subtitleKo,
-                                style: AppText.sans(13, color: AppColors.mute)),
+                                style: AppText.sans(13, color: c.mute)),
                           ],
                           if (trip.dates.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(trip.dates,
-                                style: AppText.mono(10)),
+                                style: AppText.mono(10, color: c.mute)),
                           ],
                         ],
                       ),
@@ -233,10 +257,10 @@ class _TripCard extends ConsumerWidget {
                 ),
               ),
               if (editing)
-                const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 12),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: Icon(Icons.drag_handle_rounded,
-                      color: AppColors.mute, size: 20),
+                      color: c.mute, size: 20),
                 ),
             ],
           ),

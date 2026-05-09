@@ -20,6 +20,50 @@ const COLORS = {
   bg:'#F5F2EC', card:'#FFFFFF', ink:'#1A1816', mute:'#7A756D',
   line:'rgba(26,24,22,0.08)', accent:'#C14F2E', soft:'#E9E3D7', softer:'#EFEAE0',
 };
+const LIGHT_COLORS = { ...COLORS };
+const DARK_COLORS = {
+  bg:'#1C1917', card:'#252220', ink:'#F0EDE7', mute:'#9B9690',
+  line:'rgba(255,255,255,0.10)', accent:'#D4614A', soft:'#2E2A26', softer:'#282420',
+};
+
+// ─── Settings: load from localStorage & apply initial theme ──────────────
+const _appSettings = {
+  darkMode: localStorage.getItem('tlj_darkMode') === 'true',
+  lang: localStorage.getItem('tlj_lang') || 'ko',
+};
+if (_appSettings.darkMode) Object.assign(COLORS, DARK_COLORS);
+
+// ─── Translations ─────────────────────────────────────────────────────────
+const STRINGS = {
+  ko: {
+    myTrips:'My Trips', addTrip:'+ 새 여행 추가', emptyTrips:'아직 여행이 없어요',
+    loading:'로딩 중...', settings:'설정', darkMode:'다크 모드', darkModeDesc:'어두운 배경으로 전환',
+    language:'언어', langKo:'한국어', langEn:'영어', appearance:'화면',
+    companions:'동행인', companionsDesc:'함께하는 여행 친구', view:'보기', addComp:'추가',
+    logout:'로그아웃', deleteAccount:'계정 탈퇴', confirmDelete:'정말 탈퇴할까요?',
+    confirmDeleteDesc:'모든 여행 데이터가 영구 삭제되며 복구할 수 없어요. Google 계정으로 재인증 후 진행됩니다.',
+    cancel:'취소', withdraw:'탈퇴하기', deleting:'삭제 중...',
+    deleteError:'오류가 발생했어요. 다시 시도해 주세요.',
+  },
+  en: {
+    myTrips:'My Trips', addTrip:'+ Add New Trip', emptyTrips:'No trips yet',
+    loading:'Loading...', settings:'Settings', darkMode:'Dark Mode', darkModeDesc:'Switch to dark background',
+    language:'Language', langKo:'Korean', langEn:'English', appearance:'Appearance',
+    companions:'Companions', companionsDesc:'Travel together with friends', view:'View', addComp:'Add',
+    logout:'Sign Out', deleteAccount:'Delete Account', confirmDelete:'Delete your account?',
+    confirmDeleteDesc:'All trip data will be permanently deleted and cannot be recovered. You will need to re-authenticate with Google.',
+    cancel:'Cancel', withdraw:'Delete', deleting:'Deleting...',
+    deleteError:'An error occurred. Please try again.',
+  },
+};
+function useT() {
+  const { lang } = React.useContext(SettingsCtx);
+  return (key) => (STRINGS[lang] || STRINGS.ko)[key] ?? STRINGS.ko[key] ?? key;
+}
+
+// ─── Settings Context ─────────────────────────────────────────────────────
+const SettingsCtx = React.createContext({ darkMode:false, lang:'ko', setDarkMode:()=>{}, setLang:()=>{} });
+
 const SERIF = '"Instrument Serif", Georgia, serif';
 const SANS  = '-apple-system, "SF Pro Text", system-ui, sans-serif';
 const MONO  = '"JetBrains Mono", ui-monospace, monospace';
@@ -114,6 +158,8 @@ const Icon = ({ name, size=16, color='currentColor', stroke=1.6 }) => {
     case 'camera':     return <svg {...p}><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>;
     case 'trash':      return <svg {...p}><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>;
     case 'file':       return <svg {...p}><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>;
+    case 'moon':      return <svg {...p}><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>;
+    case 'gear':      return <svg {...p}><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
     default: return null;
   }
 };
@@ -2266,7 +2312,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v116</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v118</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -10634,10 +10680,98 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
   );
 }
 
-function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCompanions, onDeleteAccount }) {
+// ─── SettingsSheet ────────────────────────────────────────────────────────
+function SettingsSheet({ open, onClose }) {
+  const { darkMode, lang, setDarkMode, setLang } = React.useContext(SettingsCtx);
+  const t = useT();
+  if (!open) return null;
+
+  const Row = ({ icon, title, subtitle, right }) => (
+    <div style={{ display:'flex', alignItems:'center', gap:14, padding:'14px 16px' }}>
+      <div style={{ width:36, height:36, borderRadius:10, background:COLORS.softer, flexShrink:0,
+        display:'flex', alignItems:'center', justifyContent:'center' }}>
+        <Icon name={icon} size={18} color={COLORS.accent} stroke={1.8}/>
+      </div>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{title}</div>
+        {subtitle && <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:2 }}>{subtitle}</div>}
+      </div>
+      {right}
+    </div>
+  );
+
+  const Toggle = ({ value, onChange }) => (
+    <div onClick={() => onChange(!value)} style={{
+      width:44, height:26, borderRadius:13, cursor:'pointer', flexShrink:0,
+      background: value ? COLORS.accent : COLORS.soft, position:'relative',
+      transition:'background 0.2s',
+    }}>
+      <div style={{
+        position:'absolute', top:3, left: value ? 21 : 3,
+        width:20, height:20, borderRadius:10, background:'#fff',
+        transition:'left 0.2s',
+        boxShadow:'0 1px 3px rgba(0,0,0,0.2)',
+      }}/>
+    </div>
+  );
+
+  const LangOption = ({ code, flag, label }) => (
+    <div onClick={() => setLang(code)} style={{
+      display:'flex', alignItems:'center', gap:14, padding:'14px 16px',
+      cursor:'pointer',
+    }}>
+      <span style={{ fontSize:22 }}>{flag}</span>
+      <div style={{ flex:1, fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{label}</div>
+      {lang === code && <Icon name="check" size={16} color={COLORS.accent} stroke={2.5}/>}
+    </div>
+  );
+
+  return (
+    <div style={{ position:'fixed', inset:0, zIndex:210, background:'rgba(0,0,0,0.4)',
+      display:'flex', flexDirection:'column', justifyContent:'flex-end' }} onClick={onClose}>
+      <div onClick={e => e.stopPropagation()} style={{
+        background:COLORS.bg, borderRadius:'22px 22px 0 0',
+        maxHeight:'88%', display:'flex', flexDirection:'column',
+        paddingBottom:'calc(24px + env(safe-area-inset-bottom,0px))',
+      }}>
+        <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 6px', flexShrink:0 }}>
+          <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
+        </div>
+        <div style={{ padding:'4px 20px 14px', display:'flex', alignItems:'center', borderBottom:`1px solid ${COLORS.line}`, flexShrink:0 }}>
+          <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, flex:1 }}>{t('settings')}</div>
+          <button onClick={onClose} style={{ background:'none', border:'none', cursor:'pointer', padding:4 }}>
+            <Icon name="x" size={20} color={COLORS.mute}/>
+          </button>
+        </div>
+        <div style={{ overflowY:'auto', flex:1, padding:'12px 16px' }}>
+          {/* Appearance */}
+          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
+          <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`, marginBottom:16 }}>
+            <Row
+              icon="moon"
+              title={t('darkMode')}
+              subtitle={t('darkModeDesc')}
+              right={<Toggle value={darkMode} onChange={setDarkMode}/>}
+            />
+          </div>
+          {/* Language */}
+          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
+          <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}` }}>
+            <LangOption code="ko" flag="🇰🇷" label={t('langKo')}/>
+            <div style={{ height:0.5, background:COLORS.line, margin:'0 16px' }}/>
+            <LangOption code="en" flag="🇺🇸" label={t('langEn')}/>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCompanions, onDeleteAccount, onOpenSettings }) {
   const [confirmDelete, setConfirmDelete] = React.useState(false);
   const [deleting, setDeleting] = React.useState(false);
   const [deleteError, setDeleteError] = React.useState('');
+  const t = useT();
 
   React.useEffect(() => { if (!open) { setConfirmDelete(false); setDeleting(false); setDeleteError(''); } }, [open]);
 
@@ -10689,9 +10823,24 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
           <button onClick={() => { fbSignOut(); onClose(); }} style={{
             border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px',
             background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute, cursor:'pointer',
-          }}>로그아웃</button>
+          }}>{t('logout')}</button>
         </div>
         <div style={{ overflowY:'auto', flex:1, padding:'14px 16px' }}>
+          {/* 설정 카드 */}
+          <div onClick={() => { onClose(); setTimeout(onOpenSettings, 100); }} style={{
+            background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`,
+            padding:'14px 16px', display:'flex', alignItems:'center', gap:12, marginBottom:10,
+            cursor:'pointer',
+          }}>
+            <div style={{ width:40, height:40, borderRadius:20, background:COLORS.softer, flexShrink:0,
+              display:'flex', alignItems:'center', justifyContent:'center' }}>
+              <Icon name="gear" size={18} color={COLORS.mute} stroke={1.8}/>
+            </div>
+            <div style={{ flex:1, minWidth:0 }}>
+              <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{t('settings')}</div>
+            </div>
+            <Icon name="chevron-right" size={16} color={COLORS.mute}/>
+          </div>
           {/* 동행인 카드 */}
           <div style={{
             background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`,
@@ -10702,20 +10851,20 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               <Icon name="users" size={18} color={COLORS.mute} stroke={1.8}/>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>동행인</div>
-              <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:2 }}>함께하는 여행 친구</div>
+              <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{t('companions')}</div>
+              <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:2 }}>{t('companionsDesc')}</div>
             </div>
             <div style={{ display:'flex', gap:8, flexShrink:0 }}>
               <button onClick={() => { onClose(); setTimeout(onViewCompanions, 100); }} style={{
                 padding:'7px 13px', borderRadius:10, border:`1px solid ${COLORS.line}`,
                 background:'transparent', cursor:'pointer',
                 fontFamily:SANS, fontSize:12, color:COLORS.ink,
-              }}>보기</button>
+              }}>{t('view')}</button>
               <button onClick={() => { onClose(); setTimeout(() => onAddCompanion(null), 100); }} style={{
                 padding:'7px 13px', borderRadius:10, border:'none',
                 background:COLORS.ink, cursor:'pointer',
                 fontFamily:SANS, fontSize:12, fontWeight:600, color:'#fff',
-              }}>추가</button>
+              }}>{t('addComp')}</button>
             </div>
           </div>
 
@@ -10726,35 +10875,34 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               background:'transparent', border:'none', cursor:'pointer',
               fontFamily:SANS, fontSize:12, color:COLORS.mute,
               textAlign:'center',
-            }}>계정 탈퇴</button>
+            }}>{t('deleteAccount')}</button>
           ) : (
             <div style={{
               background:'#FFF5F5', borderRadius:14, border:'1px solid #FFCDD2',
               padding:'16px', marginTop:4,
             }}>
               <div style={{ fontFamily:SANS, fontSize:13, fontWeight:600, color:'#C62828', marginBottom:6 }}>
-                정말 탈퇴할까요?
+                {t('confirmDelete')}
               </div>
               <div style={{ fontFamily:SANS, fontSize:12, color:'#B71C1C', lineHeight:1.5, marginBottom:14 }}>
-                모든 여행 데이터가 영구 삭제되며 복구할 수 없어요.
-                Google 계정으로 재인증 후 진행됩니다.
+                {t('confirmDeleteDesc')}
               </div>
               {deleteError && (
-                <div style={{ fontFamily:SANS, fontSize:11.5, color:'#C62828', marginBottom:10 }}>{deleteError}</div>
+                <div style={{ fontFamily:SANS, fontSize:11.5, color:'#C62828', marginBottom:10 }}>{t('deleteError')}</div>
               )}
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => { setConfirmDelete(false); setDeleteError(''); }} style={{
                   flex:1, padding:'10px 0', borderRadius:10,
                   border:`1px solid ${COLORS.line}`, background:'transparent',
                   fontFamily:SANS, fontSize:13, color:COLORS.ink, cursor:'pointer',
-                }}>취소</button>
+                }}>{t('cancel')}</button>
                 <button onClick={handleDelete} disabled={deleting} style={{
                   flex:1, padding:'10px 0', borderRadius:10,
                   border:'none', background:'#C62828',
                   fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff',
                   cursor: deleting ? 'not-allowed' : 'pointer',
                   opacity: deleting ? 0.7 : 1,
-                }}>{deleting ? '삭제 중...' : '탈퇴하기'}</button>
+                }}>{deleting ? t('deleting') : t('withdraw')}</button>
               </div>
             </div>
           )}
@@ -10828,6 +10976,20 @@ function App() {
   const [tripsLoading, setTripsLoading] = React.useState(!_cache?.userTrips);
   const [tripsReady,   setTripsReady]   = React.useState(false);
   const [profileSheetOpen,     setProfileSheetOpen]     = React.useState(false);
+  const [settingsSheetOpen,    setSettingsSheetOpen]    = React.useState(false);
+  const [darkMode, setDarkModeState] = React.useState(_appSettings.darkMode);
+  const [lang, setLangState] = React.useState(_appSettings.lang);
+  const setDarkMode = React.useCallback((val) => {
+    _appSettings.darkMode = val;
+    localStorage.setItem('tlj_darkMode', val);
+    Object.assign(COLORS, val ? DARK_COLORS : LIGHT_COLORS);
+    setDarkModeState(val);
+  }, []);
+  const setLang = React.useCallback((val) => {
+    _appSettings.lang = val;
+    localStorage.setItem('tlj_lang', val);
+    setLangState(val);
+  }, []);
   const [addCompanionOpen,     setAddCompanionOpen]     = React.useState(null); // null=closed, false=open(no trip), tripId=open(with trip)
   const [companionsScreenOpen, setCompanionsScreenOpen] = React.useState(false);
   const [notifOpen, setNotifOpen]               = React.useState(false);
@@ -11799,11 +11961,13 @@ function App() {
         authUser={authUser} trips={userTrips}
         onAddCompanion={(tripId) => setAddCompanionOpen(tripId || false)}
         onViewCompanions={() => { setProfileSheetOpen(false); setCompanionsScreenOpen(true); }}
+        onOpenSettings={() => { setProfileSheetOpen(false); setSettingsSheetOpen(true); }}
         onDeleteAccount={() => {
           ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav','tlj_userTrips'].forEach(k => localStorage.removeItem(k));
           setAuthState('out'); setAuthUser(null); setUserData(null);
           setProfileSheetOpen(false);
         }}/>
+      <SettingsSheet open={settingsSheetOpen} onClose={() => setSettingsSheetOpen(false)}/>
       <AddCompanionSheet open={addCompanionOpen !== null} onClose={() => setAddCompanionOpen(null)}
         authUser={authUser} userData={userData} trips={userTrips}
         defaultTripId={addCompanionOpen || null}
@@ -11893,6 +12057,7 @@ function App() {
   swipeBackRef.current = swipeBack;
 
   return (
+    <SettingsCtx.Provider value={{ darkMode, lang, setDarkMode, setLang }}>
     <div style={{ minHeight:'100vh', fontFamily:'-apple-system, system-ui, sans-serif', background:'#F5F2EC' }}>
       <div style={{ overflowX:'hidden' }}>
         <div key={slideKey}
@@ -11936,11 +12101,13 @@ function App() {
         authUser={authUser} trips={userTrips}
         onAddCompanion={(tripId) => setAddCompanionOpen(tripId || false)}
         onViewCompanions={() => { setProfileSheetOpen(false); setCompanionsScreenOpen(true); }}
+        onOpenSettings={() => { setProfileSheetOpen(false); setSettingsSheetOpen(true); }}
         onDeleteAccount={() => {
           ['tlj_authed','tlj_userData','tlj_trip','tlj_prep','tlj_nav','tlj_userTrips'].forEach(k => localStorage.removeItem(k));
           setAuthState('out'); setAuthUser(null); setUserData(null);
           setProfileSheetOpen(false);
         }}/>
+      <SettingsSheet open={settingsSheetOpen} onClose={() => setSettingsSheetOpen(false)}/>
       <AddCompanionSheet open={addCompanionOpen !== null} onClose={() => setAddCompanionOpen(null)}
         authUser={authUser} userData={userData} trips={userTrips}
         defaultTripId={addCompanionOpen || null}
@@ -12035,6 +12202,7 @@ function App() {
         document.body
       )}
     </div>
+    </SettingsCtx.Provider>
   );
 }
 

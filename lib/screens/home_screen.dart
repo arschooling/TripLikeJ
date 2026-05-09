@@ -40,14 +40,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
 
     if (trips == null || widget.tripIndex >= trips.length) {
-      return const Scaffold(
-        backgroundColor: AppColors.bg,
+      return Scaffold(
+        backgroundColor: c.bg,
         body: Center(
-          child: CircularProgressIndicator(color: AppColors.accent),
+          child: CircularProgressIndicator(color: c.accent),
         ),
       );
     }
@@ -57,7 +58,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     if (!_editing) _titleController!.text = trip.title;
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         bottom: false,
         child: Stack(
@@ -71,15 +72,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-                            size: 18, color: AppColors.ink),
+                        icon: Icon(Icons.arrow_back_ios_new_rounded,
+                            size: 18, color: c.ink),
                         onPressed: () => Navigator.pop(context),
                       ),
                       Expanded(
                         child: _editing
                             ? TextField(
                                 controller: _titleController,
-                                style: AppText.serif(18),
+                                style: AppText.serif(18, color: c.ink),
                                 onSubmitted: (v) {
                                   ref
                                       .read(tripsProvider.notifier)
@@ -92,7 +93,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                       const EdgeInsets.symmetric(
                                           horizontal: 8, vertical: 6),
                                   filled: true,
-                                  fillColor: AppColors.softer,
+                                  fillColor: c.softer,
                                   border: OutlineInputBorder(
                                     borderRadius: BorderRadius.circular(
                                         AppRadius.input),
@@ -102,7 +103,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               )
                             : Text(
                                 trip.title,
-                                style: AppText.serif(20),
+                                style: AppText.serif(20, color: c.ink),
                                 overflow: TextOverflow.ellipsis,
                               ),
                       ),
@@ -138,9 +139,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ],
                   ),
                 ),
-                // Bottom padding for tab bar
-                SizedBox(
-                    height: 80 + MediaQuery.of(context).padding.bottom),
+                SizedBox(height: 80 + MediaQuery.of(context).padding.bottom),
               ],
             ),
             FloatingTabBar(
@@ -216,6 +215,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null || widget.tripIndex >= trips.length) {
@@ -226,39 +226,26 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
     return ListView(
       padding: EdgeInsets.zero,
       children: [
-        // Cover photo
         Stack(
           children: [
-            const PhotoPlaceholder(
-              hue: 25,
-              label: '',
-              height: 200,
-            ),
+            const PhotoPlaceholder(hue: 25, label: '', height: 200),
             Positioned(
-              left: AppSpacing.pagePad,
-              bottom: 18,
-              right: AppSpacing.pagePad,
+              left: AppSpacing.pagePad, bottom: 18, right: AppSpacing.pagePad,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(trip.title,
-                      style: AppText.serif(28, color: Colors.white)),
+                  Text(trip.title, style: AppText.serif(28, color: Colors.white)),
                   if (trip.dates.isNotEmpty)
-                    Text(trip.dates,
-                        style: AppText.mono(10, color: Colors.white)),
+                    Text(trip.dates, style: AppText.mono(10, color: Colors.white)),
                 ],
               ),
             ),
           ],
         ),
-
         const SizedBox(height: AppSpacing.sectionGap),
-
-        // Travelers
         if (trip.travelers.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pagePad),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
             child: Wrap(
               spacing: 6,
               children: trip.travelers
@@ -266,49 +253,41 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                   .map((t) => t.trim())
                   .where((t) => t.isNotEmpty)
                   .map((t) => Container(
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
-                          color: AppColors.soft,
-                          borderRadius:
-                              BorderRadius.circular(AppRadius.chip),
+                          color: c.soft,
+                          borderRadius: BorderRadius.circular(AppRadius.chip),
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.person_outline_rounded,
-                                size: 12, color: AppColors.mute),
+                            Icon(Icons.person_outline_rounded, size: 12, color: c.mute),
                             const SizedBox(width: 4),
-                            Text(t, style: AppText.sans(12)),
+                            Text(t, style: AppText.sans(12, color: c.ink)),
                           ],
                         ),
                       ))
                   .toList(),
             ),
           ),
-
-        // ── Hotels section ─────────────────────────────────────
+        // ── Hotels ─────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.pagePad, AppSpacing.sectionGap, AppSpacing.pagePad, 8),
           child: Row(
             children: [
-              Text('숙소', style: AppText.serif(18)),
+              Text('숙소', style: AppText.serif(18, color: c.ink)),
               const Spacer(),
               if (widget.editing)
                 GestureDetector(
-                  onTap: () => ref
-                      .read(tripsProvider.notifier)
-                      .addHotel(widget.tripIndex),
+                  onTap: () => ref.read(tripsProvider.notifier).addHotel(widget.tripIndex),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: AppColors.soft,
+                      color: c.soft,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
-                    child: Text('+ 추가',
-                        style: AppText.sans(12, color: AppColors.mute)),
+                    child: Text('+ 추가', style: AppText.sans(12, color: c.mute)),
                   ),
                 ),
             ],
@@ -316,18 +295,15 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
         ),
         if (trip.hotels.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pagePad),
-            child: Text('숙소를 추가해보세요',
-                style: AppText.sans(13, color: AppColors.mute)),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
+            child: Text('숙소를 추가해보세요', style: AppText.sans(13, color: c.mute)),
           )
         else
           SizedBox(
             height: 180,
             child: ListView.builder(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.pagePad),
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
               itemCount: trip.hotels.length,
               itemBuilder: (ctx, i) {
                 final hotel = trip.hotels[i];
@@ -338,9 +314,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                     context,
                     CupertinoPageRoute(
                       builder: (_) => HotelDetailScreen(
-                        tripIndex: widget.tripIndex,
-                        hotelIndex: i,
-                      ),
+                        tripIndex: widget.tripIndex, hotelIndex: i),
                     ),
                   ),
                   onDelete: () => ref
@@ -350,29 +324,24 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
               },
             ),
           ),
-
-        // ── Days section ────────────────────────────────────────
+        // ── Days ────────────────────────────────────────────
         Padding(
           padding: const EdgeInsets.fromLTRB(
               AppSpacing.pagePad, AppSpacing.sectionGap, AppSpacing.pagePad, 8),
           child: Row(
             children: [
-              Text('일정', style: AppText.serif(18)),
+              Text('일정', style: AppText.serif(18, color: c.ink)),
               const Spacer(),
               if (widget.editing)
                 GestureDetector(
-                  onTap: () => ref
-                      .read(tripsProvider.notifier)
-                      .addDay(widget.tripIndex),
+                  onTap: () => ref.read(tripsProvider.notifier).addDay(widget.tripIndex),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 5),
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
-                      color: AppColors.soft,
+                      color: c.soft,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
-                    child: Text('+ 일정 추가',
-                        style: AppText.sans(12, color: AppColors.mute)),
+                    child: Text('+ 일정 추가', style: AppText.sans(12, color: c.mute)),
                   ),
                 ),
             ],
@@ -380,25 +349,20 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
         ),
         if (trip.days.isEmpty)
           Padding(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pagePad),
-            child: Text('일정을 추가해보세요',
-                style: AppText.sans(13, color: AppColors.mute)),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
+            child: Text('일정을 추가해보세요', style: AppText.sans(13, color: c.mute)),
           )
         else
           widget.editing
               ? _ReorderableDayList(tripIndex: widget.tripIndex, trip: trip)
               : _DayCardList(tripIndex: widget.tripIndex, trip: trip),
-
-        // ── Info cards ──────────────────────────────────────────
+        // ── Info cards ─────────────────────────────────────
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.pagePad, AppSpacing.sectionGap, AppSpacing.pagePad, 0),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pagePad, AppSpacing.sectionGap, AppSpacing.pagePad, 0),
           child: _FxCard(rates: _rates, loading: _loadingRates),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.pagePad, 10, AppSpacing.pagePad, 0),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pagePad, 10, AppSpacing.pagePad, 0),
           child: _TimezoneCard(),
         ),
         const SizedBox(height: 32),
@@ -407,7 +371,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
   }
 }
 
-// ── Hotel card (horizontal scroll) ───────────────────────────────────────
+// ── Hotel card ────────────────────────────────────────────────────────────
 
 class _HotelCard extends StatelessWidget {
   final TripHotel hotel;
@@ -416,26 +380,22 @@ class _HotelCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _HotelCard({
-    required this.hotel,
-    required this.editing,
-    required this.onTap,
-    required this.onDelete,
+    required this.hotel, required this.editing,
+    required this.onTap, required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         width: 160,
         margin: const EdgeInsets.only(right: 10),
         decoration: BoxDecoration(
-          color: AppColors.card,
+          color: c.card,
           borderRadius: BorderRadius.circular(AppRadius.card),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)
-          ],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 8)],
         ),
         clipBehavior: Clip.antiAlias,
         child: Stack(
@@ -449,30 +409,22 @@ class _HotelCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(hotel.name,
-                          style: AppText.serif(14),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis),
+                      Text(hotel.name, style: AppText.serif(14, color: c.ink),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
                       if (hotel.area.isNotEmpty)
-                        Text(hotel.area,
-                            style: AppText.mono(9, letterSpacing: 0.5)),
+                        Text(hotel.area, style: AppText.mono(9, letterSpacing: 0.5, color: c.mute)),
                       const SizedBox(height: 4),
-                      Text(
-                        '${hotel.checkin} → ${hotel.checkout}',
-                        style: AppText.sans(11, color: AppColors.mute),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                      Text('${hotel.checkin} → ${hotel.checkout}',
+                          style: AppText.sans(11, color: c.mute),
+                          maxLines: 1, overflow: TextOverflow.ellipsis),
                       if (hotel.rating != null) ...[
                         const SizedBox(height: 4),
                         Row(
                           children: List.generate(5, (i) {
                             return Icon(
                               i < hotel.rating!.floor()
-                                  ? Icons.star_rounded
-                                  : Icons.star_border_rounded,
-                              size: 11,
-                              color: AppColors.accent,
+                                  ? Icons.star_rounded : Icons.star_border_rounded,
+                              size: 11, color: c.accent,
                             );
                           }),
                         ),
@@ -484,17 +436,13 @@ class _HotelCard extends StatelessWidget {
             ),
             if (editing)
               Positioned(
-                top: 6,
-                right: 6,
+                top: 6, right: 6,
                 child: GestureDetector(
                   onTap: onDelete,
                   child: Container(
-                    width: 22,
-                    height: 22,
-                    decoration: const BoxDecoration(
-                        shape: BoxShape.circle, color: AppColors.accent),
-                    child: const Icon(Icons.close_rounded,
-                        size: 13, color: Colors.white),
+                    width: 22, height: 22,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: c.accent),
+                    child: const Icon(Icons.close_rounded, size: 13, color: Colors.white),
                   ),
                 ),
               ),
@@ -510,7 +458,6 @@ class _HotelCard extends StatelessWidget {
 class _DayCardList extends StatelessWidget {
   final int tripIndex;
   final Trip trip;
-
   const _DayCardList({required this.tripIndex, required this.trip});
 
   @override
@@ -521,13 +468,11 @@ class _DayCardList extends StatelessWidget {
         final day = e.value;
         return _DayCard(
           key: ValueKey(day.n),
-          day: day,
-          editing: false,
+          day: day, editing: false,
           onTap: () => Navigator.push(
             context,
             CupertinoPageRoute(
-              builder: (_) => DayDetailScreen(
-                  tripIndex: tripIndex, dayIndex: i),
+              builder: (_) => DayDetailScreen(tripIndex: tripIndex, dayIndex: i),
             ),
           ),
           onDelete: () {},
@@ -540,41 +485,32 @@ class _DayCardList extends StatelessWidget {
 class _ReorderableDayList extends ConsumerWidget {
   final int tripIndex;
   final Trip trip;
-
-  const _ReorderableDayList(
-      {required this.tripIndex, required this.trip});
+  const _ReorderableDayList({required this.tripIndex, required this.trip});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Theme(
-      data: Theme.of(context)
-          .copyWith(canvasColor: Colors.transparent),
+      data: Theme.of(context).copyWith(canvasColor: Colors.transparent),
       child: ReorderableListView.builder(
         shrinkWrap: true,
         physics: const NeverScrollableScrollPhysics(),
         itemCount: trip.days.length,
         onReorder: (oldIdx, newIdx) {
           if (newIdx > oldIdx) newIdx--;
-          ref
-              .read(tripsProvider.notifier)
-              .reorderDays(tripIndex, oldIdx, newIdx);
+          ref.read(tripsProvider.notifier).reorderDays(tripIndex, oldIdx, newIdx);
         },
         itemBuilder: (ctx, i) {
           final day = trip.days[i];
           return _DayCard(
             key: ValueKey(day.n),
-            day: day,
-            editing: true,
+            day: day, editing: true,
             onTap: () => Navigator.push(
               context,
               CupertinoPageRoute(
-                builder: (_) =>
-                    DayDetailScreen(tripIndex: tripIndex, dayIndex: i),
+                builder: (_) => DayDetailScreen(tripIndex: tripIndex, dayIndex: i),
               ),
             ),
-            onDelete: () => ref
-                .read(tripsProvider.notifier)
-                .deleteDay(tripIndex, i),
+            onDelete: () => ref.read(tripsProvider.notifier).deleteDay(tripIndex, i),
           );
         },
       ),
@@ -589,15 +525,18 @@ class _DayCard extends StatelessWidget {
   final VoidCallback onDelete;
 
   const _DayCard({
-    super.key,
-    required this.day,
-    required this.editing,
-    required this.onTap,
-    required this.onDelete,
+    super.key, required this.day, required this.editing,
+    required this.onTap, required this.onDelete,
   });
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
+    final wdLower = day.weekday.toLowerCase();
+    final wdColor = wdLower == 'sat'
+        ? c.saturdayBlue
+        : wdLower == 'sun' ? c.sundayRed : c.mute;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(
           AppSpacing.pagePad, 0, AppSpacing.pagePad, AppSpacing.listGap),
@@ -605,147 +544,82 @@ class _DayCard extends StatelessWidget {
         onTap: onTap,
         child: Container(
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: c.card,
             borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 8,
-              ),
+              BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8),
             ],
           ),
           clipBehavior: Clip.antiAlias,
-          child: Builder(builder: (context) {
-            final wdLower = day.weekday.toLowerCase();
-            final wdColor = wdLower == 'sat'
-                ? AppColors.saturdayBlue
-                : wdLower == 'sun'
-                    ? AppColors.sundayRed
-                    : AppColors.mute;
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (editing)
-                  GestureDetector(
-                    onTap: onDelete,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (editing)
+                GestureDetector(
+                  onTap: onDelete,
+                  child: Container(
+                    width: 44,
+                    alignment: Alignment.center,
                     child: Container(
-                      width: 44,
-                      alignment: Alignment.center,
-                      child: Container(
-                        width: 22,
-                        height: 22,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.accent,
-                        ),
-                        child: const Icon(Icons.remove,
-                            size: 14, color: Colors.white),
-                      ),
+                      width: 22, height: 22,
+                      decoration: BoxDecoration(shape: BoxShape.circle, color: c.accent),
+                      child: const Icon(Icons.remove, size: 14, color: Colors.white),
                     ),
                   ),
-                Container(
-                  width: 64,
-                  height: 64,
-                  margin: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: PhotoPlaceholder(
-                    hue: day.heroHue,
-                    label: '',
-                    height: 64,
-                    small: true,
-                  ),
                 ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 3),
-                        child: Text(
-                          'Day ${day.n.toString().padLeft(2, '0')}',
-                          style: AppText.mono(9.5,
-                              color: AppColors.mute,
-                              letterSpacing: 1.0),
-                        ),
-                      ),
-                      Text(day.title, style: AppText.serif(16)),
-                      if (day.items.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            '${day.items.length} stops',
-                            style: AppText.sans(11,
-                                color: AppColors.mute),
-                          ),
-                        ),
-                    ],
-                  ),
+              Container(
+                width: 64, height: 64,
+                margin: const EdgeInsets.all(12),
+                decoration: BoxDecoration(borderRadius: BorderRadius.circular(10)),
+                clipBehavior: Clip.antiAlias,
+                child: PhotoPlaceholder(hue: day.heroHue, label: '', height: 64, small: true),
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Day ${day.n.toString().padLeft(2, '0')}',
+                        style: AppText.mono(9.5, color: c.mute, letterSpacing: 1.0)),
+                    Text(day.title, style: AppText.serif(16, color: c.ink)),
+                    if (day.items.isNotEmpty)
+                      Text('${day.items.length} stops',
+                          style: AppText.sans(11, color: c.mute)),
+                  ],
                 ),
-                if (editing)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Icon(Icons.drag_handle_rounded,
-                        color: AppColors.mute, size: 18),
-                  )
-                else
-                  Builder(builder: (context) {
-                    final parts = day.date.split(' ');
-                    final month = parts.isNotEmpty
-                        ? parts[0].toUpperCase()
-                        : '';
-                    final dayNum = parts.length > 1
-                        ? parts[1].replaceAll(',', '')
-                        : '';
-                    return SizedBox(
-                      width: 60,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          if (day.weekday.isNotEmpty)
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                day.weekday.toUpperCase(),
-                                textAlign: TextAlign.center,
-                                style: AppText.mono(13,
-                                    color: wdColor,
-                                    letterSpacing: 1.0),
-                              ),
-                            ),
-                          if (dayNum.isNotEmpty)
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                dayNum,
-                                textAlign: TextAlign.center,
-                                style: AppText.mono(24,
-                                    color: wdColor,
-                                    letterSpacing: 0,
-                                    weight: FontWeight.w700),
-                              ),
-                            ),
-                          if (month.isNotEmpty)
-                            SizedBox(
-                              width: 60,
-                              child: Text(
-                                month,
-                                textAlign: TextAlign.center,
-                                style: AppText.mono(10,
-                                    color: AppColors.mute,
-                                    letterSpacing: 1.0),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }),
-              ],
-            );
-          }),
+              ),
+              if (editing)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Icon(Icons.drag_handle_rounded, color: c.mute, size: 18),
+                )
+              else
+                Builder(builder: (ctx) {
+                  final parts = day.date.split(' ');
+                  final month = parts.isNotEmpty ? parts[0].toUpperCase() : '';
+                  final dayNum = parts.length > 1 ? parts[1].replaceAll(',', '') : '';
+                  return SizedBox(
+                    width: 60,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        if (day.weekday.isNotEmpty)
+                          Text(day.weekday.toUpperCase(),
+                              textAlign: TextAlign.center,
+                              style: AppText.mono(13, color: wdColor, letterSpacing: 1.0)),
+                        if (dayNum.isNotEmpty)
+                          Text(dayNum, textAlign: TextAlign.center,
+                              style: AppText.mono(24, color: wdColor, letterSpacing: 0,
+                                  weight: FontWeight.w700)),
+                        if (month.isNotEmpty)
+                          Text(month, textAlign: TextAlign.center,
+                              style: AppText.mono(10, color: c.mute, letterSpacing: 1.0)),
+                      ],
+                    ),
+                  );
+                }),
+            ],
+          ),
         ),
       ),
     );
@@ -757,50 +631,42 @@ class _DayCard extends StatelessWidget {
 class _FxCard extends StatelessWidget {
   final Map<String, double>? rates;
   final bool loading;
-
   const _FxCard({required this.rates, required this.loading});
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadSm),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: c.card,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Text('환율', style: AppText.sans(12, color: AppColors.mute)),
+              Text('환율', style: AppText.sans(12, color: c.mute)),
               const SizedBox(width: 6),
-              Text('1 USD 기준',
-                  style: AppText.mono(9, letterSpacing: 0.5)),
+              Text('1 USD 기준', style: AppText.mono(9, letterSpacing: 0.5, color: c.mute)),
             ],
           ),
           const SizedBox(height: 8),
           if (loading)
-            Text('불러오는 중…',
-                style: AppText.sans(12, color: AppColors.mute))
+            Text('불러오는 중…', style: AppText.sans(12, color: c.mute))
           else if (rates == null)
-            Text('환율 정보를 가져오지 못했습니다',
-                style: AppText.sans(12, color: AppColors.mute))
+            Text('환율 정보를 가져오지 못했습니다', style: AppText.sans(12, color: c.mute))
           else
             Row(
               children: [
                 if (rates!['KRW'] != null)
-                  _RateChip('KRW',
-                      '₩${rates!['KRW']!.toStringAsFixed(0)}'),
+                  _RateChip('KRW', '₩${rates!['KRW']!.toStringAsFixed(0)}', c),
                 if (rates!['KRW'] != null && rates!['JPY'] != null)
                   const SizedBox(width: 10),
                 if (rates!['JPY'] != null)
-                  _RateChip(
-                      'JPY', '¥${rates!['JPY']!.toStringAsFixed(0)}'),
+                  _RateChip('JPY', '¥${rates!['JPY']!.toStringAsFixed(0)}', c),
               ],
             ),
         ],
@@ -812,25 +678,21 @@ class _FxCard extends StatelessWidget {
 class _RateChip extends StatelessWidget {
   final String currency;
   final String value;
-
-  const _RateChip(this.currency, this.value);
+  final AppColors c;
+  const _RateChip(this.currency, this.value, this.c);
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding:
-          const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
-        color: AppColors.softer,
-        borderRadius: BorderRadius.circular(AppRadius.chip),
+        color: c.softer, borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Column(
         children: [
-          Text(currency, style: AppText.mono(9, letterSpacing: 1)),
+          Text(currency, style: AppText.mono(9, letterSpacing: 1, color: c.mute)),
           const SizedBox(height: 2),
-          Text(value,
-              style: AppText.mono(12,
-                  color: AppColors.ink, letterSpacing: 0.5)),
+          Text(value, style: AppText.mono(12, color: c.ink, letterSpacing: 0.5)),
         ],
       ),
     );
@@ -842,27 +704,23 @@ class _RateChip extends StatelessWidget {
 class _TimezoneCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.cardPadSm),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: c.card,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        boxShadow: [
-          BoxShadow(
-              color: Colors.black.withValues(alpha: 0.04), blurRadius: 6),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 6)],
       ),
       child: Row(
         children: [
-          const Icon(Icons.schedule_rounded, size: 14, color: AppColors.mute),
+          Icon(Icons.schedule_rounded, size: 14, color: c.mute),
           const SizedBox(width: 8),
-          Text('뉴욕 UTC-5',
-              style: AppText.mono(10, letterSpacing: 0.5)),
+          Text('뉴욕 UTC-5', style: AppText.mono(10, letterSpacing: 0.5, color: c.ink)),
           const SizedBox(width: 8),
-          Container(width: 1, height: 12, color: AppColors.line),
+          Container(width: 1, height: 12, color: c.line),
           const SizedBox(width: 8),
-          Text('서울 UTC+9',
-              style: AppText.mono(10, letterSpacing: 0.5)),
+          Text('서울 UTC+9', style: AppText.mono(10, letterSpacing: 0.5, color: c.ink)),
         ],
       ),
     );

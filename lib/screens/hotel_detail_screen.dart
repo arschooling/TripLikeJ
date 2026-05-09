@@ -113,14 +113,15 @@ class _HotelDetailScreenState extends ConsumerState<HotelDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     final tripsAsync = ref.watch(tripsProvider);
     final trips = tripsAsync.value;
     if (trips == null ||
         widget.tripIndex >= trips.length ||
         widget.hotelIndex >= trips[widget.tripIndex].hotels.length) {
-      return const Scaffold(
-        body: Center(
-            child: CircularProgressIndicator(color: AppColors.accent)),
+      return Scaffold(
+        backgroundColor: c.bg,
+        body: Center(child: CircularProgressIndicator(color: c.accent)),
       );
     }
     final hotel = trips[widget.tripIndex].hotels[widget.hotelIndex];
@@ -132,7 +133,7 @@ class _HotelDetailScreenState extends ConsumerState<HotelDetailScreen> {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.bg,
+      backgroundColor: c.bg,
       body: SafeArea(
         child: Column(
           children: [
@@ -295,6 +296,7 @@ class _ViewContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -303,12 +305,12 @@ class _ViewContent extends StatelessWidget {
           const SizedBox(height: 2),
           Text(hotel.area, style: AppText.mono(10)),
         ],
-        const SizedBox(height: 12),
+        SizedBox(height: 12),
         // Checkin/Checkout
         Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.card,
+            color: c.card,
             borderRadius: BorderRadius.circular(AppRadius.card),
             boxShadow: [
               BoxShadow(
@@ -324,7 +326,7 @@ class _ViewContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('체크인',
-                        style: AppText.sans(11, color: AppColors.mute)),
+                        style: AppText.sans(11, color: c.mute)),
                     Text(hotel.checkin, style: AppText.sans(13)),
                     if (hotel.checkinTime != null)
                       Text(hotel.checkinTime!,
@@ -332,14 +334,14 @@ class _ViewContent extends StatelessWidget {
                   ],
                 ),
               ),
-              const Icon(Icons.arrow_forward_rounded,
-                  size: 16, color: AppColors.mute),
+              Icon(Icons.arrow_forward_rounded,
+                  size: 16, color: c.mute),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('체크아웃',
-                        style: AppText.sans(11, color: AppColors.mute)),
+                        style: AppText.sans(11, color: c.mute)),
                     Text(hotel.checkout, style: AppText.sans(13)),
                     if (hotel.checkoutTime != null)
                       Text(hotel.checkoutTime!,
@@ -370,12 +372,12 @@ class _ViewContent extends StatelessWidget {
           _InfoRow(Icons.location_on_rounded, hotel.address!),
         ],
         if (hotel.phone != null && hotel.phone!.isNotEmpty) ...[
-          const SizedBox(height: 6),
+          SizedBox(height: 6),
           _InfoRow(Icons.phone_rounded, hotel.phone!),
         ],
         if (hotel.amenities.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          Text('편의시설', style: AppText.sans(12, color: AppColors.mute)),
+          SizedBox(height: 14),
+          Text('편의시설', style: AppText.sans(12, color: c.mute)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -385,7 +387,7 @@ class _ViewContent extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.soft,
+                        color: c.soft,
                         borderRadius: BorderRadius.circular(AppRadius.chip),
                       ),
                       child: Text(a, style: AppText.sans(12)),
@@ -394,10 +396,10 @@ class _ViewContent extends StatelessWidget {
           ),
         ],
         if (hotel.note != null && hotel.note!.isNotEmpty) ...[
-          const SizedBox(height: 14),
-          Text('메모', style: AppText.sans(12, color: AppColors.mute)),
-          const SizedBox(height: 4),
-          Text(hotel.note!, style: AppText.sans(13, color: AppColors.mute)),
+          SizedBox(height: 14),
+          Text('메모', style: AppText.sans(12, color: c.mute)),
+          SizedBox(height: 4),
+          Text(hotel.note!, style: AppText.sans(13, color: c.mute)),
         ],
       ],
     );
@@ -447,12 +449,13 @@ class _EditContent extends StatelessWidget {
     required this.onPickCheckoutTime,
   });
 
-  Widget _field(String label, TextEditingController ctrl,
+  Widget _field(BuildContext context, String label, TextEditingController ctrl,
       {TextInputType? keyboardType, int maxLines = 1, VoidCallback? onTap, bool readOnly = false}) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(11, color: AppColors.mute)),
+        Text(label, style: AppText.sans(11, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
@@ -460,12 +463,12 @@ class _EditContent extends StatelessWidget {
           maxLines: maxLines,
           readOnly: readOnly || onTap != null,
           onTap: onTap,
-          style: AppText.sans(14),
+          style: AppText.sans(14, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
             filled: true,
-            fillColor: AppColors.softer,
+            fillColor: c.softer,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppRadius.input),
               borderSide: BorderSide.none,
@@ -479,51 +482,52 @@ class _EditContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _field('호텔명', nameCtrl),
+        _field(context, '호텔명', nameCtrl),
         const SizedBox(height: 10),
-        _field('지역', areaCtrl),
+        _field(context, '지역', areaCtrl),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
-              child: _field('체크인 날짜', checkinCtrl,
+              child: _field(context, '체크인 날짜', checkinCtrl,
                   onTap: onPickCheckin, readOnly: true)),
           const SizedBox(width: 10),
           Expanded(
-              child: _field('체크인 시간', checkinTimeCtrl,
+              child: _field(context, '체크인 시간', checkinTimeCtrl,
                   onTap: onPickCheckinTime, readOnly: true)),
         ]),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
-              child: _field('체크아웃 날짜', checkoutCtrl,
+              child: _field(context, '체크아웃 날짜', checkoutCtrl,
                   onTap: onPickCheckout, readOnly: true)),
           const SizedBox(width: 10),
           Expanded(
-              child: _field('체크아웃 시간', checkoutTimeCtrl,
+              child: _field(context, '체크아웃 시간', checkoutTimeCtrl,
                   onTap: onPickCheckoutTime, readOnly: true)),
         ]),
         const SizedBox(height: 10),
         Row(children: [
           Expanded(
-              child: _field('숙박일수', nightsCtrl,
+              child: _field(context, '숙박일수', nightsCtrl,
                   keyboardType: TextInputType.number)),
           const SizedBox(width: 10),
-          Expanded(child: _field('가격', priceCtrl)),
+          Expanded(child: _field(context, '가격', priceCtrl)),
         ]),
         const SizedBox(height: 10),
-        _field('주소', addressCtrl),
+        _field(context, '주소', addressCtrl),
         const SizedBox(height: 10),
-        _field('전화번호', phoneCtrl, keyboardType: TextInputType.phone),
+        _field(context, '전화번호', phoneCtrl, keyboardType: TextInputType.phone),
         const SizedBox(height: 10),
-        _field('평점 (0-5)', ratingCtrl,
+        _field(context, '평점 (0-5)', ratingCtrl,
             keyboardType:
                 const TextInputType.numberWithOptions(decimal: true)),
-        const SizedBox(height: 14),
+        SizedBox(height: 14),
         // Amenities
-        Text('편의시설', style: AppText.sans(12, color: AppColors.mute)),
+        Text('편의시설', style: AppText.sans(12, color: c.mute)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
@@ -541,16 +545,16 @@ class _EditContent extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(
                           horizontal: 10, vertical: 5),
                       decoration: BoxDecoration(
-                        color: AppColors.soft,
+                        color: c.soft,
                         borderRadius: BorderRadius.circular(AppRadius.chip),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(e.value, style: AppText.sans(12)),
-                          const SizedBox(width: 4),
-                          const Icon(Icons.close_rounded,
-                              size: 12, color: AppColors.mute),
+                          SizedBox(width: 4),
+                          Icon(Icons.close_rounded,
+                              size: 12, color: c.mute),
                         ],
                       ),
                     ),
@@ -566,11 +570,11 @@ class _EditContent extends StatelessWidget {
                 style: AppText.sans(13),
                 decoration: InputDecoration(
                   hintText: '편의시설 추가 (예: WiFi)',
-                  hintStyle: AppText.sans(13, color: AppColors.mute),
+                  hintStyle: AppText.sans(13, color: c.mute),
                   contentPadding: const EdgeInsets.symmetric(
                       horizontal: 12, vertical: 10),
                   filled: true,
-                  fillColor: AppColors.softer,
+                  fillColor: c.softer,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(AppRadius.input),
                     borderSide: BorderSide.none,
@@ -592,7 +596,7 @@ class _EditContent extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.ink,
+                  color: c.ink,
                   borderRadius: BorderRadius.circular(AppRadius.input),
                 ),
                 child: Text('+',
@@ -603,7 +607,7 @@ class _EditContent extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 10),
-        _field('메모', noteCtrl, maxLines: 3),
+        _field(context, '메모', noteCtrl, maxLines: 3),
         const SizedBox(height: 20),
       ],
     );
@@ -617,10 +621,11 @@ class _Chip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: AppColors.soft,
+        color: c.soft,
         borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Text(text, style: AppText.mono(10, letterSpacing: 0.5)),
@@ -635,6 +640,7 @@ class _StarRating extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: List.generate(5, (i) {
@@ -647,7 +653,7 @@ class _StarRating extends StatelessWidget {
                   ? Icons.star_rounded
                   : Icons.star_border_rounded,
           size: 14,
-          color: AppColors.accent,
+          color: c.accent,
         );
       }),
     );
@@ -662,13 +668,14 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final c = context.colors;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 14, color: AppColors.mute),
-        const SizedBox(width: 6),
+        Icon(icon, size: 14, color: c.mute),
+        SizedBox(width: 6),
         Expanded(
-            child: Text(text, style: AppText.sans(13, color: AppColors.mute))),
+            child: Text(text, style: AppText.sans(13, color: c.mute))),
       ],
     );
   }
