@@ -57,16 +57,9 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                         context,
                         CupertinoPageRoute(builder: (_) => const SettingsScreen()),
                       ),
-                      child: Container(
-                        width: 34,
-                        height: 34,
-                        margin: const EdgeInsets.only(right: 8),
-                        decoration: BoxDecoration(
-                          color: c.softer,
-                          shape: BoxShape.circle,
-                          border: Border.all(color: c.line, width: 1),
-                        ),
-                        child: Icon(Icons.person_rounded, size: 18, color: c.mute),
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 8, left: 4),
+                        child: Icon(Icons.settings_rounded, size: 22, color: c.mute),
                       ),
                     ),
                     EditButton(

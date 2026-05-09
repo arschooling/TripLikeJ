@@ -3,6 +3,8 @@ class AppStrings {
   const AppStrings(this.lang);
 
   bool get isEn => lang == 'en';
+  bool get isJa => lang == 'ja';
+  bool get isZh => lang == 'zh';
 
   // Navigation
   String get myTrips       => 'My Trips';
@@ -29,9 +31,11 @@ class AppStrings {
   String get darkMode      => isEn ? 'Dark Mode'     : '다크 모드';
   String get darkModeDesc  => isEn ? 'Dark background for low-light use' : '어두운 배경으로 전환';
   String get language      => isEn ? 'Language'      : '언어';
-  String get langKorean    => isEn ? 'Korean'        : '한국어';
-  String get langEnglish   => isEn ? 'English'       : '영어';
-  String get appearance    => isEn ? 'Appearance'    : '화면';
+  String get langKorean    => isEn ? 'Korean'   : isJa ? '韓国語' : isZh ? '韩语'   : '한국어';
+  String get langEnglish   => isEn ? 'English'  : isJa ? '英語'   : isZh ? '英语'   : '영어';
+  String get langJapanese  => isEn ? 'Japanese' : isJa ? '日本語' : isZh ? '日语'   : '일본어';
+  String get langChinese   => isEn ? 'Chinese'  : isJa ? '中国語' : isZh ? '中文'   : '중국어';
+  String get appearance    => isEn ? 'Appearance' : isJa ? '外観' : isZh ? '外观'   : '화면';
 
   // Home screen
   String get loading       => isEn ? 'Loading…'   : '로딩 중…';
