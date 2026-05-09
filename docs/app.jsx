@@ -2266,7 +2266,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v107</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v109</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>로딩 중...</div>
@@ -8812,10 +8812,26 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
+const DOLOMITES_TREKKING = [
+  { id:'dlt_1',  name:'트레 치메 디 라바레도 루프',  nameOrig:'Tre Cime di Lavaredo · 10km · 약 6시간 · 어려움',  lat:46.617, lon:12.300, type:'hiking_trail', duration:360 },
+  { id:'dlt_2',  name:'알페 디 수지 트레일',          nameOrig:'Alpe di Siusi Circuit · 8km · 약 3시간 · 쉬움',    lat:46.547, lon:11.644, type:'hiking_trail', duration:180 },
+  { id:'dlt_3',  name:'브라이에스 호수 트레일',       nameOrig:'Lago di Braies Circuit · 4km · 약 1.5시간 · 쉬움', lat:46.694, lon:12.085, type:'hiking_trail', duration:90  },
+  { id:'dlt_4',  name:'셀라 론다 하이킹',             nameOrig:'Sella Ronda · 50km · 4일 코스 · 중간',            lat:46.507, lon:11.844, type:'hiking_trail', duration:480 },
+  { id:'dlt_5',  name:'알타 비아 1',                  nameOrig:'Alta Via 1 · 120km · 10일 코스 · 어려움',          lat:46.600, lon:12.000, type:'hiking_trail', duration:600 },
+  { id:'dlt_6',  name:'친퀘 토리 루프',               nameOrig:'Cinque Torri Loop · 6km · 약 3시간 · 중간',        lat:46.506, lon:12.049, type:'hiking_trail', duration:180 },
+  { id:'dlt_7',  name:'카티나치오 트레일',             nameOrig:'Catinaccio/Rosengarten · 12km · 약 6시간 · 어려움',lat:46.497, lon:11.615, type:'hiking_trail', duration:360 },
+  { id:'dlt_8',  name:'라가주오이 하이킹',             nameOrig:'Lagazuoi · 8km · 약 4시간 · 중간',                lat:46.534, lon:12.022, type:'hiking_trail', duration:240 },
+  { id:'dlt_9',  name:'오르티세이 파노라마 트레일',    nameOrig:'Ortisei Panorama Walk · 6km · 약 3시간 · 쉬움',    lat:46.575, lon:11.672, type:'hiking_trail', duration:180 },
+  { id:'dlt_10', name:'팔자레고 ~ 코르티나 트레일',   nameOrig:'Falzarego to Cortina · 7km · 약 3.5시간 · 중간',  lat:46.518, lon:12.009, type:'hiking_trail', duration:210 },
+  { id:'dlt_11', name:'세체다 정상 트레일',            nameOrig:'Seceda Summit Trail · 5km · 약 2시간 · 중간',      lat:46.603, lon:11.700, type:'hiking_trail', duration:120 },
+  { id:'dlt_12', name:'발 디 푸네스 트레일',           nameOrig:'Val di Funes (Villnöss) · 9km · 약 4시간 · 중간', lat:46.634, lon:11.736, type:'hiking_trail', duration:240 },
+];
+
 const DURATION_BY_TYPE = {
   museum:180, gallery:120, theme_park:480, zoo:150, aquarium:120,
   ruins:120, castle:120, monument:60, viewpoint:45,
   cathedral:60, church:60, park:90, beach:180, marketplace:60, attraction:90,
+  hiking_trail:240,
 };
 const PLACE_TYPE_NOTES = {
   museum:          '내부 사진 촬영 제한 있을 수 있음',
@@ -8833,6 +8849,7 @@ const PLACE_TYPE_NOTES = {
   mosque:          '복장 규정 엄격 · 신발 벗기 필요할 수 있음',
   marketplace:     '현금 준비 권장',
   market:          '현금 준비 권장',
+  hiking_trail:    '등산화 · 방수 재킷 · 충분한 물 · 간식 준비',
 };
 function getPlaceDuration(type) { return DURATION_BY_TYPE[type] || 90; }
 function minToTime(min) {
@@ -8887,7 +8904,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
 
     outer: while (pIdx < routedPlaces.length) {
       const p = routedPlaces[pIdx];
-      const dur = getPlaceDuration(p.type);
+      const dur = p.duration ?? getPlaceDuration(p.type);
       const km  = (prev && prev.lat && p.lat) ? haversineKm(prev.lat, prev.lon, p.lat, p.lon) : 0;
       const transit = km >= 2;
       const travelMin = km === 0 ? 0 : transit ? 30 : Math.max(5, Math.round(km / 5 * 60));
@@ -9678,7 +9695,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const [placeErr,     setPlaceErr]     = React.useState('');
   const [selected,     setSelected]     = React.useState(new Set());
   const [cityStep,     setCityStep]     = React.useState(0);
-  const [showMore,     setShowMore]     = React.useState(false);
+  const [showCount,    setShowCount]    = React.useState(12);
   const [kbOffset,     setKbOffset]     = React.useState(0);
 
   // 키보드 올라올 때 팝업 위치 조정
@@ -9747,7 +9764,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     setHotels([{ name:'', from:1, to:1 }]); setSkipHotel(false);
     setArrAirport(''); setDepAirport('인천국제공항');
     setPlaces([]); setLoading(false); setSelected(new Set()); setPlaceErr('');
-    setCityStep(0); setShowMore(false);
+    setCityStep(0); setShowCount(12);
   }, [open]);
 
   React.useEffect(() => {
@@ -9781,7 +9798,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             body: JSON.stringify({
               locationRestriction: { circle: { center: { latitude: lat, longitude: lon }, radius: 10000 } },
               includedTypes: GPLACES_TYPES,
-              maxResultCount: 20,
+              maxResultCount: 36,
               languageCode: lang,
             }),
           }).then(r => r.json());
@@ -9828,7 +9845,14 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               _popRank: idx,  // 인기순 순위 (generateTripData에서 day 타이틀 선택에 사용)
             };
           }).filter(p => p.name && p.lat && p.lon);
-          allPlaces.push(...list);
+          // 돌로미티 선택 시 트래킹 코스를 앞에 추가
+          const isDolomites = cityEng.toLowerCase().includes('dolomit') || city.trim() === '돌로미티';
+          if (isDolomites) {
+            const trekCourses = DOLOMITES_TREKKING.map((t, idx) => ({ ...t, id:`${ci}_${t.id}`, cityIdx:ci, _popRank:idx }));
+            allPlaces.push(...trekCourses, ...list);
+          } else {
+            allPlaces.push(...list);
+          }
         }
         setPlaces(allPlaces);
         setSelected(new Set());
@@ -9869,7 +9893,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     // step === HP_STEP: 도시별 순차 진행
     if (!isLastCity) {
       setCityStep(s => s + 1);
-      setShowMore(false);
+      setShowCount(12);
       return;
     }
     // 모든 도시 완료 → 여행 생성
@@ -9893,7 +9917,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
   const handleBack = () => {
     if (step === HP_STEP && cityStep > 0) {
       setCityStep(s => s - 1);
-      setShowMore(false);
+      setShowCount(12);
       return;
     }
     setStep(s => s - 1);
@@ -10269,10 +10293,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
 
           {/* Step 6: 장소 확인 (자동 전체 선택, 탭으로 제외) */}
           {step === HP_STEP && (() => {
-            const INITIAL = 8;
+            const STEP = 12;
             const cityPlaces = sortByPriority(places.filter(p => p.cityIdx === cityStep));
-            const visible   = showMore ? cityPlaces : cityPlaces.slice(0, INITIAL);
-            const hiddenCnt = cityPlaces.length - INITIAL;
+            const visible   = cityPlaces.slice(0, showCount);
+            const hiddenCnt = cityPlaces.length - showCount;
             const selCount  = cityPlaces.filter(p => selected.has(p.id)).length;
             return (
               <div>
@@ -10314,6 +10338,11 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                             ? <img src={p.photo} alt="" style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }} loading="lazy"/>
                             : (() => { const h = p.name.split('').reduce((a,c)=>(a*31+c.charCodeAt(0))&0xffff,0)%360; return <Photo hue={h} height={88} small label={p.name}/>; })()
                           }
+                          {p.type === 'hiking_trail' && (
+                            <div style={{ position:'absolute', bottom:6, left:7, background:'rgba(0,0,0,0.52)', borderRadius:5, padding:'2px 6px', fontFamily:SANS, fontSize:9, color:'#fff', letterSpacing:0.3 }}>
+                              🥾 트래킹
+                            </div>
+                          )}
                           {sel && (
                             <div style={{ position:'absolute', top:7, right:7, width:20, height:20, borderRadius:'50%', background:COLORS.accent, display:'flex', alignItems:'center', justifyContent:'center' }}>
                               <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -10330,10 +10359,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     );
                   })}
                 </div>
-                {!loading && !showMore && hiddenCnt > 0 && (
-                  <button onMouseDown={e=>e.preventDefault()} onClick={() => setShowMore(true)}
+                {!loading && hiddenCnt > 0 && (
+                  <button onMouseDown={e=>e.preventDefault()} onClick={() => setShowCount(c => c + STEP)}
                     style={{ marginTop:14, width:'100%', padding:'11px 0', borderRadius:12, border:`1.5px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:13, color:COLORS.mute, cursor:'pointer' }}>
-                    더 보기 +{hiddenCnt}개
+                    더 보기 +{Math.min(hiddenCnt, STEP)}개
                   </button>
                 )}
               </div>
