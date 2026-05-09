@@ -11,6 +11,7 @@ final tripsProvider = StateNotifierProvider<TripsNotifier, AsyncValue<List<Trip>
 
 class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   final TripRepository _repo;
+  List<Trip>? _snapshot;
 
   TripsNotifier(this._repo) : super(const AsyncValue.loading()) {
     _load();
@@ -35,6 +36,17 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
     _repo.save(trips);
   }
 
+  void _saveSnapshot() => _snapshot = [..._trips];
+
+  bool get canUndo => _snapshot != null;
+
+  void undo() {
+    if (_snapshot != null) {
+      _update(_snapshot!);
+      _snapshot = null;
+    }
+  }
+
   String _newId() => 'trip-${DateTime.now().millisecondsSinceEpoch}-${Random().nextInt(999)}';
 
   // ── Trip CRUD ─────────────────────────────────────────────
@@ -44,6 +56,7 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   }
 
   void deleteTrip(int index) {
+    _saveSnapshot();
     final list = [..._trips];
     list.removeAt(index);
     _update(list);
@@ -95,6 +108,7 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   }
 
   void deleteDay(int tripIndex, int dayIndex) {
+    _saveSnapshot();
     updateTrip(tripIndex, (t) {
       final days = [...t.days];
       days.removeAt(dayIndex);
@@ -122,6 +136,7 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   }
 
   void deleteStop(int tripIndex, int dayIndex, int stopIndex) {
+    _saveSnapshot();
     updateTrip(tripIndex, (t) {
       final days = [...t.days];
       final items = [...days[dayIndex].items];
@@ -161,6 +176,7 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   }
 
   void deleteHotel(int tripIndex, int hotelIndex) {
+    _saveSnapshot();
     updateTrip(tripIndex, (t) {
       final prev = t.hotels[hotelIndex];
       final hotels = [...t.hotels];
