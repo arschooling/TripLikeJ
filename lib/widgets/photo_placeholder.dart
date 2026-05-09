@@ -20,8 +20,9 @@ class PhotoPlaceholder extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg   = _hsl(0.88, 0.35, hue);
-    final bg2  = _hsl(0.80, 0.45, hue);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bg   = _hsl(isDark ? 0.62 : 0.88, 0.35, hue);
+    final bg2  = _hsl(isDark ? 0.54 : 0.80, 0.45, hue);
     final inkC = _hsl(0.36, 0.35, hue);
 
     return SizedBox(

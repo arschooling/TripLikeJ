@@ -334,7 +334,9 @@ const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style
 
 // ─── Photo placeholder ──────────────────────────────────────
 function Photo({ hue=20, label='', height=180, small=false }) {
-  const bg=`oklch(0.88 0.035 ${hue})`, bg2=`oklch(0.80 0.045 ${hue})`;
+  const { darkMode } = React.useContext(SettingsCtx);
+  const l1 = darkMode ? 0.62 : 0.88, l2 = darkMode ? 0.54 : 0.80;
+  const bg=`oklch(${l1} 0.035 ${hue})`, bg2=`oklch(${l2} 0.045 ${hue})`;
   const ink=`oklch(0.36 0.04 ${hue})`;
   return (
     <div style={{
@@ -2337,7 +2339,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v127</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v128</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
