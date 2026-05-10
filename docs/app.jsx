@@ -2391,7 +2391,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v132</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v133</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -9977,7 +9977,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     (async () => {
       try {
         // Google Places API (Nearby Search) — 한국어 이름 + 사진 직접 제공
-        const GPLACES_TYPES = ['tourist_attraction', 'museum', 'art_gallery', 'zoo', 'amusement_park', 'aquarium', 'national_park', 'historical_landmark'];
+        const GPLACES_TYPES = ['tourist_attraction', 'museum', 'art_gallery', 'zoo', 'amusement_park', 'aquarium', 'national_park'];
         const gplacesNearby = async (lat, lon, lang) => {
           const res = await fetch('https://places.googleapis.com/v1/places:searchNearby', {
             method: 'POST',
@@ -9993,6 +9993,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               languageCode: lang,
             }),
           }).then(r => r.json());
+          if (res.error) throw new Error(`Places API: ${res.error.message || res.error.status}`);
           return res.places || [];
         };
         const allPlaces = [];
