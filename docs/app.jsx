@@ -2391,7 +2391,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v130</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v131</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -9969,6 +9969,11 @@ function NewTripSheet({ open, onClose, onSubmit }) {
     Object.values(CITIES_BY_KEY).forEach(arr => arr.forEach(c => { if (c.kor && c.eng) korToEng[c.kor] = c.eng; }));
     // 선택된 국가 영어 이름 (Nominatim 검색 정확도 향상용)
     const countryEng = selectedDest?.eng || '';
+    // 도시 좌표 빠른 조회 맵 (CITY_DB + 주요 한국 도시)
+    const cityCoordMap = {};
+    CITY_DB.forEach(c => { if (c.lat && c.lon) { if (c.kor) cityCoordMap[c.kor] = { lat:c.lat, lon:c.lon }; if (c.eng) cityCoordMap[c.eng.toLowerCase()] = { lat:c.lat, lon:c.lon }; } });
+    const KR_COORDS = { '서울':{lat:37.5665,lon:126.9780},'Seoul':{lat:37.5665,lon:126.9780},'부산':{lat:35.1796,lon:129.0756},'Busan':{lat:35.1796,lon:129.0756},'제주':{lat:33.4996,lon:126.5312},'Jeju':{lat:33.4996,lon:126.5312},'경주':{lat:35.8562,lon:129.2247},'Gyeongju':{lat:35.8562,lon:129.2247},'인천':{lat:37.4563,lon:126.7052},'Incheon':{lat:37.4563,lon:126.7052},'전주':{lat:35.8242,lon:127.1480},'Jeonju':{lat:35.8242,lon:127.1480},'강릉':{lat:37.7519,lon:128.8760},'Gangneung':{lat:37.7519,lon:128.8760},'춘천':{lat:37.8813,lon:127.7300},'Chuncheon':{lat:37.8813,lon:127.7300},'속초':{lat:38.2070,lon:128.5918},'Sokcho':{lat:38.2070,lon:128.5918},'여수':{lat:34.7604,lon:127.6622},'Yeosu':{lat:34.7604,lon:127.6622},'광주':{lat:35.1595,lon:126.8526},'Gwangju':{lat:35.1595,lon:126.8526},'대구':{lat:35.8714,lon:128.6014},'Daegu':{lat:35.8714,lon:128.6014},'대전':{lat:36.3504,lon:127.3845},'Daejeon':{lat:36.3504,lon:127.3845},'안동':{lat:36.5684,lon:128.7294},'Andong':{lat:36.5684,lon:128.7294},'평창':{lat:37.3706,lon:128.3941},'Pyeongchang':{lat:37.3706,lon:128.3941},'통영':{lat:34.8544,lon:128.4331},'Tongyeong':{lat:34.8544,lon:128.4331} };
+    Object.assign(cityCoordMap, KR_COORDS);
     (async () => {
       try {
         // Google Places API (Nearby Search) — 한국어 이름 + 사진 직접 제공
@@ -9995,11 +10000,17 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           const city = validCities[ci];
           const cityEng = korToEng[city.trim()] || city;
           const searchQ = countryEng && cityEng !== countryEng ? `${cityEng}, ${countryEng}` : cityEng;
-          // Photon으로 도시 좌표 획득
-          const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=1`).then(r => r.json());
-          const f = geo.features?.[0];
-          if (!f) continue;
-          const [gLon, gLat] = f.geometry.coordinates;
+          // 좌표 맵에서 먼저 조회, 없으면 Photon 지오코더 사용
+          let gLat, gLon;
+          const preCoord = cityCoordMap[city.trim()] || cityCoordMap[cityEng] || cityCoordMap[cityEng.toLowerCase()];
+          if (preCoord) {
+            gLat = preCoord.lat; gLon = preCoord.lon;
+          } else {
+            const geo = await fetch(`https://photon.komoot.io/api/?q=${encodeURIComponent(searchQ)}&limit=1`).then(r => r.json()).catch(() => null);
+            const f = geo?.features?.[0];
+            if (!f) continue;
+            [gLon, gLat] = f.geometry.coordinates;
+          }
           // 한국어 + 영어 병렬 요청
           const [koPlaces, enPlaces] = await Promise.all([
             gplacesNearby(gLat, gLon, 'ko'),
