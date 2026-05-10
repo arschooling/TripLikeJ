@@ -18,12 +18,12 @@ function haptic(style = 'light') {
 
 const COLORS = {
   bg:'#F5F2EC', card:'#FFFFFF', ink:'#1A1816', mute:'#7A756D',
-  line:'rgba(26,24,22,0.08)', accent:'#C14F2E', soft:'#E9E3D7', softer:'#EFEAE0',
+  line:'rgba(26,24,22,0.08)', accent:'#C14F2E', soft:'#E9E3D7', softer:'#EFEAE0', panel:'#1A1816',
 };
 const LIGHT_COLORS = { ...COLORS };
 const DARK_COLORS = {
   bg:'#1C1917', card:'#252220', ink:'#F0EDE7', mute:'#9B9690',
-  line:'rgba(255,255,255,0.10)', accent:'#911D06', soft:'#2E2A26', softer:'#282420',
+  line:'rgba(255,255,255,0.10)', accent:'#911D06', soft:'#2E2A26', softer:'#282420', panel:'#2E2A26',
 };
 
 // ─── Settings: load from localStorage & apply initial theme ──────────────
@@ -2391,7 +2391,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v133</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v135</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7431,7 +7431,7 @@ function SplitSheet({ open, onClose, totalKrw, defaultN, onEnter, onTabBarToggle
             </div>
           </div>
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.mute }}>=</div>
-          <div style={{ flex:1.3, background:COLORS.ink, borderRadius:14, padding:'14px 16px' }}>
+          <div style={{ flex:1.3, background:COLORS.panel, borderRadius:14, padding:'14px 16px' }}>
             <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.5)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>1인당</div>
             <div style={{ fontFamily:SERIF, fontSize:22, color:'#fff', letterSpacing:'-0.01em' }}>{fmtAmt(perPerson, 'KRW')}</div>
           </div>
@@ -7600,7 +7600,7 @@ function BudgetScreen({ trip, onEditBudget, onSheetChange, onTabBarToggle }) {
       </div>
 
       {/* 요약 카드 */}
-      <div style={{ margin:'0 16px 14px', background:COLORS.ink, borderRadius:20, padding:'22px 22px 20px' }}>
+      <div style={{ margin:'0 16px 14px', background:COLORS.panel, borderRadius:20, padding:'22px 22px 20px' }}>
         {/* 총 수입(왼쪽) / 총 지출(오른쪽) — 핵심 포인트 색상 */}
         <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
           <div>
