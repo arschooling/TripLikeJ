@@ -2391,7 +2391,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v129</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v130</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -2942,7 +2942,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
   const { itemProps: dayDragProps, isTouchDragging: isDayDragging } = useDragReorder(onReorderDays, editing);
   const { itemProps: hotelDragProps, isTouchDragging: isHotelDragging } = useDragReorder(onReorderHotels, editing);
   const tripYear = extractTripYear(trip);
-  const todayIso = new Date().toISOString().slice(0, 10);
+  const todayIso = (() => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })();
   const dayIsos = React.useMemo(
     () => trip.days.map(d => dayDateToIso(d.date, tripYear) || ''),
     [trip.days, tripYear]
@@ -5865,7 +5865,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
 
   const getTodayDayIdx = () => {
     const yr = extractTripYear(trip);
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = (() => { const n=new Date(); return `${n.getFullYear()}-${String(n.getMonth()+1).padStart(2,'0')}-${String(n.getDate()).padStart(2,'0')}`; })();
     const isos = trip.days.map(d => dayDateToIso(d.date, yr) || '');
     const todayIdx = isos.findIndex(iso => iso === todayIso);
     if (todayIdx >= 0) return todayIdx;
