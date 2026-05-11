@@ -73,6 +73,12 @@ const STRINGS = {
     ptnMosque:'복장 규정 엄격 · 신발 벗기 필요할 수 있음',
     ptnMarket:'현금 준비 권장',
     ptnHiking:'등산화 · 방수 재킷 · 충분한 물 · 간식 준비',
+    sectionSchedule:'일정', sectionStays:'숙소', sectionTickets:'티켓 & 바우처', sectionPractical:'실용 정보',
+    viewDaySchedule:'Day {n} 일정 보기', addDay:'일정 추가', addStop:'일정 추가',
+    nightsUnit:'{n}박', timezoneLabel:'시차', exchangeLabel:'환율', pickCity:'도시 선택',
+    weatherLabel:'날씨', weatherLoading:'불러오는 중…', weatherNoData:'정보 없음',
+    weatherFeels:'체감', weatherHumidity:'습도', weatherWind:'바람', weatherToday:'오늘',
+    timeline:'타임라인',
   },
   en: {
     myTrips:'My Trips', addTrip:'+ Add New Trip', emptyTrips:'No trips yet',
@@ -112,6 +118,12 @@ const STRINGS = {
     ptnMosque:'Strict dress code · Shoes off required',
     ptnMarket:'Cash recommended',
     ptnHiking:'Hiking boots · Waterproof jacket · Water & snacks',
+    sectionSchedule:'Schedule', sectionStays:'Stays', sectionTickets:'Tickets & Vouchers', sectionPractical:'Practical Info',
+    viewDaySchedule:'View Day {n}', addDay:'Add Day', addStop:'Add Stop',
+    nightsUnit:'{n} nights', timezoneLabel:'Time Zone', exchangeLabel:'Exchange Rate', pickCity:'Select City',
+    weatherLabel:'Weather', weatherLoading:'Loading…', weatherNoData:'No data',
+    weatherFeels:'Feels', weatherHumidity:'Hum', weatherWind:'Wind', weatherToday:'Today',
+    timeline:'Timeline',
   },
   ja: {
     myTrips:'My Trips', addTrip:'+ 旅行を追加', emptyTrips:'旅行がまだありません',
@@ -151,6 +163,12 @@ const STRINGS = {
     ptnMosque:'厳格なドレスコード · 脱靴が必要な場合あり',
     ptnMarket:'現金推奨',
     ptnHiking:'登山靴 · 防水ジャケット · 水・行動食持参',
+    sectionSchedule:'日程', sectionStays:'宿泊', sectionTickets:'チケット＆バウチャー', sectionPractical:'実用情報',
+    viewDaySchedule:'{n}日目の日程を見る', addDay:'日程を追加', addStop:'スケジュール追加',
+    nightsUnit:'{n}泊', timezoneLabel:'時差', exchangeLabel:'為替レート', pickCity:'都市を選択',
+    weatherLabel:'天気', weatherLoading:'読み込み中…', weatherNoData:'データなし',
+    weatherFeels:'体感', weatherHumidity:'湿度', weatherWind:'風', weatherToday:'今日',
+    timeline:'タイムライン',
   },
   zh: {
     myTrips:'My Trips', addTrip:'+ 添加旅行', emptyTrips:'还没有旅行',
@@ -190,6 +208,12 @@ const STRINGS = {
     ptnMosque:'着装要求严格 · 可能需要脱鞋',
     ptnMarket:'建议准备现金',
     ptnHiking:'登山鞋 · 防水外套 · 足够的水和零食',
+    sectionSchedule:'日程', sectionStays:'住宿', sectionTickets:'票务和凭证', sectionPractical:'实用信息',
+    viewDaySchedule:'查看第{n}天', addDay:'添加日程', addStop:'添加行程',
+    nightsUnit:'{n}晚', timezoneLabel:'时差', exchangeLabel:'汇率', pickCity:'选择城市',
+    weatherLabel:'天气', weatherLoading:'加载中…', weatherNoData:'无数据',
+    weatherFeels:'体感', weatherHumidity:'湿度', weatherWind:'风', weatherToday:'今天',
+    timeline:'时间线',
   },
 };
 function useT() {
@@ -1725,6 +1749,7 @@ function useFxRate(currency) {
 }
 
 function FxCard({ curCode, onSetCurCode }) {
+  const t = useT();
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const cur = FX_CURRENCIES.find(c => c.code === curCode) || FX_CURRENCIES[0];
   const { loading, rate, ts, refresh } = useFxRate(cur.code);
@@ -1738,7 +1763,7 @@ function FxCard({ curCode, onSetCurCode }) {
   return (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 11px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>환율</div>
+        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('exchangeLabel')}</div>
         <button onClick={refresh} style={{ border:'none', background:'transparent', cursor:'pointer', padding:2 }}>
           <Icon name="refresh" size={12} color={COLORS.mute} stroke={1.8}/>
         </button>
@@ -1878,21 +1903,24 @@ function useWeather(lat, lon, zone) {
 const DAY_KO = ['일','월','화','수','목','금','토'];
 
 function WeatherCard({ city }) {
+  const t = useT();
+  const { lang } = React.useContext(SettingsCtx);
   const { loading, data } = useWeather(city.lat, city.lon, city.zone);
   const cur = data?.current;
   const daily = data?.daily;
 
   const skeleton = (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 12px' }}>
-      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>날씨</div>
-      <div style={{ marginTop:10, fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{loading ? '불러오는 중…' : '정보 없음'}</div>
+      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
+      <div style={{ marginTop:10, fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{loading ? t('weatherLoading') : t('weatherNoData')}</div>
     </div>
   );
   if (loading || !cur) return skeleton;
 
   const [desc, emoji] = wmoInfo(cur.weather_code);
+  const dayFmt = new Intl.DateTimeFormat(lang, { weekday: 'short' });
   const forecast = daily?.time?.slice(0,5).map((d,i) => ({
-    label: i === 0 ? '오늘' : DAY_KO[new Date(d+'T12:00:00').getDay()],
+    label: i === 0 ? t('weatherToday') : dayFmt.format(new Date(d+'T12:00:00')),
     emoji: wmoInfo(daily.weather_code[i])[1],
     max: Math.round(daily.temperature_2m_max[i]),
     min: Math.round(daily.temperature_2m_min[i]),
@@ -1901,7 +1929,7 @@ function WeatherCard({ city }) {
   return (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 12px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>날씨</div>
+        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
         <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{city.flag} {city.key}</div>
       </div>
       {/* 현재 기온 */}
@@ -1916,9 +1944,9 @@ function WeatherCard({ city }) {
           </div>
         </div>
         <div style={{ textAlign:'right', paddingBottom:2 }}>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>체감 {Math.round(cur.apparent_temperature)}°</div>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>습도 {cur.relative_humidity_2m}%</div>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>바람 {Math.round(cur.wind_speed_10m)}㎞/h</div>
+          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>{t('weatherFeels')} {Math.round(cur.apparent_temperature)}°</div>
+          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>{t('weatherHumidity')} {cur.relative_humidity_2m}%</div>
+          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>{t('weatherWind')} {Math.round(cur.wind_speed_10m)}㎞/h</div>
         </div>
       </div>
       {/* 5일 예보 */}
@@ -1967,6 +1995,7 @@ function formatCityDateWeekday(zone) {
 }
 
 function TimezoneCard({ city, onPick }) {
+  const t = useT();
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [, force] = React.useReducer(x => x+1, 0);
 
@@ -1985,7 +2014,7 @@ function TimezoneCard({ city, onPick }) {
         border:'none', cursor:'pointer', textAlign:'left', width:'100%',
       }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>시차</div>
+          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('timezoneLabel')}</div>
           <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={1.8}/>
         </div>
         <div style={{ marginTop:5, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
@@ -2001,7 +2030,7 @@ function TimezoneCard({ city, onPick }) {
       </button>
       <PickerSheet
         open={pickerOpen} onClose={() => setPickerOpen(false)}
-        title="도시 선택"
+        title={t('pickCity')}
         items={CITIES}
         getKey={c => c.key}
         filterFn={cityFilterFn}
@@ -2478,7 +2507,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v147</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v148</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -2862,6 +2891,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       onAddHotel, onAddHotelFromSearch, onAddHotelViaStop, onDeleteHotel, onReorderHotels,
                       onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
                       userData, myUid, onOpenCompanion, onLoadSample, onOpenNotifs, unreadCount, photoVer, onPhotoUploaded }) {
+  const t = useT();
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   React.useEffect(() => { if (!editing) setEditingTitle(false); }, [editing]);
@@ -3393,7 +3423,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       padding:'13px 16px', fontFamily:SANS, fontSize:14, fontWeight:500,
                       display:'flex', justifyContent:'space-between', alignItems:'center',
                     }}>
-                      <span>{i === 0 ? '첫날 일정 보기' : `Day ${d.n} 일정 보기`}</span>
+                      <span>{t('viewDaySchedule').replace('{n}', d.n)}</span>
                       <Icon name="chevron" size={16} color="#fff"/>
                     </button>
                   </div>
@@ -3406,7 +3436,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
 
       {/* Days list */}
       <div style={{ padding:'8px 24px 10px', display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>일정</div>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('sectionSchedule')}</div>
         <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
           {trip.days.length} DAYS · {trip.days.reduce((s,d)=>s+(d.items?.length||0),0)} STOPS
         </div>
@@ -3491,7 +3521,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             display:'flex', gap:8, alignItems:'center', justifyContent:'center',
             fontFamily:SANS, fontSize:13,
           }}>
-            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 일정 추가
+            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> {t('addDay')}
           </button>
         )}
         {editing && (
@@ -3502,7 +3532,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             display:'flex', gap:8, alignItems:'center', justifyContent:'center',
             fontFamily:SANS, fontSize:13,
           }}>
-            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 일차 추가
+            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> {t('addDay')}
           </button>
         )}
       </div>
@@ -3521,7 +3551,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         return (
           <>
             <div style={{ padding:'22px 24px 8px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>숙소</div>
+              <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('sectionStays')}</div>
               <div style={{ display:'flex', gap:10, alignItems:'center' }}>
                 {!editing && (
                   <button onClick={() => onAddHotelViaStop ? onAddHotelViaStop() : onOpenHotelSheet ? onOpenHotelSheet('new') : onAddHotel()} style={{
@@ -3562,7 +3592,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                         display:'flex', gap:5, alignItems:'center' }}>
                         <Icon name="pin" size={11} color={COLORS.mute} stroke={1.8}/>
                         <span>{h.area}</span>
-                        {h.nights && <><span style={{opacity:0.4}}>·</span><span>{h.nights}박</span></>}
+                        {h.nights && <><span style={{opacity:0.4}}>·</span><span>{t('nightsUnit').replace('{n}', h.nights)}</span></>}
                         {h.price && <><span style={{opacity:0.4}}>·</span><span>{h.price}</span></>}
                       </div>
                     </div>
@@ -3600,7 +3630,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         return (
           <>
             <div style={{ padding:'22px 24px 8px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-              <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>티켓 & 바우처</div>
+              <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('sectionTickets')}</div>
               <div style={{ display:'flex', gap:10, alignItems:'center' }}>
                 <button onClick={() => openTicketPicker('new')} disabled={!!ticketUploading} style={{
                   width:28, height:28, borderRadius:14, border:'none',
@@ -3671,7 +3701,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
 
       {/* Practical */}
       <div style={{ padding:'22px 24px 8px' }}>
-        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>실용 정보</div>
+        <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('sectionPractical')}</div>
       </div>
       <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
         <FxCard curCode={curCode} onSetCurCode={onSetCurCode}/>
@@ -4019,7 +4049,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
       {/* Timeline */}
       <div style={{ padding:'48px 16px 0' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', padding:'0 6px 12px' }}>
-          <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>타임라인</div>
+          <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('timeline')}</div>
           <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
             {done.size}/{day.items?.length ?? 0} DONE
           </div>
@@ -4173,7 +4203,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
               fontFamily:SANS, fontSize:13,
             }}>
               <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>
-              일정 추가
+              {t('addStop')}
             </button>
           )}
         </div>
@@ -4223,6 +4253,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
 
 // ─── Hotel Detail page ──────────────────────────────────────
 function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEditing }) {
+  const t = useT();
   const [draft, setDraft] = React.useState(hotel);
   React.useEffect(() => setDraft(hotel), [hotel]);
 
@@ -5012,6 +5043,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
 
 // ─── Hotel Sheet (bottom sheet for add / view / edit hotel) ──
 function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, onRegisterEdit, onTabBarToggle }) {
+  const t = useT();
   if (!open) return null;
   const isNew = !hotel;
   const blank = { name:'', area:'', address:'', checkin:'', checkinTime:'15:00', checkout:'', checkoutTime:'12:00', nights:'', price:'', phone:'', confirmation:'', note:'', hue:30 };
@@ -5225,14 +5257,14 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             {editing ? (
               <div style={{ marginTop:14 }}>
                 <div style={{ position:'relative', marginBottom:10 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>숙소 이름</div>
+                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{t('wizHotelPh')}</div>
                   <div style={{ position:'relative' }}>
                     <input
                       value={searchQ !== '' ? searchQ : (draft.name || '')}
                       onChange={e => { const v=e.target.value; setSearchQ(v); setDraft({...draft, name:v}); }}
                       onFocus={() => { searchFocused.current=true; if(searchRes.length) setShowSearch(true); }}
                       onBlur={() => { searchFocused.current=false; setTimeout(()=>setShowSearch(false),150); }}
-                      placeholder="숙소 검색..."
+                      placeholder={t('wizHotelPh') + '...'}
                       style={{ width:'100%', padding:'9px 36px 9px 11px', borderRadius:8,
                         border:`1px solid ${COLORS.line}`, background:COLORS.bg,
                         fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
@@ -6314,7 +6346,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 {routeTip.hotel && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="hotel" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>숙소</span>
+                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('sectionStays')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.hotel.title}</span>
                   </div>
@@ -6322,7 +6354,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 {routeTip.lunch && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="food" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>점심</span>
+                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('lunch')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.lunch.title}</span>
                     {routeTip.lunch.time && <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, flexShrink:0 }}>{routeTip.lunch.time}</span>}
@@ -6331,7 +6363,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 {routeTip.dinner && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="food" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>저녁</span>
+                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('dinner')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.dinner.title}</span>
                     {routeTip.dinner.time && <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, flexShrink:0 }}>{routeTip.dinner.time}</span>}
