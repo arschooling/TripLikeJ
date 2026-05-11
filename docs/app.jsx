@@ -2507,7 +2507,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v149</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v150</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -2892,6 +2892,8 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       onConvertInlineHotel, onAddItemToFirstDay, editing, setEditing,
                       userData, myUid, onOpenCompanion, onLoadSample, onOpenNotifs, unreadCount, photoVer, onPhotoUploaded }) {
   const t = useT();
+  const { lang } = React.useContext(SettingsCtx);
+  const dayDisplayTitle = (d) => lang !== 'ko' && d.titleEn && d.titleEn !== `Day ${d.n}` ? d.titleEn : d.title;
   const [editingTitle, setEditingTitle] = React.useState(false);
   const [dateRangeOpen, setDateRangeOpen] = React.useState(false);
   React.useEffect(() => { if (!editing) setEditingTitle(false); }, [editing]);
@@ -3415,7 +3417,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{d.date}</div>
                     </div>
                     <div style={{ marginTop:7, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink }}>
-                      {d.title}
+                      {dayDisplayTitle(d)}
                     </div>
                     <button onClick={() => !fGesture.current.drag && onOpenDay(i)} style={{
                       marginTop:16, width:'100%', border:'none', cursor:'pointer',
@@ -3471,7 +3473,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   Day {String(d.n).padStart(2,'0')}
                 </div>
                 <div style={{ fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
-                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{d.title}</div>
+                  whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{dayDisplayTitle(d)}</div>
                 {(d.items?.length > 0) && (
                   <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{d.items.length} stops</div>
                 )}
@@ -9214,7 +9216,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
       const typeNote    = placeTypeNotes[p.type] || '';
       const stopNote    = [transitNote, typeNote].filter(Boolean).join('\n');
 
-      dayItems[dayIdx].push({ time: minToTime(t), title: p.name, loc: p.name, done: false, lat: p.lat, lon: p.lon, coords: [p.lat, p.lon], _popRank: p._popRank ?? 999, ...(stopNote ? { note: stopNote } : {}) });
+      dayItems[dayIdx].push({ time: minToTime(t), title: p.name, nameEn: p.nameOrig || p.name, loc: p.name, done: false, lat: p.lat, lon: p.lon, coords: [p.lat, p.lon], _popRank: p._popRank ?? 999, ...(stopNote ? { note: stopNote } : {}) });
       t += dur;
       prev = p;
       remaining.splice(bestIdx, 1);
@@ -9263,10 +9265,11 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
     // 해당 날의 포인트 장소 — 좌표 있는 항목 중 Foursquare 인기도 순위 가장 높은 것
     const placeItems = items.filter(it => it.lat && it.lon);
     const pointItem = placeItems.sort((a, b) => (a._popRank ?? 999) - (b._popRank ?? 999))[0];
-    const dayTitle = pointItem ? pointItem.title : `Day ${n}`;
+    const dayTitle   = pointItem ? pointItem.title : `Day ${n}`;
+    const dayTitleEn = pointItem ? (pointItem.nameEn || pointItem.title) : `Day ${n}`;
     return {
       n, date:isoToDayDate(iso), weekday:isoToWeekday(iso),
-      title:dayTitle, titleEn:`Day ${n}`,
+      title:dayTitle, titleEn:dayTitleEn,
       hero:{ hue:DAY_HUES[i % DAY_HUES.length], label:`DAY ${String(n).padStart(2,'0')}` },
       weather:'', items,
     };
