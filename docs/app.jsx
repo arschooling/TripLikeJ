@@ -184,6 +184,12 @@ function useT() {
   const { lang } = React.useContext(SettingsCtx);
   return (key) => (STRINGS[lang] || STRINGS.ko)[key] ?? STRINGS.ko[key] ?? key;
 }
+// 자동 생성 스탑(_key 있을 때)은 현재 언어로 실시간 번역, 없으면 저장된 title 반환
+function stopTitle(it, t) {
+  if (!it._key) return it.title;
+  if (it._key === 'checkin' || it._key === 'checkout') return `${t(it._key)} · ${it.loc || ''}`;
+  return t(it._key) || it.title;
+}
 
 // ─── Settings Context ─────────────────────────────────────────────────────
 const SettingsCtx = React.createContext({ darkMode:false, lang:'ko', setDarkMode:()=>{}, setLang:()=>{} });
@@ -2440,7 +2446,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v144</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v145</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -3768,6 +3774,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
 function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay,
                      onEditDay, onAddItem, onDeleteItem, onReorderItems, editing, setEditing, onPhotoUploaded,
                      onEditToggle, canUndo, onUndo }) {
+  const t = useT();
   const day = trip.days[dayIdx] || { n: dayIdx+1, title:'', date:'', weekday:'', hero:{ hue:25, label:'' }, items:[] };
   const tripYear = extractTripYear(trip);
   const [travelTimes, setTravelTimes] = React.useState({});
@@ -4066,7 +4073,10 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                         onChange={e => setInlineItemTitle({ idx: i, title: e.target.value })}
                         onBlur={() => {
                           const items = [...(day.items || [])];
-                          items[i] = { ...items[i], title: inlineItemTitle.title };
+                          const orig = stopTitle(it, t);
+                          const update = { ...items[i], title: inlineItemTitle.title };
+                          if (it._key && inlineItemTitle.title !== orig) update._key = undefined;
+                          items[i] = update;
                           onEditDay({ items });
                           setInlineItemTitle(null);
                         }}
@@ -4078,11 +4088,11 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                           outline:'none', boxSizing:'border-box' }}/>
                     ) : (
                       <div
-                        onClick={editing ? (e) => { e.stopPropagation(); setInlineItemTitle({ idx: i, title: it.title }); } : undefined}
+                        onClick={editing ? (e) => { e.stopPropagation(); setInlineItemTitle({ idx: i, title: stopTitle(it, t) }); } : undefined}
                         style={{ marginTop:3, fontFamily:SANS, fontSize:14.5, fontWeight:500,
                           color:COLORS.ink, textDecoration: isDone?'line-through':'none',
                           ...(editing ? { cursor:'text', borderBottom:`1px dashed ${COLORS.line}` } : {}) }}>
-                        {it.title}
+                        {stopTitle(it, t)}
                       </div>
                     )}
                     <div style={{ marginTop:1, fontFamily:SANS, fontSize:11.5, color:COLORS.mute, fontStyle:'italic' }}>
@@ -4689,6 +4699,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
 // ─── Stop sheet (unchanged except pulls editing from open) ─
 function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, onTabBarToggle, dayOptions, currentDayDate }) {
   if (!open) return null;
+  const t = useT();
   const [editing, setEditing] = React.useState(!!open.editing);
   // 탭바 수정 버튼과 연동
   React.useEffect(() => {
@@ -4846,7 +4857,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
         <div style={{ padding:'8px 16px 10px', display:'flex', alignItems:'center', justifyContent:'space-between', gap:10 }}>
           <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink, flex:1, minWidth:0,
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
-            {draft.title}
+            {stopTitle(draft, t)}
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
             {!editing && (
@@ -5907,6 +5918,7 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
 
 // ─── Map ─────────────────────────────────────────────────────
 function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
+  const t = useT();
   const makeOrdered = (dayIdx) =>
     trip.days[dayIdx].items
       .map((it, ii) => ({ ...it, _origIdx: ii }))
@@ -6213,7 +6225,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 }}>{i+1}</div>
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500,
-                    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.title}</div>
+                    whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{stopTitle(it, t)}</div>
                   <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute,
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.loc}</div>
                 </div>
@@ -9085,7 +9097,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
     outer: while (remaining.length > 0) {
       // 현재 시각이 점심 이후면 먼저 삽입
       if (!lunchDone && t >= LUNCH_AT) {
-        dayItems[dayIdx].push({ time: minToTime(LUNCH_AT), title: S.lunch, loc: '', done: false });
+        dayItems[dayIdx].push({ time: minToTime(LUNCH_AT), title: S.lunch, _key:'lunch', loc: '', done: false });
         t = LUNCH_AT + LUNCH_DUR;
         lunchDone = true;
         continue;
@@ -9127,7 +9139,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
       // 이동 중 점심 시간 도래 시 먼저 삽입
       if (!lunchDone && t + travelMin >= LUNCH_AT) {
         const lt = Math.max(t, LUNCH_AT);
-        dayItems[dayIdx].push({ time: minToTime(lt), title: S.lunch, loc: '', done: false });
+        dayItems[dayIdx].push({ time: minToTime(lt), title: S.lunch, _key:'lunch', loc: '', done: false });
         t = lt + LUNCH_DUR;
         lunchDone = true;
       }
@@ -9145,7 +9157,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
 
       // 저녁 시간 도래 시 삽입 후 오늘 일정 마감
       if (!dinnerDone && t >= DINNER_AT) {
-        dayItems[dayIdx].push({ time: minToTime(Math.max(t, DINNER_AT)), title: S.dinner, loc: '', done: false });
+        dayItems[dayIdx].push({ time: minToTime(Math.max(t, DINNER_AT)), title: S.dinner, _key:'dinner', loc: '', done: false });
         t = Math.max(t, DINNER_AT) + DINNER_DUR;
         dinnerDone = true;
         break outer;
@@ -9155,7 +9167,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
     // 저녁 미삽입 시 추가
     if (!dinnerDone && addedAny) {
       const dt = Math.max(t, DINNER_AT);
-      if (dt < DAY_END) dayItems[dayIdx].push({ time: minToTime(dt), title: S.dinner, loc: '', done: false });
+      if (dt < DAY_END) dayItems[dayIdx].push({ time: minToTime(dt), title: S.dinner, _key:'dinner', loc: '', done: false });
     }
 
     lastPlace = prev; // 다음 날 시작점 갱신
@@ -9175,10 +9187,10 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
       items.push({ time:'14:00', title:arrAirport.trim(), loc:'', done:false });
 
     if (hotel && (!prev || prev.name !== hotel.name))
-      items.push({ time:n===1 ? '16:00' : '15:00', title:`${S.checkin} · ${hotel.name}`, loc:hotel.name, done:false });
+      items.push({ time:n===1 ? '16:00' : '15:00', title:`${S.checkin} · ${hotel.name}`, _key:'checkin', loc:hotel.name, done:false });
 
     if (n === dayCount) {
-      if (hotel)  items.push({ time:'10:00', title:`${S.checkout} · ${hotel.name}`, loc:hotel.name, done:false });
+      if (hotel)  items.push({ time:'10:00', title:`${S.checkout} · ${hotel.name}`, _key:'checkout', loc:hotel.name, done:false });
       if (hasDep) items.push({ time:'13:00', title:depAirport.trim(), loc:'', done:false });
     }
 
