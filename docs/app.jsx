@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v152</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v153</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -4080,7 +4080,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                       fontFamily:MONO, fontSize:10.5, color:COLORS.mute,
                       textAlign:'right', paddingRight:4 }}>{it.time}</div>
                     <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
-                      width:16, height:16, borderRadius:8, flexShrink:0, marginTop:4, marginLeft:10,
+                      width:16, height:16, borderRadius:8, flexShrink:0, marginTop:4, marginLeft:7,
                       boxSizing:'border-box',
                       border:`1.5px solid ${isDone?COLORS.accent:COLORS.ink}`,
                       background: isDone?COLORS.accent:COLORS.bg, cursor:'pointer', padding:0,
