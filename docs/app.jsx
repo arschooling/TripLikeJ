@@ -1978,9 +1978,11 @@ function zoneOffsetMin(zone, d = new Date()) {
   return Math.round((asUTC - d.getTime()) / 60000);
 }
 const _localZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-function formatDiffFromLocal(zone) {
+const LANG_HOME_ZONE = { ko:'Asia/Seoul', ja:'Asia/Tokyo', zh:'Asia/Shanghai' };
+function formatDiffFromHome(destZone, homeZone) {
+  const ref = homeZone || _localZone;
   const now = new Date();
-  const diff = (zoneOffsetMin(zone, now) - zoneOffsetMin(_localZone, now)) / 60;
+  const diff = (zoneOffsetMin(destZone, now) - zoneOffsetMin(ref, now)) / 60;
   const sign = diff > 0 ? '+' : diff < 0 ? '−' : '±';
   return `${sign}${Math.abs(diff)}h`;
 }
@@ -1994,7 +1996,7 @@ function formatCityDateWeekday(zone) {
   return `${date} (${weekday})`;
 }
 
-function TimezoneCard({ city, onPick }) {
+function TimezoneCard({ city, onPick, homeZone }) {
   const t = useT();
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [, force] = React.useReducer(x => x+1, 0);
@@ -2018,7 +2020,7 @@ function TimezoneCard({ city, onPick }) {
           <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={1.8}/>
         </div>
         <div style={{ marginTop:5, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, flexShrink:0, lineHeight:1 }}>{formatDiffFromLocal(city.zone)}</div>
+          <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, flexShrink:0, lineHeight:1 }}>{formatDiffFromHome(city.zone, homeZone)}</div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:2 }}>
             <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.04em' }}>{formatCityDateWeekday(city.zone)}</div>
             <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.ink, letterSpacing:'0.04em' }}>{formatCityTime(city.zone)}</div>
@@ -2042,7 +2044,7 @@ function TimezoneCard({ city, onPick }) {
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink }}>{c.key}</div>
               <div style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, marginTop:2 }}>
-                {formatDiffFromLocal(c.zone)} · {formatCityTime(c.zone)}
+                {formatDiffFromHome(c.zone, homeZone)} · {formatCityTime(c.zone)}
               </div>
             </div>
           </>
@@ -2507,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v151</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v152</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -3712,7 +3714,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       </div>
       <div style={{ padding:'0 16px', display:'grid', gridTemplateColumns:'1fr 1fr', gap:8 }}>
         <FxCard curCode={curCode} onSetCurCode={onSetCurCode}/>
-        <TimezoneCard city={city} onPick={onPickCity}/>
+        <TimezoneCard city={city} onPick={onPickCity} homeZone={trip.homeZone || LANG_HOME_ZONE[lang] || _localZone}/>
       </div>
       <div style={{ padding:'8px 16px 0' }}>
         <WeatherCard city={city}/>
@@ -9287,6 +9289,7 @@ function generateTripData({ cities, startIso, endIso, hotels, arrAirport, depAir
     hue:   DAY_HUES[0],
     days, hotels:[], food:[],
     timezone: selectedDest?.zone || null,
+    homeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     defaultCurrency: selectedDest?.currency || 'KRW',
     cities: cities.filter(Boolean),  // 지도 초기 뷰 geocoding에 사용
   };
