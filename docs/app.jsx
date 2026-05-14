@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v159</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v160</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7465,7 +7465,7 @@ function BudgetCalcSheet({ open, onClose, onEnter, onTabBarToggle }) {
   );
 }
 
-function SplitSheet({ open, onClose, totalKrw, splitN, onChangeSplitN, onTabBarToggle }) {
+function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarToggle }) {
   const [n, setN]         = React.useState(String(splitN));
   const [entered, setEntered] = React.useState(false);
   const [sheetY, setSheetY]   = React.useState(0);
@@ -7521,7 +7521,7 @@ function SplitSheet({ open, onClose, totalKrw, splitN, onChangeSplitN, onTabBarT
   if (!open) return null;
 
   const count = Math.max(1, parseInt(n)||1);
-  const perPerson = Math.round(totalKrw / count);
+  const sharedCurs = Object.entries(shared || {}).filter(([,{out}]) => out > 0);
 
   return ReactDOM.createPortal(
     <div style={{ position:'fixed', inset:0, zIndex:310,
@@ -7542,33 +7542,37 @@ function SplitSheet({ open, onClose, totalKrw, splitN, onChangeSplitN, onTabBarT
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
         <div style={{ fontFamily:SERIF, fontSize:20, color:COLORS.ink, padding:'6px 4px 14px' }}>1/N 분할</div>
-        <div style={{ background:COLORS.card, borderRadius:14, padding:'14px 16px', marginBottom:12 }}>
-          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>공동 지출 총액 (₩ 환산)</div>
-          <div style={{ fontFamily:SERIF, fontSize:26, color:COLORS.ink }}>{fmtAmt(totalKrw, 'KRW')}</div>
-        </div>
-        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:14 }}>
-          <div style={{ flex:1, background:COLORS.card, borderRadius:14, padding:'14px 16px' }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
-            <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:12 }}>
-              <button onClick={() => setN(String(Math.max(1,count-1)))} style={{
-                width:30, height:30, borderRadius:15, border:`1px solid ${COLORS.line}`,
-                background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:18, color:COLORS.ink,
-                display:'flex', alignItems:'center', justifyContent:'center',
-              }}>−</button>
-              <input value={n} onChange={e => setN(e.target.value.replace(/[^0-9]/g,''))}
-                style={{ width:36, textAlign:'center', border:'none', outline:'none',
-                  fontFamily:MONO, fontSize:22, fontWeight:700, color:COLORS.ink, background:'transparent' }}/>
-              <button onClick={() => setN(String(count+1))} style={{
-                width:30, height:30, borderRadius:15, border:`1px solid ${COLORS.line}`,
-                background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:18, color:COLORS.ink,
-                display:'flex', alignItems:'center', justifyContent:'center',
-              }}>+</button>
+        {/* 통화별 공동 지출 → 1인당 */}
+        {sharedCurs.map(([cur, {out}]) => {
+          const perPerson = cur === 'KRW' ? Math.round(out / count) : out / count;
+          return (
+            <div key={cur} style={{ background:COLORS.card, borderRadius:14, padding:'12px 16px', marginBottom:8 }}>
+              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>{cur} 공동 지출</div>
+              <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
+                <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{fmtAmt(out, cur)}</div>
+                <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>÷ {count} =</div>
+                <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>1인당 {fmtAmt(perPerson, cur)}</div>
+              </div>
             </div>
-          </div>
-          <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.mute }}>=</div>
-          <div style={{ flex:1.3, background:COLORS.panel, borderRadius:14, padding:'14px 16px' }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.5)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>1인당</div>
-            <div style={{ fontFamily:SERIF, fontSize:22, color:'#fff', letterSpacing:'-0.01em' }}>{fmtAmt(perPerson, 'KRW')}</div>
+          );
+        })}
+        {/* 인원 수 */}
+        <div style={{ background:COLORS.card, borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
+          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
+            <button onClick={() => setN(String(Math.max(1,count-1)))} style={{
+              width:32, height:32, borderRadius:16, border:`1px solid ${COLORS.line}`,
+              background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:18, color:COLORS.ink,
+              display:'flex', alignItems:'center', justifyContent:'center',
+            }}>−</button>
+            <input value={n} onChange={e => setN(e.target.value.replace(/[^0-9]/g,''))}
+              style={{ width:40, textAlign:'center', border:'none', outline:'none',
+                fontFamily:MONO, fontSize:22, fontWeight:700, color:COLORS.ink, background:'transparent' }}/>
+            <button onClick={() => setN(String(count+1))} style={{
+              width:32, height:32, borderRadius:16, border:`1px solid ${COLORS.line}`,
+              background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:18, color:COLORS.ink,
+              display:'flex', alignItems:'center', justifyContent:'center',
+            }}>+</button>
           </div>
         </div>
         <button onClick={() => { onChangeSplitN?.(count); onClose(); }} style={{
@@ -7629,33 +7633,23 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
 
   // onSheetChange는 각 open/close 함수에서 직접 동기 호출 (탭바 딜레이 방지)
 
-  // visibleEntries 단일 패스로 모든 통계 계산
+  // visibleEntries 통계 - 통화 변환 없이 원본 금액 유지
   const budgetStats = React.useMemo(() => {
-    const byCurrency = {};
-    let krwTotalOut = 0, krwTotalIn = 0, hasShared = false;
-    let krwSharedOut = 0, krwPersonalOut = 0, krwSharedIn = 0, krwPersonalIn = 0;
+    const shared = {}, personal = {};
+    let hasShared = false;
     visibleEntries.forEach(e => {
       const cur = e.currency || 'KRW';
-      const krw = toKrw(e.amount, cur);
-      const scope = e.scope || 'personal';
-      const isOut = e.type === 'out';
-      const isShared = scope === 'shared';
-      if (!byCurrency[cur]) byCurrency[cur] = { out: 0, inc: 0 };
-      if (isOut) {
-        krwTotalOut += krw;
-        byCurrency[cur].out += e.amount;
-        if (isShared) { hasShared = true; krwSharedOut += krw; }
-        else krwPersonalOut += krw;
-      } else {
-        krwTotalIn += krw;
-        byCurrency[cur].inc += e.amount;
-        if (isShared) { hasShared = true; krwSharedIn += krw; }
-        else krwPersonalIn += krw;
-      }
+      const isShared = (e.scope || 'personal') === 'shared';
+      const target = isShared ? shared : personal;
+      if (!target[cur]) target[cur] = { out: 0, in: 0 };
+      if (e.type === 'out') target[cur].out += e.amount;
+      else target[cur].in += e.amount;
+      if (isShared) hasShared = true;
     });
-    return { krwTotalOut, krwTotalIn, byCurrency, hasShared, krwSharedOut, krwPersonalOut, krwSharedIn, krwPersonalIn };
+    return { shared, personal, hasShared };
   }, [visibleEntries]);
-  const { krwTotalOut, krwTotalIn, byCurrency, hasShared, krwSharedOut, krwPersonalOut, krwSharedIn, krwPersonalIn } = budgetStats;
+  const { shared, personal, hasShared } = budgetStats;
+  const hasSharedOut = Object.values(shared).some(v => v.out > 0);
 
   const entriesByDate = React.useMemo(() => {
     const indexed = entries.map((e, i) => ({ ...e, _i: i }));
@@ -7738,99 +7732,80 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
       </div>
 
       {/* 요약 카드 */}
-      <div style={{ margin:'0 16px 14px', background:COLORS.panel, borderRadius:20, padding:'22px 22px 20px' }}>
-        {/* 총 수입(왼쪽) / 총 지출(오른쪽) — 핵심 포인트 색상 */}
-        <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
-          <div>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 수입</div>
-            <div style={{ fontFamily:SERIF, fontSize:32, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1 }}>
-              {fmtAmt(Math.round(krwTotalIn), 'KRW')}
+      <div style={{ margin:'0 16px 14px', background:COLORS.panel, borderRadius:20, padding:'20px 20px 18px' }}>
+        {hasShared ? (
+          <>
+            {/* 공동 */}
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:10 }}>
+              <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동</div>
+              {hasSharedOut && (
+                <button onClick={() => { setSplitOpen(true); onSheetChange?.(true); }} style={{
+                  background:'none', border:'none', cursor:'pointer', padding:0, fontSize:13, lineHeight:1, opacity:0.55,
+                }}>➗</button>
+              )}
             </div>
-          </div>
-          <div>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>총 지출</div>
-            <div style={{ fontFamily:SERIF, fontSize:32, color:'#E07B6A', letterSpacing:'-0.02em', lineHeight:1 }}>
-              {fmtAmt(Math.round(krwTotalOut), 'KRW')}
-            </div>
-          </div>
-        </div>
-
-        {/* 통화별 수입/지출 — 흰색 계열만 */}
-        {Object.keys(byCurrency).length > 0 && (
-          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
-            {Object.entries(byCurrency).map(([cur, { out, inc }]) => (
-              <div key={cur} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:0, marginBottom:8 }}>
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', letterSpacing:'0.06em', marginBottom:3 }}>{cur} 수입</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color: inc > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)', fontWeight: inc>0?600:400 }}>
-                    {inc > 0 ? fmtAmt(inc, cur) : '—'}
-                  </div>
-                </div>
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', letterSpacing:'0.06em', marginBottom:3 }}>{cur} 지출</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color: out > 0 ? 'rgba(255,255,255,0.85)' : 'rgba(255,255,255,0.18)', fontWeight: out>0?600:400 }}>
-                    {out > 0 ? fmtAmt(out, cur) : '—'}
-                  </div>
+            {Object.entries(shared).map(([cur, {out, in: inc}]) => (
+              <div key={cur} style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:5 }}>
+                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', minWidth:34 }}>{cur}</div>
+                <div style={{ display:'flex', gap:14 }}>
+                  {out > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#E07B6A' }}>지출 {fmtAmt(out, cur)}</div>}
+                  {inc > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#7EC88A' }}>수입 {fmtAmt(inc, cur)}</div>}
                 </div>
               </div>
             ))}
-          </div>
-        )}
 
-        {/* 개인(왼쪽) / 공동(오른쪽) + ➗ 버튼 */}
-        {hasShared && (
-          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)',
-            display:'grid', gridTemplateColumns:'1fr 1fr', gap:0 }}>
             {/* 개인 */}
-            <div>
-              <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인</div>
-              {krwPersonalIn > 0 && (
-                <div style={{ marginBottom:7 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>수입</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalIn),'KRW')}</div>
-                </div>
-              )}
-              {krwPersonalOut > 0 && (
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>지출</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalOut),'KRW')}</div>
-                </div>
-              )}
-            </div>
-            {/* 공동 + ➗ */}
-            <div>
-              <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:10 }}>
-                <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동</div>
-                {krwSharedOut > 0 && (
-                  <button onClick={() => { setSplitOpen(true); onSheetChange?.(true); }} style={{
-                    background:'none', border:'none', cursor:'pointer', padding:0,
-                    fontSize:15, lineHeight:1, opacity:0.75,
-                  }}>➗</button>
-                )}
+            {Object.keys(personal).length > 0 && (
+              <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인</div>
+                {Object.entries(personal).map(([cur, {out, in: inc}]) => (
+                  <div key={cur} style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:5 }}>
+                    <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', minWidth:34 }}>{cur}</div>
+                    <div style={{ display:'flex', gap:14 }}>
+                      {out > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#E07B6A' }}>지출 {fmtAmt(out, cur)}</div>}
+                      {inc > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#7EC88A' }}>수입 {fmtAmt(inc, cur)}</div>}
+                    </div>
+                  </div>
+                ))}
               </div>
-              {krwSharedIn > 0 && (
-                <div style={{ marginBottom:7 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>수입</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedIn),'KRW')}</div>
-                </div>
-              )}
-              {krwSharedOut > 0 && (
-                <div>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>지출</div>
-                  <div style={{ fontFamily:MONO, fontSize:14, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedOut),'KRW')}</div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+            )}
 
-        {/* 정산 섹션 */}
-        {hasShared && krwSharedOut > 0 && (
-          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)',
-            display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>내 총 부담</div>
-            <div style={{ fontFamily:SERIF, fontSize:18, color:'#fff', letterSpacing:'-0.01em' }}>{fmtAmt(Math.round(krwSharedOut/splitN + krwPersonalOut),'KRW')}</div>
-          </div>
+            {/* 내 총 부담 */}
+            {hasSharedOut && (
+              <div style={{ marginTop:14, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
+                <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>내 총 부담 (1/{splitN})</div>
+                {[...new Set([
+                  ...Object.keys(shared).filter(c => shared[c].out > 0),
+                  ...Object.keys(personal).filter(c => personal[c].out > 0),
+                ])].map(cur => {
+                  const myShare = (shared[cur]?.out || 0) / splitN + (personal[cur]?.out || 0);
+                  return (
+                    <div key={cur} style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                      <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)' }}>{cur}</div>
+                      <div style={{ fontFamily:SERIF, fontSize:15, color:'#fff', letterSpacing:'-0.01em' }}>
+                        {fmtAmt(cur==='KRW' ? Math.round(myShare) : myShare, cur)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </>
+        ) : (
+          /* 개인 여행: 통화별 단순 표시 */
+          Object.keys(personal).length > 0 ? (
+            Object.entries(personal).map(([cur, {out, in: inc}]) => (
+              <div key={cur} style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between', marginBottom:5 }}>
+                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', minWidth:34 }}>{cur}</div>
+                <div style={{ display:'flex', gap:14 }}>
+                  {out > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#E07B6A' }}>지출 {fmtAmt(out, cur)}</div>}
+                  {inc > 0 && <div style={{ fontFamily:MONO, fontSize:13, color:'#7EC88A' }}>수입 {fmtAmt(inc, cur)}</div>}
+                </div>
+              </div>
+            ))
+          ) : (
+            <div style={{ fontFamily:SANS, fontSize:13, color:'rgba(255,255,255,0.3)', textAlign:'center', padding:'6px 0' }}>기록 없음</div>
+          )
         )}
       </div>
 
@@ -8103,7 +8078,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
         onEnter={(type, amount) => { setCalcOpen(false); openAddWithAmount(type, amount); }}
         onTabBarToggle={onTabBarToggle}/>
       <SplitSheet open={splitOpen} onClose={() => { setSplitOpen(false); if (!sheetOpen && !calcOpen) onSheetChange?.(false); }}
-        totalKrw={Math.round(krwSharedOut)}
+        shared={shared}
         splitN={splitN}
         onChangeSplitN={(n) => onEditBudget({ splitN: n })}
         onTabBarToggle={onTabBarToggle}/>
