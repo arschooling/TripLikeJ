@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v169</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v170</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -11333,6 +11333,7 @@ function App() {
   const [authUser, setAuthUser]     = React.useState(null);
   const [userData, setUserData]     = React.useState(_cache?.userData || null);
   const [trip, setTrip]             = React.useState(normalizeTrip(_cache?.trip));
+  const [personalPrep, setPersonalPrep] = React.useState(null);
   const [activeTripId, setActiveTripId] = React.useState(_nav.activeTripId || null);
   const [userTrips, setUserTrips]       = React.useState(() => (_cache?.userTrips || []));
   const [tripsLoading, setTripsLoading] = React.useState(!_cache?.userTrips);
@@ -11631,6 +11632,21 @@ function App() {
     });
   }, [activeTripId]);
 
+  // ── Firestore: personal prep listener (preps/{uid}/{tripId}) ──
+  React.useEffect(() => {
+    if (!activeTripId || !authUser?.uid) { setPersonalPrep(null); return; }
+    setPersonalPrep(null);
+    if (typeof fbListenPersonalPrep !== 'function') return;
+    return fbListenPersonalPrep(authUser.uid, activeTripId, (data) => {
+      if (data === null) {
+        const initPrep = tripRef.current?.prep || window.TRIP_DEFAULT?.prep
+          || { cats: [{ id:'cat_1', name:'체크리스트', items:[] }] };
+        fbSavePersonalPrep(authUser.uid, activeTripId, JSON.parse(JSON.stringify(initPrep))).catch(console.error);
+      }
+      setPersonalPrep(data);
+    });
+  }, [activeTripId, authUser?.uid]);
+
   // 언어 변경 시 day 제목 자동 번역 (무료 Google Translate 엔드포인트)
   React.useEffect(() => {
     if (lang === 'ko' || !trip?.days?.length || !activeTripId) return;
@@ -11856,7 +11872,10 @@ function App() {
     }
   };
   const editPrep = (newPrep) => {
-    editTrip({ prep: newPrep });
+    if (authUser?.uid && activeTripId && typeof fbSavePersonalPrep === 'function') {
+      setPersonalPrep(newPrep);
+      fbSavePersonalPrep(authUser.uid, activeTripId, newPrep).catch(console.error);
+    }
   };
 
   const _pendingTripDelete = React.useRef(null);
@@ -12313,7 +12332,7 @@ function App() {
   }
   else if (tab === 'food')   { screen = <FoodScreen trip={trip} onEditFood={food => editTrip({ food })} onDeleteFood={(idx) => { const snap = { food: trip.food }; const food = trip.food.filter((_, i) => i !== idx); editTrip({ food }); scheduleUndo(() => editTrip(snap)); }} editing={editing} setEditing={setEditing}/>; label='Food'; }
   else if (tab === 'budget') { screen = <BudgetScreen trip={trip} myUid={authUser?.uid} onEditBudget={b => editTrip({ budget: { ...(trip.budget||{}), ...b } })} onSheetChange={v => { setBudgetSheetOpen(v); if (!v) setTabBarVisible(true); }} onTabBarToggle={() => setTabBarVisible(v => !v)}/>; label='Budget'; }
-  else                       { screen = <PrepScreen trip={trip} onEditPrep={editPrep} onScheduleUndo={scheduleUndo} editing={editing} setEditing={setEditing}/>; label='Prep'; }
+  else                       { screen = <PrepScreen trip={{ ...trip, prep: personalPrep ?? trip?.prep }} onEditPrep={editPrep} onScheduleUndo={scheduleUndo} editing={editing} setEditing={setEditing}/>; label='Prep'; }
 
   const dayHue = dayIdx !== null && trip
     ? ((dayIdx === 0 ? (trip.hue ?? trip.days[0]?.hero?.hue) : trip.days[dayIdx]?.hero?.hue) ?? 30)
@@ -12466,7 +12485,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v169</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v170</div>
         </div>
       </div>
       <button onClick={async () => {

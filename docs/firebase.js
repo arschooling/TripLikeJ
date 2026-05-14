@@ -136,6 +136,14 @@ window.fbListenPrep = (uid, cb) =>
 window.fbSavePrep = (uid, prep) =>
   _fbDb.collection('preps').doc(uid).set({ prep }, { merge: true });
 
+// ─── Personal prep (per-user per-trip) ────────────────────────
+window.fbListenPersonalPrep = (uid, tripId, cb) =>
+  _fbDb.collection('preps').doc(uid)
+    .onSnapshot(s => cb(s.exists ? (s.data()[tripId] ?? null) : null));
+
+window.fbSavePersonalPrep = (uid, tripId, prep) =>
+  _fbDb.collection('preps').doc(uid).set({ [tripId]: prep }, { merge: true });
+
 // ─── User lookup ──────────────────────────────────────────────
 window.fbSearchUser = async (email) => {
   const snap = await _fbDb.collection('users').where('email','==',email.trim()).get();
