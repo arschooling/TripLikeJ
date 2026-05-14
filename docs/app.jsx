@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v168</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v169</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -6721,7 +6721,7 @@ function normalizePrepCats(raw) {
   return { cats: result };
 }
 
-const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem, setEditingItem, getItemDragProps, prepDrag, emptyDropRef }) {
+const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, saveWithUndo, editing, editingItem, setEditingItem, getItemDragProps, prepDrag, emptyDropRef, onCheck }) {
   const deleteItem = (ii) => {
     const next = cats.map((c, i) => i !== ci ? c : { ...c, items: c.items.filter((_, j) => j !== ii) });
     (saveWithUndo || save)(next);
@@ -6735,10 +6735,12 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
     try { return new Set(JSON.parse(localStorage.getItem(storageKey) || '[]')); }
     catch(e) { return new Set(); }
   });
-  const toggle = (item) => setChecked(s => {
+  const toggle = (item, ii) => setChecked(s => {
     const n = new Set(s);
-    n.has(item) ? n.delete(item) : n.add(item);
+    const wasChecked = n.has(item);
+    wasChecked ? n.delete(item) : n.add(item);
     try { localStorage.setItem(storageKey, JSON.stringify([...n])); } catch(_) {}
+    if (!wasChecked && onCheck) onCheck(ii);
     return n;
   });
   return (
@@ -6761,7 +6763,7 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
               <div style={{ display:'flex', alignItems:'center', gap:12,
                 padding: isEditingThis ? '12px 14px' : '8px 14px',
                 background:COLORS.card, borderRadius:14 }}>
-                <button onClick={() => toggle(item)} style={{
+                <button onClick={() => toggle(item, ii)} style={{
                   width:18, height:18, borderRadius:9, border:'none', padding:0, cursor:'pointer', flexShrink:0,
                   background: isDone ? COLORS.accent : 'transparent',
                   boxShadow: isDone ? 'none' : `inset 0 0 0 1.5px ${COLORS.line}`,
@@ -6818,12 +6820,51 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
   const [pasteText,    setPasteText]    = React.useState('');
   const [copyToast,    setCopyToast]    = React.useState(false);
 
+  const tripId = trip?.id || '';
+  const [collapsedCats, setCollapsedCats] = React.useState(() => {
+    try { return new Set(JSON.parse(localStorage.getItem('prep_collapsed_' + tripId) || '[]')); }
+    catch { return new Set(); }
+  });
+  const [catSortOrder, setCatSortOrder] = React.useState(() => {
+    try { return JSON.parse(localStorage.getItem('prep_sort_' + tripId) || '{}'); }
+    catch { return {}; }
+  });
+
   const save = (newCats) => onEditPrep({ ...prep, cats: newCats });
 
   const saveWithUndo = (newCats) => {
     const prevCats = cats;
     save(newCats);
     onScheduleUndo?.(() => save(prevCats));
+  };
+
+  const toggleCollapse = (catId) => setCollapsedCats(s => {
+    const n = new Set(s);
+    n.has(catId) ? n.delete(catId) : n.add(catId);
+    try { localStorage.setItem('prep_collapsed_' + tripId, JSON.stringify([...n])); } catch(_) {}
+    return n;
+  });
+  const cycleSort = (ci, catId) => {
+    const cur = catSortOrder[catId] || null;
+    const next = cur === null ? 'asc' : cur === 'asc' ? 'desc' : null;
+    const n = { ...catSortOrder, [catId]: next };
+    if (!next) delete n[catId];
+    try { localStorage.setItem('prep_sort_' + tripId, JSON.stringify(n)); } catch(_) {}
+    setCatSortOrder(n);
+    if (next) {
+      const sorted = [...(cats[ci].items || [])].sort((a, b) =>
+        next === 'asc' ? a.localeCompare(b, 'ko') : b.localeCompare(a, 'ko')
+      );
+      save(cats.map((c, i) => i !== ci ? c : { ...c, items: sorted }));
+    }
+  };
+  const moveToBottom = (ci, ii) => {
+    const items = cats[ci].items || [];
+    if (ii >= items.length - 1) return;
+    const newItems = [...items];
+    const [moved] = newItems.splice(ii, 1);
+    newItems.push(moved);
+    save(cats.map((c, i) => i !== ci ? c : { ...c, items: newItems }));
   };
 
   const parsePasteText = (text) => {
@@ -7094,81 +7135,102 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
         </div>
       )}
 
-      {/* 카테고리 목록 — 전부 표시 */}
-      {cats.map((cat, ci) => (
-        <div key={cat.id} style={{ padding:'0 16px', marginBottom:20 }}>
-          {/* 카테고리 헤더 */}
-          <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:8, paddingLeft:2 }}>
-            {editing && renamingCat === ci ? (
-              <input autoFocus value={cat.name}
-                onChange={e => renameCat(ci, e.target.value)}
-                onBlur={() => setRenamingCat(null)}
-                onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
-                style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
-                  padding:'4px 8px', fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
-                  textTransform:'uppercase', background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
-            ) : (
-              <span style={{ flex:1, fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
-                textTransform:'uppercase', color:COLORS.mute }}>
-                {cat.name}
-              </span>
-            )}
-            {editing && renamingCat !== ci && (
-              <button onClick={() => setRenamingCat(ci)} style={{
-                width:22, height:22, borderRadius:11, border:'none', background:'transparent',
-                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <Icon name="edit" size={12} color={COLORS.mute} stroke={2}/>
-              </button>
-            )}
-            {editing && (
-              <button onClick={() => deleteCat(ci)} style={{
-                width:22, height:22, borderRadius:11, border:'none', background:'rgba(193,79,46,0.10)',
-                cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
-                <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
-              </button>
-            )}
-          </div>
+      {/* 카테고리 목록 */}
+      {cats.map((cat, ci) => {
+        const isCollapsed = collapsedCats.has(cat.id);
+        const sortOrder = catSortOrder[cat.id] || null;
+        return (
+          <div key={cat.id} style={{ padding:'0 16px', marginBottom: isCollapsed ? 8 : 20 }}>
+            {/* 카테고리 헤더 */}
+            <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom: isCollapsed ? 0 : 8, paddingLeft:2 }}>
+              {editing && renamingCat === ci ? (
+                <input autoFocus value={cat.name}
+                  onChange={e => renameCat(ci, e.target.value)}
+                  onBlur={() => setRenamingCat(null)}
+                  onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
+                  style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
+                    padding:'4px 8px', fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
+                    textTransform:'uppercase', background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
+              ) : (
+                <button onClick={() => toggleCollapse(cat.id)} style={{
+                  flex:1, display:'flex', alignItems:'center', gap:6,
+                  background:'none', border:'none', cursor:'pointer', padding:'2px 0', textAlign:'left' }}>
+                  <span style={{ display:'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition:'transform 0.18s' }}>
+                    <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}/>
+                  </span>
+                  <span style={{ fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em', textTransform:'uppercase', color:COLORS.mute }}>
+                    {cat.name}{isCollapsed && (cat.items||[]).length > 0 ? ` (${(cat.items||[]).length})` : ''}
+                  </span>
+                </button>
+              )}
+              {renamingCat !== ci && (
+                <button onClick={() => cycleSort(ci, cat.id)} style={{
+                  width:22, height:22, borderRadius:11, border:'none',
+                  background: sortOrder ? 'rgba(193,79,46,0.12)' : 'transparent',
+                  cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
+                  fontFamily:MONO, fontSize:10, color: sortOrder ? COLORS.accent : COLORS.mute, flexShrink:0 }}>
+                  {sortOrder === 'asc' ? '↑' : sortOrder === 'desc' ? '↓' : '⇅'}
+                </button>
+              )}
+              {editing && renamingCat !== ci && (
+                <button onClick={() => setRenamingCat(ci)} style={{
+                  width:22, height:22, borderRadius:11, border:'none', background:'transparent',
+                  cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Icon name="edit" size={12} color={COLORS.mute} stroke={2}/>
+                </button>
+              )}
+              {editing && (
+                <button onClick={() => deleteCat(ci)} style={{
+                  width:22, height:22, borderRadius:11, border:'none', background:'rgba(193,79,46,0.10)',
+                  cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
+                  <Icon name="trash" size={12} color={COLORS.accent} stroke={2}/>
+                </button>
+              )}
+            </div>
 
-          {/* 아이템 목록 */}
-          <div style={{ background:COLORS.card, borderRadius:14 }}>
-            {(cat.items || []).length === 0 && addInputCat !== ci && (
-              <div ref={el => { prepItemEls.current[`${ci}_empty`] = el; }}
-                style={{ padding:'14px 16px', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
-                항목이 없어요
+            {/* 아이템 목록 — 접혔을 때는 숨김 */}
+            {!isCollapsed && (
+              <div style={{ background:COLORS.card, borderRadius:14 }}>
+                {(cat.items || []).length === 0 && addInputCat !== ci && (
+                  <div ref={el => { prepItemEls.current[`${ci}_empty`] = el; }}
+                    style={{ padding:'14px 16px', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                    항목이 없어요
+                  </div>
+                )}
+                <PrepCatItems ci={ci} cat={cat} cats={cats} save={save} saveWithUndo={saveWithUndo} editing={editing}
+                  editingItem={editingItem} setEditingItem={setEditingItem}
+                  getItemDragProps={getItemDragProps(ci)}
+                  prepDrag={prepDrag}
+                  emptyDropRef={el => { prepItemEls.current[`${ci}_empty`] = el; }}
+                  onCheck={(ii) => moveToBottom(ci, ii)}/>
+                {addInputCat === ci ? (
+                  <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 14px',
+                    borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none' }}>
+                    <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
+                    <input autoFocus value={addInputText} onChange={e => setAddInputText(e.target.value)}
+                      placeholder="항목 입력..."
+                      onKeyDown={e => { if (e.key==='Enter') addItem(ci); if (e.key==='Escape') { setAddInputCat(null); setAddInputText(''); }}}
+                      style={{ flex:1, border:'none', outline:'none', background:COLORS.softer,
+                        borderRadius:8, padding:'8px 10px',
+                        fontFamily:SANS, fontSize:14, color:COLORS.ink }}/>
+                    <button onClick={() => addItem(ci)} style={{
+                      padding:'8px 14px', border:'none', borderRadius:10,
+                      background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:13, cursor:'pointer' }}>추가</button>
+                  </div>
+                ) : (
+                  <button onClick={() => { setAddInputCat(ci); setAddInputText(''); }} style={{
+                    width:'100%', padding:'10px 14px', background:'transparent', border:'none',
+                    borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none',
+                    display:'flex', alignItems:'center', gap:8, cursor:'pointer',
+                    color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+                    <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 항목 추가
+                  </button>
+                )}
               </div>
-            )}
-            <PrepCatItems ci={ci} cat={cat} cats={cats} save={save} saveWithUndo={saveWithUndo} editing={editing}
-              editingItem={editingItem} setEditingItem={setEditingItem}
-              getItemDragProps={getItemDragProps(ci)}
-              prepDrag={prepDrag}
-              emptyDropRef={el => { prepItemEls.current[`${ci}_empty`] = el; }}/>
-            {/* 항목 추가 */}
-            {addInputCat === ci ? (
-              <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 14px',
-                borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none' }}>
-                <div style={{ width:16, height:16, borderRadius:8, border:`1.5px solid ${COLORS.line}`, flexShrink:0 }}/>
-                <input autoFocus value={addInputText} onChange={e => setAddInputText(e.target.value)}
-                  placeholder="항목 입력..."
-                  onKeyDown={e => { if (e.key==='Enter') addItem(ci); if (e.key==='Escape') { setAddInputCat(null); setAddInputText(''); }}}
-                  style={{ flex:1, border:'none', outline:'none', background:COLORS.softer,
-                    borderRadius:8, padding:'8px 10px',
-                    fontFamily:SANS, fontSize:14, color:COLORS.ink }}/>
-                <button onClick={() => addItem(ci)} style={{
-                  padding:'8px 14px', border:'none', borderRadius:10,
-                  background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:13, cursor:'pointer' }}>추가</button>
-              </div>
-            ) : (
-              <button onClick={() => { setAddInputCat(ci); setAddInputText(''); }} style={{
-                width:'100%', padding:'10px 14px', background:'transparent', border:'none',
-                borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none',
-                display:'flex', alignItems:'center', gap:8, cursor:'pointer',
-                color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
-                <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 항목 추가
-              </button>
             )}
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {/* 카테고리 추가 */}
       <div style={{ padding:'0 16px 20px' }}>
@@ -12404,7 +12466,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v168</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v169</div>
         </div>
       </div>
       <button onClick={async () => {
