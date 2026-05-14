@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v158</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v159</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7826,24 +7826,10 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
 
         {/* 정산 섹션 */}
         {hasShared && krwSharedOut > 0 && (
-          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)' }}>
-            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>
-              내 부담 (1/{splitN})
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr 1fr', gap:0 }}>
-              <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>공동 1인</div>
-                <div style={{ fontFamily:MONO, fontSize:13, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwSharedOut/splitN),'KRW')}</div>
-              </div>
-              <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>개인 지출</div>
-                <div style={{ fontFamily:MONO, fontSize:13, color:'rgba(255,255,255,0.82)', fontWeight:600 }}>{fmtAmt(Math.round(krwPersonalOut),'KRW')}</div>
-              </div>
-              <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>총 부담</div>
-                <div style={{ fontFamily:SERIF, fontSize:15, color:'#fff', fontWeight:700, letterSpacing:'-0.01em' }}>{fmtAmt(Math.round(krwSharedOut/splitN + krwPersonalOut),'KRW')}</div>
-              </div>
-            </div>
+          <div style={{ marginTop:16, paddingTop:14, borderTop:'1px solid rgba(255,255,255,0.08)',
+            display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            <div style={{ fontFamily:MONO, fontSize:10, color:'rgba(255,255,255,0.4)', letterSpacing:'0.1em', textTransform:'uppercase' }}>내 총 부담</div>
+            <div style={{ fontFamily:SERIF, fontSize:18, color:'#fff', letterSpacing:'-0.01em' }}>{fmtAmt(Math.round(krwSharedOut/splitN + krwPersonalOut),'KRW')}</div>
           </div>
         )}
       </div>
