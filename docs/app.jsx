@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v167</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v168</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -6910,7 +6910,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
       if (items.length > 0) {
         const lastRect = rects[`${ci}_${items.length - 1}`];
         if (lastRect) {
-          const nextFirstRect = rects[`${ci + 1}_0`];
+          const nextFirstRect = rects[`${ci + 1}_0`] || rects[`${ci + 1}_empty`];
           const nextTop = nextFirstRect ? nextFirstRect.top : Infinity;
           if (y > lastRect.bottom && y < nextTop) return { ci, ii: items.length };
         }
@@ -12404,7 +12404,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v167</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v168</div>
         </div>
       </div>
       <button onClick={async () => {
