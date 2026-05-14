@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v156</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v157</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7484,7 +7484,7 @@ function SplitSheet({ open, onClose, totalKrw, splitN, onChangeSplitN, onTabBarT
     setSheetY(0); sheetYRef.current=0; setSheetUp(0); sheetUpRef.current=0;
     setExpanded(false); expandedRef.current=false; setClosing(false);
     requestAnimationFrame(() => requestAnimationFrame(() => setEntered(true)));
-  }, [open, defaultN]);
+  }, [open, splitN]);
 
   React.useEffect(() => {
     const el = sheetRef.current;
