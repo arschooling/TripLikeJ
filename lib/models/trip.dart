@@ -246,28 +246,52 @@ class TripFood {
   );
 }
 
+class PrepCat {
+  final String id;
+  final String name;
+  final List<String> items;
+
+  const PrepCat({required this.id, required this.name, this.items = const []});
+
+  PrepCat copyWith({String? name, List<String>? items}) =>
+      PrepCat(id: id, name: name ?? this.name, items: items ?? this.items);
+
+  Map<String, dynamic> toJson() => {'id': id, 'name': name, 'items': items};
+
+  factory PrepCat.fromJson(Map<String, dynamic> j) => PrepCat(
+        id: (j['id'] as String?) ?? 'cat_${DateTime.now().millisecondsSinceEpoch}',
+        name: (j['name'] as String?) ?? '카테고리',
+        items: ((j['items'] ?? []) as List).cast<String>(),
+      );
+}
+
 class TripPrep {
-  final List<String> checklist;
-  final List<String> docs;
-  final List<String> pack;
+  final List<PrepCat> cats;
 
-  const TripPrep({
-    this.checklist = const [], this.docs = const [], this.pack = const [],
-  });
+  const TripPrep({this.cats = const []});
 
-  TripPrep copyWith({List<String>? checklist, List<String>? docs, List<String>? pack}) =>
-    TripPrep(
-      checklist: checklist ?? this.checklist,
-      docs: docs ?? this.docs,
-      pack: pack ?? this.pack,
-    );
+  TripPrep copyWith({List<PrepCat>? cats}) => TripPrep(cats: cats ?? this.cats);
 
-  Map<String, dynamic> toJson() => {'checklist': checklist, 'docs': docs, 'pack': pack};
-  factory TripPrep.fromJson(Map<String, dynamic> j) => TripPrep(
-    checklist: ((j['checklist'] ?? []) as List).cast<String>(),
-    docs: ((j['docs'] ?? []) as List).cast<String>(),
-    pack: ((j['pack'] ?? []) as List).cast<String>(),
-  );
+  Map<String, dynamic> toJson() => {'cats': cats.map((c) => c.toJson()).toList()};
+
+  factory TripPrep.fromJson(Map<String, dynamic> j) {
+    if (j['cats'] != null) {
+      return TripPrep(
+        cats: (j['cats'] as List)
+            .map((c) => PrepCat.fromJson(c as Map<String, dynamic>))
+            .toList(),
+      );
+    }
+    final result = <PrepCat>[];
+    final cl = ((j['checklist'] ?? []) as List).cast<String>();
+    final dl = ((j['docs'] ?? []) as List).cast<String>();
+    final pl = ((j['pack'] ?? []) as List).cast<String>();
+    if (cl.isNotEmpty) result.add(PrepCat(id: 'cat_checklist', name: '체크리스트', items: cl));
+    if (dl.isNotEmpty) result.add(PrepCat(id: 'cat_docs', name: '입국 서류', items: dl));
+    if (pl.isNotEmpty) result.add(PrepCat(id: 'cat_pack', name: '챙길 물건', items: pl));
+    if (result.isEmpty) result.add(PrepCat(id: 'cat_1', name: '체크리스트', items: []));
+    return TripPrep(cats: result);
+  }
 }
 
 class Trip {

@@ -9,7 +9,6 @@ import '../widgets/edit_button.dart';
 
 class PrepScreen extends ConsumerStatefulWidget {
   final int tripIndex;
-
   const PrepScreen({super.key, required this.tripIndex});
 
   @override
@@ -18,45 +17,49 @@ class PrepScreen extends ConsumerStatefulWidget {
 
 class _PrepScreenState extends ConsumerState<PrepScreen> {
   bool _editing = false;
-
-  // Local checkbox states (not persisted)
   final Map<String, bool> _checked = {};
+  bool _addingCat = false;
+  final _catNameCtrl = TextEditingController();
 
-  bool _isChecked(String section, int idx, String item) {
-    return _checked['$section-$idx-$item'] ?? false;
+  @override
+  void dispose() {
+    _catNameCtrl.dispose();
+    super.dispose();
   }
 
-  void _toggle(String section, int idx, String item) {
-    final key = '$section-$idx-$item';
+  bool _isChecked(String catId, int idx) => _checked['$catId-$idx'] ?? false;
+
+  void _toggle(String catId, int idx) {
+    final key = '$catId-$idx';
     setState(() => _checked[key] = !(_checked[key] ?? false));
+  }
+
+  void _confirmAddCat() {
+    final name = _catNameCtrl.text.trim();
+    if (name.isEmpty) {
+      setState(() => _addingCat = false);
+      return;
+    }
+    ref.read(tripsProvider.notifier).addPrepCat(widget.tripIndex, name);
+    _catNameCtrl.clear();
+    setState(() => _addingCat = false);
   }
 
   @override
   Widget build(BuildContext context) {
     final c = context.colors;
-    final tripsAsync = ref.watch(tripsProvider);
-    final trips = tripsAsync.value;
-    if (trips == null || widget.tripIndex >= trips.length) {
-      return const SizedBox.shrink();
-    }
+    final trips = ref.watch(tripsProvider).value;
+    if (trips == null || widget.tripIndex >= trips.length) return const SizedBox.shrink();
     final trip = trips[widget.tripIndex];
-    final prep = trip.prep;
+    final cats = trip.prep.cats;
 
-    final sections = [
-      ('체크리스트', prep.checklist, 'checklist'),
-      ('서류/예약', prep.docs, 'docs'),
-      ('짐 싸기', prep.pack, 'pack'),
-    ];
-
-    final total = prep.checklist.length + prep.docs.length + prep.pack.length;
-    final checked = _checked.values.where((v) => v).length;
+    final totalItems = cats.fold(0, (s, cat) => s + cat.items.length);
+    final checkedItems = _checked.values.where((v) => v).length;
 
     return Column(
       children: [
-        // Header
         Padding(
-          padding: const EdgeInsets.fromLTRB(
-              AppSpacing.pagePad, 8, AppSpacing.pagePad, 8),
+          padding: const EdgeInsets.fromLTRB(AppSpacing.pagePad, 8, AppSpacing.pagePad, 8),
           child: Row(
             children: [
               Text('준비물', style: AppText.serif(18)),
@@ -65,131 +68,118 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
                 editing: _editing,
                 canUndo: ref.watch(canUndoProvider),
                 onUndo: () => ref.read(tripsProvider.notifier).undo(),
-                onTap: () {
-                  setState(() => _editing = !_editing);
-                },
+                onTap: () => setState(() => _editing = !_editing),
               ),
             ],
           ),
         ),
-        // Stats row
         Padding(
-          padding: const EdgeInsets.symmetric(
-              horizontal: AppSpacing.pagePad),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
           child: Row(
             children: [
-              Expanded(
-                child: _StatCard(
-                  label: '전체',
-                  value: '$total',
-                ),
-              ),
+              Expanded(child: _StatCard(label: '전체', value: '$totalItems')),
               const SizedBox(width: 10),
-              Expanded(
-                child: _StatCard(
-                  label: '완료',
-                  value: '$checked',
-                  highlight: true,
-                ),
-              ),
+              Expanded(child: _StatCard(label: '완료', value: '$checkedItems', highlight: true)),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        // Sections
         Expanded(
-          child: ListView(
-            padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.pagePad),
-            children: sections.map((s) {
-              final name = s.$1;
-              final items = s.$2;
-              final sectionKey = s.$3;
-              return _PrepSection(
-                name: name,
-                items: items,
-                sectionKey: sectionKey,
-                editing: _editing,
-                isChecked: (idx, item) => _isChecked(sectionKey, idx, item),
-                onToggle: (idx, item) => _toggle(sectionKey, idx, item),
-                onDelete: (idx) => ref
-                    .read(tripsProvider.notifier)
-                    .deletePrepItem(widget.tripIndex, sectionKey, idx),
-                onAdd: () => _addItem(context, prep, sectionKey),
-              );
-            }).toList(),
+          child: Column(
+            children: [
+              Expanded(
+                child: ReorderableListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.pagePad),
+                  buildDefaultDragHandles: false,
+                  onReorder: (oldIndex, newIndex) =>
+                      ref.read(tripsProvider.notifier).reorderPrepCats(widget.tripIndex, oldIndex, newIndex),
+                  itemCount: cats.length,
+                  itemBuilder: (ctx, i) {
+                    final cat = cats[i];
+                    return ReorderableDelayedDragStartListener(
+                      key: ValueKey(cat.id),
+                      index: i,
+                      child: _PrepCatSection(
+                        cat: cat,
+                        editing: _editing,
+                        isChecked: (idx) => _isChecked(cat.id, idx),
+                        onToggle: (idx) => _toggle(cat.id, idx),
+                        onDelete: () => ref.read(tripsProvider.notifier).deletePrepCat(widget.tripIndex, i),
+                        onRename: (name) => ref.read(tripsProvider.notifier).renamePrepCat(widget.tripIndex, i, name),
+                        onAddItem: (item) => ref.read(tripsProvider.notifier).addPrepCatItem(widget.tripIndex, i, item),
+                        onDeleteItem: (ii) => ref.read(tripsProvider.notifier).deletePrepCatItem(widget.tripIndex, i, ii),
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppSpacing.pagePad, 8, AppSpacing.pagePad, 18),
+                child: _addingCat ? _buildAddCatInput(c) : _buildAddCatButton(c),
+              ),
+            ],
           ),
         ),
       ],
     );
   }
 
-  void _addItem(BuildContext ctx, TripPrep prep, String section) {
-    final c = ctx.colors;
-    String text = '';
-    showDialog(
-      context: ctx,
-      builder: (dCtx) => AlertDialog(
-        backgroundColor: c.card,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppRadius.sheet)),
-        title: Text('항목 추가', style: AppText.serif(16)),
-        content: TextField(
-          autofocus: true,
-          onChanged: (v) => text = v,
-          style: AppText.sans(14),
-          decoration: InputDecoration(
-            hintText: '항목 이름',
-            hintStyle: AppText.sans(14, color: c.mute),
-            filled: true,
-            fillColor: c.softer,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(AppRadius.input),
-              borderSide: BorderSide.none,
-            ),
-            contentPadding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          ),
+  Widget _buildAddCatButton(dynamic c) {
+    return GestureDetector(
+      onTap: () {
+        _catNameCtrl.clear();
+        setState(() => _addingCat = true);
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(AppRadius.card),
+          border: Border.all(color: c.line, width: 1.5),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dCtx),
+        alignment: Alignment.center,
+        child: Text('+ 카테고리 추가', style: AppText.sans(13, color: c.mute)),
+      ),
+    );
+  }
+
+  Widget _buildAddCatInput(dynamic c) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+      decoration: BoxDecoration(
+        color: c.card,
+        borderRadius: BorderRadius.circular(AppRadius.card),
+        border: Border.all(color: c.accent.withValues(alpha: 0.4)),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: TextField(
+              controller: _catNameCtrl,
+              autofocus: true,
+              style: AppText.sans(14),
+              decoration: InputDecoration(
+                hintText: '카테고리 이름',
+                hintStyle: AppText.sans(14, color: c.mute),
+                border: InputBorder.none,
+                isDense: true,
+                contentPadding: EdgeInsets.zero,
+              ),
+              onSubmitted: (_) => _confirmAddCat(),
+            ),
+          ),
+          const SizedBox(width: 8),
+          GestureDetector(
+            onTap: () => setState(() {
+              _addingCat = false;
+              _catNameCtrl.clear();
+            }),
             child: Text('취소', style: AppText.sans(13, color: c.mute)),
           ),
-          TextButton(
-            onPressed: () {
-              if (text.trim().isEmpty) return;
-              final trips = ref.read(tripsProvider).value ?? [];
-              if (widget.tripIndex >= trips.length) {
-                Navigator.pop(dCtx);
-                return;
-              }
-              final current = trips[widget.tripIndex].prep;
-              TripPrep newPrep;
-              switch (section) {
-                case 'checklist':
-                  newPrep = current.copyWith(
-                      checklist: [...current.checklist, text.trim()]);
-                  break;
-                case 'docs':
-                  newPrep = current.copyWith(
-                      docs: [...current.docs, text.trim()]);
-                  break;
-                case 'pack':
-                  newPrep = current.copyWith(
-                      pack: [...current.pack, text.trim()]);
-                  break;
-                default:
-                  newPrep = current;
-              }
-              ref
-                  .read(tripsProvider.notifier)
-                  .patchTrip(widget.tripIndex, prep: newPrep);
-              Navigator.pop(dCtx);
-            },
-            child: Text('추가',
-                style: AppText.sans(13,
-                    color: c.accent, weight: FontWeight.w600)),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: _confirmAddCat,
+            child: Text('추가', style: AppText.sans(13, color: c.accent, weight: FontWeight.w600)),
           ),
         ],
       ),
@@ -201,12 +191,7 @@ class _StatCard extends StatelessWidget {
   final String label;
   final String value;
   final bool highlight;
-
-  const _StatCard({
-    required this.label,
-    required this.value,
-    this.highlight = false,
-  });
+  const _StatCard({required this.label, required this.value, this.highlight = false});
 
   @override
   Widget build(BuildContext context) {
@@ -216,9 +201,7 @@ class _StatCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: highlight ? c.accent.withValues(alpha: 0.1) : c.card,
         borderRadius: BorderRadius.circular(AppRadius.card),
-        border: highlight
-            ? Border.all(color: c.accent.withValues(alpha: 0.3))
-            : null,
+        border: highlight ? Border.all(color: c.accent.withValues(alpha: 0.3)) : null,
         boxShadow: highlight
             ? null
             : [
@@ -231,11 +214,7 @@ class _StatCard extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(
-            value,
-            style: AppText.serif(
-                28, color: highlight ? c.accent : c.ink),
-          ),
+          Text(value, style: AppText.serif(28, color: highlight ? c.accent : c.ink)),
           Text(label, style: AppText.sans(12, color: c.mute)),
         ],
       ),
@@ -243,33 +222,99 @@ class _StatCard extends StatelessWidget {
   }
 }
 
-class _PrepSection extends StatefulWidget {
-  final String name;
-  final List<String> items;
-  final String sectionKey;
+class _PrepCatSection extends StatefulWidget {
+  final PrepCat cat;
   final bool editing;
-  final bool Function(int, String) isChecked;
-  final void Function(int, String) onToggle;
-  final void Function(int) onDelete;
-  final VoidCallback onAdd;
+  final bool Function(int) isChecked;
+  final void Function(int) onToggle;
+  final VoidCallback onDelete;
+  final void Function(String) onRename;
+  final void Function(String) onAddItem;
+  final void Function(int) onDeleteItem;
 
-  const _PrepSection({
-    required this.name,
-    required this.items,
-    required this.sectionKey,
+  const _PrepCatSection({
+    required this.cat,
     required this.editing,
     required this.isChecked,
     required this.onToggle,
     required this.onDelete,
-    required this.onAdd,
+    required this.onRename,
+    required this.onAddItem,
+    required this.onDeleteItem,
   });
 
   @override
-  State<_PrepSection> createState() => _PrepSectionState();
+  State<_PrepCatSection> createState() => _PrepCatSectionState();
 }
 
-class _PrepSectionState extends State<_PrepSection> {
+class _PrepCatSectionState extends State<_PrepCatSection> {
   bool _expanded = true;
+  bool _addingItem = false;
+  final _itemCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _itemCtrl.dispose();
+    super.dispose();
+  }
+
+  void _addItem() {
+    final text = _itemCtrl.text.trim();
+    if (text.isEmpty) {
+      setState(() => _addingItem = false);
+      return;
+    }
+    widget.onAddItem(text);
+    _itemCtrl.clear();
+    setState(() => _addingItem = false);
+  }
+
+  void _rename(BuildContext ctx) {
+    final c = ctx.colors;
+    final ctrl = TextEditingController(text: widget.cat.name);
+    showDialog(
+      context: ctx,
+      builder: (dCtx) => AlertDialog(
+        backgroundColor: c.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppRadius.sheet)),
+        title: Text('카테고리 이름 변경', style: AppText.serif(16)),
+        content: TextField(
+          controller: ctrl,
+          autofocus: true,
+          style: AppText.sans(14),
+          decoration: InputDecoration(
+            hintStyle: AppText.sans(14, color: c.mute),
+            filled: true,
+            fillColor: c.softer,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadius.input),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          ),
+          onSubmitted: (_) {
+            final name = ctrl.text.trim();
+            if (name.isNotEmpty) widget.onRename(name);
+            Navigator.pop(dCtx);
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dCtx),
+            child: Text('취소', style: AppText.sans(13, color: c.mute)),
+          ),
+          TextButton(
+            onPressed: () {
+              final name = ctrl.text.trim();
+              if (name.isNotEmpty) widget.onRename(name);
+              Navigator.pop(dCtx);
+            },
+            child: Text('저장', style: AppText.sans(13, color: c.accent, weight: FontWeight.w600)),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -277,52 +322,60 @@ class _PrepSectionState extends State<_PrepSection> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Section header
         GestureDetector(
           onTap: () => setState(() => _expanded = !_expanded),
+          onLongPress: widget.editing ? () => _rename(context) : null,
           child: Padding(
             padding: const EdgeInsets.only(bottom: 8),
             child: Row(
               children: [
-                Text(
-                  widget.name,
-                  style: AppText.sans(13,
-                      color: c.mute, weight: FontWeight.w500),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '(${widget.items.length})',
-                  style: AppText.mono(10, letterSpacing: 0.5),
-                ),
-                const Spacer(),
                 Icon(
-                  _expanded
-                      ? Icons.keyboard_arrow_up_rounded
-                      : Icons.keyboard_arrow_down_rounded,
+                  _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                   size: 18,
                   color: c.mute,
                 ),
+                const SizedBox(width: 4),
+                Text(
+                  widget.cat.name.toUpperCase(),
+                  style: AppText.sans(15, color: c.mute, weight: FontWeight.w600),
+                ),
+                const SizedBox(width: 6),
+                Text('(${widget.cat.items.length})', style: AppText.mono(10, letterSpacing: 0.5)),
+                const Spacer(),
+                if (widget.editing) ...[
+                  GestureDetector(
+                    onTap: () => _rename(context),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 4),
+                      child: Icon(Icons.edit_rounded, size: 16, color: c.mute),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: widget.onDelete,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 4),
+                      child: Icon(Icons.remove_circle, color: c.accent, size: 18),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
         ),
         if (_expanded) ...[
-          ...widget.items.asMap().entries.map((e) {
+          ...widget.cat.items.asMap().entries.map((e) {
             final idx = e.key;
             final item = e.value;
-            final checked = widget.isChecked(idx, item);
+            final checked = widget.isChecked(idx);
             return Dismissible(
-              key: Key('${widget.sectionKey}-$idx-$item'),
-              direction: widget.editing
-                  ? DismissDirection.endToStart
-                  : DismissDirection.none,
-              onDismissed: (_) => widget.onDelete(idx),
+              key: Key('${widget.cat.id}-$idx-$item'),
+              direction: widget.editing ? DismissDirection.endToStart : DismissDirection.none,
+              onDismissed: (_) => widget.onDeleteItem(idx),
               background: Container(
                 alignment: Alignment.centerRight,
                 color: c.accent,
                 padding: const EdgeInsets.only(right: 16),
-                child:
-                    Icon(Icons.delete_rounded, color: Colors.white, size: 20),
+                child: const Icon(Icons.delete_rounded, color: Colors.white, size: 20),
               ),
               child: Container(
                 margin: const EdgeInsets.only(bottom: 6),
@@ -339,60 +392,100 @@ class _PrepSectionState extends State<_PrepSection> {
                 ),
                 child: ListTile(
                   dense: true,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 0),
                   leading: GestureDetector(
-                    onTap: () => widget.onToggle(idx, item),
+                    onTap: () => widget.onToggle(idx),
                     child: Container(
                       width: 22,
                       height: 22,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color:
-                            checked ? c.accent : Colors.transparent,
+                        color: checked ? c.accent : Colors.transparent,
                         border: Border.all(
                           color: checked ? c.accent : c.line,
                           width: 1.5,
                         ),
                       ),
                       child: checked
-                          ? const Icon(Icons.check_rounded,
-                              size: 13, color: Colors.white)
+                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
                           : null,
                     ),
                   ),
-                  title: Text(
-                    item,
-                    style: AppText.sans(
-                      13,
-                      color: checked ? c.mute : c.ink,
-                    ),
-                  ),
+                  title: Text(item, style: AppText.sans(13, color: checked ? c.mute : c.ink)),
                   trailing: widget.editing
                       ? GestureDetector(
-                          onTap: () => widget.onDelete(idx),
-                          child: Icon(Icons.remove_circle,
-                              color: c.accent, size: 18),
+                          onTap: () => widget.onDeleteItem(idx),
+                          child: Icon(Icons.remove_circle, color: c.accent, size: 18),
                         )
                       : null,
                 ),
               ),
             );
           }),
-          if (widget.editing)
+          if (_addingItem)
+            Container(
+              margin: const EdgeInsets.only(bottom: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: c.card,
+                borderRadius: BorderRadius.circular(AppRadius.card),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    width: 22,
+                    height: 22,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: c.line, width: 1.5),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _itemCtrl,
+                      autofocus: true,
+                      style: AppText.sans(13),
+                      decoration: InputDecoration(
+                        hintText: '항목 입력...',
+                        hintStyle: AppText.sans(13, color: c.mute),
+                        border: InputBorder.none,
+                        isDense: true,
+                        contentPadding: EdgeInsets.zero,
+                      ),
+                      onSubmitted: (_) => _addItem(),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => setState(() {
+                      _addingItem = false;
+                      _itemCtrl.clear();
+                    }),
+                    child: Text('취소', style: AppText.sans(12, color: c.mute)),
+                  ),
+                  const SizedBox(width: 10),
+                  GestureDetector(
+                    onTap: _addItem,
+                    child: Text('추가', style: AppText.sans(12, color: c.accent, weight: FontWeight.w600)),
+                  ),
+                ],
+              ),
+            )
+          else
             GestureDetector(
-              onTap: widget.onAdd,
+              onTap: () {
+                _itemCtrl.clear();
+                setState(() => _addingItem = true);
+              },
               child: Container(
                 margin: const EdgeInsets.only(bottom: 6),
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12),
+                padding: const EdgeInsets.symmetric(vertical: 12),
                 decoration: BoxDecoration(
                   color: c.soft,
                   borderRadius: BorderRadius.circular(AppRadius.card),
                 ),
                 alignment: Alignment.center,
-                child: Text('+ 추가',
-                    style: AppText.sans(13, color: c.mute)),
+                child: Text('+ 추가', style: AppText.sans(13, color: c.mute)),
               ),
             ),
           const SizedBox(height: AppSpacing.sectionGap),

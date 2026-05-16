@@ -2509,7 +2509,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v170</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v174</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -2589,7 +2589,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
             <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
               border:`1.5px dashed ${COLORS.line}`, borderRadius:16, color:COLORS.mute, cursor:'pointer',
               display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:13.5 }}>
-              <Icon name="plus" size={15} color={COLORS.mute} stroke={2}/>{t('addTrip')}
+              {t('addTrip')}
             </button>
           </div>
       }
@@ -6819,6 +6819,13 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
   const [pasteOpen,    setPasteOpen]    = React.useState(false);
   const [pasteText,    setPasteText]    = React.useState('');
   const [copyToast,    setCopyToast]    = React.useState(false);
+  const [addingCat,    setAddingCat]    = React.useState(false);
+  const [newCatName,   setNewCatName]   = React.useState('');
+  // ── Category drag ─────────────────────────────────────────
+  const [catDrag, setCatDrag] = React.useState(null);
+  const catDragRef = React.useRef(null);
+  const catTimer = React.useRef(null);
+  const catEls = React.useRef({});
 
   const tripId = trip?.id || '';
   const [collapsedCats, setCollapsedCats] = React.useState(() => {
@@ -6918,6 +6925,60 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
     saveWithUndo(cats.map((c, i) => i !== ci ? c : { ...c, items: [] }));
   };
 
+  const reorderCats = (fromI, toI) => {
+    if (fromI === toI) return;
+    const next = [...cats];
+    const [moved] = next.splice(fromI, 1);
+    next.splice(toI > fromI ? toI - 1 : toI, 0, moved);
+    save(next);
+  };
+
+  const makeCatDragProps = (ci) => ({
+    ref: el => { catEls.current[ci] = el; },
+    onTouchStart: e => {
+      if (catDragRef.current || prepDragRef.current) return;
+      clearTimeout(catTimer.current);
+      const startY = e.touches[0].clientY;
+      catTimer.current = setTimeout(() => {
+        const el = catEls.current[ci];
+        const catH = el ? el.getBoundingClientRect().height : 80;
+        if (window.navigator?.vibrate) window.navigator.vibrate(14);
+        setCatDrag({ fromI: ci, toI: ci, fingerY: startY, startY, catH });
+      }, 430);
+    },
+    onTouchMove: e => {
+      clearTimeout(catTimer.current);
+      const d = catDragRef.current; if (!d) return;
+      const y = e.touches[0].clientY;
+      let target = d.toI;
+      for (let i = 0; i < cats.length; i++) {
+        const el = catEls.current[i]; if (!el) continue;
+        const rect = el.getBoundingClientRect();
+        if (y >= rect.top && y < rect.bottom) {
+          target = y < rect.top + rect.height / 2 ? i : i + 1;
+          break;
+        }
+      }
+      setCatDrag(prev => prev ? { ...prev, fingerY: y, toI: target } : null);
+    },
+    onTouchEnd: () => {
+      clearTimeout(catTimer.current);
+      const d = catDragRef.current;
+      if (d) { reorderCats(d.fromI, d.toI); setCatDrag(null); }
+    },
+    style: (() => {
+      if (!catDrag) return {};
+      const { fromI, toI, fingerY, startY, catH } = catDrag;
+      if (ci === fromI) {
+        return { transform:`translateY(${fingerY - startY}px) scale(1.02)`, zIndex:50, opacity:0.9, position:'relative', boxShadow:'0 12px 32px rgba(0,0,0,0.18)', transition:'none' };
+      }
+      let shift = 0;
+      if (fromI < toI && ci >= fromI + 1 && ci < toI) shift = -catH;
+      else if (fromI > toI && ci >= toI && ci < fromI) shift = catH;
+      return { transform:`translateY(${shift}px)`, transition:'transform 0.22s ease', position:'relative' };
+    })(),
+  });
+
   // ── Cross-category drag ───────────────────────────────────────
   const [prepDrag, setPrepDrag] = React.useState(null);
   // prepDrag = { fromCi, fromIi, toCi, toIi, fingerY, startY, itemH } | null
@@ -6935,6 +6996,14 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
     document.addEventListener('touchmove', stop, { passive: false });
     return () => document.removeEventListener('touchmove', stop);
   }, [!!prepDrag]);
+
+  React.useEffect(() => { catDragRef.current = catDrag; }, [catDrag]);
+  React.useEffect(() => {
+    if (!catDrag) return;
+    const stop = e => e.preventDefault();
+    document.addEventListener('touchmove', stop, { passive: false });
+    return () => document.removeEventListener('touchmove', stop);
+  }, [!!catDrag]);
 
   const findPrepTarget = (y) => {
     // 드래그 시작 시 저장한 스냅샷 사용 (시각적 이동 무시)
@@ -7037,11 +7106,13 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
   // This is passed to PrepCatItems as getItemDragProps
   const getItemDragProps = (ci) => (ii) => makePrepItemProps(ci, ii);
 
-  const addCat = () => {
+  const confirmAddCat = () => {
+    const name = newCatName.trim();
+    if (!name) { setAddingCat(false); setNewCatName(''); return; }
     const id = 'cat_' + Date.now();
-    const newCats = [...cats, { id, name:'새 카테고리', items:[] }];
-    save(newCats);
-    setTimeout(() => setRenamingCat(newCats.length - 1), 50);
+    save([...cats, { id, name, items: [] }]);
+    setAddingCat(false);
+    setNewCatName('');
   };
   const deleteCat = (i) => {
     if (!confirm(`"${cats[i].name}" 카테고리를 삭제할까요?`)) return;
@@ -7140,7 +7211,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
         const isCollapsed = collapsedCats.has(cat.id);
         const sortOrder = catSortOrder[cat.id] || null;
         return (
-          <div key={cat.id} style={{ padding:'0 16px', marginBottom: isCollapsed ? 8 : 20 }}>
+          <div key={cat.id} {...(() => { const p = makeCatDragProps(ci); const {ref, onTouchStart, onTouchMove, onTouchEnd, style: ds} = p; return {ref, onTouchStart, onTouchMove, onTouchEnd, style:{...ds, padding:'0 16px', marginBottom: isCollapsed ? 8 : 20}}; })()}>
             {/* 카테고리 헤더 */}
             <div style={{ display:'flex', alignItems:'center', gap:4, marginBottom: isCollapsed ? 0 : 8, paddingLeft:2 }}>
               {editing && renamingCat === ci ? (
@@ -7149,7 +7220,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   onBlur={() => setRenamingCat(null)}
                   onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
                   style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
-                    padding:'4px 8px', fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em',
+                    padding:'4px 8px', fontFamily:MONO, fontSize:13, letterSpacing:'0.12em',
                     textTransform:'uppercase', background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
               ) : (
                 <button onClick={() => toggleCollapse(cat.id)} style={{
@@ -7158,7 +7229,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   <span style={{ display:'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition:'transform 0.18s' }}>
                     <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}/>
                   </span>
-                  <span style={{ fontFamily:MONO, fontSize:10.5, letterSpacing:'0.12em', textTransform:'uppercase', color:COLORS.mute }}>
+                  <span style={{ fontFamily:MONO, fontSize:13, letterSpacing:'0.12em', textTransform:'uppercase', color:COLORS.mute }}>
                     {cat.name}{isCollapsed && (cat.items||[]).length > 0 ? ` (${(cat.items||[]).length})` : ''}
                   </span>
                 </button>
@@ -7234,13 +7305,32 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
 
       {/* 카테고리 추가 */}
       <div style={{ padding:'0 16px 20px' }}>
-        <button onClick={addCat} style={{
-          width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
-          background:'transparent', cursor:'pointer',
-          display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-          color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
-          <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
-        </button>
+        {addingCat ? (
+          <div style={{ display:'flex', alignItems:'center', gap:8, padding:'12px 14px',
+            background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.accent}44` }}>
+            <input autoFocus value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              placeholder="카테고리 이름"
+              onKeyDown={e => { if (e.key==='Enter') confirmAddCat(); if (e.key==='Escape') { setAddingCat(false); setNewCatName(''); } }}
+              style={{ flex:1, border:'none', outline:'none', background:'transparent',
+                fontFamily:MONO, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase',
+                color:COLORS.ink, padding:0 }}/>
+            <button onClick={() => { setAddingCat(false); setNewCatName(''); }} style={{
+              border:'none', background:'none', cursor:'pointer', fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'0 4px' }}>취소</button>
+            <button onClick={confirmAddCat} style={{
+              border:'none', background:COLORS.accent, cursor:'pointer',
+              fontFamily:SANS, fontSize:13, color:'#fff', fontWeight:600,
+              padding:'6px 12px', borderRadius:8 }}>추가</button>
+          </div>
+        ) : (
+          <button onClick={() => { setAddingCat(true); setNewCatName(''); }} style={{
+            width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
+            background:'transparent', cursor:'pointer',
+            display:'flex', alignItems:'center', justifyContent:'center', gap:8,
+            color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+            <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
+          </button>
+        )}
       </div>
 
       {/* 복사 완료 토스트 */}
@@ -12485,7 +12575,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v170</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v174</div>
         </div>
       </div>
       <button onClick={async () => {

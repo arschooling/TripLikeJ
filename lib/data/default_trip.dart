@@ -177,9 +177,9 @@ Trip buildDefaultTrip() => Trip(
     TripFood(cat: '🍪 Dessert', name: "Junior's Cheesecake", detail: '오리지널 NY 치즈케익', price: '\$', note: '타임스퀘어/그랜드센트럴'),
     TripFood(cat: '☕ Coffee', name: "Ralph's Coffee", detail: '말차 라떼', price: '\$', note: '랄프로렌 플래그십 내부'),
   ],
-  prep: TripPrep(
-    checklist: ['항공권 예매', '숙소 예매', 'ESTA 신청', '짐 싸기', '로밍/유심 준비', 'Uber 앱 설치', '여행자 보험', '빅버스 예매', '공항 셔틀 예매'],
-    docs: ['ESTA 승인', '왕복 항공권', '호텔 바우처', '재직증명서(영문)'],
-    pack: ['피크닉 매트', '물티슈', '휴대용 비데', '위생 장갑'],
-  ),
+  prep: TripPrep(cats: [
+    PrepCat(id: 'cat_checklist', name: '체크리스트', items: ['항공권 예매', '숙소 예매', 'ESTA 신청', '짐 싸기', '로밍/유심 준비', 'Uber 앱 설치', '여행자 보험', '빅버스 예매', '공항 셔틀 예매']),
+    PrepCat(id: 'cat_docs', name: '입국 서류', items: ['ESTA 승인', '왕복 항공권', '호텔 바우처', '재직증명서(영문)']),
+    PrepCat(id: 'cat_pack', name: '챙길 물건', items: ['피크닉 매트', '물티슈', '휴대용 비데', '위생 장갑']),
+  ]),
 );

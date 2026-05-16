@@ -223,23 +223,57 @@ class TripsNotifier extends StateNotifier<AsyncValue<List<Trip>>> {
   }
 
   // ── Prep actions ──────────────────────────────────────────
-  void deletePrepItem(int tripIndex, String section, int itemIndex) {
+  void _updatePrep(int tripIndex, TripPrep Function(TripPrep) update) {
     _saveSnapshot();
-    updateTrip(tripIndex, (t) {
-      final prep = t.prep;
-      switch (section) {
-        case 'checklist':
-          final list = [...prep.checklist]..removeAt(itemIndex);
-          return t.copyWith(prep: prep.copyWith(checklist: list));
-        case 'docs':
-          final list = [...prep.docs]..removeAt(itemIndex);
-          return t.copyWith(prep: prep.copyWith(docs: list));
-        case 'pack':
-          final list = [...prep.pack]..removeAt(itemIndex);
-          return t.copyWith(prep: prep.copyWith(pack: list));
-        default:
-          return t;
-      }
+    updateTrip(tripIndex, (t) => t.copyWith(prep: update(t.prep)));
+  }
+
+  void addPrepCat(int tripIndex, String name) {
+    final id = 'cat_${DateTime.now().millisecondsSinceEpoch}';
+    _updatePrep(tripIndex, (prep) =>
+        prep.copyWith(cats: [...prep.cats, PrepCat(id: id, name: name, items: [])]));
+  }
+
+  void deletePrepCat(int tripIndex, int catIndex) {
+    _updatePrep(tripIndex, (prep) {
+      final next = [...prep.cats]..removeAt(catIndex);
+      if (next.isEmpty) next.add(const PrepCat(id: 'cat_1', name: '체크리스트'));
+      return prep.copyWith(cats: next);
+    });
+  }
+
+  void reorderPrepCats(int tripIndex, int oldIndex, int newIndex) {
+    _updatePrep(tripIndex, (prep) {
+      final next = [...prep.cats];
+      if (newIndex > oldIndex) newIndex--;
+      final cat = next.removeAt(oldIndex);
+      next.insert(newIndex, cat);
+      return prep.copyWith(cats: next);
+    });
+  }
+
+  void renamePrepCat(int tripIndex, int catIndex, String name) {
+    _updatePrep(tripIndex, (prep) {
+      final next = [...prep.cats];
+      next[catIndex] = next[catIndex].copyWith(name: name);
+      return prep.copyWith(cats: next);
+    });
+  }
+
+  void addPrepCatItem(int tripIndex, int catIndex, String item) {
+    _updatePrep(tripIndex, (prep) {
+      final next = [...prep.cats];
+      next[catIndex] = next[catIndex].copyWith(items: [...next[catIndex].items, item]);
+      return prep.copyWith(cats: next);
+    });
+  }
+
+  void deletePrepCatItem(int tripIndex, int catIndex, int itemIndex) {
+    _updatePrep(tripIndex, (prep) {
+      final next = [...prep.cats];
+      final items = [...next[catIndex].items]..removeAt(itemIndex);
+      next[catIndex] = next[catIndex].copyWith(items: items);
+      return prep.copyWith(cats: next);
     });
   }
 
