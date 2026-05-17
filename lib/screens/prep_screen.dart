@@ -8,15 +8,11 @@ import '../theme/tokens.dart';
 import '../widgets/edit_button.dart';
 
 const _catPastel = [
-  Color(0xFFD4785A), Color(0xFFC49A45), Color(0xFF7AA87A), Color(0xFF5E95C0),
-  Color(0xFF9575B5), Color(0xFFBA6E85), Color(0xFF4EA8A3), Color(0xFFB89655),
+  Color(0xFFC96B5A), Color(0xFFD4975A), Color(0xFFC4A83A), Color(0xFF6EA87A),
+  Color(0xFF4EA8A3), Color(0xFF5E8FC0), Color(0xFF8A70B5), Color(0xFFC4708A),
 ];
 
-Color _catColor(String id) {
-  int h = 0;
-  for (final ch in id.codeUnits) h = (h * 31 + ch) & 0xFFFFFFFF;
-  return _catPastel[h % _catPastel.length];
-}
+Color _catColor(int index) => _catPastel[index % _catPastel.length];
 
 class PrepScreen extends ConsumerStatefulWidget {
   final int tripIndex;
@@ -112,6 +108,7 @@ class _PrepScreenState extends ConsumerState<PrepScreen> {
                       index: i,
                       child: _PrepCatSection(
                         cat: cat,
+                        index: i,
                         editing: _editing,
                         isChecked: (idx) => _isChecked(cat.id, idx),
                         onToggle: (idx) => _toggle(cat.id, idx),
@@ -235,6 +232,7 @@ class _StatCard extends StatelessWidget {
 
 class _PrepCatSection extends StatefulWidget {
   final PrepCat cat;
+  final int index;
   final bool editing;
   final bool Function(int) isChecked;
   final void Function(int) onToggle;
@@ -245,6 +243,7 @@ class _PrepCatSection extends StatefulWidget {
 
   const _PrepCatSection({
     required this.cat,
+    required this.index,
     required this.editing,
     required this.isChecked,
     required this.onToggle,
@@ -348,7 +347,7 @@ class _PrepCatSectionState extends State<_PrepCatSection> {
                 const SizedBox(width: 4),
                 Text(
                   widget.cat.name.toUpperCase(),
-                  style: AppText.sans(14, color: _catColor(widget.cat.id), weight: FontWeight.w700),
+                  style: AppText.sans(14, color: _catColor(widget.index), weight: FontWeight.w700),
                 ),
                 const SizedBox(width: 6),
                 Text('(${widget.cat.items.length})', style: AppText.mono(11, letterSpacing: 0.5)),

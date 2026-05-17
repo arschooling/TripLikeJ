@@ -21,12 +21,8 @@ const COLORS = {
   line:'rgba(26,24,22,0.08)', accent:'#C14F2E', soft:'#E9E3D7', softer:'#EFEAE0', panel:'#1A1816',
 };
 
-const CAT_PASTEL = ['#D4785A','#C49A45','#7AA87A','#5E95C0','#9575B5','#BA6E85','#4EA8A3','#B89655'];
-const catPastelColor = (id) => {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return CAT_PASTEL[h % CAT_PASTEL.length];
-};
+const CAT_PASTEL = ['#C96B5A','#D4975A','#C4A83A','#6EA87A','#4EA8A3','#5E8FC0','#8A70B5','#C4708A'];
+const catColor = (ci) => CAT_PASTEL[ci % CAT_PASTEL.length];
 const LIGHT_COLORS = { ...COLORS };
 const DARK_COLORS = {
   bg:'#1C1917', card:'#252220', ink:'#F0EDE7', mute:'#9B9690',
@@ -2516,7 +2512,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v180</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v181</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7234,7 +7230,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
                   style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
                     padding:'4px 8px', fontFamily:MONO, fontSize:14, letterSpacing:'0.12em',
-                    textTransform:'uppercase', background:COLORS.card, color:catPastelColor(cat.id), outline:'none', fontWeight:700 }}/>
+                    textTransform:'uppercase', background:COLORS.card, color:catColor(ci), outline:'none', fontWeight:700 }}/>
               ) : (
                 <button onClick={() => toggleCollapse(cat.id)} style={{
                   flex:1, display:'flex', alignItems:'center', gap:6,
@@ -7242,7 +7238,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   <span style={{ display:'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition:'transform 0.18s' }}>
                     <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}/>
                   </span>
-                  <span style={{ fontFamily:MONO, fontSize:14, letterSpacing:'0.12em', textTransform:'uppercase', color:catPastelColor(cat.id), fontWeight:700 }}>{cat.name}</span>
+                  <span style={{ fontFamily:MONO, fontSize:14, letterSpacing:'0.12em', textTransform:'uppercase', color:catColor(ci), fontWeight:700 }}>{cat.name}</span>
                   {isCollapsed && (cat.items||[]).length > 0 && <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginLeft:4 }}>({(cat.items||[]).length})</span>}
                 </button>
               )}
@@ -12587,7 +12583,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v180</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v181</div>
         </div>
       </div>
       <button onClick={async () => {
