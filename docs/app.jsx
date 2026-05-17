@@ -21,7 +21,7 @@ const COLORS = {
   line:'rgba(26,24,22,0.08)', accent:'#C14F2E', soft:'#E9E3D7', softer:'#EFEAE0', panel:'#1A1816',
 };
 
-const CAT_PASTEL = ['#E8A598','#F4C87A','#A8D5A2','#8EC5E6','#C3A8E6','#F0B3D6','#85D4C4','#F2D0A9'];
+const CAT_PASTEL = ['#FF6B6B','#FFA94D','#FFD43B','#69DB7C','#4DABF7','#748FFC','#DA77F2','#F783AC'];
 const catPastelColor = (id) => {
   let h = 0;
   for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
@@ -2516,7 +2516,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v178</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v179</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7233,7 +7233,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   onBlur={() => setRenamingCat(null)}
                   onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
                   style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
-                    padding:'4px 8px', fontFamily:MONO, fontSize:15, letterSpacing:'0.12em',
+                    padding:'4px 8px', fontFamily:MONO, fontSize:14, letterSpacing:'0.12em',
                     textTransform:'uppercase', background:COLORS.card, color:catPastelColor(cat.id), outline:'none', fontWeight:700 }}/>
               ) : (
                 <button onClick={() => toggleCollapse(cat.id)} style={{
@@ -7242,9 +7242,8 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   <span style={{ display:'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition:'transform 0.18s' }}>
                     <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}/>
                   </span>
-                  <span style={{ fontFamily:MONO, fontSize:15, letterSpacing:'0.12em', textTransform:'uppercase', color:catPastelColor(cat.id), fontWeight:700 }}>
-                    {cat.name}{isCollapsed && (cat.items||[]).length > 0 ? ` (${(cat.items||[]).length})` : ''}
-                  </span>
+                  <span style={{ fontFamily:MONO, fontSize:14, letterSpacing:'0.12em', textTransform:'uppercase', color:catPastelColor(cat.id), fontWeight:700 }}>{cat.name}</span>
+                  {isCollapsed && (cat.items||[]).length > 0 && <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginLeft:4 }}>({(cat.items||[]).length})</span>}
                 </button>
               )}
               {renamingCat !== ci && (
@@ -12588,7 +12587,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v178</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v179</div>
         </div>
       </div>
       <button onClick={async () => {
