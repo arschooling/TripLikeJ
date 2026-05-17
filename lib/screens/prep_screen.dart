@@ -7,6 +7,17 @@ import '../theme/typography.dart';
 import '../theme/tokens.dart';
 import '../widgets/edit_button.dart';
 
+const _catPastel = [
+  Color(0xFFE8A598), Color(0xFFF4C87A), Color(0xFFA8D5A2), Color(0xFF8EC5E6),
+  Color(0xFFC3A8E6), Color(0xFFF0B3D6), Color(0xFF85D4C4), Color(0xFFF2D0A9),
+];
+
+Color _catColor(String id) {
+  int h = 0;
+  for (final ch in id.codeUnits) h = (h * 31 + ch) & 0xFFFFFFFF;
+  return _catPastel[h % _catPastel.length];
+}
+
 class PrepScreen extends ConsumerStatefulWidget {
   final int tripIndex;
   const PrepScreen({super.key, required this.tripIndex});
@@ -337,7 +348,7 @@ class _PrepCatSectionState extends State<_PrepCatSection> {
                 const SizedBox(width: 4),
                 Text(
                   widget.cat.name.toUpperCase(),
-                  style: AppText.sans(15, color: c.mute, weight: FontWeight.w600),
+                  style: AppText.sans(15, color: _catColor(widget.cat.id), weight: FontWeight.w700),
                 ),
                 const SizedBox(width: 6),
                 Text('(${widget.cat.items.length})', style: AppText.mono(10, letterSpacing: 0.5)),
