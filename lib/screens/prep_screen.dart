@@ -8,8 +8,8 @@ import '../theme/tokens.dart';
 import '../widgets/edit_button.dart';
 
 const _catPastel = [
-  Color(0xFFE8A598), Color(0xFFF4C87A), Color(0xFFA8D5A2), Color(0xFF8EC5E6),
-  Color(0xFFC3A8E6), Color(0xFFF0B3D6), Color(0xFF85D4C4), Color(0xFFF2D0A9),
+  Color(0xFFFF6B6B), Color(0xFFFFA94D), Color(0xFFFFD43B), Color(0xFF69DB7C),
+  Color(0xFF4DABF7), Color(0xFF748FFC), Color(0xFFDA77F2), Color(0xFFF783AC),
 ];
 
 Color _catColor(String id) {
@@ -348,10 +348,10 @@ class _PrepCatSectionState extends State<_PrepCatSection> {
                 const SizedBox(width: 4),
                 Text(
                   widget.cat.name.toUpperCase(),
-                  style: AppText.sans(15, color: _catColor(widget.cat.id), weight: FontWeight.w700),
+                  style: AppText.sans(14, color: _catColor(widget.cat.id), weight: FontWeight.w700),
                 ),
                 const SizedBox(width: 6),
-                Text('(${widget.cat.items.length})', style: AppText.mono(10, letterSpacing: 0.5)),
+                Text('(${widget.cat.items.length})', style: AppText.mono(11, letterSpacing: 0.5)),
                 const Spacer(),
                 if (widget.editing) ...[
                   GestureDetector(
