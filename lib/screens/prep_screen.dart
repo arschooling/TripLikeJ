@@ -8,8 +8,8 @@ import '../theme/tokens.dart';
 import '../widgets/edit_button.dart';
 
 const _catPastel = [
-  Color(0xFFFF6B6B), Color(0xFFFFA94D), Color(0xFFFFD43B), Color(0xFF69DB7C),
-  Color(0xFF4DABF7), Color(0xFF748FFC), Color(0xFFDA77F2), Color(0xFFF783AC),
+  Color(0xFFD4785A), Color(0xFFC49A45), Color(0xFF7AA87A), Color(0xFF5E95C0),
+  Color(0xFF9575B5), Color(0xFFBA6E85), Color(0xFF4EA8A3), Color(0xFFB89655),
 ];
 
 Color _catColor(String id) {
