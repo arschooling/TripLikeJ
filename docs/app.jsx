@@ -2513,7 +2513,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v186</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v187</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7797,18 +7797,18 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
     const lines = raw.split('\n').filter(l => l.trim());
     if (!lines.length) return;
 
-    // 헤더 행 감지 및 열 순서 결정
     const FIELD_ALIASES = {
-      date:     ['날짜','date'],
-      type:     ['구분','type'],
-      cat:      ['카테고리','category','cat','분류'],
-      scope:    ['범위','scope'],
-      amount:   ['금액','amount','가격'],
-      currency: ['통화','currency'],
-      note:     ['메모','note','memo','비고'],
+      date:     ['날짜','date','일자','일','날짜/시간'],
+      type:     ['구분','type','종류','수입지출','분류'],
+      cat:      ['카테고리','category','cat','항목','내용','용도'],
+      scope:    ['범위','scope','공동개인'],
+      amount:   ['금액','amount','가격','비용','지출','수입','총액','금','원','합계','결제금액'],
+      currency: ['통화','currency','화폐','currency'],
+      note:     ['메모','note','memo','비고','설명'],
     };
+
     const firstCells = lines[0].split('\t').map(c => c.trim().toLowerCase());
-    let colIdx = {}; // field → column index
+    let colIdx = {};
     const isHeader = firstCells.some(c =>
       Object.values(FIELD_ALIASES).some(aliases => aliases.includes(c))
     );
@@ -7821,27 +7821,38 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
         }
       });
     } else {
-      // 헤더 없으면 기본 열 순서: 날짜·구분·카테고리·범위·금액·통화·메모
       ['date','type','cat','scope','amount','currency','note'].forEach((f,i) => colIdx[f] = i);
     }
 
-    const getCell = (cells, field) => (cells[colIdx[field]] || '').trim();
+    // 금액 열 못 찾으면 숫자가 있는 열 자동 탐지
+    if (colIdx['amount'] === undefined && lines.length > startIdx) {
+      const sample = lines[startIdx].split('\t');
+      for (let ci = 0; ci < sample.length; ci++) {
+        const v = parseFloat(sample[ci].trim().replace(/[,₩$€¥£¥₹฿₫₱\s]/g, ''));
+        if (!isNaN(v) && v > 0) { colIdx['amount'] = ci; break; }
+      }
+    }
+
+    const cleanNum = (s) => parseFloat(String(s).replace(/[,₩$€¥£¥₹฿₫₱\s]/g, '').trim());
+    const getCell  = (cells, field) => (cells[colIdx[field]] || '').trim();
 
     const imported = [];
     let errors = 0;
     for (let i = startIdx; i < lines.length; i++) {
       const cells = lines[i].split('\t');
-      const amountRaw = getCell(cells, 'amount').replace(/,/g, '');
-      const amount = parseFloat(amountRaw);
+      const amountRaw = getCell(cells, 'amount');
+      const amount = cleanNum(amountRaw);
       if (!amountRaw || isNaN(amount)) { errors++; continue; }
 
-      const typeStr = getCell(cells, 'type').toLowerCase();
-      const type    = (typeStr === '수입' || typeStr === 'in') ? 'in' : 'out';
+      const typeStr  = getCell(cells, 'type').toLowerCase();
+      const type     = (typeStr === '수입' || typeStr === 'in') ? 'in' : 'out';
       const scopeStr = getCell(cells, 'scope');
-      const scope   = (scopeStr === '개인' || scopeStr.toLowerCase() === 'personal') ? 'personal' : 'shared';
+      const scope    = (scopeStr === '개인' || scopeStr.toLowerCase() === 'personal') ? 'personal' : 'shared';
       const dateStr  = getCell(cells, 'date');
-      const dateMatch = dateStr.match(/\d{4}-\d{2}-\d{2}/);
-      const date     = dateMatch ? dateMatch[0] : new Date().toISOString().slice(0,10);
+      const dateMatch = dateStr.match(/\d{4}[.\-/]\d{1,2}[.\-/]\d{1,2}/);
+      const date     = dateMatch
+        ? dateMatch[0].replace(/[./]/g, '-').replace(/(\d{4})-(\d{1})-/, '$1-0$2-').replace(/-(\d{1})$/, '-0$1')
+        : new Date().toISOString().slice(0,10);
 
       imported.push({
         id: Date.now().toString() + '_' + i,
@@ -12801,7 +12812,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v186</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v187</div>
         </div>
       </div>
       <button onClick={async () => {
