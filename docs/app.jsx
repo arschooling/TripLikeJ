@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v198</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v199</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -5834,26 +5834,35 @@ async function prefetchRoutes(trip) {
             await delay(60);
           }
           if (pts.length > 1) {
-            try {
-              const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
-              const ctrl = new AbortController();
-              const t = setTimeout(() => ctrl.abort(), 10000);
-              const rd = await (await fetch(
-                `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`,
-                { signal: ctrl.signal }
-              )).json().finally(() => clearTimeout(t));
-              if (rd.routes?.[0]) {
-                const times = {};
-                (rd.routes[0].legs||[]).forEach((leg,li) => {
-                  times[li+1] = { transit:Math.max(1,Math.round(leg.duration/60)), walk:Math.max(1,Math.round(leg.distance/83.33)) };
-                });
-                try {
-                  const tip = computeRouteTip(pts, times);
-                  const geometry = rd.routes[0].geometry;
-                  localStorage.setItem(routeCacheKey, JSON.stringify({ pts, times, tip, geometry }));
-                } catch(_) {}
-              }
-            } catch(_) {}
+            const osrmBases = [
+              'https://router.project-osrm.org',
+              'https://routing.openstreetmap.de/routed-car',
+            ];
+            for (const base of osrmBases) {
+              let saved = false;
+              try {
+                const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
+                const ctrl = new AbortController();
+                const t = setTimeout(() => ctrl.abort(), 10000);
+                const rd = await fetch(
+                  `${base}/route/v1/driving/${coords}?overview=full&geometries=geojson`,
+                  { signal: ctrl.signal }
+                ).then(r => r.json()).finally(() => clearTimeout(t));
+                if (rd.routes?.[0]) {
+                  const times = {};
+                  (rd.routes[0].legs||[]).forEach((leg,li) => {
+                    times[li+1] = { transit:Math.max(1,Math.round(leg.duration/60)), walk:Math.max(1,Math.round(leg.distance/83.33)) };
+                  });
+                  try {
+                    const tip = computeRouteTip(pts, times);
+                    const geometry = rd.routes[0].geometry;
+                    localStorage.setItem(routeCacheKey, JSON.stringify({ pts, times, tip, geometry }));
+                    saved = true;
+                  } catch(_) {}
+                }
+              } catch(_) {}
+              if (saved) break;
+            }
           }
           await delay(400); // 날짜 간 간격
         }
@@ -6253,32 +6262,45 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
       if (cancelled || !mapInst.current || !pts.length) return;
 
       if (pts.length > 1) {
-        try {
-          const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
-          const rd = await (await fetch(
-            `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson`
-          )).json();
-          if (!cancelled && rd.routes?.[0]) {
-            const route = window.L.geoJSON(rd.routes[0].geometry, {
-              style: { color:'#C14F2E', weight:3.5, opacity:0.85 },
-            }).addTo(mapInst.current);
-            layers.current.push(route);
-            const times = {};
-            (rd.routes[0].legs || []).forEach((leg, li) => {
-              times[li + 1] = {
-                transit: Math.max(1, Math.round(leg.duration / 60)),
-                walk: Math.max(1, Math.round(leg.distance / 83.33)),
-              };
-            });
-            if (!cancelled) {
-              const tip = computeRouteTip(pts, times);
-              const geometry = rd.routes[0].geometry;
-              setTravelTimes(times);
-              setRouteTip(tip);
-              try { localStorage.setItem(cacheKey, JSON.stringify({ pts, times, tip, geometry })); } catch(_) {}
+        let routeDrawn = false;
+        const osrmBases = [
+          'https://router.project-osrm.org',
+          'https://routing.openstreetmap.de/routed-car',
+        ];
+        for (const base of osrmBases) {
+          if (routeDrawn || cancelled) break;
+          try {
+            const coords = pts.map(p => `${p.pos[1]},${p.pos[0]}`).join(';');
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 10000);
+            const rd = await fetch(
+              `${base}/route/v1/driving/${coords}?overview=full&geometries=geojson`,
+              { signal: ctrl.signal }
+            ).then(r => r.json()).finally(() => clearTimeout(timer));
+            if (!cancelled && rd.routes?.[0]) {
+              const route = window.L.geoJSON(rd.routes[0].geometry, {
+                style: { color:'#C14F2E', weight:3.5, opacity:0.85 },
+              }).addTo(mapInst.current);
+              layers.current.push(route);
+              const times = {};
+              (rd.routes[0].legs || []).forEach((leg, li) => {
+                times[li + 1] = {
+                  transit: Math.max(1, Math.round(leg.duration / 60)),
+                  walk: Math.max(1, Math.round(leg.distance / 83.33)),
+                };
+              });
+              if (!cancelled) {
+                const tip = computeRouteTip(pts, times);
+                const geometry = rd.routes[0].geometry;
+                setTravelTimes(times);
+                setRouteTip(tip);
+                try { localStorage.setItem(cacheKey, JSON.stringify({ pts, times, tip, geometry })); } catch(_) {}
+                routeDrawn = true;
+              }
             }
-          }
-        } catch(_) {
+          } catch(_) {}
+        }
+        if (!routeDrawn && !cancelled && mapInst.current) {
           const line = window.L.polyline(pts.map(p => p.pos), {
             color:'#C14F2E', weight:3, opacity:0.7, dashArray:'8 5',
           }).addTo(mapInst.current);
@@ -12908,7 +12930,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v198</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v199</div>
         </div>
       </div>
       <button onClick={async () => {
