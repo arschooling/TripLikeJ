@@ -1752,6 +1752,52 @@ function useFxRate(currency) {
   return { ...state, refresh: fetchRate };
 }
 
+// USD 기준으로 모든 통화 → KRW 실시간 환율 한 번에 fetch
+function useFxRatesAll() {
+  const [krwRates, setKrwRates] = React.useState(null);
+  React.useEffect(() => {
+    let alive = true;
+    const ctrl = new AbortController();
+    const get = (url) => fetch(url, { signal: ctrl.signal }).then(r => r.json());
+    const sources = [
+      { url: 'https://open.er-api.com/v6/latest/USD',
+        parse: j => {
+          const usdKrw = j?.rates?.KRW; if (!usdKrw) return null;
+          const r = { KRW: 1, USD: usdKrw };
+          for (const [c, v] of Object.entries(j.rates || {})) { if (v > 0) r[c] = usdKrw / v; }
+          return r;
+        }},
+      { url: 'https://api.frankfurter.app/latest?from=USD',
+        parse: j => {
+          const usdKrw = j?.rates?.KRW; if (!usdKrw) return null;
+          const r = { KRW: 1, USD: usdKrw };
+          for (const [c, v] of Object.entries(j.rates || {})) { if (v > 0) r[c] = usdKrw / v; }
+          return r;
+        }},
+      { url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
+        parse: j => {
+          const data = j?.usd; const usdKrw = data?.krw; if (!usdKrw) return null;
+          const r = { KRW: 1, USD: usdKrw };
+          for (const [c, v] of Object.entries(data)) { if (v > 0) r[c.toUpperCase()] = usdKrw / v; }
+          return r;
+        }},
+    ];
+    const tryNext = (i) => {
+      if (!alive || i >= sources.length) return;
+      get(sources[i].url).then(j => {
+        if (!alive) return;
+        const rates = sources[i].parse(j);
+        if (rates) setKrwRates(rates); else tryNext(i + 1);
+      }).catch(() => { if (alive) tryNext(i + 1); });
+    };
+    tryNext(0);
+    return () => { alive = false; ctrl.abort(); };
+  }, []);
+  const toKrwLive = React.useCallback((amt, cur) =>
+    amt * (krwRates?.[cur] ?? KRW_RATES[cur] ?? 1), [krwRates]);
+  return { toKrwLive, liveLoaded: krwRates !== null };
+}
+
 function FxCard({ curCode, onSetCurCode }) {
   const t = useT();
   const [pickerOpen, setPickerOpen] = React.useState(false);
@@ -2513,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v195</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v196</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7974,6 +8020,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
   const outCats = budget.outCats || BUDGET_OUT_CATS_DEFAULT;
   const inCats  = budget.inCats  || BUDGET_IN_CATS_DEFAULT;
   const splitN  = budget.splitN  || Math.max(2, (trip.members||[]).length);
+  const { toKrwLive, liveLoaded } = useFxRatesAll();
 
   // 개인경비는 본인 것만, 공동경비는 모두 표시
   const visibleEntries = React.useMemo(() =>
@@ -8207,10 +8254,10 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                   {(() => {
                     const curs = Object.keys(shared).filter(c => shared[c].out > 0);
                     if (curs.length === 0 || (curs.length === 1 && curs[0] === 'KRW')) return null;
-                    const totalKrw = curs.reduce((sum, cur) => sum + toKrw((shared[cur]?.out || 0) / splitN, cur), 0);
+                    const totalKrw = curs.reduce((sum, cur) => sum + toKrwLive((shared[cur]?.out || 0) / splitN, cur), 0);
                     return (
                       <div style={{ borderLeft:'1px solid rgba(255,255,255,0.12)', paddingLeft:20, marginLeft:4 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>합계 ≈</div>
+                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'rgba(255,255,255,0.65)', letterSpacing:'-0.02em', lineHeight:1 }}>
                           ₩{Math.round(totalKrw).toLocaleString('ko-KR')}
                         </div>
@@ -12831,7 +12878,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v195</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v196</div>
         </div>
       </div>
       <button onClick={async () => {
