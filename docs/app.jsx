@@ -2513,7 +2513,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v193</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v195</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -8192,7 +8192,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             {hasSharedOut && (
               <div style={{ borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:14 }}>
                 <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인 부담금 (1/{splitN})</div>
-                <div style={{ display:'flex', gap:20, flexWrap:'wrap' }}>
+                <div style={{ display:'flex', gap:20, flexWrap:'wrap', alignItems:'flex-end' }}>
                   {Object.keys(shared).filter(c => shared[c].out > 0).map(cur => {
                     const myShare = (shared[cur]?.out || 0) / splitN;
                     return (
@@ -8204,6 +8204,19 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                       </div>
                     );
                   })}
+                  {(() => {
+                    const curs = Object.keys(shared).filter(c => shared[c].out > 0);
+                    if (curs.length === 0 || (curs.length === 1 && curs[0] === 'KRW')) return null;
+                    const totalKrw = curs.reduce((sum, cur) => sum + toKrw((shared[cur]?.out || 0) / splitN, cur), 0);
+                    return (
+                      <div style={{ borderLeft:'1px solid rgba(255,255,255,0.12)', paddingLeft:20, marginLeft:4 }}>
+                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>합계 ≈</div>
+                        <div style={{ fontFamily:SERIF, fontSize:20, color:'rgba(255,255,255,0.65)', letterSpacing:'-0.02em', lineHeight:1 }}>
+                          ₩{Math.round(totalKrw).toLocaleString('ko-KR')}
+                        </div>
+                      </div>
+                    );
+                  })()}
                 </div>
               </div>
             )}
@@ -12818,7 +12831,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v193</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v195</div>
         </div>
       </div>
       <button onClick={async () => {
