@@ -2513,7 +2513,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v189</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v190</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -7926,6 +7926,12 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             <span style={{ fontWeight:600, color:COLORS.ink }}>열 순서:</span>{' '}
             날짜 · 구분 · 카테고리 · 범위 · 금액 · 통화 · 메모
           </div>
+          {entries.length > 0 && importText.trim() && (
+            <div style={{ marginBottom:10, padding:'8px 12px', borderRadius:10,
+              background:'rgba(200,80,80,0.08)', fontFamily:SANS, fontSize:12.5, color:COLORS.accent }}>
+              기존 {entries.length}개 항목이 모두 교체됩니다
+            </div>
+          )}
           <textarea
             value={importText}
             onChange={e => { setImportText(e.target.value); setImportResult(null); }}
@@ -7945,7 +7951,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
               color: importResult.count > 0 ? '#2e7d32' : COLORS.accent,
             }}>
               {importResult.count > 0
-                ? `✓ ${importResult.count}개 항목 가져오기 완료${importResult.errors > 0 ? ` (${importResult.errors}개 건너뜀)` : ''}`
+                ? `✓ ${importResult.count}개 항목으로 교체됨${importResult.errors > 0 ? ` (${importResult.errors}개 건너뜀)` : ''}`
                 : `유효한 데이터를 찾을 수 없어요${importResult.errors > 0 ? ` (${importResult.errors}개 건너뜀)` : ''}`}
             </div>
           )}
@@ -7955,7 +7961,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             color: importText.trim() ? COLORS.bg : COLORS.mute,
             fontFamily:SANS, fontSize:14, fontWeight:600,
             cursor: importText.trim() ? 'pointer' : 'default', transition:'all 150ms',
-          }}>가져오기</button>
+          }}>{entries.length > 0 ? '교체하기' : '가져오기'}</button>
         </div>
       )}
     </BottomSheet>
@@ -8524,7 +8530,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
         onClose={() => { setIoOpen(false); if (!sheetOpen && !calcOpen && !splitOpen) onSheetChange?.(false); }}
         entries={visibleEntries}
         myUid={myUid}
-        onImport={(imported) => onEditBudget({ entries: [...entries, ...imported] })}/>
+        onImport={(imported) => onEditBudget({ entries: imported })}/>
     </div>
   );
 }
@@ -12812,7 +12818,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v189</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v190</div>
         </div>
       </div>
       <button onClick={async () => {
