@@ -132,7 +132,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
             if (past) textColor = c.disabledDate;
             if (weekday == 0 && !past && !selected) textColor = c.sundayRed;
             if (weekday == 6 && !past && !selected) textColor = c.saturdayBlue;
-            if (selected) textColor = Colors.white;
+            if (selected) textColor = c.bg;
 
             return GestureDetector(
               onTap: past

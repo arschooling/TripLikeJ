@@ -1102,7 +1102,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
                 onClick={() => setSelected({ y:view.y, mo:view.mo, d })}
                 style={{ aspectRatio:'1/1', border:'none', cursor:disabled?'default':'pointer',
                   borderRadius:'50%', margin:1, background:isSel?COLORS.ink:'transparent',
-                  color: disabled?'oklch(82% 0.01 50)': isSel?'#fff': dow===0?COLORS.accent: COLORS.ink,
+                  color: disabled?'oklch(82% 0.01 50)': isSel?COLORS.bg: dow===0?COLORS.accent: COLORS.ink,
                   fontFamily:SANS, fontSize:13, fontWeight:isSel?600:400,
                   position:'relative', padding:0, display:'flex', alignItems:'center', justifyContent:'center',
                   transition:'background 140ms' }}>
@@ -1154,7 +1154,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
           <div style={{ padding:'0 16px 14px' }}>
             <button onClick={() => { setView({ y:+tmpY, mo:MONTH_KR.indexOf(tmpMo) }); setPickingYM(false); }} style={{
               width:'100%', padding:'13px', border:'none', borderRadius:14,
-              background:COLORS.ink, color:'#fff',
+              background:COLORS.ink, color:COLORS.bg,
               fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
             }}>이 달 달력 보기</button>
           </div>
@@ -2512,7 +2512,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v181</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v183</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -12583,7 +12583,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v181</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v183</div>
         </div>
       </div>
       <button onClick={async () => {
