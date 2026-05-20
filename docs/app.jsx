@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v199</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v200</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -3906,7 +3906,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
   );
   React.useEffect(() => {
     const items = day.items || [];
-    const cacheKey = `tt_day_${trip.title}_${dayIdx}_${coordsKey}`;
+    const cacheKey = `tt_day_${trip.id || trip.title}_${dayIdx}_${coordsKey}`;
     const pending = items.reduce((acc, it, i) => {
       if (i > 0 && it.coords && items[i-1].coords) acc.push(i);
       return acc;
@@ -3919,32 +3919,38 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
     } catch(_) {}
 
     let alive = true;
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 8000); // OSRM 공용 서버 느릴 때 8초컷
+    const osrmBases = ['https://router.project-osrm.org', 'https://routing.openstreetmap.de/routed-car'];
+    const fetchSegment = async (lon1, lat1, lon2, lat2) => {
+      for (const base of osrmBases) {
+        try {
+          const ctrl = new AbortController();
+          const timer = setTimeout(() => ctrl.abort(), 8000);
+          const r = await fetch(
+            `${base}/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`,
+            { signal: ctrl.signal }
+          ).then(res => res.json()).finally(() => clearTimeout(timer));
+          if (r.routes?.[0]) return r.routes[0];
+        } catch(_) {}
+      }
+      return null;
+    };
     const results = {};
     Promise.all(pending.map(async (i) => {
       const [lat1, lon1] = items[i-1].coords;
       const [lat2, lon2] = items[i].coords;
-      try {
-        const r = await (await fetch(
-          `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`,
-          { signal: ctrl.signal }
-        )).json();
-        if (r.routes?.[0]) {
-          const { duration, distance } = r.routes[0];
-          results[i] = {
-            drive: Math.max(1, Math.round(duration / 60)),
-            walk: Math.max(1, Math.round(distance / 83.33)),
-          };
-        }
-      } catch(_) {}
+      const route = await fetchSegment(lon1, lat1, lon2, lat2);
+      if (route) {
+        results[i] = {
+          drive: Math.max(1, Math.round(route.duration / 60)),
+          walk: Math.max(1, Math.round(route.distance / 83.33)),
+        };
+      }
     })).then(() => {
-      clearTimeout(timer);
       if (!alive) return;
       setTravelTimes(results);
       try { localStorage.setItem(cacheKey, JSON.stringify(results)); } catch(_) {}
     });
-    return () => { alive = false; clearTimeout(timer); ctrl.abort(); };
+    return () => { alive = false; };
   }, [dayIdx, coordsKey, trip.title]);
 
   const fmtMin = (m) => m >= 60 ? `${Math.floor(m/60)}시간${m%60 ? ` ${m%60}분` : ''}` : `${m}분`;
@@ -5875,21 +5881,26 @@ async function prefetchRoutes(trip) {
         let ttCached = false;
         try { ttCached = !!localStorage.getItem(ttCacheKey); } catch(_) {}
         if (pending.length && !ttCached) {
+          const ttBases = ['https://router.project-osrm.org', 'https://routing.openstreetmap.de/routed-car'];
+          const fetchSeg = async (lon1, lat1, lon2, lat2) => {
+            for (const base of ttBases) {
+              try {
+                const ctrl2 = new AbortController();
+                const t2 = setTimeout(() => ctrl2.abort(), 8000);
+                const r = await fetch(
+                  `${base}/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`,
+                  { signal: ctrl2.signal }
+                ).then(res => res.json()).finally(() => clearTimeout(t2));
+                if (r.routes?.[0]) return r.routes[0];
+              } catch(_) {}
+            }
+            return null;
+          };
           const results = {};
           for (const i of pending) {
-            try {
-              const [lat1,lon1]=items[i-1].coords, [lat2,lon2]=items[i].coords;
-              const ctrl2 = new AbortController();
-              const t2 = setTimeout(() => ctrl2.abort(), 8000);
-              const r = await (await fetch(
-                `https://router.project-osrm.org/route/v1/driving/${lon1},${lat1};${lon2},${lat2}?overview=false`,
-                { signal: ctrl2.signal }
-              )).json().finally(() => clearTimeout(t2));
-              if (r.routes?.[0]) {
-                const {duration,distance}=r.routes[0];
-                results[i]={drive:Math.max(1,Math.round(duration/60)),walk:Math.max(1,Math.round(distance/83.33))};
-              }
-            } catch(_) {}
+            const [lat1,lon1]=items[i-1].coords, [lat2,lon2]=items[i].coords;
+            const seg = await fetchSeg(lon1, lat1, lon2, lat2);
+            if (seg) results[i]={drive:Math.max(1,Math.round(seg.duration/60)),walk:Math.max(1,Math.round(seg.distance/83.33))};
             await delay(120);
           }
           try { localStorage.setItem(ttCacheKey, JSON.stringify(results)); } catch(_) {}
@@ -6159,7 +6170,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
     if (!window.L) return;
     setRouteTip(null);
     let cancelled = false;
-    const cacheKey = `route_${trip.title}_${selDay}_${mapKey}`;
+    const cacheKey = `route_${trip.id || trip.title}_${selDay}_${mapKey}`;
 
     const drawFromPts = (pts, times) => {
       if (!mapInst.current || !pts.length) return;
@@ -12930,7 +12941,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v199</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v200</div>
         </div>
       </div>
       <button onClick={async () => {
