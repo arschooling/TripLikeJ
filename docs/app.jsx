@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v200</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v201</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
@@ -12071,6 +12071,12 @@ function App() {
       const incoming = normalizeTrip(data, activeTripId);
       // 기존에 days 있는데 Firestore가 빈 데이터 주면 무시 (쓰기 진행 중)
       if (incoming.days.length === 0 && (tripRef.current?.days?.length || 0) > 0) return;
+      // 로컬 budget entries가 더 많으면 Firebase 스냅샷이 낙관적 업데이트보다 오래된 것 → budget 보존
+      const localEntries = tripRef.current?.budget?.entries;
+      const incomingEntries = incoming.budget?.entries;
+      if ((localEntries?.length ?? 0) > (incomingEntries?.length ?? 0)) {
+        incoming.budget = { ...(incoming.budget || {}), entries: localEntries };
+      }
       // prep 없으면 TRIP_DEFAULT.prep으로 초기화 (per-trip 아키텍처)
       // ⚠️ 깊은 복제 필수 — 공유 reference면 PrepScreen 편집이 전역 default 오염
       if (!incoming.prep && window.TRIP_DEFAULT?.prep?.cats?.length) {
@@ -12941,7 +12947,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v200</div>
+          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v201</div>
         </div>
       </div>
       <button onClick={async () => {
