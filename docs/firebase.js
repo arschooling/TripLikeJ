@@ -761,13 +761,13 @@ window.fbAcceptTripCopy = async (invite, myUid) => {
   return tripId;
 };
 
-window.fbNotifyTripEdit = async (tripId, editorUid, editorName, editorPhoto, tripTitle, changeDesc) => {
+window.fbNotifyTripEdit = async (tripId, editorUid, editorName, editorPhoto, tripTitle, editType = 'trip_edited') => {
   const snap = await _fbDb.collection('groups').doc(tripId).get();
   if (!snap.exists) return;
   const members = (snap.data().members || []).filter(u => u !== editorUid);
   if (!members.length) return;
   await Promise.all(members.map(uid => _fbAddNotification(uid, {
-    type: 'trip_edited',
+    type: editType,
     fromUid: editorUid, fromName: editorName || '', fromPhoto: editorPhoto || '',
     tripId, tripTitle: tripTitle || '',
     ...(changeDesc ? { changeDesc } : {}),

@@ -8945,6 +8945,7 @@ function NotificationsScreen({ open, onClose, authUser, notifications, onGoToCom
     if (n.type === 'invite_received')    return `${name}님이 ${trip}에 초대했습니다.`;
     if (n.type === 'invite_accepted')    return `${name}님이 ${trip} 초대를 수락했습니다.`;
     if (n.type === 'trip_edited')        return `${name}님이 ${trip} 일정을 수정했습니다.${n.changeDesc ? ` (${n.changeDesc})` : ''}`;
+    if (n.type === 'budget_edited')    return `${name}님이 ${trip} 여비를 수정했습니다.`;
     if (n.type === 'contact_added')      return `${name}님이 동행인으로 추가했습니다.`;
     if (n.type === 'contact_accepted')   return `${name}님이 동행인 요청을 수락했습니다.`;
     if (n.type === 'trip_copy_received') return `${name}님이 ${trip} 일정을 보냈습니다.`;
@@ -11826,6 +11827,7 @@ function App() {
   const notifyTripEditTimer                     = React.useRef(null);
   const notifyEditSnapshot                      = React.useRef(null);
   const updateSampleTimer                       = React.useRef(null);
+  const notifyTripEditType                      = React.useRef('trip_edited');
   const [shareTripTarget, setShareTripTarget] = React.useState(null);
   const [loginError, setLoginError] = React.useState('');
   const [loginPending, setLoginPending] = React.useState(false); // 로그인 버튼 누른 후 로딩 중
@@ -12314,16 +12316,18 @@ function App() {
         fbUpdateSample(currentSampleId, next).catch(() => {});
       }, 5000);
     }
-    // 동행인에게 일정 수정 알림 (60초 디바운스)
+    // 동행인에게 수정 알림 (60초 디바운스)
     if (activeTripId && authUser && typeof fbNotifyTripEdit === 'function') {
+      const patchType = 'budget' in patch ? 'budget_edited' : 'trip_edited';
+      if (notifyTripEditType.current !== 'trip_edited') notifyTripEditType.current = patchType;
       if (!notifyTripEditTimer.current) notifyEditSnapshot.current = prev;
       clearTimeout(notifyTripEditTimer.current);
       const titleForNotif = next.title || trip?.title || '';
       notifyTripEditTimer.current = setTimeout(() => {
         notifyTripEditTimer.current = null;
-        const changeDesc = buildChangeDesc(notifyEditSnapshot.current, tripRef.current);
         notifyEditSnapshot.current = null;
-        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', titleForNotif, changeDesc).catch(() => {});
+        fbNotifyTripEdit(activeTripId, authUser.uid, authUser.displayName || '', authUser.photoURL || '', titleForNotif, notifyTripEditType.current).catch(() => {});
+        notifyTripEditType.current = 'trip_edited';
       }, 60000);
     }
   };
