@@ -514,7 +514,7 @@ function Photo({ hue=20, label='', height=180, small=false }) {
       <div style={{ position:'absolute', inset:0,
         background:`radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.35), transparent 60%)` }}/>
       {label && !small && <div style={{
-        fontFamily:MONO, fontSize:10, letterSpacing:'0.14em',
+        fontFamily:MONO, fontSize:12, letterSpacing:'0.14em',
         color:ink, opacity:0.72, textTransform:'uppercase', position:'relative',
       }}>{label}</div>}
     </div>
@@ -556,7 +556,7 @@ function EditBtn({ editing, onClick, compact, canUndo, onUndo }) {
         color: editing ? '#fff' : COLORS.ink,
         borderRadius: 14, padding: compact ? '5px 9px' : '6px 12px',
         display:'flex', gap:5, alignItems:'center',
-        fontFamily:SANS, fontSize:11.5, fontWeight:500,
+        fontFamily:SANS, fontSize:12, fontWeight:500,
       }}>
       <Icon name={editing ? 'check' : 'edit'} size={12}
         color={editing ? '#fff' : COLORS.ink} stroke={2}/>
@@ -571,7 +571,7 @@ function EditBtn({ editing, onClick, compact, canUndo, onUndo }) {
           border:'none', cursor:'pointer',
           background:'rgba(26,24,22,0.06)',
           borderRadius:14, padding: compact ? '5px 9px' : '6px 10px',
-          fontFamily:SANS, fontSize:13, lineHeight:1,
+          fontFamily:SANS, fontSize:17, lineHeight:1,
         }}>↩</button>
         {btn}
       </div>
@@ -677,7 +677,7 @@ const SwipeableRow = React.memo(function SwipeableRow({ children, onEdit, onDele
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>
             {editLabel
-              ? <span style={{ fontFamily:'system-ui,sans-serif', fontSize:11, fontWeight:600, color:'#fff' }}>{editLabel}</span>
+              ? <span style={{ fontFamily:'system-ui,sans-serif', fontSize:12, fontWeight:600, color:'#fff' }}>{editLabel}</span>
               : <Icon name={editIcon||'edit'} size={compact ? 12 : 14} color="#fff" stroke={2}/>}
           </button>
         )}
@@ -688,7 +688,7 @@ const SwipeableRow = React.memo(function SwipeableRow({ children, onEdit, onDele
           display:'flex', alignItems:'center', justifyContent:'center',
         }}>
           {deleteLabel
-            ? <span style={{ fontFamily:'system-ui,sans-serif', fontSize:11, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
+            ? <span style={{ fontFamily:'system-ui,sans-serif', fontSize:12, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
             : <Icon name="trash" size={compact ? 12 : 14} color="#fff" stroke={2}/>}
         </button>
       </div>
@@ -772,7 +772,7 @@ const SwipeableRow = React.memo(function SwipeableRow({ children, onEdit, onDele
                 display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
               }}>
                 {editLabel
-                  ? <span style={{ fontFamily:SANS, fontSize:10, fontWeight:600, color:'#fff' }}>{editLabel}</span>
+                  ? <span style={{ fontFamily:SANS, fontSize:12, fontWeight:600, color:'#fff' }}>{editLabel}</span>
                   : <Icon name={editIcon||'edit'} size={14} color="#fff" stroke={2}/>}
               </button>
             )}
@@ -784,7 +784,7 @@ const SwipeableRow = React.memo(function SwipeableRow({ children, onEdit, onDele
               display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:2,
             }}>
               {deleteLabel
-                ? <span style={{ fontFamily:SANS, fontSize:10, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
+                ? <span style={{ fontFamily:SANS, fontSize:12, fontWeight:600, color:'#fff' }}>{deleteLabel}</span>
                 : <Icon name="trash" size={14} color="#fff" stroke={2}/>}
             </button>
           </div>
@@ -1016,12 +1016,12 @@ function BottomSheet({ open, onClose, children, title, onConfirm, confirmLabel='
         <div style={{ padding:'10px 18px 4px', display:'flex', justifyContent:'space-between', alignItems:'center' }}>
           <button onClick={onClose} style={{
             border:'none', background:'transparent', cursor:'pointer',
-            fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'4px 2px',
+            fontFamily:SANS, fontSize:17, color:COLORS.mute, padding:'4px 2px',
           }}>취소</button>
-          <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>{title}</div>
+          <div style={{ fontFamily:SERIF, fontSize:17, color:COLORS.ink }}>{title}</div>
           <button onClick={onConfirm} style={{
             border:'none', background:'transparent', cursor:'pointer',
-            fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
+            fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
           }}>{confirmLabel}</button>
         </div>
         {children}
@@ -1087,7 +1087,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
       <>
         <div style={{ padding:'0 14px 2px', display:'grid', gridTemplateColumns:'repeat(7, 1fr)' }}>
           {DOW.map((w, i) => (
-            <div key={i} style={{ textAlign:'center', fontFamily:MONO, fontSize:9.5, letterSpacing:'0.08em',
+            <div key={i} style={{ textAlign:'center', fontFamily:MONO, fontSize:12, letterSpacing:'0.08em',
               color: i===0 ? COLORS.accent : i===6 ? 'oklch(60% 0.06 250)' : COLORS.mute, padding:'4px 0' }}>{w}</div>
           ))}
         </div>
@@ -1104,7 +1104,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
                 style={{ aspectRatio:'1/1', border:'none', cursor:disabled?'default':'pointer',
                   borderRadius:'50%', margin:1, background:isSel?COLORS.ink:'transparent',
                   color: disabled?'oklch(82% 0.01 50)': isSel?COLORS.bg: dow===0?COLORS.accent: COLORS.ink,
-                  fontFamily:SANS, fontSize:13, fontWeight:isSel?600:400,
+                  fontFamily:SANS, fontSize:17, fontWeight:isSel?600:400,
                   position:'relative', padding:0, display:'flex', alignItems:'center', justifyContent:'center',
                   transition:'background 140ms' }}>
                 {d}
@@ -1156,7 +1156,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
             <button onClick={() => { setView({ y:+tmpY, mo:MONTH_KR.indexOf(tmpMo) }); setPickingYM(false); }} style={{
               width:'100%', padding:'13px', border:'none', borderRadius:14,
               background:COLORS.ink, color:COLORS.bg,
-              fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+              fontFamily:SANS, fontSize:17, fontWeight:500, cursor:'pointer',
             }}>이 달 달력 보기</button>
           </div>
         </div>
@@ -1187,7 +1187,7 @@ function TimeField({ value, onChange }) {
     <button type="button" onClick={() => setOpen(true)} style={{
       width:'100%', padding:'8px 10px', borderRadius:8,
       border:`1px solid ${COLORS.line}`, background:COLORS.card,
-      fontFamily:MONO, fontSize:14, color:COLORS.ink, cursor:'pointer',
+      fontFamily:MONO, fontSize:17, color:COLORS.ink, cursor:'pointer',
       display:'flex', alignItems:'center', justifyContent:'center',
     }}>
       {value || '09:00'}
@@ -1286,11 +1286,11 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
               background: active ? COLORS.ink : 'transparent',
               borderRight: ki===0 ? `1px solid ${COLORS.line}` : 'none',
             }}>
-              <div style={{fontFamily:MONO, fontSize:9, letterSpacing:'0.12em', marginBottom:3,
+              <div style={{fontFamily:MONO, fontSize:12, letterSpacing:'0.12em', marginBottom:3,
                 color: active ? 'rgba(255,255,255,0.5)' : COLORS.mute}}>
                 {k==='start' ? 'START' : 'END'}
               </div>
-              <div style={{fontFamily:SANS, fontSize:14, fontWeight:500,
+              <div style={{fontFamily:SANS, fontSize:17, fontWeight:500,
                 color: active ? '#fff' : val ? COLORS.ink : COLORS.mute}}>
                 {fmtDate(val) || '—'}
               </div>
@@ -1313,7 +1313,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
           background: showYM ? COLORS.softer : 'transparent',
           padding:'6px 0', display:'flex', alignItems:'center', justifyContent:'center', gap:5,
         }}>
-          <span style={{fontFamily:SANS, fontSize:15, fontWeight:600, color:COLORS.ink, letterSpacing:'-0.01em'}}>
+          <span style={{fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.ink, letterSpacing:'-0.01em'}}>
             {showYM ? `${tmpY}년 ${tmpMo}` : `${view.y}년 ${MONTH_KR[view.mo]}`}
           </span>
           <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}
@@ -1334,7 +1334,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
           {/* 요일 헤더 */}
           <div style={{display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 14px 2px'}}>
             {DOW.map((w,i) => (
-              <div key={i} style={{textAlign:'center', fontFamily:MONO, fontSize:9.5, letterSpacing:'0.08em', padding:'2px 0 6px',
+              <div key={i} style={{textAlign:'center', fontFamily:MONO, fontSize:12, letterSpacing:'0.08em', padding:'2px 0 6px',
                 color: i===0 ? COLORS.accent : i===6 ? 'oklch(60% 0.06 250)' : COLORS.mute}}>{w}</div>
             ))}
           </div>
@@ -1355,7 +1355,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
                   background: hasStrip ? 'rgba(193,79,46,0.10)' : 'transparent', borderRadius:stripR,
                 }}>
                   {isSel&&<div style={{position:'absolute',inset:'3px',borderRadius:'50%',background:COLORS.ink,zIndex:0}}/>}
-                  <span style={{position:'relative',zIndex:1,fontFamily:SANS,fontSize:13,fontWeight:isSel?600:400,
+                  <span style={{position:'relative',zIndex:1,fontFamily:SANS,fontSize:17,fontWeight:isSel?600:400,
                     color:isSel?'#fff':col===0?COLORS.accent:COLORS.ink}}>{d}</span>
                   {isToday&&!isSel&&<span style={{position:'absolute',bottom:3,left:'50%',transform:'translateX(-50%)',width:3,height:3,borderRadius:'50%',background:COLORS.accent,zIndex:1}}/>}
                 </button>
@@ -1647,7 +1647,7 @@ function PickerSheet({ open, onClose, title, items, getKey, filterFn, renderRow,
             <Icon name="search" size={14} color={COLORS.mute} stroke={1.8}/>
             <input ref={inputRef} value={q} onChange={e => setQ(e.target.value)} placeholder="검색"
               style={{ border:'none', outline:'none', background:'transparent', flex:1,
-                fontFamily:SANS, fontSize:13, color:COLORS.ink }}/>
+                fontFamily:SANS, fontSize:17, color:COLORS.ink }}/>
             {q && <button onClick={() => setQ('')}
               style={{ border:'none', background:'transparent', padding:0, cursor:'pointer' }}>
               <Icon name="x" size={12} color={COLORS.mute} stroke={2}/>
@@ -1657,7 +1657,7 @@ function PickerSheet({ open, onClose, title, items, getKey, filterFn, renderRow,
         <div style={{ flex:1, overflowY:'auto', padding:'0 16px calc(80px + env(safe-area-inset-bottom,0px))' }}>
           <div style={{ background:COLORS.card, borderRadius:14, overflow:'hidden' }}>
             {filtered.length === 0 && (
-              <div style={{ padding:'20px', fontFamily:SANS, fontSize:13, color:COLORS.mute, textAlign:'center' }}>검색 결과 없음</div>
+              <div style={{ padding:'20px', fontFamily:SANS, fontSize:17, color:COLORS.mute, textAlign:'center' }}>검색 결과 없음</div>
             )}
             {filtered.map((item, i) => {
               const k = getKey(item);
@@ -1813,7 +1813,7 @@ function FxCard({ curCode, onSetCurCode }) {
   return (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 11px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('exchangeLabel')}</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('exchangeLabel')}</div>
         <button onClick={refresh} style={{ border:'none', background:'transparent', cursor:'pointer', padding:2 }}>
           <Icon name="refresh" size={12} color={COLORS.mute} stroke={1.8}/>
         </button>
@@ -1822,18 +1822,18 @@ function FxCard({ curCode, onSetCurCode }) {
         <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, lineHeight:1 }}>
           {loading ? '…' : rate ? `₩${Math.round(rate * (cur.unit || 1)).toLocaleString()}` : '—'}
         </div>
-        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, paddingBottom:4 }}>
+        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, paddingBottom:4 }}>
           = {cur.sym}{cur.unit > 1 ? cur.unit : 1}
         </div>
       </div>
       <div style={{ marginTop:4, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, opacity:0.6 }}>
+        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, opacity:0.6 }}>
           {ts || ''}
         </div>
         <button onClick={() => setPickerOpen(true)} style={{
           border:'none', background:'transparent', cursor:'pointer', padding:'2px 0',
           display:'flex', alignItems:'center', gap:3,
-          fontFamily:MONO, fontSize:10, color:COLORS.ink, fontWeight:600,
+          fontFamily:MONO, fontSize:12, color:COLORS.ink, fontWeight:600,
         }}>
           {cur.code}
           <Icon name="chevron-d" size={10} color={COLORS.mute} stroke={1.8}/>
@@ -1849,10 +1849,10 @@ function FxCard({ curCode, onSetCurCode }) {
         onPick={c => onSetCurCode(c.code)}
         renderRow={(c) => (
           <>
-            <div style={{ fontFamily:MONO, fontSize:14, fontWeight:600, color:COLORS.ink, minWidth:42 }}>{c.code}</div>
+            <div style={{ fontFamily:MONO, fontSize:17, fontWeight:600, color:COLORS.ink, minWidth:42 }}>{c.code}</div>
             <div style={{ flex:1 }}>
-              <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink }}>{c.name}</div>
-              <div style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, marginTop:1 }}>{c.sym}1</div>
+              <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink }}>{c.name}</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:1 }}>{c.sym}1</div>
             </div>
           </>
         )}
@@ -1961,8 +1961,8 @@ function WeatherCard({ city }) {
 
   const skeleton = (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 12px' }}>
-      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
-      <div style={{ marginTop:10, fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{loading ? t('weatherLoading') : t('weatherNoData')}</div>
+      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
+      <div style={{ marginTop:10, fontFamily:SANS, fontSize:17, color:COLORS.mute }}>{loading ? t('weatherLoading') : t('weatherNoData')}</div>
     </div>
   );
   if (loading || !cur) return skeleton;
@@ -1979,8 +1979,8 @@ function WeatherCard({ city }) {
   return (
     <div style={{ background:COLORS.card, borderRadius:14, padding:'13px 14px 12px' }}>
       <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
-        <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{city.flag} {city.key}</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('weatherLabel')}</div>
+        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>{city.flag} {city.key}</div>
       </div>
       {/* 현재 기온 */}
       <div style={{ marginTop:10, display:'flex', alignItems:'flex-end', justifyContent:'space-between' }}>
@@ -1994,9 +1994,9 @@ function WeatherCard({ city }) {
           </div>
         </div>
         <div style={{ textAlign:'right', paddingBottom:2 }}>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>{t('weatherFeels')} {Math.round(cur.apparent_temperature)}°</div>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>{t('weatherHumidity')} {cur.relative_humidity_2m}%</div>
-          <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>{t('weatherWind')} {Math.round(cur.wind_speed_10m)}㎞/h</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>{t('weatherFeels')} {Math.round(cur.apparent_temperature)}°</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3 }}>{t('weatherHumidity')} {cur.relative_humidity_2m}%</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3 }}>{t('weatherWind')} {Math.round(cur.wind_speed_10m)}㎞/h</div>
         </div>
       </div>
       {/* 5일 예보 */}
@@ -2005,10 +2005,10 @@ function WeatherCard({ city }) {
           display:'flex', justifyContent:'space-between' }}>
           {forecast.map(f => (
             <div key={f.label} style={{ flex:1, textAlign:'center' }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, marginBottom:3 }}>{f.label}</div>
-              <div style={{ fontSize:16, marginBottom:3 }}>{f.emoji}</div>
-              <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.ink, fontWeight:600 }}>{f.max}°</div>
-              <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute }}>{f.min}°</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginBottom:3 }}>{f.label}</div>
+              <div style={{ fontSize:17, marginBottom:3 }}>{f.emoji}</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.ink, fontWeight:600 }}>{f.max}°</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>{f.min}°</div>
             </div>
           ))}
         </div>
@@ -2066,17 +2066,17 @@ function TimezoneCard({ city, onPick, homeZone }) {
         border:'none', cursor:'pointer', textAlign:'left', width:'100%',
       }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center' }}>
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('timezoneLabel')}</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>{t('timezoneLabel')}</div>
           <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={1.8}/>
         </div>
         <div style={{ marginTop:5, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <div style={{ fontFamily:SERIF, fontSize:30, color:COLORS.ink, flexShrink:0, lineHeight:1 }}>{formatDiffFromHome(city.zone, homeZone)}</div>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:2 }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.04em' }}>{formatCityDateWeekday(city.zone)}</div>
-            <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.ink, letterSpacing:'0.04em' }}>{formatCityTime(city.zone)}</div>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.04em' }}>{formatCityDateWeekday(city.zone)}</div>
+            <div style={{ fontFamily:MONO, fontSize:17, color:COLORS.ink, letterSpacing:'0.04em' }}>{formatCityTime(city.zone)}</div>
           </div>
         </div>
-        <div style={{ marginTop:5, fontFamily:SANS, fontSize:11, color:COLORS.mute, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+        <div style={{ marginTop:5, fontFamily:SANS, fontSize:12, color:COLORS.mute, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
           {city.flag} {city.key}
         </div>
       </button>
@@ -2092,8 +2092,8 @@ function TimezoneCard({ city, onPick, homeZone }) {
           <>
             <span style={{ fontSize:18 }}>{c.flag}</span>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink }}>{c.key}</div>
-              <div style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, marginTop:2 }}>
+              <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink }}>{c.key}</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:2 }}>
                 {formatDiffFromHome(c.zone, homeZone)} · {formatCityTime(c.zone)}
               </div>
             </div>
@@ -2339,7 +2339,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
         <div style={{ fontSize:18, marginBottom:2 }}>{emoji}</div>
         <div style={{ fontFamily:SANS, fontSize:12, fontWeight:600,
           color: active ? COLORS.bg : COLORS.ink, marginBottom:2 }}>{label}</div>
-        <div style={{ fontFamily:SANS, fontSize:10.5, color: active ? 'rgba(255,255,255,0.65)' : COLORS.mute,
+        <div style={{ fontFamily:SANS, fontSize:12, color: active ? 'rgba(255,255,255,0.65)' : COLORS.mute,
           lineHeight:1.3 }}>{desc}</div>
       </div>
     );
@@ -2357,7 +2357,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
         <div style={{ flexShrink:0 }}>
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:14 }}>{trip.title}</div>
 
           {/* Mode selector */}
@@ -2371,12 +2371,12 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
 
         <div style={{ flex:1, overflowY:'auto', WebkitOverflowScrolling:'touch' }}>
           {loading ? (
-            <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>불러오는 중...</div>
+            <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>불러오는 중...</div>
           ) : mode === 'edit' ? (
             <>
               {memberProfiles.length > 0 && (
                 <>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
                     textTransform:'uppercase', marginBottom:8 }}>현재 동행인</div>
                   {memberProfiles.map(c => (
                     <div key={c.uid} style={{
@@ -2388,12 +2388,12 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                         ? <img src={c.photoURL} alt="" style={{ width:38, height:38, borderRadius:'50%', objectFit:'cover', flexShrink:0 }}/>
                         : <div style={{ width:38, height:38, borderRadius:'50%', background:'#C8C3B8', flexShrink:0,
                             display:'flex', alignItems:'center', justifyContent:'center',
-                            fontFamily:SANS, fontSize:15, color:'#fff', fontWeight:600 }}>
+                            fontFamily:SANS, fontSize:17, color:'#fff', fontWeight:600 }}>
                             {(c.displayName||'?')[0].toUpperCase()}
                           </div>
                       }
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500,
+                        <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                           overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
                         <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
                           overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
@@ -2412,7 +2412,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
               )}
               {contacts.length > 0 && (
                 <>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
                     textTransform:'uppercase', marginBottom:8 }}>이전 동행인</div>
                   {contacts.map(c => {
                     const isSel = selected.has(c.uid);
@@ -2428,12 +2428,12 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                           ? <img src={c.photoURL} alt="" style={{ width:38, height:38, borderRadius:'50%', objectFit:'cover', flexShrink:0 }}/>
                           : <div style={{ width:38, height:38, borderRadius:'50%', background:'#C8C3B8', flexShrink:0,
                               display:'flex', alignItems:'center', justifyContent:'center',
-                              fontFamily:SANS, fontSize:15, color:'#fff', fontWeight:600 }}>
+                              fontFamily:SANS, fontSize:17, color:'#fff', fontWeight:600 }}>
                               {(c.displayName||'?')[0].toUpperCase()}
                             </div>
                         }
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500,
+                          <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
                           <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
@@ -2450,7 +2450,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                   <div style={{ height:16 }}/>
                 </>
               )}
-              <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
                 textTransform:'uppercase', marginBottom:8 }}>
                 {contacts.length > 0 ? '새로운 동행인' : '동행인 초대'}
               </div>
@@ -2460,9 +2460,9 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
                 style={{ width:'100%', padding:'13px 14px', borderRadius:14,
                   border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-                  fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+                  fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
               {msg && (
-                <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
+                <div style={{ marginTop:8, fontFamily:SANS, fontSize:17,
                   color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
               )}
             </>
@@ -2470,11 +2470,11 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
             /* copy mode */
             <>
               <div style={{ background:COLORS.softer, borderRadius:14, padding:'12px 14px', marginBottom:16 }}>
-                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, lineHeight:1.5 }}>
+                <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, lineHeight:1.5 }}>
                   이메일 주소를 입력하면 상대방 앱에 알림이 전송됩니다. 상대방이 수락하면 이 일정의 복사본이 상대방의 <strong>My Trips</strong>에 추가됩니다.
                 </div>
               </div>
-              <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em',
+              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
                 textTransform:'uppercase', marginBottom:8 }}>받는 사람 이메일</div>
               <input
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -2482,9 +2482,9 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                 onKeyDown={e => e.key === 'Enter' && handleSend()}
                 style={{ width:'100%', padding:'13px 14px', borderRadius:14,
                   border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-                  fontFamily:SANS, fontSize:14, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+                  fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
               {msg && (
-                <div style={{ marginTop:8, fontFamily:SANS, fontSize:13,
+                <div style={{ marginTop:8, fontFamily:SANS, fontSize:17,
                   color: msg.includes('보냈') ? COLORS.accent : '#C0392B' }}>{msg}</div>
               )}
             </>
@@ -2495,7 +2495,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
           flexShrink:0, marginTop:14, width:'100%', padding:'15px', border:'none', borderRadius:14,
           background: canSend ? COLORS.ink : COLORS.softer,
           color: canSend ? COLORS.bg : COLORS.mute,
-          fontFamily:SANS, fontSize:14, fontWeight:500, cursor: canSend ? 'pointer' : 'default',
+          fontFamily:SANS, fontSize:17, fontWeight:500, cursor: canSend ? 'pointer' : 'default',
         }}>{sending ? '보내는 중...' : mode === 'copy' ? '일정 보내기' : '초대 보내기'}</button>
       </div>
     </div>
@@ -2550,7 +2550,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
             minWidth:15, height:15, borderRadius:8,
             background:'#E03C31', padding:'0 3px',
             display:'flex', alignItems:'center', justifyContent:'center',
-            fontFamily:MONO, fontSize:9, color:'#fff', fontWeight:700,
+            fontFamily:MONO, fontSize:12, color:'#fff', fontWeight:700,
             boxSizing:'border-box',
           }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
         )}
@@ -2559,10 +2559,10 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:11,color:COLORS.mute,marginLeft:8}}>v200</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v201</span></div>
       </div>
       {loading && trips.length === 0
-        ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>{t('loading')}</div>
+        ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
         : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
             {sortedTrips.map(t => {
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
@@ -2592,12 +2592,12 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                           borderRadius:20, padding:'4px 10px',
                         }}>
                           <Icon name="users" size={11} color={`oklch(0.38 0.09 ${hue})`} stroke={2}/>
-                          <span style={{ fontFamily:SANS, fontSize:10, color:`oklch(0.38 0.09 ${hue})`, fontWeight:500 }}>{companionCount}명</span>
+                          <span style={{ fontFamily:SANS, fontSize:12, color:`oklch(0.38 0.09 ${hue})`, fontWeight:500 }}>{companionCount}명</span>
                         </div>
                       )}
                     </div>
                     <div style={{ padding:'14px 18px 16px', position:'relative' }}>
-                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em' }}>
                         {(t.days||[]).length} DAYS{t.dates ? ' · ' + t.dates : ''}
                       </div>
                       <div style={{ marginTop:4, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink, letterSpacing:'-0.015em' }}>
@@ -2611,7 +2611,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                             border:'1px solid rgba(193,79,46,0.15)',
                           }}>
                             <Icon name="sparkle" size={10} color={COLORS.accent} stroke={1.8}/>
-                            <span style={{ fontFamily:SANS, fontSize:10, color:COLORS.accent, fontWeight:500 }}>샘플</span>
+                            <span style={{ fontFamily:SANS, fontSize:12, color:COLORS.accent, fontWeight:500 }}>샘플</span>
                           </div>
                         </div>
                       )}
@@ -2624,27 +2624,27 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
               <div style={{ padding:'28px 20px', background:COLORS.card, borderRadius:16,
                 border:`1px solid ${COLORS.line}`, textAlign:'center', marginBottom:4 }}>
                 <div style={{ fontFamily:SERIF, fontSize:24, color:COLORS.ink, marginBottom:6 }}>New York</div>
-                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:18 }}>
+                <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:18 }}>
                   10일 뉴욕 일정을 복원합니다
                 </div>
                 {restoreErr && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.accent, marginBottom:10 }}>{restoreErr}</div>}
                 <button onClick={handleRestore} disabled={restoring} style={{
                   padding:'12px 28px', background: restoring ? COLORS.mute : COLORS.ink,
                   border:'none', borderRadius:12, color:COLORS.bg,
-                  fontFamily:SANS, fontSize:13, fontWeight:500,
+                  fontFamily:SANS, fontSize:17, fontWeight:500,
                   cursor: restoring ? 'default' : 'pointer', opacity: restoring ? 0.7 : 1,
                 }}>{restoring ? '복원 중...' : '뉴욕 일정 복원하기'}</button>
               </div>
             )}
             <button onClick={onAdd} style={{ marginTop:4, padding:'18px 16px', background:'transparent',
               border:`1.5px dashed ${COLORS.line}`, borderRadius:16, color:COLORS.mute, cursor:'pointer',
-              display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:13.5 }}>
+              display:'flex', gap:8, alignItems:'center', justifyContent:'center', fontFamily:SANS, fontSize:17 }}>
               {t('addTrip')}
             </button>
           </div>
       }
       <div style={{ textAlign:'center', paddingTop:20 }}>
-        <div className="arshooling-text" style={{ fontFamily:'Adam, serif', fontSize:15, letterSpacing:'0.18em', color:COLORS.mute }}>ARSHOOLING</div>
+        <div className="arshooling-text" style={{ fontFamily:'Adam, serif', fontSize:17, letterSpacing:'0.18em', color:COLORS.mute }}>ARSHOOLING</div>
       </div>
     </div>
   );
@@ -2828,10 +2828,10 @@ function TicketViewer({ ticket, onClose, onEdit, onDelete }) {
         }}>
           <Icon name="x" size={16} color="#fff" stroke={2}/>
         </button>
-        <div style={{ flex:1, fontFamily:SANS, fontSize:13, color:'rgba(255,255,255,0.7)',
+        <div style={{ flex:1, fontFamily:SANS, fontSize:17, color:'rgba(255,255,255,0.7)',
           textAlign:'center', overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>
           {ticket.name}
-          {n > 1 && <span style={{ marginLeft:8, fontFamily:MONO, fontSize:11,
+          {n > 1 && <span style={{ marginLeft:8, fontFamily:MONO, fontSize:12,
             color:'rgba(255,255,255,0.4)', letterSpacing:'0.08em' }}>{idx + 1} / {n}</span>}
         </div>
         <div style={{ display:'flex', gap:6, flexShrink:0 }}>
@@ -3297,7 +3297,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
           position:'absolute', top:'calc(16px + env(safe-area-inset-top,0px))', left:14, zIndex:10,
           background:'transparent', border:'none', padding:'4px 8px', cursor:'pointer',
           display:'flex', alignItems:'center', gap:3,
-          fontFamily:SANS, fontSize:13, color:COLORS.mute,
+          fontFamily:SANS, fontSize:17, color:COLORS.mute,
         }}>
           <Icon name="chevron-l" size={14} color={COLORS.mute} stroke={2}/>My Trips
         </button>
@@ -3335,7 +3335,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               minWidth:15, height:15, borderRadius:8,
               background:'#E03C31', padding:'0 3px',
               display:'flex', alignItems:'center', justifyContent:'center',
-              fontFamily:MONO, fontSize:9, color:'#fff', fontWeight:700,
+              fontFamily:MONO, fontSize:12, color:'#fff', fontWeight:700,
               boxSizing:'border-box',
             }}>{unreadCount > 9 ? '9+' : unreadCount}</div>
           )}
@@ -3376,7 +3376,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 <Icon name="book" size={11} color={COLORS.mute} stroke={1.8}/>
                 {startIso ? isoToDayDate(startIso) : '시작일'}
               </button>
-              <span style={{ color:COLORS.mute, fontSize:13 }}>—</span>
+              <span style={{ color:COLORS.mute, fontSize:17 }}>—</span>
               <button onClick={() => setDateRangeOpen(true)} style={{
                 border:`1.5px solid ${COLORS.line}`, borderRadius:8, padding:'4px 10px',
                 background:COLORS.card, cursor:'pointer', fontFamily:SANS, fontSize:12, color:COLORS.ink,
@@ -3387,10 +3387,10 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               </button>
             </>
           ) : (
-            <span style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{trip.dates}</span>
+            <span style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute }}>{trip.dates}</span>
           )}
-          <span style={{ color:COLORS.mute, opacity:0.4, fontSize:13 }}>·</span>
-          <span style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute }}>{trip.days.length} days</span>
+          <span style={{ color:COLORS.mute, opacity:0.4, fontSize:17 }}>·</span>
+          <span style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute }}>{trip.days.length} days</span>
         </div>
         {/* 색깔 선택 (수정 모드) */}
         {editing && (
@@ -3468,10 +3468,10 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   </div>
                   <div style={{ padding:'16px 18px 18px' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
-                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em' }}>
                         DAY {String(d.n).padStart(2,'0')} · {d.weekday.toUpperCase()}
                       </div>
-                      <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{d.date}</div>
+                      <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>{d.date}</div>
                     </div>
                     <div style={{ marginTop:7, fontFamily:SERIF, fontSize:28, lineHeight:1.1, color:COLORS.ink }}>
                       {dayDisplayTitle(d)}
@@ -3479,7 +3479,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     <button onClick={() => !fGesture.current.drag && onOpenDay(i)} style={{
                       marginTop:16, width:'100%', border:'none', cursor:'pointer',
                       background:COLORS.accent, color:'#fff', borderRadius:12,
-                      padding:'13px 16px', fontFamily:SANS, fontSize:14, fontWeight:500,
+                      padding:'13px 16px', fontFamily:SANS, fontSize:17, fontWeight:500,
                       display:'flex', justifyContent:'space-between', alignItems:'center',
                     }}>
                       <span>{t('viewDaySchedule').replace('{n}', d.n)}</span>
@@ -3496,7 +3496,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
       {/* Days list */}
       <div style={{ padding:'8px 24px 10px', display:'flex', justifyContent:'space-between', alignItems:'baseline' }}>
         <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('sectionSchedule')}</div>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em' }}>
           {trip.days.length} DAYS · {trip.days.reduce((s,d)=>s+(d.items?.length||0),0)} STOPS
         </div>
       </div>
@@ -3526,13 +3526,13 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               </div>
               {/* Day N 위 + 제목 + stops */}
               <div style={{ flex:1, minWidth:0, display:'flex', flexDirection:'column', justifyContent:'center', gap:3 }}>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.10em' }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.10em' }}>
                   Day {String(d.n).padStart(2,'0')}
                 </div>
                 <div style={{ fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{dayDisplayTitle(d)}</div>
                 {(d.items?.length > 0) && (
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>{d.items.length} stops</div>
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>{d.items.length} stops</div>
                 )}
               </div>
               {/* 우측: 요일 / 월 / 날짜숫자 (동일 폭 중앙정렬) or 편집 버튼 */}
@@ -3556,9 +3556,9 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 return (
                   <div style={{ width:60, flexShrink:0,
                     display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:1 }}>
-                    {d.weekday && <span style={{ width:60, textAlign:'center', fontFamily:MONO, fontSize:13, color:wdColor, letterSpacing:'0.10em' }}>{d.weekday.toUpperCase()}</span>}
+                    {d.weekday && <span style={{ width:60, textAlign:'center', fontFamily:MONO, fontSize:17, color:wdColor, letterSpacing:'0.10em' }}>{d.weekday.toUpperCase()}</span>}
                     {dayNum && <span style={{ width:60, textAlign:'center', fontFamily:MONO, fontSize:24, color:wdColor, fontWeight:700, lineHeight:1 }}>{dayNum}</span>}
-                    {month && <span style={{ width:60, textAlign:'center', fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.10em' }}>{month}</span>}
+                    {month && <span style={{ width:60, textAlign:'center', fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.10em' }}>{month}</span>}
                   </div>
                 );
               })()}
@@ -3578,7 +3578,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             border:`1.5px dashed ${COLORS.line}`, borderRadius:16,
             color:COLORS.mute, cursor:'pointer',
             display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:13,
+            fontFamily:SANS, fontSize:17,
           }}>
             <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> {t('addDay')}
           </button>
@@ -3589,7 +3589,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
             border:`1.5px dashed ${COLORS.line}`, borderRadius:16,
             color:COLORS.mute, cursor:'pointer',
             display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-            fontFamily:SANS, fontSize:13,
+            fontFamily:SANS, fontSize:17,
           }}>
             <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> {t('addDay')}
           </button>
@@ -3621,7 +3621,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                     <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>
                   </button>
                 )}
-                <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em' }}>
                   {total} STAYS
                 </div>
               </div>
@@ -3642,12 +3642,12 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       <Photo hue={h.hue ?? 25} height={64} small/>
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.accent, letterSpacing:'0.12em' }}>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.12em' }}>
                         STAY · {h.checkin} → {h.checkout}
                       </div>
                       <div style={{ marginTop:3, fontFamily:SERIF, fontSize:18, lineHeight:1.2, color:COLORS.ink,
                         whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{h.name}</div>
-                      <div style={{ marginTop:3, fontFamily:SANS, fontSize:11.5, color:COLORS.mute,
+                      <div style={{ marginTop:3, fontFamily:SANS, fontSize:12, color:COLORS.mute,
                         display:'flex', gap:5, alignItems:'center' }}>
                         <Icon name="pin" size={11} color={COLORS.mute} stroke={1.8}/>
                         <span>{h.area}</span>
@@ -3699,7 +3699,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 }}>
                   {ticketUploading === 'new' ? <Spinner/> : <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>}
                 </button>
-                <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em' }}>
                   {totalFiles} FILES
                 </div>
               </div>
@@ -3722,7 +3722,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                       )}
                     </div>
                     {/* Name */}
-                    <div style={{ minWidth:0, fontFamily:SANS, fontSize:10, color:COLORS.ink, textAlign:'center',
+                    <div style={{ minWidth:0, fontFamily:SANS, fontSize:12, color:COLORS.ink, textAlign:'center',
                       overflow:'hidden', whiteSpace:'nowrap', textOverflow:'ellipsis' }}>
                       {card.name}
                     </div>
@@ -3742,13 +3742,13 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                         <Icon name="plus" size={20} color={COLORS.mute} stroke={2}/>
                       </div>
                     </div>
-                    <div style={{ fontFamily:SANS, fontSize:10, color:COLORS.mute, textAlign:'center' }}>추가</div>
+                    <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, textAlign:'center' }}>추가</div>
                   </button>
                   {[0,1,2].map(i => (
                     <div key={i} style={{ display:'flex', flexDirection:'column', alignItems:'stretch', gap:6, minWidth:0 }}>
                       <div style={{ width:'100%', paddingBottom:'100%', position:'relative',
                         background:COLORS.softer, borderRadius:14, opacity:0.5 }}/>
-                      <div style={{ fontFamily:SANS, fontSize:10, color:'transparent' }}>·</div>
+                      <div style={{ fontFamily:SANS, fontSize:12, color:'transparent' }}>·</div>
                     </div>
                   ))}
                 </>
@@ -3770,7 +3770,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
         <WeatherCard city={city}/>
       </div>
       <div style={{ textAlign:'center', paddingTop:16 }}>
-        <div className="arshooling-text" style={{ fontFamily:'Adam, serif', fontSize:15, letterSpacing:'0.18em', color:COLORS.mute }}>ARSHOOLING</div>
+        <div className="arshooling-text" style={{ fontFamily:'Adam, serif', fontSize:17, letterSpacing:'0.18em', color:COLORS.mute }}>ARSHOOLING</div>
       </div>
 
       <input ref={cardPhotoInputRef} type="file" accept="image/*" style={{ display:'none' }} onChange={handleCardPhoto}/>
@@ -3805,12 +3805,12 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
               <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:16 }}>
                 <button onClick={() => setTicketEditCardId(null)} style={{
                   border:'none', background:'transparent', cursor:'pointer',
-                  fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'4px 2px',
+                  fontFamily:SANS, fontSize:17, color:COLORS.mute, padding:'4px 2px',
                 }}>취소</button>
-                <div style={{ fontFamily:SERIF, fontSize:15, color:COLORS.ink }}>바우처 수정</div>
+                <div style={{ fontFamily:SERIF, fontSize:17, color:COLORS.ink }}>바우처 수정</div>
                 <button onClick={handleSaveCardName} style={{
                   border:'none', background:'transparent', cursor:'pointer',
-                  fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
+                  fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.accent, padding:'4px 2px',
                 }}>저장</button>
               </div>
               {/* Name input */}
@@ -3822,7 +3822,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   style={{
                     width:'100%', padding:'10px 12px', borderRadius:10,
                     border:`1px solid ${COLORS.line}`, background:COLORS.card,
-                    fontFamily:SANS, fontSize:14, color:COLORS.ink,
+                    fontFamily:SANS, fontSize:17, color:COLORS.ink,
                     outline:'none', boxSizing:'border-box',
                   }}
                 />
@@ -3846,7 +3846,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                               ? <img src={f.url} style={{ width:'100%', height:'100%', objectFit:'cover' }} alt=""/>
                               : <Icon name="file" size={16} color={COLORS.mute} stroke={1.5}/>}
                           </div>
-                          <div style={{ flex:1, fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.08em' }}>
+                          <div style={{ flex:1, fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em' }}>
                             {f.type === 'application/pdf' ? 'PDF' : 'IMAGE'} {editFiles.length > 1 ? `· ${i + 1}/${editFiles.length}` : ''}
                           </div>
                           <button onClick={() => handleDeleteTicketFile(f.id)} style={{
@@ -3868,7 +3868,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                 border:`1.5px dashed ${COLORS.line}`,
                 background:'transparent', cursor: isAdding ? 'default' : 'pointer',
                 display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-                fontFamily:SANS, fontSize:13, color:COLORS.mute, width:'100%',
+                fontFamily:SANS, fontSize:17, color:COLORS.mute, width:'100%',
                 opacity: isAdding ? 0.5 : 1,
               }}>
                 <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>
@@ -4063,21 +4063,21 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
         <div style={{ position:'absolute', left:0, right:0, bottom:-30, padding:'0 16px' }}>
           <div style={{ background:COLORS.bg, borderRadius:20, padding:'18px 20px 18px' }}>
             <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-              <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em' }}>
                 DAY {String(day.n).padStart(2,'0')} / {String(trip.days.length).padStart(2,'0')}
               </div>
               <span style={{ color:COLORS.line }}>·</span>
               {editing ? (
                 <button onClick={() => setDatePickerOpen(true)} style={{
                   border:'none', background:COLORS.softer, borderRadius:8, cursor:'pointer',
-                  fontFamily:SANS, fontSize:11, color:COLORS.ink,
+                  fontFamily:SANS, fontSize:12, color:COLORS.ink,
                   padding:'3px 8px', display:'flex', alignItems:'center', gap:5,
                 }}>
                   <Icon name="book" size={11} color={COLORS.mute} stroke={1.8}/>
                   {day.weekday && day.date ? `${day.weekday} · ${day.date}` : '날짜 설정'}
                 </button>
               ) : (
-                <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
+                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
                   {day.weekday}{day.weekday && day.date ? ' · ' : ''}{day.date}
                 </div>
               )}
@@ -4093,7 +4093,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   placeholder="Subtitle (English)"
                   style={{ width:'100%', padding:'8px 10px', borderRadius:8, boxSizing:'border-box',
                     border:`1px solid ${COLORS.line}`, background:COLORS.card,
-                    fontFamily:SANS, fontSize:13, fontStyle:'italic', color:COLORS.mute, outline:'none' }}/>
+                    fontFamily:SANS, fontSize:17, fontStyle:'italic', color:COLORS.mute, outline:'none' }}/>
               </div>
             ) : (
               <>
@@ -4101,7 +4101,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   {day.title}
                 </div>
                 {day.titleEn && (
-                  <div style={{ marginTop:2, fontFamily:SANS, fontSize:13, color:COLORS.mute, fontStyle:'italic' }}>
+                  <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.mute, fontStyle:'italic' }}>
                     {day.titleEn}
                   </div>
                 )}
@@ -4115,7 +4115,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
       <div style={{ padding:'48px 16px 0' }}>
         <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', padding:'0 6px 12px' }}>
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink }}>{t('timeline')}</div>
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em' }}>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em' }}>
             {done.size}/{day.items?.length ?? 0} DONE
           </div>
         </div>
@@ -4133,7 +4133,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   bottomGap={12}
                   sideLeft={<>
                     <div style={{ width:32, flexShrink:0, marginTop:11,
-                      fontFamily:MONO, fontSize:10.5, color:COLORS.mute,
+                      fontFamily:MONO, fontSize:12, color:COLORS.mute,
                       textAlign:'right', paddingRight:4 }}>{it.time}</div>
                     <button onClick={(e)=>{e.stopPropagation(); toggle(i);}} style={{
                       width:16, height:16, borderRadius:8, flexShrink:0, marginTop:4, marginLeft:9,
@@ -4177,7 +4177,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                   <div style={{ opacity: isDone ? 0.45 : 1 }}>
                     {travelTimes[i] && (
                       <div style={{ display:'flex', gap:10, marginBottom:7,
-                        fontFamily:MONO, fontSize:9, color:COLORS.mute, letterSpacing:'0.06em' }}>
+                        fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.06em' }}>
                         <span style={{ display:'flex', gap:3, alignItems:'center' }}>
                           <Icon name="car" size={11} stroke={1.8}/>
                           {fmtMin(travelTimes[i].drive)}
@@ -4189,7 +4189,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                       </div>
                     )}
                     <div style={{ display:'flex', gap:6, alignItems:'center',
-                      fontFamily:MONO, fontSize:9.5, color:COLORS.mute,
+                      fontFamily:MONO, fontSize:12, color:COLORS.mute,
                       letterSpacing:'0.12em', textTransform:'uppercase' }}>
                       <Icon name={meta.icon} size={11} stroke={1.8}/>
                       <span>{catLabel(it.cat || '', t)}</span>
@@ -4211,24 +4211,24 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
                         onClick={e => e.stopPropagation()}
                         style={{ width:'100%', marginTop:3, padding:'2px 0', border:'none',
                           borderBottom:`1px solid ${COLORS.ink}`, background:'transparent',
-                          fontFamily:SANS, fontSize:14.5, fontWeight:500, color:COLORS.ink,
+                          fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink,
                           outline:'none', boxSizing:'border-box' }}/>
                     ) : (
                       <div
                         onClick={editing ? (e) => { e.stopPropagation(); setInlineItemTitle({ idx: i, title: stopTitle(it, t) }); } : undefined}
-                        style={{ marginTop:3, fontFamily:SANS, fontSize:14.5, fontWeight:500,
+                        style={{ marginTop:3, fontFamily:SANS, fontSize:17, fontWeight:500,
                           color:COLORS.ink, textDecoration: isDone?'line-through':'none',
                           ...(editing ? { cursor:'text', borderBottom:`1px dashed ${COLORS.line}` } : {}) }}>
                         {stopTitle(it, t)}
                       </div>
                     )}
-                    <div style={{ marginTop:1, fontFamily:SANS, fontSize:11.5, color:COLORS.mute, fontStyle:'italic' }}>
+                    <div style={{ marginTop:1, fontFamily:SANS, fontSize:12, color:COLORS.mute, fontStyle:'italic' }}>
                       {it.en}
                     </div>
                     {it.note && (
                       <div style={{ marginTop:8, padding:'7px 9px', borderRadius:8,
                         background:COLORS.softer,
-                        fontFamily:SANS, fontSize:11.5, color:COLORS.mute, lineHeight:1.45 }}>
+                        fontFamily:SANS, fontSize:12, color:COLORS.mute, lineHeight:1.45 }}>
                         {it.note}
                       </div>
                     )}
@@ -4265,7 +4265,7 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
               border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
               color:COLORS.mute, cursor:'pointer',
               display:'flex', gap:8, alignItems:'center', justifyContent:'center',
-              fontFamily:SANS, fontSize:13,
+              fontFamily:SANS, fontSize:17,
             }}>
               <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/>
               {t('addStop')}
@@ -4281,8 +4281,8 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
             flex:1, background:COLORS.card, border:`1px solid ${COLORS.line}`,
             borderRadius:12, padding:'11px 14px', cursor:'pointer', textAlign:'left',
           }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em' }}>← PREV</div>
-            <div style={{ marginTop:2, fontFamily:SANS, fontSize:13, color:COLORS.ink }}>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em' }}>← PREV</div>
+            <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink }}>
               Day {String(day.n - 1).padStart(2,'0')}
             </div>
           </button>
@@ -4292,8 +4292,8 @@ function DayScreen({ trip, dayIdx, tripId, authUid, onBack, onOpenStop, onNavDay
             flex:1, background:COLORS.card, border:`1px solid ${COLORS.line}`,
             borderRadius:12, padding:'11px 14px', cursor:'pointer', textAlign:'right',
           }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em' }}>NEXT →</div>
-            <div style={{ marginTop:2, fontFamily:SANS, fontSize:13, color:COLORS.ink }}>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em' }}>NEXT →</div>
+            <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink }}>
               Day {String(day.n + 1).padStart(2,'0')}
             </div>
           </button>
@@ -4356,12 +4356,12 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
       : (draft[key] || '');
     return (
       <div style={{ marginBottom:10 }}>
-        <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
         {(isDate || isTime) ? (
           <button onClick={() => setPickerOpen({ key, type })}
             style={{ width:'100%', padding:'10px 12px', borderRadius:8,
               border:`1px solid ${COLORS.line}`, background:COLORS.card, cursor:'pointer',
-              fontFamily:SANS, fontSize:13, color: shown ? COLORS.ink : COLORS.mute,
+              fontFamily:SANS, fontSize:17, color: shown ? COLORS.ink : COLORS.mute,
               display:'flex', alignItems:'center', justifyContent:'space-between',
               textAlign:'left', boxSizing:'border-box',
             }}>
@@ -4372,7 +4372,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
           <input value={draft[key] || ''} onChange={e => setDraft({...draft, [key]: e.target.value})}
             placeholder={placeholder}
             style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-              background:COLORS.card, fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+              background:COLORS.card, fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
         )}
       </div>
     );
@@ -4399,7 +4399,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
             <button onClick={onOpenSearch} style={{
               border:'none', background:COLORS.ink, color:'#fff',
               borderRadius:14, padding:'6px 12px', cursor:'pointer',
-              fontFamily:SANS, fontSize:11.5, fontWeight:500,
+              fontFamily:SANS, fontSize:12, fontWeight:500,
               display:'flex', gap:5, alignItems:'center',
             }}>
               <Icon name="search" size={12} color="#fff" stroke={2}/>
@@ -4410,7 +4410,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
             <button onClick={save} style={{
               border:'none', background:COLORS.accent, color:'#fff',
               borderRadius:14, padding:'6px 12px', cursor:'pointer',
-              fontFamily:SANS, fontSize:11.5, fontWeight:500,
+              fontFamily:SANS, fontSize:12, fontWeight:500,
               display:'flex', gap:5, alignItems:'center',
             }}>
               <Icon name="save" size={12} color="#fff" stroke={2}/> 저장
@@ -4422,7 +4422,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
       </div>
 
       <div style={{ padding:'22px 20px 8px' }}>
-        <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.14em' }}>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em' }}>
           HOTEL · {draft.nights || '—'}박
         </div>
         {editing ? (
@@ -4435,7 +4435,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
           </div>
         )}
         {draft.area && (
-          <div style={{ marginTop:4, fontFamily:SANS, fontSize:13, color:COLORS.mute, display:'flex', gap:5, alignItems:'center' }}>
+          <div style={{ marginTop:4, fontFamily:SANS, fontSize:17, color:COLORS.mute, display:'flex', gap:5, alignItems:'center' }}>
             <Icon name="pin" size={12} stroke={1.8}/> {draft.area}
             {draft.rating && <><span style={{ opacity:0.4 }}>·</span><span>★ {draft.rating}</span></>}
           </div>
@@ -4462,11 +4462,11 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
             </div>
             {field('phone', '전화')}
             <div style={{ marginBottom:10 }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
               <textarea value={draft.note || ''} onChange={e => setDraft({...draft, note: e.target.value})}
                 rows={3}
                 style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-                  background:COLORS.card, fontFamily:SANS, fontSize:13, color:COLORS.ink,
+                  background:COLORS.card, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                   boxSizing:'border-box', resize:'vertical' }}/>
             </div>
           </div>
@@ -4491,9 +4491,9 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
                     <Icon name={r.icon} size={15} color={COLORS.mute} stroke={1.8}/>
                   </div>
                   <div style={{ flex:1 }}>
-                    <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute,
+                    <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute,
                       letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
-                    <div style={{ marginTop:2, fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>
+                    <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink, lineHeight:1.45 }}>
                       {r.value}
                     </div>
                   </div>
@@ -4504,7 +4504,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
 
           {draft.amenities && draft.amenities.length > 0 && (
             <div style={{ padding:'16px 20px 0' }}>
-              <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.12em' }}>시설</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em' }}>시설</div>
               <div style={{ marginTop:8, display:'flex', flexWrap:'wrap', gap:6 }}>
                 {draft.amenities.map((a, i) => (
                   <span key={i} style={{ padding:'6px 10px', borderRadius:8, background:COLORS.card,
@@ -4517,7 +4517,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
           {draft.note && (
             <div style={{ padding:'16px 16px 0' }}>
               <div style={{ background:COLORS.softer, borderRadius:12, padding:'14px 16px',
-                fontFamily:SANS, fontSize:13, color:COLORS.mute, lineHeight:1.5 }}>
+                fontFamily:SANS, fontSize:17, color:COLORS.mute, lineHeight:1.5 }}>
                 {draft.note}
               </div>
             </div>
@@ -4527,7 +4527,7 @@ function HotelDetailScreen({ hotel, onBack, onEdit, onOpenSearch, editing, setEd
             <button onClick={() => window.open(mapsDirectionsUrl(addr), '_blank')} style={{
               flex:1, background:COLORS.accent, color:'#fff',
               border:'none', borderRadius:12, padding:'13px', cursor:'pointer',
-              fontFamily:SANS, fontSize:14, fontWeight:500,
+              fontFamily:SANS, fontSize:17, fontWeight:500,
               display:'flex', gap:6, alignItems:'center', justifyContent:'center',
             }}>
               <Icon name="nav" size={14} color="#fff" stroke={1.8}/> 길찾기
@@ -4751,10 +4751,10 @@ function NearbySheet({ stop, initialTab, onClose }) {
             : <Photo hue={hue} height={58} small label={item.name}/>}
         </div>
         <div style={{ flex:1, minWidth:0 }}>
-          <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink,
+          <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink,
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.name}</div>
-          {item.nameOrig && <div style={{ fontFamily:SANS, fontSize:9.5, color:COLORS.mute, marginTop:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.nameOrig}</div>}
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3, display:'flex', gap:6, alignItems:'center' }}>
+          {item.nameOrig && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.nameOrig}</div>}
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3, display:'flex', gap:6, alignItems:'center' }}>
             <span>{TYPE_KO[item.type] || item.type || '—'}</span>
             {item.dist > 0 && <><span style={{ opacity:0.4 }}>·</span><span>{fmtDist(item.dist)}</span></>}
             {item.rating && <><span style={{ opacity:0.4 }}>·</span><span style={{ color:COLORS.accent }}>★ {item.rating.toFixed(1)}</span></>}
@@ -4786,7 +4786,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
             <button onClick={() => setSort(s => s === 'relevance' ? 'distance' : 'relevance')}
               style={{ border:'none', background:COLORS.softer, borderRadius:10, padding:'6px 10px',
-                fontFamily:MONO, fontSize:10, cursor:'pointer', letterSpacing:'0.04em',
+                fontFamily:MONO, fontSize:12, cursor:'pointer', letterSpacing:'0.04em',
                 color: sort === 'distance' ? COLORS.accent : COLORS.mute }}>
               {sort === 'distance' ? '거리순' : '관련도순'}
             </button>
@@ -4806,12 +4806,12 @@ function NearbySheet({ stop, initialTab, onClose }) {
         </div>
         {/* 목록 */}
         {loading && (
-          <div style={{ padding:'40px 20px', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+          <div style={{ padding:'40px 20px', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
             주변 장소를 찾는 중...
           </div>
         )}
         {!loading && currentData.length === 0 && (
-          <div style={{ padding:'40px 20px', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+          <div style={{ padding:'40px 20px', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
             주변에 {tab==='hotspot'?'핫플이':'음식점이'} 없어요
           </div>
         )}
@@ -5009,7 +5009,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
         </div>
         <div style={{ padding:'18px 20px 0' }}>
           <div style={{ display:'flex', gap:6, alignItems:'center',
-            fontFamily:MONO, fontSize:10, color:COLORS.mute,
+            fontFamily:MONO, fontSize:12, color:COLORS.mute,
             letterSpacing:'0.12em', textTransform:'uppercase' }}>
             <Icon name={(CAT_META[draft.cat]||{icon:'pin'}).icon} size={12} stroke={1.8}/>
             <span>{catLabel(draft.cat || '', t)}</span>
@@ -5028,7 +5028,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                 </div>
               </div>
               {draft.en && (
-                <div style={{ marginTop:4, fontFamily:SANS, fontSize:13.5, fontStyle:'italic', color:COLORS.mute }}>
+                <div style={{ marginTop:4, fontFamily:SANS, fontSize:17, fontStyle:'italic', color:COLORS.mute }}>
                   {draft.en}
                 </div>
               )}
@@ -5050,9 +5050,9 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                       <Icon name={r.icon} size={15} color={COLORS.mute} stroke={1.8}/>
                     </div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute,
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute,
                         letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
-                      <div style={{ marginTop:2, fontFamily:SANS, fontSize:13.5, color:COLORS.ink,
+                      <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                         lineHeight:1.45, whiteSpace:'pre-wrap' }}>{r.value}</div>
                     </div>
                   </div>
@@ -5067,7 +5067,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                 <button onClick={() => { onSave(draft); committed.current = draft; setEditing(false); }} style={{
                   flex:1, background:COLORS.ink, color:COLORS.bg,
                   border:'none', borderRadius:12, padding:'13px',
-                  fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+                  fontFamily:SANS, fontSize:17, fontWeight:500, cursor:'pointer',
                   display:'flex', gap:6, alignItems:'center', justifyContent:'center',
                 }}>
                   <Icon name="save" size={14} color={COLORS.bg} stroke={1.8}/> 저장
@@ -5075,7 +5075,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                 <button onClick={() => { if (open.hotelOnly) { onClose(); } else { setDraft(committed.current); setEditing(false); } }} style={{
                   width:80, background:COLORS.card, border:`1px solid ${COLORS.line}`,
                   borderRadius:12, cursor:'pointer',
-                  fontFamily:SANS, fontSize:13, color:COLORS.ink,
+                  fontFamily:SANS, fontSize:17, color:COLORS.ink,
                 }}>취소</button>
               </>
             ) : (
@@ -5083,7 +5083,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                 <button onClick={() => window.open(mapsDirectionsUrl(searchQuery), '_blank')} style={{
                   flex:1, background:COLORS.ink, color:COLORS.bg,
                   border:'none', borderRadius:12, padding:'13px',
-                  fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+                  fontFamily:SANS, fontSize:17, fontWeight:500, cursor:'pointer',
                   display:'flex', gap:6, alignItems:'center', justifyContent:'center',
                 }}>
                   <Icon name="nav" size={14} color={COLORS.bg} stroke={1.8}/> 길찾기
@@ -5237,27 +5237,27 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
 
   const field = (key, label, placeholder = '') => (
     <div style={{ marginBottom:10 }}>
-      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
       <input value={draft[key]||''} onChange={e => setDraft({...draft, [key]:e.target.value})} placeholder={placeholder}
         style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-          background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+          background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
     </div>
   );
 
   const dateField = (key, label) => (
     <div style={{ marginBottom:10 }}>
-      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
       {dayOptions.length > 0 ? (
         <select value={draft[key]||''} onChange={e => setDraft({...draft, [key]:e.target.value})}
           style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-            background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}>
+            background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}>
           <option value=''>날짜 선택</option>
           {dayOptions.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
       ) : (
         <input value={draft[key]||''} onChange={e => setDraft({...draft, [key]:e.target.value})} placeholder="May 4"
           style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-            background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+            background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
       )}
     </div>
   );
@@ -5304,7 +5304,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             )}
           </div>
           <div style={{ padding:'18px 20px 0' }}>
-            <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
               HOTEL{draft.nights ? ` · ${draft.nights}박` : ''}
             </div>
             {!editing && (
@@ -5313,7 +5313,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
               </div>
             )}
             {!editing && draft.area && (
-              <div style={{ marginTop:4, fontFamily:SANS, fontSize:13, color:COLORS.mute, display:'flex', gap:5, alignItems:'center' }}>
+              <div style={{ marginTop:4, fontFamily:SANS, fontSize:17, color:COLORS.mute, display:'flex', gap:5, alignItems:'center' }}>
                 <Icon name="pin" size={12} stroke={1.8}/> {draft.area}
                 {draft.rating && <><span style={{ opacity:0.4 }}>·</span><span>★ {draft.rating}</span></>}
               </div>
@@ -5322,7 +5322,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             {editing ? (
               <div style={{ marginTop:14 }}>
                 <div style={{ position:'relative', marginBottom:10 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{t('wizHotelPh')}</div>
+                  <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{t('wizHotelPh')}</div>
                   <div style={{ position:'relative' }}>
                     <input
                       value={searchQ !== '' ? searchQ : (draft.name || '')}
@@ -5332,7 +5332,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                       placeholder={t('wizHotelPh') + '...'}
                       style={{ width:'100%', padding:'9px 36px 9px 11px', borderRadius:8,
                         border:`1px solid ${COLORS.line}`, background:COLORS.bg,
-                        fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+                        fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
                     <div style={{ position:'absolute', right:10, top:'50%', transform:'translateY(-50%)', pointerEvents:'none' }}>
                       <Icon name="search" size={13} color={COLORS.mute} stroke={2}/>
                     </div>
@@ -5356,8 +5356,8 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                             style={{ display:'flex', flexDirection:'column', width:'100%', padding:'9px 12px',
                               border:'none', background:'transparent', cursor:'pointer', textAlign:'left',
                               borderBottom: i < searchRes.length-1 ? `1px solid ${COLORS.line}` : 'none' }}>
-                            <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{hName}</div>
-                            {city && <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:1 }}>{[addr, city].filter(Boolean).join(', ')}</div>}
+                            <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>{hName}</div>
+                            {city && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{[addr, city].filter(Boolean).join(', ')}</div>}
                           </button>
                         );
                       })}
@@ -5375,12 +5375,12 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
                     {['checkin','checkout'].map(k => (
                       <div key={k}>
-                        <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
                           {k==='checkin'?'체크인 시간':'체크아웃 시간'}
                         </div>
                         <button onClick={()=>setTimePicker(k)} style={{ width:'100%', padding:'9px 11px',
                           borderRadius:8, border:`1px solid ${COLORS.line}`, background:COLORS.bg,
-                          fontFamily:SANS, fontSize:13, color:COLORS.ink, cursor:'pointer', textAlign:'left',
+                          fontFamily:SANS, fontSize:17, color:COLORS.ink, cursor:'pointer', textAlign:'left',
                           display:'flex', justifyContent:'space-between', alignItems:'center', boxSizing:'border-box' }}>
                           <span>{draft[k==='checkin'?'checkinTime':'checkoutTime'] || (k==='checkin'?'15:00':'12:00')}</span>
                           <Icon name="chevron-d" size={12} color={COLORS.mute} stroke={2}/>
@@ -5390,9 +5390,9 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                     <div>
-                      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>박수</div>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>박수</div>
                       <div style={{ padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-                        background:COLORS.bg, fontFamily:SANS, fontSize:13,
+                        background:COLORS.bg, fontFamily:SANS, fontSize:17,
                         color: draft.nights ? COLORS.ink : COLORS.mute }}>
                         {draft.nights ? `${draft.nights}박` : '날짜 선택 후 자동'}
                       </div>
@@ -5402,10 +5402,10 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   {field('phone', '전화')}
                   {field('confirmation', '예약번호')}
                   <div>
-                    <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
+                    <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
                     <textarea value={draft.note||''} onChange={e=>setDraft({...draft,note:e.target.value})} rows={3}
                       style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
-                        background:COLORS.bg, fontFamily:SANS, fontSize:13, color:COLORS.ink,
+                        background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                         boxSizing:'border-box', resize:'none' }}/>
                   </div>
                 </div>
@@ -5422,8 +5422,8 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   }}>
                     <div style={{ paddingTop:2 }}><Icon name={r.icon} size={15} color={COLORS.mute} stroke={1.8}/></div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
-                      <div style={{ marginTop:2, fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45, whiteSpace:'pre-wrap' }}>{r.value}</div>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
+                      <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink, lineHeight:1.45, whiteSpace:'pre-wrap' }}>{r.value}</div>
                     </div>
                   </div>
                 ))}
@@ -5436,7 +5436,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   <button onClick={save} style={{
                     flex:1, background:COLORS.ink, color:COLORS.bg,
                     border:'none', borderRadius:12, padding:'13px',
-                    fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+                    fontFamily:SANS, fontSize:17, fontWeight:500, cursor:'pointer',
                     display:'flex', gap:6, alignItems:'center', justifyContent:'center',
                   }}>
                     <Icon name="save" size={14} color={COLORS.bg} stroke={1.8}/> 저장
@@ -5444,7 +5444,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   {!isNew && (
                     <button onClick={() => { setDraft({ ...committed.current }); setEditing(false); }} style={{
                       width:80, background:COLORS.card, border:`1px solid ${COLORS.line}`,
-                      borderRadius:12, cursor:'pointer', fontFamily:SANS, fontSize:13, color:COLORS.ink,
+                      borderRadius:12, cursor:'pointer', fontFamily:SANS, fontSize:17, color:COLORS.ink,
                     }}>취소</button>
                   )}
                 </>
@@ -5453,7 +5453,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   <button onClick={() => window.open(mapsSearchUrl([draft.name, draft.area].filter(Boolean).join(' ')), '_blank')} style={{
                     flex:1, background:COLORS.ink, color:COLORS.bg,
                     border:'none', borderRadius:12, padding:'13px',
-                    fontFamily:SANS, fontSize:14, fontWeight:500, cursor:'pointer',
+                    fontFamily:SANS, fontSize:17, fontWeight:500, cursor:'pointer',
                     display:'flex', gap:6, alignItems:'center', justifyContent:'center',
                   }}>
                     <Icon name="nav" size={14} color={COLORS.bg} stroke={1.8}/> 지도
@@ -5481,7 +5481,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
               <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
                 <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
               </div>
-              <div style={{ padding:'4px 20px 10px', fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              <div style={{ padding:'4px 20px 10px', fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
                 {timePicker==='checkin'?'체크인 시간':'체크아웃 시간'}
               </div>
               {(timePicker==='checkin'
@@ -5494,7 +5494,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   <button key={t} onClick={() => { setDraft({...draft, [k]:t}); setTimePicker(null); }}
                     style={{ display:'flex', width:'100%', padding:'13px 20px', border:'none',
                       background: sel ? `${COLORS.ink}0f` : 'transparent',
-                      fontFamily:SANS, fontSize:15, color:COLORS.ink, cursor:'pointer',
+                      fontFamily:SANS, fontSize:17, color:COLORS.ink, cursor:'pointer',
                       alignItems:'center', justifyContent:'space-between',
                       borderBottom:`1px solid ${COLORS.line}` }}>
                     <span style={{ fontWeight: sel ? 600 : 400 }}>{t}</span>
@@ -5554,7 +5554,7 @@ function LocationField({ value, onChange, cityBias }) {
           placeholder="위치 검색..."
           style={{ width:'100%', padding:'8px 34px 8px 10px', borderRadius:8,
             border:`1px solid ${COLORS.line}`, background:COLORS.card,
-            fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+            fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
         <button
           type="button"
           onMouseDown={e => e.preventDefault()}
@@ -5592,9 +5592,9 @@ function LocationField({ value, onChange, cityBias }) {
                 }}>
                 <Icon name="pin" size={13} color={COLORS.accent} stroke={1.8}/>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500,
+                  <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{name}</div>
-                  {addr && <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute,
+                  {addr && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{addr}</div>}
                 </div>
               </button>
@@ -5612,26 +5612,26 @@ function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
   const [timeOpen, setTimeOpen] = React.useState(false);
   const field = (key, label, type='text') => (
     <label style={{ display:'block', marginTop:10 }}>
-      <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
+      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
         {label}
       </div>
       {type === 'textarea' ? (
         <textarea value={draft[key] || ''} onChange={e => setDraft({...draft, [key]: e.target.value})}
           rows={3} style={{ width:'100%', padding:'8px 10px', borderRadius:8,
           border:`1px solid ${COLORS.line}`, background:COLORS.card,
-          fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box', resize:'vertical' }}/>
+          fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box', resize:'vertical' }}/>
       ) : type === 'select' ? (
         <select value={draft[key] || 'sight'} onChange={e => setDraft({...draft, [key]: e.target.value})}
           style={{ width:'100%', padding:'8px 10px', borderRadius:8,
           border:`1px solid ${COLORS.line}`, background:COLORS.card,
-          fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}>
+          fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}>
           {Object.entries(CAT_META).map(([k]) => (<option key={k} value={k}>{catLabel(k, t)}</option>))}
         </select>
       ) : (
         <input value={draft[key] || ''} onChange={e => setDraft({...draft, [key]: e.target.value})}
           style={{ width:'100%', padding:'8px 10px', borderRadius:8,
           border:`1px solid ${COLORS.line}`, background:COLORS.card,
-          fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}/>
+          fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
       )}
     </label>
   );
@@ -5643,11 +5643,11 @@ function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
         {/* 날짜 */}
         {dayOptions?.length > 0 && (
           <label style={{ display:'block' }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>날짜</div>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>날짜</div>
             <select value={draft._targetDate || ''} onChange={e => setDraft({...draft, _targetDate: e.target.value})}
               style={{ width:'100%', padding:'8px 10px', borderRadius:8,
                 border:`1px solid ${COLORS.line}`, background:COLORS.card,
-                fontFamily:SANS, fontSize:13, color:COLORS.ink, boxSizing:'border-box' }}>
+                fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}>
               {dayOptions.map((d, i) => (
                 <option key={d.idx} value={d.date}>DAY {d.idx + 1} · {d.date}</option>
               ))}
@@ -5656,11 +5656,11 @@ function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
         )}
         {/* 시간 */}
         <label style={{ display:'block' }}>
-          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>시간</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>시간</div>
           <button type="button" onClick={() => setTimeOpen(true)} style={{
             width:'100%', padding:'8px 10px', borderRadius:8,
             border:`1px solid ${COLORS.line}`, background:COLORS.card,
-            fontFamily:MONO, fontSize:14, color:COLORS.ink, cursor:'pointer',
+            fontFamily:MONO, fontSize:17, color:COLORS.ink, cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center',
           }}>{draft.time || '09:00'}</button>
         </label>
@@ -5675,7 +5675,7 @@ function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
         <button type="button" onClick={() => setShowHotelSearch(true)} style={{
           marginTop:10, width:'100%', border:'none', cursor:'pointer',
           background:COLORS.ink, color:COLORS.bg, borderRadius:10,
-          padding:'11px', fontFamily:SANS, fontSize:13, fontWeight:500,
+          padding:'11px', fontFamily:SANS, fontSize:17, fontWeight:500,
           display:'flex', gap:6, alignItems:'center', justifyContent:'center',
         }}>
           <Icon name="search" size={13} color={COLORS.bg} stroke={2}/>
@@ -5683,7 +5683,7 @@ function EditStopForm({ draft, setDraft, cityBias, dayOptions }) {
         </button>
       )}
       <label style={{ display:'block', marginTop:10 }}>
-        <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>위치</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>위치</div>
         <LocationField
           value={draft.loc || ''}
           cityBias={cityBias}
@@ -6017,7 +6017,7 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
           <input ref={inputRef} value={query} onChange={e => setQuery(e.target.value)}
             placeholder="장소 이름으로 검색..."
             style={{ flex:1, border:'none', background:'transparent', outline:'none',
-              fontFamily:SANS, fontSize:14, color:COLORS.ink }}/>
+              fontFamily:SANS, fontSize:17, color:COLORS.ink }}/>
           {query ? <button onClick={() => setQuery('')} style={{ border:'none', background:'none', cursor:'pointer', padding:0 }}>
             <Icon name="x" size={13} color={COLORS.mute} stroke={2}/>
           </button> : null}
@@ -6025,7 +6025,7 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
       </div>
 
       {loading && (
-        <div style={{ textAlign:'center', padding:'16px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>검색 중...</div>
+        <div style={{ textAlign:'center', padding:'16px 0', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>검색 중...</div>
       )}
 
       <div style={{ padding:'0 8px 20px', display:'flex', flexDirection:'column', gap:2 }}>
@@ -6044,16 +6044,16 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
                 <Icon name="pin" size={14} color={COLORS.accent} stroke={1.8}/>
               </div>
               <div style={{ flex:1, minWidth:0 }}>
-                <div style={{ fontFamily:SANS, fontSize:13, fontWeight:500, color:COLORS.ink,
+                <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink,
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{name}</div>
-                {addr ? <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginTop:2,
+                {addr ? <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2,
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{addr}</div> : null}
               </div>
             </button>
           );
         })}
         {!loading && query && results.length === 0 && (
-          <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>결과 없음</div>
+          <div style={{ textAlign:'center', padding:'20px 0', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>결과 없음</div>
         )}
       </div>
     </BottomSheet>
@@ -6332,7 +6332,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
   return (
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:8 }}>
-        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Map</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Map</div>
         <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Route.</div>
       </div>
       <div style={{ padding:'4px 16px 12px', overflowX:'auto', whiteSpace:'nowrap' }}>
@@ -6342,7 +6342,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
               border:'none', borderRadius:14, padding:'8px 14px', cursor:'pointer',
               background: i === selDay ? COLORS.ink : COLORS.card,
               color: i === selDay ? COLORS.bg : COLORS.ink,
-              fontFamily:MONO, fontSize:11, letterSpacing:'0.08em',
+              fontFamily:MONO, fontSize:12, letterSpacing:'0.08em',
             }}>D{String(d.n).padStart(2,'0')}</button>
           ))}
         </div>
@@ -6378,12 +6378,12 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                   width:22, height:22, borderRadius:11, flexShrink:0,
                   background:COLORS.accent, color:'#fff',
                   display:'flex', alignItems:'center', justifyContent:'center',
-                  fontFamily:MONO, fontSize:10, fontWeight:700,
+                  fontFamily:MONO, fontSize:12, fontWeight:700,
                 }}>{i+1}</div>
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500,
+                  <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{stopTitle(it, t)}</div>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute,
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
                     whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{it.loc}</div>
                 </div>
               </button>
@@ -6398,7 +6398,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
             <div key={`tt-${i}`} style={{
               display:'flex', justifyContent:'center', alignItems:'center', gap:16,
               padding:'3px 0 9px',
-              fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.06em',
+              fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.06em',
             }}>
               <div style={{ flex:1, height:1, background:COLORS.line, marginLeft:16 }}/>
               <span style={{ display:'flex', gap:4, alignItems:'center', flexShrink:0 }}>
@@ -6422,10 +6422,10 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
 
             {/* 헤더 + 총 이동 시간 */}
             <div style={{ display:'flex', alignItems:'center', gap:7, marginBottom:12 }}>
-              <span style={{ fontSize:15 }}>💡</span>
-              <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>Route Tip</span>
+              <span style={{ fontSize:17 }}>💡</span>
+              <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>Route Tip</span>
               {routeTip.totalTransit > 0 && (
-                <span style={{ marginLeft:'auto', fontFamily:MONO, fontSize:10, color:COLORS.mute }}>
+                <span style={{ marginLeft:'auto', fontFamily:MONO, fontSize:12, color:COLORS.mute }}>
                   총 이동 {fmtMin(routeTip.totalTransit)}
                 </span>
               )}
@@ -6438,7 +6438,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 {routeTip.hotel && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="hotel" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('sectionStays')}</span>
+                    <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, width:28 }}>{t('sectionStays')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.hotel.title}</span>
                   </div>
@@ -6446,19 +6446,19 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
                 {routeTip.lunch && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="food" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('lunch')}</span>
+                    <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, width:28 }}>{t('lunch')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.lunch.title}</span>
-                    {routeTip.lunch.time && <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, flexShrink:0 }}>{routeTip.lunch.time}</span>}
+                    {routeTip.lunch.time && <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, flexShrink:0 }}>{routeTip.lunch.time}</span>}
                   </div>
                 )}
                 {routeTip.dinner && (
                   <div style={{ display:'flex', gap:8, alignItems:'center' }}>
                     <Icon name="food" size={13} color={COLORS.mute} stroke={1.8}/>
-                    <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, width:28 }}>{t('dinner')}</span>
+                    <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, width:28 }}>{t('dinner')}</span>
                     <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.ink, flex:1,
                       overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{routeTip.dinner.title}</span>
-                    {routeTip.dinner.time && <span style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, flexShrink:0 }}>{routeTip.dinner.time}</span>}
+                    {routeTip.dinner.time && <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, flexShrink:0 }}>{routeTip.dinner.time}</span>}
                   </div>
                 )}
               </div>
@@ -6468,10 +6468,10 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
             {routeTip.isOptimal ? (
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:6 }}>
-                  <span style={{ fontSize:16 }}>🎉</span>
-                  <span style={{ fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink }}>완벽한 동선이에요!</span>
+                  <span style={{ fontSize:17 }}>🎉</span>
+                  <span style={{ fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.ink }}>완벽한 동선이에요!</span>
                 </div>
-                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, lineHeight:1.6 }}>
+                <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, lineHeight:1.6 }}>
                   {routeTip.hotel
                     ? `${routeTip.hotel.title}을 기점으로 이동 거리를 최소화한 최적 순서입니다.`
                     : '이동 거리를 최소화한 최적의 순서입니다.'}
@@ -6479,13 +6479,13 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
               </div>
             ) : (
               <div>
-                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginBottom:6, lineHeight:1.55 }}>
+                <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, marginBottom:6, lineHeight:1.55 }}>
                   {routeTip.hotel
                     ? `${routeTip.hotel.title}을 기점으로 경유지 순서를 조정하면 더 효율적이에요.`
                     : '방문 순서를 조정하면 이동 거리를 줄일 수 있어요.'}
                 </div>
                 <div style={{ background:COLORS.bg, borderRadius:10, padding:'10px 12px',
-                  fontFamily:MONO, fontSize:11, color:COLORS.ink, lineHeight:1.8, wordBreak:'break-word' }}>
+                  fontFamily:MONO, fontSize:12, color:COLORS.ink, lineHeight:1.8, wordBreak:'break-word' }}>
                   {routeTip.order.map((idx, i) => {
                     const p = routeTip.pts[idx];
                     const isAnchor = p.cat === 'hotel' || p.cat === 'food';
@@ -6506,7 +6506,7 @@ function MapScreen({ trip, onEditItem, editing, onRegisterEdit }) {
             {routeTip.hotel && routeTip.returnsToHotel === false && (
               <div style={{ marginTop:10, paddingTop:10, borderTop:`1px solid ${COLORS.line}`,
                 display:'flex', gap:7, alignItems:'flex-start' }}>
-                <span style={{ fontSize:13, flexShrink:0 }}>🏨</span>
+                <span style={{ fontSize:17, flexShrink:0 }}>🏨</span>
                 <span style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.mute, lineHeight:1.55 }}>
                   마지막에{' '}
                   <span style={{ color:COLORS.ink, fontWeight:500 }}>{routeTip.hotel.title}</span>
@@ -6590,7 +6590,7 @@ const FoodCatItems = React.memo(function FoodCatItems({ catItems, allFood, onEdi
                     <input value={f.name} onChange={e => updateFood(f.idx, { name: e.target.value })}
                       placeholder="맛집 이름"
                       style={{ border:'none', outline:'none', background:'transparent',
-                        fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink, padding:0, width:'100%' }}/>
+                        fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink, padding:0, width:'100%' }}/>
                     <input value={f.detail||''} onChange={e => updateFood(f.idx, { detail: e.target.value })}
                       placeholder="상세 설명"
                       style={{ border:'none', outline:'none', background:'transparent',
@@ -6599,22 +6599,22 @@ const FoodCatItems = React.memo(function FoodCatItems({ catItems, allFood, onEdi
                       <input value={f.price||''} onChange={e => updateFood(f.idx, { price: e.target.value })}
                         placeholder="가격"
                         style={{ border:'none', outline:'none', background:'transparent',
-                          fontFamily:MONO, fontSize:11, color:COLORS.accent, padding:0, width:60 }}/>
+                          fontFamily:MONO, fontSize:12, color:COLORS.accent, padding:0, width:60 }}/>
                       <input value={f.note||''} onChange={e => updateFood(f.idx, { note: e.target.value })}
                         placeholder="메모"
                         style={{ border:'none', outline:'none', background:'transparent',
-                          fontFamily:SANS, fontSize:11, color:COLORS.mute, padding:0, flex:1 }}/>
+                          fontFamily:SANS, fontSize:12, color:COLORS.mute, padding:0, flex:1 }}/>
                     </div>
                   </div>
                 ) : (
                   <button onClick={() => window.open(mapsSearchUrl(f.name), '_blank')}
                     style={{ width:'100%', padding:0, border:'none', background:'transparent', cursor:'pointer', textAlign:'left' }}>
                     <div style={{ display:'flex', justifyContent:'space-between', alignItems:'baseline', gap:8 }}>
-                      <div style={{ fontFamily:SANS, fontSize:14, color:COLORS.ink, fontWeight:500 }}>{f.name}</div>
-                      {f.price && <div style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.accent, flexShrink:0 }}>{f.price}</div>}
+                      <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>{f.name}</div>
+                      {f.price && <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, flexShrink:0 }}>{f.price}</div>}
                     </div>
                     {f.detail && <div style={{ marginTop:3, fontFamily:SANS, fontSize:12, color:COLORS.mute, lineHeight:1.4 }}>{f.detail}</div>}
-                    {f.note && <div style={{ marginTop:4, fontFamily:SANS, fontSize:11, color:COLORS.mute, fontStyle:'italic', opacity:0.8 }}>— {f.note}</div>}
+                    {f.note && <div style={{ marginTop:4, fontFamily:SANS, fontSize:12, color:COLORS.mute, fontStyle:'italic', opacity:0.8 }}>— {f.note}</div>}
                   </button>
                 )}
                 {editing && (
@@ -6693,7 +6693,7 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
       {/* 헤더 */}
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:12 }}>
-        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Food Guide</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Food Guide</div>
         <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Eat List.</div>
       </div>
 
@@ -6706,7 +6706,7 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
           style={{ width:'100%', boxSizing:'border-box',
             paddingLeft:36, paddingRight:12, paddingTop:9, paddingBottom:9,
             border:`1px solid ${COLORS.line}`, borderRadius:12,
-            background:COLORS.card, fontFamily:SANS, fontSize:13.5, color:COLORS.ink, outline:'none' }}/>
+            background:COLORS.card, fontFamily:SANS, fontSize:17, color:COLORS.ink, outline:'none' }}/>
       </div>
 
       {/* 카테고리별 목록 */}
@@ -6714,12 +6714,12 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
         {groupEntries.map(([cat, items]) => (
           <div key={cat}>
             <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8, paddingLeft:2 }}>
-              <span style={{ fontFamily:MONO, fontSize:10.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', flex:1 }}>{cat}</span>
+              <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', flex:1 }}>{cat}</span>
               {editing && (
                 <>
                   <button onClick={() => { const n = prompt('카테고리 이름 변경:', cat); if (n) renameCat(cat, n); }}
                     style={{ padding:'3px 8px', border:`1px solid ${COLORS.line}`, borderRadius:8,
-                      background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:11, color:COLORS.mute }}>이름 변경</button>
+                      background:'transparent', cursor:'pointer', fontFamily:SANS, fontSize:12, color:COLORS.mute }}>이름 변경</button>
                   <button onClick={() => deleteCat(cat)} style={{
                     width:24, height:24, borderRadius:12, border:'none', background:'rgba(193,79,46,0.10)',
                     cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center' }}>
@@ -6736,12 +6736,12 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
                   borderTop: `1px solid ${COLORS.line}` }}>
                   <button onClick={() => addFood(cat)} style={{
                     flex:1, padding:'8px 0', border:'none', borderRadius:10,
-                    background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:13, fontWeight:600, cursor:'pointer' }}>
+                    background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:17, fontWeight:600, cursor:'pointer' }}>
                     추가
                   </button>
                   <button onClick={() => setAddSelCat(null)} style={{
                     padding:'8px 12px', border:'none', borderRadius:10,
-                    background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:13, cursor:'pointer' }}>
+                    background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:17, cursor:'pointer' }}>
                     취소
                   </button>
                 </div>
@@ -6750,7 +6750,7 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
                   width:'100%', padding:'10px 14px', background:'transparent', border:'none',
                   borderTop:`1px solid ${COLORS.line}`,
                   display:'flex', alignItems:'center', gap:8, cursor:'pointer',
-                  color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+                  color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>
                   <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 맛집 추가
                 </button>
               )}
@@ -6760,7 +6760,7 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
 
         {/* 빈 상태 */}
         {totalFiltered === 0 && (
-          <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+          <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
             {query ? '검색 결과가 없어요' : cats.length === 0 ? '카테고리를 만들어 맛집을 추가해 보세요' : '맛집을 추가해 보세요'}
           </div>
         )}
@@ -6772,19 +6772,19 @@ function FoodScreen({ trip, onEditFood, onDeleteFood, editing, setEditing }) {
             <input autoFocus value={newCatName} onChange={e => setNewCatName(e.target.value)}
               placeholder="카테고리 이름"
               style={{ flex:1, padding:'11px 14px', border:`1px solid ${COLORS.line}`, borderRadius:12,
-                fontFamily:SANS, fontSize:13.5, background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
+                fontFamily:SANS, fontSize:17, background:COLORS.card, color:COLORS.ink, outline:'none' }}/>
             <button type="submit" style={{ padding:'11px 16px', border:'none', borderRadius:12,
-              background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:13, fontWeight:600, cursor:'pointer' }}>추가</button>
+              background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:17, fontWeight:600, cursor:'pointer' }}>추가</button>
             <button type="button" onClick={() => { setNewCatInput(false); setNewCatName(''); }}
               style={{ padding:'11px 12px', border:'none', borderRadius:12,
-                background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:13, cursor:'pointer' }}>취소</button>
+                background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:17, cursor:'pointer' }}>취소</button>
           </form>
         ) : (
           <button onClick={() => setNewCatInput(true)} style={{
             width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
             background:'transparent', cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+            color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>
             <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
           </button>
         )}
@@ -6863,10 +6863,10 @@ const PrepCatItems = React.memo(function PrepCatItems({ ci, cat, cats, save, sav
                       background: isEditingThis ? COLORS.softer : 'transparent',
                       borderRadius: isEditingThis ? 8 : 0,
                       padding: isEditingThis ? '8px 10px' : 0,
-                      fontFamily:SANS, fontSize: isEditingThis ? 15 : 13.5,
+                      fontFamily:SANS, fontSize: 17,
                       color:COLORS.ink }}/>
                 ) : (
-                  <span style={{ flex:1, fontFamily:SANS, fontSize:13.5, color:COLORS.ink,
+                  <span style={{ flex:1, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                     textDecoration: isDone ? 'line-through' : 'none', opacity: isDone ? 0.5 : 1 }}>{item}</span>
                 )}
                 {editing && !isEditingThis && (
@@ -7252,7 +7252,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
       {/* 헤더 */}
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:16 }}>
-        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Preparation</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Preparation</div>
         <div style={{ display:'flex', alignItems:'flex-end', justifyContent:'space-between', marginTop:4 }}>
           <div style={{ fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Pack & Go.</div>
           <div style={{ display:'flex', gap:4, paddingBottom:6 }}>
@@ -7281,14 +7281,14 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
           <div style={{ background:COLORS.card, borderRadius:16, padding:'14px 18px',
             display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             <div>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>여행 기간</div>
-              <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, fontWeight:500 }}>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>여행 기간</div>
+              <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>
                 {firstDate}{lastDate && lastDate !== firstDate ? ` – ${lastDate}` : ''}
               </div>
-              <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginTop:3 }}>{trip.days.length}일</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3 }}>{trip.days.length}일</div>
             </div>
             <div style={{ textAlign:'right' }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>D-DAY</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:4 }}>D-DAY</div>
               <div style={{ fontFamily:SERIF, fontSize:32, color:ddayColor, letterSpacing:'-0.02em', lineHeight:1 }}>{ddayLabel}</div>
             </div>
           </div>
@@ -7309,7 +7309,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   onBlur={() => setRenamingCat(null)}
                   onKeyDown={e => e.key === 'Enter' && setRenamingCat(null)}
                   style={{ flex:1, border:`1px solid ${COLORS.line}`, borderRadius:8,
-                    padding:'4px 8px', fontFamily:MONO, fontSize:14, letterSpacing:'0.12em',
+                    padding:'4px 8px', fontFamily:MONO, fontSize:17, letterSpacing:'0.12em',
                     textTransform:'uppercase', background:COLORS.card, color:catColor(ci), outline:'none', fontWeight:700 }}/>
               ) : (
                 <button onClick={() => toggleCollapse(cat.id)} style={{
@@ -7318,8 +7318,8 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   <span style={{ display:'inline-flex', transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition:'transform 0.18s' }}>
                     <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}/>
                   </span>
-                  <span style={{ fontFamily:MONO, fontSize:14, letterSpacing:'0.12em', textTransform:'uppercase', color:catColor(ci), fontWeight:700 }}>{cat.name}</span>
-                  {isCollapsed && (cat.items||[]).length > 0 && <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginLeft:4 }}>({(cat.items||[]).length})</span>}
+                  <span style={{ fontFamily:MONO, fontSize:17, letterSpacing:'0.12em', textTransform:'uppercase', color:catColor(ci), fontWeight:700 }}>{cat.name}</span>
+                  {isCollapsed && (cat.items||[]).length > 0 && <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginLeft:4 }}>({(cat.items||[]).length})</span>}
                 </button>
               )}
               {renamingCat !== ci && (
@@ -7327,7 +7327,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                   width:22, height:22, borderRadius:11, border:'none',
                   background: sortOrder ? 'rgba(193,79,46,0.12)' : 'transparent',
                   cursor:'pointer', display:'flex', alignItems:'center', justifyContent:'center',
-                  fontFamily:MONO, fontSize:10, color: sortOrder ? COLORS.accent : COLORS.mute, flexShrink:0 }}>
+                  fontFamily:MONO, fontSize:12, color: sortOrder ? COLORS.accent : COLORS.mute, flexShrink:0 }}>
                   {sortOrder === 'asc' ? '↑' : sortOrder === 'desc' ? '↓' : '⇅'}
                 </button>
               )}
@@ -7352,7 +7352,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
               <div style={{ background:COLORS.card, borderRadius:14 }}>
                 {(cat.items || []).length === 0 && addInputCat !== ci && (
                   <div ref={el => { prepItemEls.current[`${ci}_empty`] = el; }}
-                    style={{ padding:'14px 16px', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                    style={{ padding:'14px 16px', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
                     항목이 없어요
                   </div>
                 )}
@@ -7371,17 +7371,17 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                       onKeyDown={e => { if (e.key==='Enter') addItem(ci); if (e.key==='Escape') { setAddInputCat(null); setAddInputText(''); }}}
                       style={{ flex:1, border:'none', outline:'none', background:COLORS.softer,
                         borderRadius:8, padding:'8px 10px',
-                        fontFamily:SANS, fontSize:14, color:COLORS.ink }}/>
+                        fontFamily:SANS, fontSize:17, color:COLORS.ink }}/>
                     <button onClick={() => addItem(ci)} style={{
                       padding:'8px 14px', border:'none', borderRadius:10,
-                      background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:13, cursor:'pointer' }}>추가</button>
+                      background:COLORS.accent, color:'#fff', fontFamily:SANS, fontSize:17, cursor:'pointer' }}>추가</button>
                   </div>
                 ) : (
                   <button onClick={() => { setAddInputCat(ci); setAddInputText(''); }} style={{
                     width:'100%', padding:'10px 14px', background:'transparent', border:'none',
                     borderTop: cat.items?.length ? `1px solid ${COLORS.line}` : 'none',
                     display:'flex', alignItems:'center', gap:8, cursor:'pointer',
-                    color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+                    color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>
                     <Icon name="plus" size={13} color={COLORS.mute} stroke={2}/> 항목 추가
                   </button>
                 )}
@@ -7404,10 +7404,10 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                 fontFamily:MONO, fontSize:12, letterSpacing:'0.1em', textTransform:'uppercase',
                 color:COLORS.ink, padding:0 }}/>
             <button onClick={() => { setAddingCat(false); setNewCatName(''); }} style={{
-              border:'none', background:'none', cursor:'pointer', fontFamily:SANS, fontSize:13, color:COLORS.mute, padding:'0 4px' }}>취소</button>
+              border:'none', background:'none', cursor:'pointer', fontFamily:SANS, fontSize:17, color:COLORS.mute, padding:'0 4px' }}>취소</button>
             <button onClick={confirmAddCat} style={{
               border:'none', background:COLORS.accent, cursor:'pointer',
-              fontFamily:SANS, fontSize:13, color:'#fff', fontWeight:600,
+              fontFamily:SANS, fontSize:17, color:'#fff', fontWeight:600,
               padding:'6px 12px', borderRadius:8 }}>추가</button>
           </div>
         ) : (
@@ -7415,7 +7415,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
             width:'100%', padding:'12px 16px', border:`1.5px dashed ${COLORS.line}`, borderRadius:14,
             background:'transparent', cursor:'pointer',
             display:'flex', alignItems:'center', justifyContent:'center', gap:8,
-            color:COLORS.mute, fontFamily:SANS, fontSize:13 }}>
+            color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>
             <Icon name="plus" size={14} color={COLORS.mute} stroke={2}/> 카테고리 추가
           </button>
         )}
@@ -7425,7 +7425,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
       {copyToast && (
         <div style={{ position:'fixed', bottom:100, left:'50%', transform:'translateX(-50%)',
           background:COLORS.ink, color:COLORS.bg, padding:'10px 18px', borderRadius:20,
-          fontFamily:SANS, fontSize:13, zIndex:2000, whiteSpace:'nowrap',
+          fontFamily:SANS, fontSize:17, zIndex:2000, whiteSpace:'nowrap',
           boxShadow:'0 4px 20px rgba(0,0,0,0.18)' }}>
           클립보드에 복사됐어요
         </div>
@@ -7454,7 +7454,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                 onChange={e => setPasteText(e.target.value)}
                 placeholder={'카테고리 이름\n- [ ] 항목\n- [ ] 항목\n\n카테고리 이름\n- [ ] 항목'}
                 style={{ width:'100%', boxSizing:'border-box', minHeight:280, border:`1px solid ${COLORS.line}`,
-                  borderRadius:14, padding:'14px 16px', fontFamily:SANS, fontSize:15, color:COLORS.ink,
+                  borderRadius:14, padding:'14px 16px', fontFamily:SANS, fontSize:17, color:COLORS.ink,
                   background:COLORS.card, outline:'none', resize:'none', lineHeight:1.7 }}/>
               {/* 파싱 미리보기 */}
               {(() => {
@@ -7462,16 +7462,16 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                 if (!parsed.length) return null;
                 return (
                   <div style={{ background:COLORS.card, borderRadius:14, padding:'12px 14px' }}>
-                    <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>
+                    <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>
                       미리보기 — {parsed.length}개 카테고리 · {parsed.reduce((s,c)=>s+c.items.length,0)}개 항목
                     </div>
                     {parsed.map((c, i) => (
                       <div key={i} style={{ marginBottom:8 }}>
-                        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>
-                          {c.name} {cats.find(x=>x.name===c.name) ? <span style={{color:COLORS.accent,fontSize:10}}>기존에 추가</span> : <span style={{color:'#2E7D32',fontSize:10}}>새 카테고리</span>}
+                        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:4 }}>
+                          {c.name} {cats.find(x=>x.name===c.name) ? <span style={{color:COLORS.accent,fontSize:12}}>기존에 추가</span> : <span style={{color:'#2E7D32',fontSize:12}}>새 카테고리</span>}
                         </div>
                         {c.items.map((item, j) => (
-                          <div key={j} style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, paddingLeft:8, marginBottom:2 }}>· {item}</div>
+                          <div key={j} style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, paddingLeft:8, marginBottom:2 }}>· {item}</div>
                         ))}
                       </div>
                     ))}
@@ -7484,7 +7484,7 @@ function PrepScreen({ trip, onEditPrep, onScheduleUndo, editing, setEditing }) {
                 style={{ width:'100%', padding:'14px', border:'none', borderRadius:14, cursor:'pointer',
                   background: parsePasteText(pasteText).length ? COLORS.ink : COLORS.line,
                   color: parsePasteText(pasteText).length ? COLORS.bg : COLORS.mute,
-                  fontFamily:SANS, fontSize:14, fontWeight:500 }}>
+                  fontFamily:SANS, fontSize:17, fontWeight:500 }}>
                 저장
               </button>
             </div>
@@ -7659,7 +7659,7 @@ function BudgetCalcSheet({ open, onClose, onEnter, onTabBarToggle }) {
         </div>
         {/* 디스플레이 */}
         <div style={{ padding:'8px 20px 14px', textAlign:'right', minHeight:64 }}>
-          {op && <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginRight:8 }}>{op}</span>}
+          {op && <span style={{ fontFamily:MONO, fontSize:17, color:COLORS.mute, marginRight:8 }}>{op}</span>}
           <span style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em' }}>{fmtDisp}</span>
         </div>
         {/* 키패드 */}
@@ -7691,11 +7691,11 @@ function BudgetCalcSheet({ open, onClose, onEnter, onTabBarToggle }) {
         <div style={{ padding:'12px 14px 16px', display:'flex', gap:8 }}>
           <button onClick={() => { onEnter('in', displayNum); onClose(); }} style={{
             flex:1, padding:'14px 0', border:`1px solid ${COLORS.line}`, borderRadius:14,
-            background:COLORS.card, fontFamily:SANS, fontSize:13, fontWeight:600, color:COLORS.ink, cursor:'pointer',
+            background:COLORS.card, fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.ink, cursor:'pointer',
           }}>수입으로 입력</button>
           <button onClick={() => { onEnter('out', displayNum); onClose(); }} style={{
             flex:1, padding:'14px 0', border:'none', borderRadius:14,
-            background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
+            background:COLORS.accent, fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff', cursor:'pointer',
           }}>지출로 입력</button>
         </div>
       </div>
@@ -7787,10 +7787,10 @@ function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarTog
           const perPerson = cur === 'KRW' ? Math.round(out / count) : out / count;
           return (
             <div key={cur} style={{ background:COLORS.card, borderRadius:14, padding:'12px 16px', marginBottom:8 }}>
-              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>{cur} 공동 지출</div>
+              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>{cur} 공동 지출</div>
               <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
                 <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{fmtAmt(out, cur)}</div>
-                <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>÷ {count} =</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>÷ {count} =</div>
                 <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>1인당 {fmtAmt(perPerson, cur)}</div>
               </div>
             </div>
@@ -7798,7 +7798,7 @@ function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarTog
         })}
         {/* 인원 수 */}
         <div style={{ background:COLORS.card, borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
-          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
             <button onClick={() => setN(String(Math.max(1,count-1)))} style={{
               width:32, height:32, borderRadius:16, border:`1px solid ${COLORS.line}`,
@@ -7817,7 +7817,7 @@ function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarTog
         </div>
         <button onClick={() => { onChangeSplitN?.(count); onClose(); }} style={{
           width:'100%', padding:'14px 0', border:'none', borderRadius:14,
-          background:COLORS.accent, fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff', cursor:'pointer',
+          background:COLORS.accent, fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff', cursor:'pointer',
         }}>확인</button>
       </div>
       </div>
@@ -7956,7 +7956,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
   const tabBtnStyle = (t) => ({
     flex:1, padding:'8px 0', border:'none', borderRadius:8, cursor:'pointer',
     background: tab===t ? COLORS.card : 'transparent',
-    fontFamily:SANS, fontSize:13, fontWeight: tab===t ? 600 : 400,
+    fontFamily:SANS, fontSize:17, fontWeight: tab===t ? 600 : 400,
     color: tab===t ? COLORS.ink : COLORS.mute, transition:'all 150ms',
   });
 
@@ -7970,16 +7970,16 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
       {tab === 'export' ? (
         <div style={{ padding:'0 16px 24px' }}>
           {entries.length === 0 ? (
-            <div style={{ textAlign:'center', padding:'40px 0', color:COLORS.mute, fontFamily:SANS, fontSize:14 }}>내보낼 항목이 없어요</div>
+            <div style={{ textAlign:'center', padding:'40px 0', color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>내보낼 항목이 없어요</div>
           ) : (<>
-            <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, marginBottom:8 }}>
+            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginBottom:8 }}>
               {entries.length}개 항목 · TSV 형식 (구글 스프레드시트에 바로 붙여넣기 가능)
             </div>
             <textarea readOnly value={toTsv}
               onFocus={e => e.target.select()}
               style={{
                 width:'100%', height:150, padding:'12px', borderRadius:12, border:'none',
-                fontSize:11, fontFamily:MONO, color:COLORS.ink, background:COLORS.soft,
+                fontSize:12, fontFamily:MONO, color:COLORS.ink, background:COLORS.soft,
                 resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.5,
                 margin:'0 0 12px', whiteSpace:'pre',
               }}/>
@@ -7987,7 +7987,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
               width:'100%', padding:'13px', border:'none', borderRadius:14,
               background: copyDone ? COLORS.ink : COLORS.accent,
               color: copyDone ? COLORS.bg : '#fff',
-              fontFamily:SANS, fontSize:14, fontWeight:600, cursor:'pointer',
+              fontFamily:SANS, fontSize:17, fontWeight:600, cursor:'pointer',
               display:'flex', alignItems:'center', justifyContent:'center', gap:8, transition:'all 200ms',
             }}>
               <Icon name={copyDone ? 'check' : 'copy'} size={15} color={copyDone ? COLORS.bg : '#fff'} stroke={2}/>
@@ -8017,7 +8017,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             placeholder={'날짜\t구분\t카테고리\t범위\t금액\t통화\t메모\n2025-01-15\t지출\t식비\t공동\t25000\tKRW\t점심'}
             style={{
               width:'100%', height:140, padding:'12px', borderRadius:12,
-              border:`1.5px solid ${COLORS.line}`, fontFamily:MONO, fontSize:11.5,
+              border:`1.5px solid ${COLORS.line}`, fontFamily:MONO, fontSize:12,
               color:COLORS.ink, background:COLORS.soft, resize:'none',
               outline:'none', boxSizing:'border-box', lineHeight:1.5,
             }}
@@ -8026,7 +8026,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             <div style={{
               marginTop:8, padding:'10px 14px', borderRadius:10,
               background: importResult.count > 0 ? 'rgba(100,180,100,0.12)' : 'rgba(200,80,80,0.1)',
-              fontFamily:SANS, fontSize:13,
+              fontFamily:SANS, fontSize:17,
               color: importResult.count > 0 ? '#2e7d32' : COLORS.accent,
             }}>
               {importResult.count > 0
@@ -8038,7 +8038,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             width:'100%', padding:'13px', border:'none', borderRadius:14, marginTop:10,
             background: importText.trim() ? COLORS.ink : COLORS.soft,
             color: importText.trim() ? COLORS.bg : COLORS.mute,
-            fontFamily:SANS, fontSize:14, fontWeight:600,
+            fontFamily:SANS, fontSize:17, fontWeight:600,
             cursor: importText.trim() ? 'pointer' : 'default', transition:'all 150ms',
           }}>{entries.length > 0 ? '교체하기' : '가져오기'}</button>
         </div>
@@ -8190,7 +8190,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
     <div style={{ background:COLORS.bg, minHeight:'100vh', paddingBottom:110 }}>
       {/* 헤더 */}
       <div style={{ paddingTop:'calc(16px + env(safe-area-inset-top, 0px))', paddingLeft:24, paddingRight:24, paddingBottom:12 }}>
-        <div style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Travel Budget</div>
+        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>Travel Budget</div>
         <div style={{ marginTop:4, fontFamily:SERIF, fontSize:38, color:COLORS.ink, letterSpacing:'-0.02em' }}>Budget.</div>
       </div>
 
@@ -8201,11 +8201,11 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             {/* 상단: 개인 수입(좌) | 개인 지출(우, 부담금 포함) */}
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
               <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>개인 수입</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>개인 수입</div>
                 {Object.entries(personal).filter(([,{in:inc}]) => inc > 0).length > 0
                   ? Object.entries(personal).filter(([,{in:inc}]) => inc > 0).map(([cur, {in:inc}]) => (
                       <div key={cur} style={{ marginBottom:5 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1.1 }}>{fmtAmt(inc, cur)}</div>
                       </div>
                     ))
@@ -8213,7 +8213,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                 }
               </div>
               <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>개인 지출</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>개인 지출</div>
                 {(() => {
                   const curs = [...new Set([
                     ...Object.keys(personal).filter(c => personal[c].out > 0),
@@ -8231,14 +8231,14 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                         const total = (personal[cur]?.out || 0) + (shared[cur]?.out || 0) / splitN;
                         return (
                           <div key={cur} style={{ marginBottom:5 }}>
-                            <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
+                            <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
                             <div style={{ fontFamily:SERIF, fontSize:20, color:'#E07B6A', letterSpacing:'-0.02em', lineHeight:1.1 }}>{fmtAmt(cur==='KRW' ? Math.round(total) : total, cur)}</div>
                           </div>
                         );
                       })}
                       {hasMixed && (
                         <div style={{ borderTop:'1px solid rgba(255,255,255,0.1)', marginTop:4, paddingTop:6 }}>
-                          <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
+                          <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
                           <div style={{ fontFamily:SERIF, fontSize:28, color:'rgba(255,255,255,0.55)', letterSpacing:'-0.02em', lineHeight:1.1 }}>
                             ₩{Math.round(totalKrw).toLocaleString('ko-KR')}
                           </div>
@@ -8253,11 +8253,11 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             {/* 중단: 공동 수입(좌) | 공동 지출(우) */}
             <div style={{ borderTop:'1px solid rgba(255,255,255,0.08)', paddingTop:14, display:'grid', gridTemplateColumns:'1fr 1fr', gap:14, marginBottom:14 }}>
               <div>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>공동 수입</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:9 }}>공동 수입</div>
                 {Object.entries(shared).filter(([,{in:inc}]) => inc > 0).length > 0
                   ? Object.entries(shared).filter(([,{in:inc}]) => inc > 0).map(([cur, {in:inc}]) => (
                       <div key={cur} style={{ marginBottom:5 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1.1 }}>{fmtAmt(inc, cur)}</div>
                       </div>
                     ))
@@ -8266,17 +8266,17 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
               </div>
               <div>
                 <div style={{ display:'flex', alignItems:'center', gap:5, marginBottom:9 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동 지출</div>
+                  <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase' }}>공동 지출</div>
                   {hasSharedOut && (
                     <button onClick={() => { setSplitOpen(true); onSheetChange?.(true); }} style={{
-                      background:'none', border:'none', cursor:'pointer', padding:0, fontSize:11, lineHeight:1, opacity:0.45,
+                      background:'none', border:'none', cursor:'pointer', padding:0, fontSize:12, lineHeight:1, opacity:0.45,
                     }}>➗</button>
                   )}
                 </div>
                 {Object.entries(shared).filter(([,{out}]) => out > 0).length > 0
                   ? Object.entries(shared).filter(([,{out}]) => out > 0).map(([cur, {out}]) => (
                       <div key={cur} style={{ marginBottom:5 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.22)', marginBottom:2 }}>{cur}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'#7BAEED', letterSpacing:'-0.02em', lineHeight:1.1 }}>{fmtAmt(out, cur)}</div>
                       </div>
                     ))
@@ -8288,13 +8288,13 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             {/* 하단: 개인 부담금 */}
             {hasSharedOut && (
               <div style={{ borderTop:'1px solid rgba(255,255,255,0.1)', paddingTop:14 }}>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인 부담금 (1/{splitN})</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>개인 부담금 (1/{splitN})</div>
                 <div style={{ display:'flex', gap:20, flexWrap:'wrap', alignItems:'flex-end' }}>
                   {Object.keys(shared).filter(c => shared[c].out > 0).map(cur => {
                     const myShare = (shared[cur]?.out || 0) / splitN;
                     return (
                       <div key={cur}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>{cur}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>{cur}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'#fff', letterSpacing:'-0.02em', lineHeight:1 }}>
                           {fmtAmt(cur==='KRW' ? Math.round(myShare) : myShare, cur)}
                         </div>
@@ -8307,7 +8307,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                     const totalKrw = curs.reduce((sum, cur) => sum + toKrwLive((shared[cur]?.out || 0) / splitN, cur), 0);
                     return (
                       <div style={{ borderLeft:'1px solid rgba(255,255,255,0.12)', paddingLeft:20, marginLeft:4 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.3)', marginBottom:3 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
                         <div style={{ fontFamily:SERIF, fontSize:20, color:'rgba(255,255,255,0.65)', letterSpacing:'-0.02em', lineHeight:1 }}>
                           ₩{Math.round(totalKrw).toLocaleString('ko-KR')}
                         </div>
@@ -8324,11 +8324,11 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             <>
               {Object.values(personal).some(v => v.in > 0) && (
                 <div style={{ marginBottom:14 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>수입</div>
+                  <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>수입</div>
                   <div style={{ display:'flex', gap:20, flexWrap:'wrap' }}>
                     {Object.entries(personal).filter(([,{in: inc}]) => inc > 0).map(([cur, {in: inc}]) => (
                       <div key={cur}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>{cur}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>{cur}</div>
                         <div style={{ fontFamily:SERIF, fontSize:22, color:'#7EC88A', letterSpacing:'-0.02em', lineHeight:1 }}>{fmtAmt(inc, cur)}</div>
                       </div>
                     ))}
@@ -8336,11 +8336,11 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                 </div>
               )}
               <div style={{ borderTop: Object.values(personal).some(v => v.in > 0) ? '1px solid rgba(255,255,255,0.08)' : 'none', paddingTop: Object.values(personal).some(v => v.in > 0) ? 12 : 0 }}>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>지출</div>
+                <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.35)', letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:10 }}>지출</div>
                 <div style={{ display:'flex', gap:20, flexWrap:'wrap', alignItems:'flex-end' }}>
                   {Object.entries(personal).filter(([,{out}]) => out > 0).map(([cur, {out}]) => (
                     <div key={cur}>
-                      <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>{cur}</div>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>{cur}</div>
                       <div style={{ fontFamily:SERIF, fontSize:26, color:'#E07B6A', letterSpacing:'-0.02em', lineHeight:1 }}>{fmtAmt(out, cur)}</div>
                     </div>
                   ))}
@@ -8350,7 +8350,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                     const totalKrw = curs.reduce((sum, cur) => sum + toKrwLive(personal[cur].out, cur), 0);
                     return (
                       <div style={{ borderLeft:'1px solid rgba(255,255,255,0.12)', paddingLeft:20, marginLeft:4 }}>
-                        <div style={{ fontFamily:MONO, fontSize:8.5, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
+                        <div style={{ fontFamily:MONO, fontSize:12, color:'rgba(255,255,255,0.25)', marginBottom:3 }}>합계 ≈{liveLoaded ? '' : ' …'}</div>
                         <div style={{ fontFamily:SERIF, fontSize:22, color:'rgba(255,255,255,0.55)', letterSpacing:'-0.02em', lineHeight:1 }}>
                           ₩{Math.round(totalKrw).toLocaleString('ko-KR')}
                         </div>
@@ -8361,7 +8361,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
               </div>
             </>
           ) : (
-            <div style={{ fontFamily:SANS, fontSize:13, color:'rgba(255,255,255,0.3)', textAlign:'center', padding:'6px 0' }}>기록 없음</div>
+            <div style={{ fontFamily:SANS, fontSize:17, color:'rgba(255,255,255,0.3)', textAlign:'center', padding:'6px 0' }}>기록 없음</div>
           )
         )}
       </div>
@@ -8370,14 +8370,14 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
       <div style={{ padding:'0 16px 16px', display:'flex', gap:8 }}>
         <button onClick={() => openAdd('in')} style={{
           flex:1, padding:'12px 0', background:COLORS.card, border:`1px solid ${COLORS.line}`, borderRadius:14,
-          fontFamily:SANS, fontSize:14, fontWeight:600, color:COLORS.ink, cursor:'pointer',
+          fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.ink, cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', gap:6,
         }}>
           <Icon name="plus" size={14} color={COLORS.ink} stroke={2.5}/> 수입 추가
         </button>
         <button onClick={() => openAdd('out')} style={{
           flex:1, padding:'12px 0', background:COLORS.accent, border:'none', borderRadius:14,
-          fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff', cursor:'pointer',
+          fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff', cursor:'pointer',
           display:'flex', alignItems:'center', justifyContent:'center', gap:6,
         }}>
           <Icon name="minus" size={14} color="#fff" stroke={2.5}/> 지출 추가
@@ -8400,13 +8400,13 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
       {visibleEntries.length === 0 ? (
         <div style={{ padding:'60px 0', textAlign:'center' }}>
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:8 }}>아직 기록이 없어요</div>
-          <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.mute }}>여행 수입과 지출을 기록해 보세요</div>
+          <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute }}>여행 수입과 지출을 기록해 보세요</div>
         </div>
       ) : (
           <div style={{ padding:'0 16px' }}>
             {entriesByDate.map(({ date, items }) => (
               <div key={date} style={{ marginBottom:16 }}>
-                <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em',
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em',
                   textTransform:'uppercase', padding:'4px 2px 8px' }}>{date}</div>
                 <div>
                   {items.map((e, i) => {
@@ -8425,24 +8425,24 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                         background:COLORS.card, borderRadius:14,
                       }} onClick={() => openEdit(e._i)}>
                         <div style={{ flex:1, minWidth:0 }}>
-                          <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, marginBottom:2,
+                          <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, marginBottom:2,
                             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
                             {e.note || e.cat}
                           </div>
                           <div style={{ display:'flex', alignItems:'center', gap:5 }}>
                             {(e.scope||'personal')==='shared' ? (
-                              <div style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED', background:'rgba(79,107,237,0.1)',
+                              <div style={{ fontFamily:MONO, fontSize:12, color:'#4F6BED', background:'rgba(79,107,237,0.1)',
                                 borderRadius:4, padding:'1px 5px', letterSpacing:'0.05em' }}>공동</div>
                             ) : (
-                              <div style={{ fontFamily:MONO, fontSize:9, color:'#3A9B4C', background:'rgba(58,155,76,0.1)',
+                              <div style={{ fontFamily:MONO, fontSize:12, color:'#3A9B4C', background:'rgba(58,155,76,0.1)',
                                 borderRadius:4, padding:'1px 5px', letterSpacing:'0.05em' }}>개인</div>
                             )}
                             {e.note && (
-                              <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute }}>{e.cat}</div>
+                              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>{e.cat}</div>
                             )}
                           </div>
                         </div>
-                        <div style={{ fontFamily:MONO, fontSize:14, fontWeight:600, flexShrink:0,
+                        <div style={{ fontFamily:MONO, fontSize:17, fontWeight:600, flexShrink:0,
                           color: e.type==='in' ? '#3A9B4C' : '#C14F2E' }}>
                           {e.type==='in' ? '+' : '-'}{fmtAmt(e.amount, e.currency||'KRW')}
                         </div>
@@ -8485,7 +8485,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                   <button key={v} onClick={() => { const cats = v==='out'?outCats:inCats; setForm(f => ({ ...f, type:v, cat:cats[0]||'' })); }}
                     style={{ flex:1, padding:'9px 0', border:'none', borderRadius:10, cursor:'pointer',
                       background: form.type===v ? COLORS.card : 'transparent',
-                      fontFamily:SANS, fontSize:14, fontWeight:600,
+                      fontFamily:SANS, fontSize:17, fontWeight:600,
                       color: form.type===v ? COLORS.ink : COLORS.mute }}>
                     {label}
                   </button>
@@ -8496,7 +8496,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                   <button key={v} onClick={() => setForm(f => ({...f, scope:v}))}
                     style={{ padding:'9px 12px', border:'none', borderRadius:10, cursor:'pointer',
                       background: (form.scope||'personal')===v ? COLORS.card : 'transparent',
-                      fontFamily:SANS, fontSize:13, fontWeight:600,
+                      fontFamily:SANS, fontSize:17, fontWeight:600,
                       color: (form.scope||'personal')===v ? COLORS.ink : COLORS.mute }}>
                     {label}
                   </button>
@@ -8528,17 +8528,17 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
                     onKeyDown={e => { if (e.key==='Enter') addCustomCat(); if (e.key==='Escape') { setAddingCat(false); setNewCatVal(''); }}}
                     placeholder="새 항목 이름"
                     style={{ flex:1, padding:'11px 14px', border:`1px solid ${COLORS.line}`, borderRadius:12,
-                      background:COLORS.card, fontFamily:SANS, fontSize:14, color:COLORS.ink, outline:'none' }}/>
+                      background:COLORS.card, fontFamily:SANS, fontSize:17, color:COLORS.ink, outline:'none' }}/>
                   <button onClick={addCustomCat} style={{ padding:'11px 16px', border:'none', borderRadius:12,
-                    background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:13, fontWeight:600, cursor:'pointer' }}>추가</button>
+                    background:COLORS.ink, color:'#fff', fontFamily:SANS, fontSize:17, fontWeight:600, cursor:'pointer' }}>추가</button>
                   <button onClick={() => { setAddingCat(false); setNewCatVal(''); }} style={{ padding:'11px 12px', border:'none', borderRadius:12,
-                    background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:13, cursor:'pointer' }}>취소</button>
+                    background:COLORS.softer, color:COLORS.mute, fontFamily:SANS, fontSize:17, cursor:'pointer' }}>취소</button>
                 </div>
               ) : (
                 <div style={{ display:'flex', gap:6 }}>
                   <select value={form.cat} onChange={e => setForm(f => ({...f, cat: e.target.value}))}
                     style={{ flex:1, padding:'11px 14px', border:`1px solid ${COLORS.line}`, borderRadius:12,
-                      background:COLORS.card, fontFamily:SANS, fontSize:14, color:COLORS.ink,
+                      background:COLORS.card, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                       outline:'none', appearance:'none', WebkitAppearance:'none',
                       backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
                       backgroundRepeat:'no-repeat', backgroundPosition:'right 14px center' }}>
@@ -8556,7 +8556,7 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
             <select value={form.currency||'KRW'} onChange={e => setForm(f => ({...f, currency: e.target.value}))}
               style={{ width:'100%', boxSizing:'border-box', padding:'11px 14px', marginBottom:12,
                 border:`1px solid ${COLORS.line}`, borderRadius:12, background:COLORS.card,
-                fontFamily:MONO, fontSize:13, color:COLORS.ink, outline:'none',
+                fontFamily:MONO, fontSize:17, color:COLORS.ink, outline:'none',
                 appearance:'none', WebkitAppearance:'none',
                 backgroundImage:`url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23aaa' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E")`,
                 backgroundRepeat:'no-repeat', backgroundPosition:'right 14px center' }}>
@@ -8600,12 +8600,12 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
               placeholder="메모 (선택)"
               style={{ width:'100%', boxSizing:'border-box', padding:'11px 16px', marginBottom:10,
                 border:`1px solid ${COLORS.line}`, borderRadius:12, background:COLORS.card,
-                fontFamily:SANS, fontSize:14, color:COLORS.ink, outline:'none' }}/>
+                fontFamily:SANS, fontSize:17, color:COLORS.ink, outline:'none' }}/>
             {/* 날짜 */}
             <button type="button" onClick={() => setDatePickOpen(true)} style={{
               width:'100%', boxSizing:'border-box', padding:'11px 16px', marginBottom:16,
               border:`1px solid ${COLORS.line}`, borderRadius:12, background:COLORS.card,
-              fontFamily:SANS, fontSize:14, color: form.date ? COLORS.ink : COLORS.mute,
+              fontFamily:SANS, fontSize:17, color: form.date ? COLORS.ink : COLORS.mute,
               textAlign:'left', cursor:'pointer',
             }}>{form.date || '날짜 선택'}</button>
             <DatePickerSheet open={datePickOpen} value={form.date}
@@ -8617,20 +8617,20 @@ function BudgetScreen({ trip, myUid, onEditBudget, onSheetChange, onTabBarToggle
               {editIdx !== null && !delConfirm && (
                 <button onClick={() => setDelConfirm(true)} style={{
                   padding:'13px 18px', border:'none', borderRadius:14, background:COLORS.softer,
-                  fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer' }}>
+                  fontFamily:SANS, fontSize:17, color:COLORS.mute, cursor:'pointer' }}>
                   삭제
                 </button>
               )}
               {editIdx !== null && delConfirm && (
                 <button onClick={deleteEntry} style={{
                   padding:'13px 18px', border:'none', borderRadius:14, background:'#C14F2E',
-                  fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff', cursor:'pointer' }}>
+                  fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff', cursor:'pointer' }}>
                   확인
                 </button>
               )}
               <button onClick={saveEntry} style={{
                 flex:1, padding:'13px 0', border:'none', borderRadius:14, background:COLORS.accent,
-                fontFamily:SANS, fontSize:15, fontWeight:600, color:'#fff', cursor:'pointer' }}>
+                fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff', cursor:'pointer' }}>
                 {editIdx !== null ? '수정' : '저장'}
               </button>
             </div>
@@ -8704,7 +8704,7 @@ const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEd
           <Icon name={t.icon} size={20}
             color={tab === t.id ? COLORS.ink : COLORS.mute}
             stroke={tab === t.id ? 2 : 1.7}/>
-          <div style={{ fontFamily:SANS, fontSize:10,
+          <div style={{ fontFamily:SANS, fontSize:12,
             fontWeight: tab === t.id ? 600 : 400,
             color: tab === t.id ? COLORS.ink : COLORS.mute }}>{t.label}</div>
         </button>
@@ -8715,7 +8715,7 @@ const TabBar = React.memo(function TabBar({ tab, setTab, visible, editing, canEd
           width:32, height:32, borderRadius:16, border:'none', cursor:'pointer',
           background:'rgba(26,24,22,0.06)',
           display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0,
-          fontFamily:SANS, fontSize:15, lineHeight:1,
+          fontFamily:SANS, fontSize:17, lineHeight:1,
         }}>↩</button>
       )}
       <button onClick={onToggleEdit} disabled={!canEdit && !editing}
@@ -8784,7 +8784,7 @@ function SplashScreen({ visible }) {
       <div style={{
         marginTop:14, height:22, overflow:'hidden',
         fontFamily:'-apple-system,sans-serif',
-        fontSize:13, color:COLORS.mute, letterSpacing:'0.04em', textAlign:'center',
+        fontSize:17, color:COLORS.mute, letterSpacing:'0.04em', textAlign:'center',
       }}>
         <span key={animKey} style={{ display:'block', animation:'destSlide 0.45s cubic-bezier(0.22,1,0.36,1) both' }}>
           {SPLASH_PLACES[idx]}
@@ -8884,7 +8884,7 @@ function LoginScreen({ errorMsg, onLoginStart }) {
           </span>
         ))}
       </div>
-      <div style={{ fontFamily:SANS, fontSize:15, color:COLORS.mute, marginBottom:56, lineHeight:1.5,
+      <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:56, lineHeight:1.5,
         animation:'charPop 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.38s both' }}>
         여행 일정을 J처럼 만들고 간편하게 공유해 보세요.
       </div>
@@ -8893,7 +8893,7 @@ function LoginScreen({ errorMsg, onLoginStart }) {
           background: '#fff',
           border:'1.5px solid rgba(0,0,0,0.12)', borderRadius:16, cursor:'pointer',
           boxShadow:'0 2px 12px rgba(0,0,0,0.08)', width:'100%', maxWidth:300,
-          fontFamily:SANS, fontSize:15, fontWeight:500, color:'#1A1816',
+          fontFamily:SANS, fontSize:17, fontWeight:500, color:'#1A1816',
           justifyContent:'center', transition:'opacity 0.2s', opacity: loading ? 0.6 : 1,
         }}>
         <svg width="20" height="20" viewBox="0 0 48 48">
@@ -8906,7 +8906,7 @@ function LoginScreen({ errorMsg, onLoginStart }) {
       </button>
       {displayErr && (
         <div style={{ marginTop:20, padding:'12px 16px', background:'#FEF2F2', borderRadius:12,
-          fontFamily:SANS, fontSize:13, color:'#C0392B', maxWidth:300, textAlign:'center', lineHeight:1.5 }}>
+          fontFamily:SANS, fontSize:17, color:'#C0392B', maxWidth:300, textAlign:'center', lineHeight:1.5 }}>
           {displayErr}
         </div>
       )}
@@ -9036,14 +9036,14 @@ function NotificationsScreen({ open, onClose, authUser, notifications, onGoToCom
         {notifications.length > 0 && (
           <button type="button" onClick={deleteAllNotifs} style={{
             background:'transparent', border:'none', cursor:'pointer', padding:'4px 8px',
-            fontFamily:SANS, fontSize:13, color:COLORS.mute, flexShrink:0,
+            fontFamily:SANS, fontSize:17, color:COLORS.mute, flexShrink:0,
           }}>전체 삭제</button>
         )}
       </div>
 
       <div style={{ padding:'16px 16px 0' }}>
         {notifications.length === 0 ? (
-          <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+          <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
             알림이 없습니다
           </div>
         ) : (
@@ -9070,8 +9070,8 @@ function NotificationsScreen({ open, onClose, authUser, notifications, onGoToCom
                       <Icon name={typeIcon(n.type)} size={16} color={color} stroke={2}/>
                     </div>
                     <div style={{ flex:1, minWidth:0 }}>
-                      <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
-                      <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
+                      <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, lineHeight:1.45 }}>{fmtMsg(n)}</div>
+                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3 }}>{fmtTime(n.createdAt)}</div>
                     </div>
                     {!n.read && (
                       <div style={{ width:7, height:7, borderRadius:4, background:color, flexShrink:0, marginTop:6 }}/>
@@ -9292,7 +9292,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
 
       <div style={{ padding:'16px 16px 0' }}>
         {loading && (
-          <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+          <div style={{ padding:'48px 0', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
             불러오는 중...
           </div>
         )}
@@ -9302,7 +9302,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
             {/* 대기 중 — 여행 초대만 */}
             {sentInvites.filter(inv => inv.tripId).length > 0 && (
               <div style={{ marginBottom:20 }}>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
                   대기 중 · {sentInvites.filter(inv => inv.tripId).length}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -9328,16 +9328,16 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                           display:'flex', alignItems:'center', gap:12 }}>
                           <Avatar u={u || { displayName: inv.toEmail }}/>
                           <div style={{ flex:1, minWidth:0 }}>
-                            <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>
+                            <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>
                               {u?.displayName || inv.toEmail}
                             </div>
                             {inv.tripTitle && (
-                              <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:1 }}>
+                              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>
                                 {inv.tripTitle}
                               </div>
                             )}
                           </div>
-                          <div style={{ fontFamily:MONO, fontSize:9.5, color:'#B8860B',
+                          <div style={{ fontFamily:MONO, fontSize:12, color:'#B8860B',
                             background:'#FFF8E1', borderRadius:8, padding:'3px 8px' }}>대기 중</div>
                         </div>
                       </SwipeableRow>
@@ -9350,7 +9350,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
             {/* 받은 요청 */}
             {receivedInvites.length > 0 && (
               <div style={{ marginBottom:20 }}>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
                   받은 요청 · {receivedInvites.length}
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -9359,8 +9359,8 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                       display:'flex', alignItems:'center', gap:12 }}>
                       <Avatar u={{ displayName: inv.fromName, photoURL: inv.fromPhoto }}/>
                       <div style={{ flex:1, minWidth:0 }}>
-                        <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{inv.fromName || '?'}</div>
-                        <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:1 }}>
+                        <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{inv.fromName || '?'}</div>
+                        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>
                           {inv.type === 'trip_copy' ? `일정 복사: ${inv.tripTitle || ''}` : inv.tripId ? `여행 초대: ${inv.tripTitle || ''}` : '동행인 요청'}
                         </div>
                       </div>
@@ -9405,11 +9405,11 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
               const total = displayContacts.length;
               return (
                 <div style={{ marginBottom:20 }}>
-                  <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                  <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
                     동행인 · {total}
                   </div>
                   {total === 0 ? (
-                    <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                    <div style={{ padding:'32px 0', textAlign:'center', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
                       아직 동행인이 없어요
                     </div>
                   ) : (
@@ -9448,18 +9448,18 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                               onTouchEnd={cancelLongPress}>
                               <Avatar u={c}/>
                               <div style={{ flex:1, minWidth:0 }}>
-                                <div style={{ fontFamily:SANS, fontSize:13.5, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
+                                <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{c.displayName}</div>
                                 <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{c.email}</div>
                               </div>
                               <div style={{ display:'flex', flexDirection:'column', alignItems:'flex-end', gap:4 }}>
                                 {pendingInv && (
-                                  <div style={{ fontFamily:MONO, fontSize:9, color:'#B8860B',
+                                  <div style={{ fontFamily:MONO, fontSize:12, color:'#B8860B',
                                     background:'#FFF8E1', borderRadius:6, padding:'2px 6px' }}>미수락</div>
                                 )}
                                 {(() => {
                                   const sharedCount = (trips||[]).filter(t => (tripCompanions[t.id]||[]).some(m => m.uid === c.uid)).length;
                                   return sharedCount > 0 ? (
-                                    <div style={{ fontFamily:MONO, fontSize:9, color:'#4F6BED',
+                                    <div style={{ fontFamily:MONO, fontSize:12, color:'#4F6BED',
                                       background:'#EEF2FF', borderRadius:6, padding:'2px 6px' }}>{sharedCount}개 여행</div>
                                   ) : null;
                                 })()}
@@ -9478,7 +9478,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
             {/* 여행별 동행인 */}
             {(trips||[]).length > 0 && (
               <>
-                <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
+                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:10 }}>
                   여행별
                 </div>
                 <div style={{ display:'flex', flexDirection:'column', gap:12 }}>
@@ -9500,13 +9500,13 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                           </div>
                           <div style={{ flex:1, minWidth:0 }}>
                             <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{t.title||'새 여행'}</div>
-                            {t.dates && <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, marginTop:2 }}>{t.dates}</div>}
+                            {t.dates && <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:2 }}>{t.dates}</div>}
                           </div>
                           {isDropTarget ? (
-                            <div style={{ fontFamily:MONO, fontSize:9.5, color:'#4F6BED' }}>여기에 추가</div>
+                            <div style={{ fontFamily:MONO, fontSize:12, color:'#4F6BED' }}>여기에 추가</div>
                           ) : (
                             <div style={{ display:'flex', alignItems:'center', gap:6 }}>
-                              <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.accent }}>{members.length}명</div>
+                              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent }}>{members.length}명</div>
                               {members.length > 0 && (
                                 <Icon name="chevron-d" size={11} color={COLORS.mute} stroke={2.5}
                                   style={{ transform: isExpanded ? 'rotate(180deg)' : 'none', transition:'transform 0.2s' }}/>
@@ -9528,7 +9528,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                                   <div style={{ flex:1, minWidth:0 }}>
                                     <div style={{ fontFamily:SANS, fontSize:12, fontWeight:500, color:COLORS.ink }}>{m.displayName}</div>
                                   </div>
-                                  <div style={{ fontFamily:MONO, fontSize:8.5, color:COLORS.mute }}>← 스와이프</div>
+                                  <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>← 스와이프</div>
                                 </div>
                               </SwipeableRow>
                             ))}
@@ -9553,7 +9553,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
             background:COLORS.bg, borderRadius:20, padding:'22px 20px', width:'100%', maxWidth:320,
           }}>
             <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink, marginBottom:4 }}>{addTripFor.displayName}</div>
-            <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.mute, marginBottom:16 }}>어느 여행에 추가할까요?</div>
+            <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:16 }}>어느 여행에 추가할까요?</div>
             <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
               {(trips||[]).map(t => {
                 const alreadyIn = (tripCompanions[t.id]||[]).some(m => m.uid === addTripFor.uid);
@@ -9567,10 +9567,10 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
                     <div style={{ width:28, height:28, borderRadius:8, overflow:'hidden', flexShrink:0 }}>
                       <Photo hue={t.hue ?? 25} height={28} small/>
                     </div>
-                    <div style={{ flex:1, fontFamily:SANS, fontSize:13, color: alreadyIn ? COLORS.mute : COLORS.ink }}>
+                    <div style={{ flex:1, fontFamily:SANS, fontSize:17, color: alreadyIn ? COLORS.mute : COLORS.ink }}>
                       {t.title||'여행'}
                     </div>
-                    {alreadyIn && <span style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute }}>이미 참여 중</span>}
+                    {alreadyIn && <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>이미 참여 중</span>}
                   </button>
                 );
               })}
@@ -9578,7 +9578,7 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
             <button onClick={() => setAddTripFor(null)} style={{
               marginTop:14, width:'100%', padding:'11px', borderRadius:12,
               border:`1px solid ${COLORS.line}`, background:'transparent', cursor:'pointer',
-              fontFamily:SANS, fontSize:13, color:COLORS.mute,
+              fontFamily:SANS, fontSize:17, color:COLORS.mute,
             }}>취소</button>
           </div>
         </div>
@@ -9596,8 +9596,8 @@ function CompanionsScreen({ open, onClose, authUser, userData, trips, onUserData
         }}>
           <Avatar u={dragContact} size={32}/>
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontFamily:SANS, fontSize:13, fontWeight:500, color:COLORS.ink, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{dragContact.displayName}</div>
-            <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>여행 카드에 올려 추가</div>
+            <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{dragContact.displayName}</div>
+            <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>여행 카드에 올려 추가</div>
           </div>
         </div>
       )}
@@ -9909,7 +9909,7 @@ function MiniCalendar({ startIso, endIso, onRange, actionRef, onPickingChange })
         ) : (
           <button onClick={openPicker} style={{
             background:'none', border:'none', cursor:'pointer',
-            fontFamily:SANS, fontSize:14, fontWeight:600, color:COLORS.ink,
+            fontFamily:SANS, fontSize:17, fontWeight:600, color:COLORS.ink,
             display:'flex', alignItems:'center', gap:4,
           }}>
             {`${MONTH_NAMES_SHORT[vm]} ${vy}`}
@@ -9931,7 +9931,7 @@ function MiniCalendar({ startIso, endIso, onRange, actionRef, onPickingChange })
         <>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', textAlign:'center', marginBottom:4 }}>
             {['S','M','T','W','T','F','S'].map((w,i) => (
-              <div key={i} style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, paddingBottom:4 }}>{w}</div>
+              <div key={i} style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, paddingBottom:4 }}>{w}</div>
             ))}
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:2 }}>
@@ -9949,7 +9949,7 @@ function MiniCalendar({ startIso, endIso, onRange, actionRef, onPickingChange })
                   borderRadius: (isStart || isEnd) ? 8 : inRange ? 2 : 8,
                   background: (isStart || isEnd) ? COLORS.ink : inRange ? COLORS.softer : 'transparent',
                   color: (isStart || isEnd) ? COLORS.bg : past ? COLORS.line : isToday ? COLORS.accent : COLORS.ink,
-                  fontFamily:SANS, fontSize:13, fontWeight:(isStart||isEnd) ? 600 : 400,
+                  fontFamily:SANS, fontSize:17, fontWeight:(isStart||isEnd) ? 600 : 400,
                 }}>{d}</button>
               );
             })}
@@ -10921,7 +10921,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                       padding:'12px 40px 12px 16px',
                       display:'flex', alignItems:'center',
                       pointerEvents:'none', overflow:'hidden',
-                      fontFamily:SANS, fontSize:15, lineHeight:'normal',
+                      fontFamily:SANS, fontSize:17, lineHeight:'normal',
                       borderRadius:14,
                     }}>
                       <span style={{ color:'transparent', whiteSpace:'pre' }}>{qRaw}</span>
@@ -10951,7 +10951,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                       padding:'12px 40px 12px 16px',
                       border:'none', borderRadius:14, outline:'none',
                       background:'transparent',
-                      fontFamily:SANS, fontSize:15, color:COLORS.ink,
+                      fontFamily:SANS, fontSize:17, color:COLORS.ink,
                       position:'relative', zIndex:1,
                     }}
                   />
@@ -11066,7 +11066,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                           transition: isDragging ? 'none' : 'box-shadow 0.22s ease',
                         }}>
                           {cityGhostSuffix && (
-                            <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:15, lineHeight:'normal', borderRadius:14 }}>
+                            <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:17, lineHeight:'normal', borderRadius:14 }}>
                               <span style={{ color:'transparent', whiteSpace:'pre' }}>{qRaw}</span>
                               <span style={{ color:COLORS.mute, opacity:0.55, whiteSpace:'pre' }}>{cityGhostSuffix}</span>
                             </div>
@@ -11075,7 +11075,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                             onChange={e => setCities(prev => prev.map((c,j) => j===i ? e.target.value : c))}
                             onKeyDown={e => { if (e.key==='Enter' && city.trim()) setStep(3); }}
                             placeholder={cityGhostSuffix ? '' : (i===0 ? t('wizCityPh') : t('wizCityN').replace('{n}', i+1))}
-                            style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, position:'relative', zIndex:1 }}
+                            style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.ink, position:'relative', zIndex:1 }}
                           />
                           {cityGhostSuffix && (
                             <div onMouseDown={e => { e.preventDefault(); acceptCityGhost(); }} style={{ position:'absolute', top:0, bottom:0, left:cityTypedPx, right:8, zIndex:2, cursor:'pointer' }}/>
@@ -11088,7 +11088,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     );
                   })}
                 </div>
-                <button onMouseDown={e => e.preventDefault()} onClick={() => setCities(prev=>[...prev,''])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:13, padding:'6px 0', marginTop:4 }}>
+                <button onMouseDown={e => e.preventDefault()} onClick={() => setCities(prev=>[...prev,''])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:17, padding:'6px 0', marginTop:4 }}>
                   <span style={{ fontSize:18, lineHeight:1 }}>+</span> {t('wizAddCity')}
                 </button>
               </div>
@@ -11099,7 +11099,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
           {step === 3 && (
             <div>
               {startIso && endIso && dayCount > 0 && (
-                <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.accent, marginBottom:12, textAlign:'center', fontWeight:600 }}>
+                <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.accent, marginBottom:12, textAlign:'center', fontWeight:600 }}>
                   {t('wizNights').replace('{n}', dayCount-1).replace('{d}', dayCount)}
                 </div>
               )}
@@ -11128,10 +11128,10 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               };
               return (
                 <div style={{ marginBottom:18 }}>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</div>
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</div>
                   <div style={{ position:'relative', borderRadius:14, background:COLORS.card, border:`1.5px solid ${COLORS.line}` }}>
                     {ghostSuffix && (
-                      <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:15, lineHeight:'normal', borderRadius:14 }}>
+                      <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:17, lineHeight:'normal', borderRadius:14 }}>
                         <span style={{ color:'transparent', whiteSpace:'pre' }}>{value}</span>
                         <span style={{ color:COLORS.mute, opacity:0.55, whiteSpace:'pre' }}>{ghostSuffix}</span>
                       </div>
@@ -11140,7 +11140,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                       onChange={e => setValue(e.target.value)}
                       onKeyDown={e => { if ((e.key==='Tab'||e.key==='ArrowRight') && (ghostSuffix||codeMatch)) { e.preventDefault(); acceptMatch(); } }}
                       placeholder={ghostSuffix ? '' : placeholder}
-                      style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:15, color:COLORS.ink, position:'relative', zIndex:1 }}
+                      style={{ width:'100%', boxSizing:'border-box', padding:'12px 40px 12px 16px', border:'none', borderRadius:14, outline:'none', background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.ink, position:'relative', zIndex:1 }}
                     />
                     {ghostSuffix && (
                       <div onMouseDown={e => { e.preventDefault(); acceptMatch(); }} style={{ position:'absolute', top:0, bottom:0, left:typedPx, right:36, zIndex:2, cursor:'pointer' }}/>
@@ -11152,8 +11152,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   {codeMatch && (
                     <div onMouseDown={e => { e.preventDefault(); setValue(lang === 'ko' ? codeMatch.kor : codeMatch.eng); }}
                       style={{ marginTop:6, display:'inline-flex', alignItems:'center', gap:6, background:COLORS.card, border:`1px solid ${COLORS.line}`, borderRadius:20, padding:'5px 12px', cursor:'pointer' }}>
-                      <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute }}>{codeMatch.code}</span>
-                      <span style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink }}>{lang === 'ko' ? codeMatch.kor : codeMatch.eng}</span>
+                      <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>{codeMatch.code}</span>
+                      <span style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink }}>{lang === 'ko' ? codeMatch.kor : codeMatch.eng}</span>
                     </div>
                   )}
                 </div>
@@ -11165,7 +11165,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                 {makeAirportInput(arrAirport, setArrAirport, t('wizArrAirport'), false, t('wizArrAirportEx'))}
                 {!arrAirport && citySuggests.length > 0 && (
                   <div style={{ marginBottom:18, marginTop:-8 }}>
-                    <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
+                    <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
                       {t('wizNearAirports').replace('{city}', firstCity)}
                     </div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
@@ -11175,7 +11175,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                         return (
                           <button key={apt} onMouseDown={e=>e.preventDefault()} onClick={() => setArrAirport(aptName)}
                             style={{ display:'flex', alignItems:'center', gap:6, background:COLORS.card, border:`1.5px solid ${COLORS.line}`, borderRadius:20, padding:'6px 14px 6px 10px', cursor:'pointer', fontFamily:SANS, fontSize:12.5, color:COLORS.ink }}>
-                            <span style={{ fontFamily:MONO, fontSize:11, color:COLORS.mute, letterSpacing:0.5 }}>{info?.code}</span>
+                            <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:0.5 }}>{info?.code}</span>
                             <span>{aptName}</span>
                           </button>
                         );
@@ -11198,7 +11198,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   <input value={h.name} autoFocus={i===0}
                     onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,name:e.target.value} : hh))}
                     placeholder={t('wizHotelPh')}
-                    style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, padding:'4px 0 8px', marginBottom:10 }}
+                    style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.ink, padding:'4px 0 8px', marginBottom:10 }}
                   />
                   {dayCount > 1 && (
                     <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
@@ -11220,11 +11220,11 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                 </div>
               ))}
               {!skipHotel && (
-                <button onClick={() => setHotels(prev=>[...prev,{name:'',from:1,to:dayCount||1}])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:13, padding:'4px 0', marginBottom:14 }}>
+                <button onClick={() => setHotels(prev=>[...prev,{name:'',from:1,to:dayCount||1}])} style={{ display:'flex', alignItems:'center', gap:6, background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontFamily:SANS, fontSize:17, padding:'4px 0', marginBottom:14 }}>
                   <span style={{ fontSize:18 }}>+</span> {t('wizAddHotel')}
                 </button>
               )}
-              <button onClick={() => setSkipHotel(s=>!s)} style={{ width:'100%', padding:'10px', border:`1px solid ${skipHotel?COLORS.accent:COLORS.line}`, borderRadius:12, background:'transparent', fontFamily:SANS, fontSize:13, color:skipHotel?COLORS.accent:COLORS.mute, cursor:'pointer' }}>
+              <button onClick={() => setSkipHotel(s=>!s)} style={{ width:'100%', padding:'10px', border:`1px solid ${skipHotel?COLORS.accent:COLORS.line}`, borderRadius:12, background:'transparent', fontFamily:SANS, fontSize:17, color:skipHotel?COLORS.accent:COLORS.mute, cursor:'pointer' }}>
                 {skipHotel ? `✓ ${t('wizSkipHotel')}` : t('wizSkipHotel')}
               </button>
             </div>
@@ -11240,7 +11240,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
             return (
               <div>
                 {loading && (
-                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
                     {t('wizLoadingPlaces')}
                   </div>
                 )}
@@ -11250,7 +11250,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   </div>
                 )}
                 {!loading && !placeErr && cityPlaces.length === 0 && (
-                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:13, color:COLORS.mute }}>
+                  <div style={{ textAlign:'center', padding:'48px 0', fontFamily:SANS, fontSize:17, color:COLORS.mute }}>
                     {t('wizNoPlaces')}
                   </div>
                 )}
@@ -11278,7 +11278,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                             : (() => { const h = p.name.split('').reduce((a,c)=>(a*31+c.charCodeAt(0))&0xffff,0)%360; return <Photo hue={h} height={88} small label={p.name}/>; })()
                           }
                           {p.type === 'hiking_trail' && (
-                            <div style={{ position:'absolute', bottom:6, left:7, background:'rgba(0,0,0,0.52)', borderRadius:5, padding:'2px 6px', fontFamily:SANS, fontSize:9, color:'#fff', letterSpacing:0.3 }}>
+                            <div style={{ position:'absolute', bottom:6, left:7, background:'rgba(0,0,0,0.52)', borderRadius:5, padding:'2px 6px', fontFamily:SANS, fontSize:12, color:'#fff', letterSpacing:0.3 }}>
                               {t('wizHiking')}
                             </div>
                           )}
@@ -11291,8 +11291,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                           )}
                         </div>
                         <div style={{ padding:'7px 9px 9px' }}>
-                          <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
-                          {p.nameOrig && <div style={{ fontFamily:SANS, fontSize:9.5, color:COLORS.mute, marginTop:2, lineHeight:1.2 }}>{p.nameOrig}</div>}
+                          <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
+                          {p.nameOrig && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2, lineHeight:1.2 }}>{p.nameOrig}</div>}
                         </div>
                       </button>
                     );
@@ -11300,7 +11300,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                 </div>
                 {!loading && hiddenCnt > 0 && (
                   <button onMouseDown={e=>e.preventDefault()} onClick={() => setShowCount(c => c + STEP)}
-                    style={{ marginTop:14, width:'100%', padding:'11px 0', borderRadius:12, border:`1.5px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:13, color:COLORS.mute, cursor:'pointer' }}>
+                    style={{ marginTop:14, width:'100%', padding:'11px 0', borderRadius:12, border:`1.5px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.mute, cursor:'pointer' }}>
                     {t('wizShowMore').replace('{n}', Math.min(hiddenCnt, STEP))}
                   </button>
                 )}
@@ -11312,14 +11312,14 @@ function NewTripSheet({ open, onClose, onSubmit }) {
         {/* 푸터 */}
         <div style={{ padding:'10px 20px 20px', display:'flex', gap:8, flexShrink:0, borderTop:`1px solid ${COLORS.line}` }}>
           {(step > 1 || (step === HP_STEP && cityStep > 0))
-            ? <button onMouseDown={e=>e.preventDefault()} onClick={handleBack} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.ink, cursor:'pointer' }}>{t('wizPrev')}</button>
-            : <button onClick={onClose} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:14, color:COLORS.mute, cursor:'pointer' }}>{t('cancel')}</button>
+            ? <button onMouseDown={e=>e.preventDefault()} onClick={handleBack} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.ink, cursor:'pointer' }}>{t('wizPrev')}</button>
+            : <button onClick={onClose} style={{ padding:'11px 18px', borderRadius:12, border:`1px solid ${COLORS.line}`, background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.mute, cursor:'pointer' }}>{t('cancel')}</button>
           }
           <button onMouseDown={e=>e.preventDefault()} onClick={handleNext} disabled={!canNext} style={{
             flex:1, padding:'11px 0', borderRadius:12, border:'none',
             background: canNext ? COLORS.ink : COLORS.softer,
             color:       canNext ? COLORS.bg : COLORS.mute,
-            fontFamily:SANS, fontSize:14, fontWeight:600,
+            fontFamily:SANS, fontSize:17, fontWeight:600,
             cursor: canNext ? 'pointer' : 'default',
             transition:'background 0.2s, color 0.15s',
           }}>{step === TOTAL ? (isLastCity ? t('wizDone') : t('wizNextCity')) : t('wizNext')}</button>
@@ -11420,7 +11420,7 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
 
         {pendingInvites.length > 0 && (
           <div style={{ margin:'14px 16px 0', background:'#FFF8E1', borderRadius:14, padding:14 }}>
-            <div style={{ fontFamily:MONO, fontSize:9.5, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
+            <div style={{ fontFamily:MONO, fontSize:12, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
               📩 동행 초대 {pendingInvites.length}건
             </div>
             {pendingInvites.map(inv => (
@@ -11429,11 +11429,11 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
                   ? <img src={inv.fromPhoto} style={{ width:34, height:34, borderRadius:17 }}/>
                   : <div style={{ width:34, height:34, borderRadius:17, background:COLORS.accent,
                       display:'flex', alignItems:'center', justifyContent:'center',
-                      fontFamily:SANS, fontSize:14, color:'#fff' }}>{(inv.fromName||'?')[0]}</div>
+                      fontFamily:SANS, fontSize:17, color:'#fff' }}>{(inv.fromName||'?')[0]}</div>
                 }
                 <div style={{ flex:1, minWidth:0 }}>
-                  <div style={{ fontFamily:SANS, fontSize:13, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
-                  <div style={{ fontFamily:SANS, fontSize:11, color:COLORS.mute }}>
+                  <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
+                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
                     {inv.type === 'contact' ? '동행인 요청' : (inv.tripTitle || inv.fromEmail)}
                   </div>
                 </div>
@@ -11451,20 +11451,20 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
         )}
 
         <div style={{ padding:'16px 16px 0' }}>
-          <div style={{ fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
             여행 선택 (선택사항)
           </div>
           <select value={selTrip||''} onChange={e => setSelTrip(e.target.value || null)}
             style={{ width:'100%', padding:'11px 14px', borderRadius:12,
               border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-              fontFamily:SANS, fontSize:13.5, color:COLORS.ink, boxSizing:'border-box' }}>
+              fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}>
             <option value=''>여행 없이 동행인 추가</option>
             {(trips||[]).map(t => (
               <option key={t.id} value={t.id}>{t.title||'여행'}</option>
             ))}
           </select>
 
-          <div style={{ marginTop:16, fontFamily:MONO, fontSize:9.5, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
+          <div style={{ marginTop:16, fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
             이메일로 초대
           </div>
           <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:10 }}>
@@ -11475,7 +11475,7 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
             onKeyDown={e => e.key === 'Enter' && handleInvite()}
             style={{ width:'100%', padding:'12px 14px', borderRadius:12,
               border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
-              fontFamily:SANS, fontSize:13.5, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
+              fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
           {inviteMsg && (
             <div style={{ marginTop:8, fontFamily:SANS, fontSize:12,
               color: inviteMsg.includes('추가') || inviteMsg.includes('보냈') ? '#2E7D32' : COLORS.accent }}>
@@ -11486,7 +11486,7 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
             marginTop:12, width:'100%', padding:'14px', border:'none', borderRadius:14,
             background: inviteEmail.trim() ? COLORS.ink : COLORS.softer,
             color: inviteEmail.trim() ? COLORS.bg : COLORS.mute,
-            fontFamily:SANS, fontSize:14, fontWeight:600, cursor:'pointer',
+            fontFamily:SANS, fontSize:17, fontWeight:600, cursor:'pointer',
           }}>
             {inviting ? '처리 중...' : selTrip ? '초대 보내기' : '동행인 추가'}
           </button>
@@ -11505,8 +11505,8 @@ function _SettingsRow({ icon, title, subtitle, right }) {
         <Icon name={icon} size={18} color={COLORS.accent} stroke={1.8}/>
       </div>
       <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{title}</div>
-        {subtitle && <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:2 }}>{subtitle}</div>}
+        <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{title}</div>
+        {subtitle && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{subtitle}</div>}
       </div>
       {right}
     </div>
@@ -11537,7 +11537,7 @@ function _SettingsLangOption({ code, flag, label, divider }) {
         cursor:'pointer', WebkitTapHighlightColor:'transparent',
       }}>
         <span style={{ fontSize:22 }}>{flag}</span>
-        <div style={{ flex:1, fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{label}</div>
+        <div style={{ flex:1, fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{label}</div>
         {lang === code && <Icon name="check" size={16} color={COLORS.accent} stroke={2.5}/>}
       </div>
       {divider && <div style={{ height:0.5, background:COLORS.line, margin:'0 16px' }}/>}
@@ -11570,7 +11570,7 @@ function SettingsSheet({ open, onClose }) {
         </div>
         <div style={{ overflowY:'auto', flex:1, padding:'12px 16px' }}>
           {/* Appearance */}
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`, marginBottom:16 }}>
             <_SettingsRow
               icon="moon"
@@ -11580,7 +11580,7 @@ function SettingsSheet({ open, onClose }) {
             />
           </div>
           {/* Language */}
-          <div style={{ fontFamily:MONO, fontSize:10, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
+          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}` }}>
             <_SettingsLangOption code="ko" flag="🇰🇷" label={t('langKo')} divider={true}/>
             <_SettingsLangOption code="en" flag="🇺🇸" label={t('langEn')} divider={true}/>
@@ -11670,8 +11670,8 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               <Icon name="users" size={18} color={COLORS.mute} stroke={1.8}/>
             </div>
             <div style={{ flex:1, minWidth:0 }}>
-              <div style={{ fontFamily:SANS, fontSize:14, fontWeight:500, color:COLORS.ink }}>{t('companions')}</div>
-              <div style={{ fontFamily:SANS, fontSize:11.5, color:COLORS.mute, marginTop:2 }}>{t('companionsDesc')}</div>
+              <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{t('companions')}</div>
+              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{t('companionsDesc')}</div>
             </div>
             <div style={{ display:'flex', gap:8, flexShrink:0 }}>
               <button onClick={() => { onClose(); setTimeout(onViewCompanions, 100); }} style={{
@@ -11700,25 +11700,25 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               background:'#FFF5F5', borderRadius:14, border:'1px solid #FFCDD2',
               padding:'16px', marginTop:4,
             }}>
-              <div style={{ fontFamily:SANS, fontSize:13, fontWeight:600, color:'#C62828', marginBottom:6 }}>
+              <div style={{ fontFamily:SANS, fontSize:17, fontWeight:600, color:'#C62828', marginBottom:6 }}>
                 {t('confirmDelete')}
               </div>
               <div style={{ fontFamily:SANS, fontSize:12, color:'#B71C1C', lineHeight:1.5, marginBottom:14 }}>
                 {t('confirmDeleteDesc')}
               </div>
               {deleteError && (
-                <div style={{ fontFamily:SANS, fontSize:11.5, color:'#C62828', marginBottom:10 }}>{t('deleteError')}</div>
+                <div style={{ fontFamily:SANS, fontSize:12, color:'#C62828', marginBottom:10 }}>{t('deleteError')}</div>
               )}
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => { setConfirmDelete(false); setDeleteError(''); }} style={{
                   flex:1, padding:'10px 0', borderRadius:10,
                   border:`1px solid ${COLORS.line}`, background:'transparent',
-                  fontFamily:SANS, fontSize:13, color:COLORS.ink, cursor:'pointer',
+                  fontFamily:SANS, fontSize:17, color:COLORS.ink, cursor:'pointer',
                 }}>{t('cancel')}</button>
                 <button onClick={handleDelete} disabled={deleting} style={{
                   flex:1, padding:'10px 0', borderRadius:10,
                   border:'none', background:'#C62828',
-                  fontFamily:SANS, fontSize:13, fontWeight:600, color:'#fff',
+                  fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff',
                   cursor: deleting ? 'not-allowed' : 'pointer',
                   opacity: deleting ? 0.7 : 1,
                 }}>{deleting ? t('deleting') : t('withdraw')}</button>
@@ -11769,11 +11769,11 @@ class AppErrorBoundary extends React.Component {
       },
         React.createElement('div', { style:{ fontSize:36, marginBottom:16 } }, '🛫'),
         React.createElement('div', { style:{ fontFamily:'sans-serif', fontSize:17, fontWeight:600, marginBottom:8, color:'#1a1a1a' } }, '문제가 발생했어요'),
-        React.createElement('div', { style:{ fontFamily:'sans-serif', fontSize:14, color:'#666', marginBottom:28 } }, '새로고침하면 대부분 해결됩니다'),
+        React.createElement('div', { style:{ fontFamily:'sans-serif', fontSize:17, color:'#666', marginBottom:28 } }, '새로고침하면 대부분 해결됩니다'),
         React.createElement('button', {
           onClick: () => window.location.reload(),
           style: { padding:'12px 28px', borderRadius:14, border:'none', background:'#1a1a1a',
-            color:'#fff', fontFamily:'sans-serif', fontSize:15, fontWeight:600, cursor:'pointer' }
+            color:'#fff', fontFamily:'sans-serif', fontSize:17, fontWeight:600, cursor:'pointer' }
         }, '새로고침')
       );
     }
@@ -12935,17 +12935,17 @@ function App() {
         position:'fixed', top:'calc(env(safe-area-inset-top) + 14px)', left:16,
         background:'transparent', border:'none', padding:'4px 8px', cursor:'pointer',
         display:'flex', alignItems:'center', gap:3,
-        fontFamily:SANS, fontSize:15, color:'#fff',
+        fontFamily:SANS, fontSize:17, color:'#fff',
       }}>
         ← My Trips
       </button>
       <div style={{ background:'#C0392B', borderRadius:16, padding:'20px 24px', maxWidth:320, textAlign:'center', width:'100%' }}>
-        <div style={{ fontFamily:MONO, fontSize:14, color:'#fff', lineHeight:2.2 }}>
+        <div style={{ fontFamily:MONO, fontSize:17, color:'#fff', lineHeight:2.2 }}>
           <div style={{ fontSize:18, fontWeight:700, marginBottom:4 }}>일정 없음</div>
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:11, marginTop:4, opacity:0.8 }}>v200</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v201</div>
         </div>
       </div>
       <button onClick={async () => {
@@ -12968,7 +12968,7 @@ function App() {
         }
       }} style={{
         padding:'16px 32px', background:'#C0392B', border:'none', borderRadius:14,
-        color:'#fff', fontFamily:SANS, fontSize:16, fontWeight:700, cursor:'pointer',
+        color:'#fff', fontFamily:SANS, fontSize:17, fontWeight:700, cursor:'pointer',
         width:'100%', maxWidth:280,
       }}>일정 불러오기 / 복원</button>
     </div>
@@ -13078,19 +13078,19 @@ function App() {
             <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:8 }}>
               수정을 완료할까요?
             </div>
-            <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.mute, marginBottom:24, lineHeight:1.5 }}>
+            <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:24, lineHeight:1.5 }}>
               변경된 내용이 저장됩니다.
             </div>
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={() => setSaveConfirm(false)} style={{
                 flex:1, padding:'13px', border:`1.5px solid ${COLORS.line}`,
                 borderRadius:14, background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:14, color:COLORS.mute,
+                fontFamily:SANS, fontSize:17, color:COLORS.mute,
               }}>취소</button>
               <button onClick={() => { setSaveConfirm(false); setEditing(false); setUndoState(null); }} style={{
                 flex:1, padding:'13px', border:'none',
                 borderRadius:14, background:COLORS.ink, cursor:'pointer',
-                fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff',
+                fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff',
               }}>저장</button>
             </div>
           </div>
@@ -13108,19 +13108,19 @@ function App() {
             <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:8 }}>
               되돌릴까요?
             </div>
-            <div style={{ fontFamily:SANS, fontSize:13.5, color:COLORS.mute, marginBottom:24, lineHeight:1.5 }}>
+            <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:24, lineHeight:1.5 }}>
               방금 삭제한 내용이 복구됩니다.
             </div>
             <div style={{ display:'flex', gap:10 }}>
               <button onClick={cancelUndo} style={{
                 flex:1, padding:'13px', border:`1.5px solid ${COLORS.line}`,
                 borderRadius:14, background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:14, color:COLORS.mute,
+                fontFamily:SANS, fontSize:17, color:COLORS.mute,
               }}>아니요</button>
               <button onClick={confirmUndo} style={{
                 flex:1, padding:'13px', border:'none',
                 borderRadius:14, background:COLORS.ink, cursor:'pointer',
-                fontFamily:SANS, fontSize:14, fontWeight:600, color:'#fff',
+                fontFamily:SANS, fontSize:17, fontWeight:600, color:'#fff',
               }}>되돌리기</button>
             </div>
           </div>
