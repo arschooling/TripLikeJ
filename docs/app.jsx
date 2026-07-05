@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v201</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v204</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -12001,11 +12001,23 @@ function App() {
     const syncPromise = (typeof fbSyncSample === 'function')
       ? Promise.all(SAMPLES.map(sid => fbSyncSample(uid, email, sid).catch(() => null)))
       : Promise.resolve([null]);
-    const tripsPromise = fbLoadTrips(tripIds);
+    // 로그인 시 fbGetOrCreateUser가 이미 읽어온 그룹 문서는 재사용 — 중복 조회 왕복 제거
+    const prefetched = userData._prefetchedTrips || {};
+    const missingIds = tripIds.filter(id => !prefetched[id]);
+    const tripsPromise = (missingIds.length ? fbLoadTrips(missingIds) : Promise.resolve([]))
+      .then(fetched => {
+        const byId = { ...prefetched };
+        fetched.forEach(t => { byId[t.id] = t; });
+        return tripIds.map(id => byId[id]).filter(Boolean);
+      });
 
     // ① 여행 목록 먼저 표시 (샘플 싱크 완료 안 기다림)
     tripsPromise.then(trips => {
       if (!alive) return;
+      // prefetch 캐시는 1회성 — 이후 로드부터는 항상 최신 데이터를 받아오도록 정리
+      if (Object.keys(prefetched).length) {
+        setUserData(prev => (prev && prev._prefetchedTrips) ? { ...prev, _prefetchedTrips: undefined } : prev);
+      }
       const normalized = trips.map(t => normalizeTrip(t, t.id));
       // days가 없는 여행은 TRIP_DEFAULT로 자동 복구 — 오너 계정 전용
       if (email === 'arjungtaeng@gmail.com') {
@@ -12945,7 +12957,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v201</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v204</div>
         </div>
       </div>
       <button onClick={async () => {
