@@ -64,15 +64,18 @@ window.fbGetOrCreateUser = async (fbUser) => {
   const existing = snap.data();
 
   // tripIds 정리: 실제 멤버로 남아있는 여행만 유지
+  // groups 개별 조회 + array-contains 조회를 병렬 실행 (순차 실행 시 왕복 1회 추가 소요됨)
   const tripIds = existing.tripIds != null ? existing.tripIds : [];
-  const groupSnaps = await Promise.all(tripIds.map(id => _fbDb.collection('groups').doc(id).get()));
+  const [groupSnaps, memberSnap] = await Promise.all([
+    Promise.all(tripIds.map(id => _fbDb.collection('groups').doc(id).get())),
+    _fbDb.collection('groups').where('members', 'array-contains', fbUser.uid).get(),
+  ]);
   const validTripIds = tripIds.filter((id, i) =>
     groupSnaps[i].exists &&
     (groupSnaps[i].data().members || []).includes(fbUser.uid)
   );
 
   // groups 컬렉션에서 내가 멤버인 여행 중 tripIds에 없는 것도 추가 (다른 유저가 직접 추가한 경우)
-  const memberSnap = await _fbDb.collection('groups').where('members', 'array-contains', fbUser.uid).get();
   const memberTripIds = memberSnap.docs.map(d => d.id);
   const extraIds = memberTripIds.filter(id => !validTripIds.includes(id)).sort();
   const allTripIds = [...validTripIds, ...extraIds];
@@ -80,7 +83,16 @@ window.fbGetOrCreateUser = async (fbUser) => {
   if (JSON.stringify(allTripIds) !== JSON.stringify(existing.tripIds || [])) {
     await ref.update({ tripIds: allTripIds });
   }
-  return { uid: fbUser.uid, ...existing, tripIds: allTripIds };
+
+  // 위에서 이미 읽어온 그룹 문서를 재사용 — 여행 목록 로드 시 동일 문서 재조회 방지
+  const _prefetchedTrips = {};
+  validTripIds.forEach(id => {
+    const i = tripIds.indexOf(id);
+    _prefetchedTrips[id] = { id, ...groupSnaps[i].data() };
+  });
+  memberSnap.docs.forEach(d => { _prefetchedTrips[d.id] = { id: d.id, ...d.data() }; });
+
+  return { uid: fbUser.uid, ...existing, tripIds: allTripIds, _prefetchedTrips };
 };
 
 // ─── Shared group ─────────────────────────────────────────────
