@@ -360,7 +360,9 @@ window.fbGetTripCompanions = async (tripId, myUid) => {
 window.fbUploadDayPhoto = async (uid, tripId, dayIdx, blob) => {
   const storage = firebase.storage();
   const ref = storage.ref(`user-photos/${uid}/${tripId}/${dayIdx}`);
-  await ref.putString(blob, 'data_url', { contentType: 'image/jpeg' });
+  // cacheControl: 브라우저가 이미지를 HTTP 캐시하도록 지정 — 매 앱 실행마다 재다운로드 방지.
+  // 재업로드 시 URL(토큰)은 유지되므로 max-age를 1일로 둬 재업로드 반영도 하루 내 이뤄지게 함.
+  await ref.putString(blob, 'data_url', { contentType: 'image/jpeg', cacheControl: 'public, max-age=86400' });
   return await ref.getDownloadURL();
 };
 
@@ -372,7 +374,7 @@ window.fbDeleteDayPhoto = async (uid, tripId, dayIdx) => {
 window.fbUploadTicket = async (uid, tripId, ticketId, file) => {
   const storage = firebase.storage();
   const ref = storage.ref(`user-photos/${uid}/${tripId}/ticket_${ticketId}`);
-  await ref.put(file, { contentType: file.type });
+  await ref.put(file, { contentType: file.type, cacheControl: 'public, max-age=86400' });
   return await ref.getDownloadURL();
 };
 

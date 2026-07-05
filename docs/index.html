@@ -92,7 +92,7 @@
 </style>
 <!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->
 <script>
-var EXPECTED_CACHE = 'tlj-v204';
+var EXPECTED_CACHE = 'tlj-v206';
 if('serviceWorker' in navigator) {
   var _reloading = false;
   function _doReload() {
@@ -100,17 +100,9 @@ if('serviceWorker' in navigator) {
     _reloading = true;
     location.reload();
   }
-  // 캐시 키가 현재 버전과 다르면 SW 강제 해제 후 리로드
-  if ('caches' in window) {
-    caches.keys().then(function(keys) {
-      if (keys.length && keys.indexOf(EXPECTED_CACHE) === -1) {
-        navigator.serviceWorker.getRegistration().then(function(reg) {
-          if (reg) reg.unregister().then(function() { _doReload(); });
-          else _doReload();
-        });
-      }
-    });
-  }
+  // 버전 업데이트는 아래 register()의 updatefound → SKIP_WAITING → activate(옛 캐시 삭제)
+  // → controllerchange 경로가 처리한다. (예전의 caches.keys() 불일치 → unregister 로직은
+  //  캐시를 안 지운 채 리로드해 루프를 유발하므로 제거함. EXPECTED_CACHE는 버전 표식으로만 유지.)
   navigator.serviceWorker.addEventListener('controllerchange', _doReload);
   navigator.serviceWorker.addEventListener('message', function(e) {
     if (e.data && e.data.type === 'SW_UPDATED') _doReload();
