@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v206</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v207</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -12075,6 +12075,25 @@ function App() {
     return () => { alive = false; };
   }, [userData?.uid, JSON.stringify(userData?.tripIds)]);
 
+  // ── 기존 사진 cacheControl 1회 소급 적용 ────────────────────
+  // 예전에 업로드된 사진은 cacheControl 헤더가 없어 매 실행마다 재다운로드됨.
+  // 로그인 후 목록이 준비되면 유휴 시점(1.5s)에 백그라운드로 1회만 메타데이터 갱신.
+  const userTripsRef = React.useRef(userTrips);
+  userTripsRef.current = userTrips;
+  const photoMigrateRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!authUser?.uid || !tripsReady || photoMigrateRef.current) return;
+    if (typeof fbMigratePhotoCacheControl !== 'function') return;
+    try { if (localStorage.getItem('tlj_photo_cc_migrated_v1')) { photoMigrateRef.current = true; return; } } catch(_) {}
+    photoMigrateRef.current = true;
+    const t = setTimeout(() => {
+      fbMigratePhotoCacheControl(authUser.uid, userTripsRef.current)
+        .then(() => { try { localStorage.setItem('tlj_photo_cc_migrated_v1', '1'); } catch(_) {} })
+        .catch(() => { photoMigrateRef.current = false; }); // 실패 시 다음 실행에서 재시도
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [authUser?.uid, tripsReady]);
+
   // ── Firestore: shared group listener ──────────────────────
   const groupCreateRef = React.useRef(false);
   React.useEffect(() => {
@@ -12957,7 +12976,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v206</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v207</div>
         </div>
       </div>
       <button onClick={async () => {
