@@ -371,6 +371,30 @@ window.fbDeleteDayPhoto = async (uid, tripId, dayIdx) => {
   await storage.ref(`user-photos/${uid}/${tripId}/${dayIdx}`).delete();
 };
 
+// 기존 사진에 cacheControl 헤더를 1회 소급 적용 (재업로드 아님 — 메타데이터만 갱신).
+// updateMetadata는 소유자 본인 경로(user-photos/{uid}/...)만 허용됨(storage.rules).
+// 폴더 listAll 권한이 없어 각 여행의 날짜 인덱스를 순회하며, 없는 파일(404)은 조용히 무시한다.
+window.fbMigratePhotoCacheControl = async (uid, trips) => {
+  if (!uid || !Array.isArray(trips)) return 0;
+  const meta = { cacheControl: 'public, max-age=86400' };
+  const storage = firebase.storage();
+  let updated = 0;
+  const tasks = [];
+  trips.forEach(t => {
+    if (!t || !t.id) return;
+    const n = Array.isArray(t.days) ? t.days.length : 0;
+    for (let d = 0; d < n; d++) {
+      tasks.push(
+        storage.ref(`user-photos/${uid}/${t.id}/${d}`).updateMetadata(meta)
+          .then(() => { updated++; })
+          .catch(() => {})
+      );
+    }
+  });
+  await Promise.all(tasks);
+  return updated;
+};
+
 window.fbUploadTicket = async (uid, tripId, ticketId, file) => {
   const storage = firebase.storage();
   const ref = storage.ref(`user-photos/${uid}/${tripId}/ticket_${ticketId}`);
