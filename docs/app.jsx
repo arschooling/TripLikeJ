@@ -2559,7 +2559,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v207</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v209</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -8755,9 +8755,9 @@ function SplashScreen({ visible }) {
       if (!alive) return;
       setIdx(i => (i + 1) % SPLASH_PLACES.length);
       setAnimKey(k => k + 1);
-      timer = setTimeout(tick, 700);
+      timer = setTimeout(tick, 500);
     };
-    timer = setTimeout(tick, 700);
+    timer = setTimeout(tick, 500);
     return () => { alive = false; clearTimeout(timer); };
   }, []);
 
@@ -11786,7 +11786,8 @@ function App() {
   const _cache = _readCache(); // 캐시된 상태 (로그인된 경우)
 
   // ── Firebase auth + data state ─────────────────────────────
-  const [authState, setAuthState]   = React.useState(_cache?.userData ? 'in' : 'loading');
+  // 로그인 캐시 있으면 'in'(→로딩 화면), 없으면 'out'(→로그인 화면 직행, 로딩 화면 안 거침)
+  const [authState, setAuthState]   = React.useState(_cache?.userData ? 'in' : 'out');
   const [authUser, setAuthUser]     = React.useState(null);
   const [userData, setUserData]     = React.useState(_cache?.userData || null);
   const [trip, setTrip]             = React.useState(normalizeTrip(_cache?.trip));
@@ -11795,6 +11796,8 @@ function App() {
   const [userTrips, setUserTrips]       = React.useState(() => (_cache?.userTrips || []));
   const [tripsLoading, setTripsLoading] = React.useState(!_cache?.userTrips);
   const [tripsReady,   setTripsReady]   = React.useState(false);
+  const [minTimeElapsed, setMinTimeElapsed] = React.useState(false); // 로딩 화면 최소 표시(3초) 경과 여부
+  const [maxWaitElapsed, setMaxWaitElapsed] = React.useState(false); // 최대 대기(8초) — 데이터 안 와도 진입 (무한 로딩 방지)
   const [profileSheetOpen,     setProfileSheetOpen]     = React.useState(false);
   const [settingsSheetOpen,    setSettingsSheetOpen]    = React.useState(false);
   const [darkMode, setDarkModeState] = React.useState(_appSettings.darkMode);
@@ -11931,6 +11934,16 @@ function App() {
     if (authState !== 'loading') return;
     const t = setTimeout(() => setAuthState('out'), 8000);
     return () => clearTimeout(t);
+  }, [authState]);
+
+  // 로딩 화면 타이밍 — 로그인 사용자로 진입('in')하는 순간부터
+  //  · 최소 3초: 여행지 순회가 한 바퀴 다 돌도록 (데이터가 빨라도 3초는 유지)
+  //  · 최대 8초: 데이터가 안 와도 진입 (네트워크 멈춤 시 무한 로딩 방지)
+  React.useEffect(() => {
+    if (authState !== 'in') return;
+    const tMin = setTimeout(() => setMinTimeElapsed(true), 3000);
+    const tMax = setTimeout(() => setMaxWaitElapsed(true), 8000);
+    return () => { clearTimeout(tMin); clearTimeout(tMax); };
   }, [authState]);
 
   // ── Firebase auth listener ─────────────────────────────────
@@ -12831,10 +12844,13 @@ function App() {
 
   // ── Auth gating ───────────────────────────────────────────
   // 로그인 버튼 누른 후 데이터 준비될 때까지 스플래시 표시
-  const showSplash = loginPending && (authState !== 'in' || trip === null);
-  if (showSplash) return <SplashScreen visible={true}/>;
-  if (authState === 'loading') return <SplashScreen visible={true}/>;
+  // 로그아웃: 로딩 화면 없이 로그인 화면 직행
   if (authState === 'out') return <LoginScreen errorMsg={loginError} onLoginStart={() => setLoginPending(true)}/>;
+  // 로그인 사용자(앱 열기 or 로그인 직후): 최소 3초 경과 + 여행 목록 준비(또는 최대 8초)까지 로딩 화면 유지
+  const showSplash = (authState === 'loading')
+    || (authState === 'in' && !(minTimeElapsed && (tripsReady || maxWaitElapsed)))
+    || (loginPending && (authState !== 'in' || trip === null));
+  if (showSplash) return <SplashScreen visible={true}/>;
 
   // ── 여행 목록 화면 ─────────────────────────────────────────
   if (!activeTripId) return (
@@ -12976,7 +12992,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v207</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v209</div>
         </div>
       </div>
       <button onClick={async () => {
