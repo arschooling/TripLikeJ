@@ -464,13 +464,42 @@ function getCachedDayPhotoUrl(uid, tripId, dayIdx) {
   return undefined;
 }
 
+// ─── 이미지 순차 로더 ─────────────────────────────────────────
+// order(위→아래)가 작은 것부터 한 장씩 로드 → 상단 이미지가 먼저 완성됨.
+// 로드/에러/타임아웃 중 하나로 반드시 슬롯을 반납해 큐가 멈추지 않도록 함.
+const _imgQueue = [];   // { order, go }
+let _imgBusy = false;
+function _pumpImgQueue() {
+  if (_imgBusy || _imgQueue.length === 0) return;
+  _imgQueue.sort((a, b) => a.order - b.order);
+  const job = _imgQueue.shift();
+  _imgBusy = true;
+  job.go();
+}
+function requestImageSlot(order) {
+  return new Promise(resolve => {
+    _imgQueue.push({ order: (order == null ? 9999 : order), go: resolve });
+    _pumpImgQueue();
+  });
+}
+function releaseImageSlot() {
+  if (!_imgBusy) return;
+  _imgBusy = false;
+  _pumpImgQueue();
+}
+
 // ─── DayPhotoImg: Storage URL 비동기 로드 래퍼 ─────────────
-const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey, onResolved }) {
+// order 지정 시: 캐시 안 된 사진을 위→아래 순서로 순차 로드 (로딩 화면 뒤 준비 시 상단 우선)
+const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style, fallback, refreshKey, onResolved, order }) {
   const initCached = getCachedDayPhotoUrl(uid, tripId, dayIdx);
   const [url, setUrl]       = React.useState(initCached != null ? initCached : null);
   const [loaded, setLoaded] = React.useState(false);
   const [useFade, setUseFade] = React.useState(initCached == null);
-  const prevUrl = React.useRef(initCached != null ? initCached : null);
+  // order가 있고 캐시 안 된 경우에만 순서 게이트 적용 (캐시된 사진은 즉시)
+  const [slotReady, setSlotReady] = React.useState(order == null || initCached != null);
+  const prevUrl  = React.useRef(initCached != null ? initCached : null);
+  const acquired = React.useRef(false);
+  const released = React.useRef(false);
 
   React.useEffect(() => {
     if (!uid || !tripId) { setUrl(null); return; }
@@ -486,14 +515,34 @@ const DayPhotoImg = React.memo(function DayPhotoImg({ uid, tripId, dayIdx, style
     return () => { alive = false; };
   }, [uid, tripId, dayIdx, refreshKey]);
 
+  // 순차 로드: order가 있고 표시할 url이 생기면 큐에서 순서(위→아래)를 기다림
+  React.useEffect(() => {
+    if (slotReady || !url) return;
+    let alive = true;
+    requestImageSlot(order).then(() => { if (alive) { acquired.current = true; setSlotReady(true); } });
+    return () => { alive = false; };
+  }, [slotReady, url, order]);
+
+  const done = React.useCallback(() => {
+    if (acquired.current && !released.current) { released.current = true; releaseImageSlot(); }
+  }, []);
+
+  // 안전장치: 슬롯을 잡은 뒤 4초 내 로드 못 하면 강제 반납 (큐 정지 방지)
+  React.useEffect(() => {
+    if (!slotReady || !acquired.current || released.current) return;
+    const t = setTimeout(done, 4000);
+    return () => clearTimeout(t);
+  }, [slotReady, done]);
+
   if (!url) return fallback || null;
-  if (!useFade) return <img src={url} alt="" style={style}/>;
+  const showSrc = slotReady ? url : null;
+  if (!useFade) return <img src={url} alt="" style={style} onLoad={done} onError={done}/>;
   return (
     <div style={{ position:'relative', width: style && style.width, height: style && style.height }}>
       {fallback}
-      <img src={url} alt="" onLoad={() => setLoaded(true)}
+      {showSrc && <img src={showSrc} alt="" onLoad={() => { setLoaded(true); done(); }} onError={done}
         style={{ position:'absolute', inset:0, width:'100%', height:'100%', objectFit:'cover',
-                 opacity: loaded ? 1 : 0, transition: loaded ? 'opacity 0.3s ease' : 'none' }}/>
+                 opacity: loaded ? 1 : 0, transition: loaded ? 'opacity 0.3s ease' : 'none' }}/>}
     </div>
   );
 });
@@ -2559,12 +2608,12 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v209</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v212</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
         : <div style={{ padding:'0 16px', display:'flex', flexDirection:'column', gap:12 }}>
-            {sortedTrips.map(t => {
+            {sortedTrips.map((t, ti) => {
               const hue = t.hue ?? t.days?.[0]?.hero?.hue ?? 25;
               const label = t.days?.[0]?.hero?.label || t.title?.toUpperCase() || 'TRIP';
               const companionCount = myUid ? (t.members || []).filter(uid => uid !== myUid).length : 0;
@@ -2580,7 +2629,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
                     WebkitTapHighlightColor:'transparent',
                   }}>
                     <div style={{ position:'relative' }}>
-                      <DayPhotoImg uid={myUid} tripId={t.id} dayIdx={0}
+                      <DayPhotoImg uid={myUid} tripId={t.id} dayIdx={0} order={ti}
                         style={{ width:'100%', height:130, objectFit:'cover', display:'block' }}
                         fallback={<Photo hue={hue} label={label} height={130}/>}
                         refreshKey={photoVer || 0}/>
@@ -3434,7 +3483,7 @@ function HomeScreen({ trip, onOpenDay, onOpenHotel, onOpenHotelSheet, city, onPi
                   background:COLORS.card,
                 }}>
                   <div style={{ position:'relative' }}>
-                    <DayPhotoImg uid={myUid} tripId={trip.id} dayIdx={i}
+                    <DayPhotoImg uid={myUid} tripId={trip.id} dayIdx={i} order={i}
                       style={{ width:'100%', height:170, objectFit:'cover', display:'block' }}
                       fallback={<Photo hue={(i === 0 ? (trip.hue ?? d.hero?.hue) : d.hero?.hue) ?? 25} label={d.hero?.label} height={170}/>}
                       refreshKey={(cardPhotoVersions[i] || 0) + (photoVer || 0)}
@@ -12847,13 +12896,14 @@ function App() {
   // 로그아웃: 로딩 화면 없이 로그인 화면 직행
   if (authState === 'out') return <LoginScreen errorMsg={loginError} onLoginStart={() => setLoginPending(true)}/>;
   // 로그인 사용자(앱 열기 or 로그인 직후): 최소 3초 경과 + 여행 목록 준비(또는 최대 8초)까지 로딩 화면 유지
+  // 스플래시는 조기 반환하지 않고 앱 화면 '위에' 오버레이 → 그동안 아래에서 실제 화면이 준비(마운트·이미지 로드)됨
   const showSplash = (authState === 'loading')
     || (authState === 'in' && !(minTimeElapsed && (tripsReady || maxWaitElapsed)))
     || (loginPending && (authState !== 'in' || trip === null));
-  if (showSplash) return <SplashScreen visible={true}/>;
+  let appBody;
 
   // ── 여행 목록 화면 ─────────────────────────────────────────
-  if (!activeTripId) return (
+  if (!activeTripId) appBody = (
     <SettingsCtx.Provider value={{ darkMode, lang, setDarkMode, setLang }}>
     <>
       <TripsScreen
@@ -12974,8 +13024,7 @@ function App() {
     </>
     </SettingsCtx.Provider>
   );
-
-  if (!trip || !(trip.days?.length)) return (
+  else if (!trip || !(trip.days?.length)) appBody = (
     <div style={{ minHeight:'100vh', background:'#1a1a1a', display:'flex', flexDirection:'column',
       alignItems:'center', justifyContent:'center', gap:16, padding:24 }}>
       <button onClick={() => { setActiveTripId(null); setTrip(null); setEditing(false); }} style={{
@@ -12992,7 +13041,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v209</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v212</div>
         </div>
       </div>
       <button onClick={async () => {
@@ -13020,6 +13069,7 @@ function App() {
       }}>일정 불러오기 / 복원</button>
     </div>
   );
+  else {
 
   // Figure out what "back" means in the current state, for swipe-from-edge.
   let swipeBack = null;
@@ -13029,7 +13079,7 @@ function App() {
   }
   swipeBackRef.current = swipeBack;
 
-  return (
+  appBody = (
     <SettingsCtx.Provider value={{ darkMode, lang, setDarkMode, setLang }}>
     <div style={{ minHeight:'100vh', fontFamily:'-apple-system, system-ui, sans-serif', background:COLORS.bg }}>
       <div style={{ overflowX:'hidden' }}>
@@ -13176,6 +13226,16 @@ function App() {
       )}
     </div>
     </SettingsCtx.Provider>
+  );
+  }
+
+  // 앱 화면(appBody)을 렌더하고, 준비 전에는 그 '위에' 스플래시를 덮음.
+  // → 스플래시가 떠 있는 동안 appBody가 뒤에서 마운트·이미지 로드 완료 → 스플래시 걷히면 완성된 화면
+  return (
+    <>
+      {appBody}
+      <SplashScreen visible={showSplash}/>
+    </>
   );
 }
 
