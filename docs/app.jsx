@@ -2608,7 +2608,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v212</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v213</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -8811,7 +8811,14 @@ function SplashScreen({ visible }) {
   }, []);
 
   React.useEffect(() => {
-    if (!visible) setHiding(true);
+    if (visible) { setHiding(false); return; }
+    // 사라질 때: opacity 페이드 후 언마운트.
+    // onTransitionEnd가 안 뜨는 브라우저(iOS Safari 등: opacity+transition 동시 설정 시
+    // transition 미발화)에 대비해 타이머로도 반드시 걷어냄 →
+    // 투명 오버레이(zIndex:9999)가 남아 탭을 가로막는 문제 방지.
+    setHiding(true);
+    const t = setTimeout(() => setHiding(false), 350);
+    return () => clearTimeout(t);
   }, [visible]);
 
   if (!visible && !hiding) return null;
@@ -8824,6 +8831,8 @@ function SplashScreen({ visible }) {
       zIndex:9999,
       opacity: hiding ? 0 : 1,
       transition: hiding ? 'opacity 0.3s ease' : 'none',
+      // 페이드 아웃 중에는 탭을 아래 화면으로 통과시킴 (오버레이 잔류 시에도 진입 가능)
+      pointerEvents: hiding ? 'none' : 'auto',
     }} onTransitionEnd={() => setHiding(false)}>
       <div style={{
         fontFamily:"'Instrument Serif',Georgia,serif",
@@ -13041,7 +13050,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v212</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v213</div>
         </div>
       </div>
       <button onClick={async () => {
