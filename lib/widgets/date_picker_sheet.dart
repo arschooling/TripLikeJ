@@ -106,7 +106,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
               child: Center(
                 child: Text(
                   e.value,
-                  style: AppText.mono(9.5,
+                  style: AppText.mono(13.5,
                       color: col, letterSpacing: 0.08 * 9.5),
                 ),
               ),

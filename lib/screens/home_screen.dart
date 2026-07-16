@@ -236,7 +236,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                 children: [
                   Text(trip.title, style: AppText.serif(28, color: Colors.white)),
                   if (trip.dates.isNotEmpty)
-                    Text(trip.dates, style: AppText.mono(10, color: Colors.white)),
+                    Text(trip.dates, style: AppText.mono(13, color: Colors.white)),
                 ],
               ),
             ),
@@ -263,7 +263,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                           children: [
                             Icon(Icons.person_outline_rounded, size: 12, color: c.mute),
                             const SizedBox(width: 4),
-                            Text(t, style: AppText.sans(12, color: c.ink)),
+                            Text(t, style: AppText.sans(13, color: c.ink)),
                           ],
                         ),
                       ))
@@ -287,7 +287,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                       color: c.soft,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
-                    child: Text('+ 추가', style: AppText.sans(12, color: c.mute)),
+                    child: Text('+ 추가', style: AppText.sans(13, color: c.mute)),
                   ),
                 ),
             ],
@@ -341,7 +341,7 @@ class _ScheduleTabState extends ConsumerState<_ScheduleTab> {
                       color: c.soft,
                       borderRadius: BorderRadius.circular(AppRadius.chip),
                     ),
-                    child: Text('+ 일정 추가', style: AppText.sans(12, color: c.mute)),
+                    child: Text('+ 일정 추가', style: AppText.sans(13, color: c.mute)),
                   ),
                 ),
             ],
@@ -412,10 +412,10 @@ class _HotelCard extends StatelessWidget {
                       Text(hotel.name, style: AppText.serif(14, color: c.ink),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                       if (hotel.area.isNotEmpty)
-                        Text(hotel.area, style: AppText.mono(9, letterSpacing: 0.5, color: c.mute)),
+                        Text(hotel.area, style: AppText.mono(13, letterSpacing: 0.5, color: c.mute)),
                       const SizedBox(height: 4),
                       Text('${hotel.checkin} → ${hotel.checkout}',
-                          style: AppText.sans(11, color: c.mute),
+                          style: AppText.sans(13, color: c.mute),
                           maxLines: 1, overflow: TextOverflow.ellipsis),
                       if (hotel.rating != null) ...[
                         const SizedBox(height: 4),
@@ -580,11 +580,11 @@ class _DayCard extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text('Day ${day.n.toString().padLeft(2, '0')}',
-                        style: AppText.mono(9.5, color: c.mute, letterSpacing: 1.0)),
+                        style: AppText.mono(13.5, color: c.mute, letterSpacing: 1.0)),
                     Text(day.title, style: AppText.serif(16, color: c.ink)),
                     if (day.items.isNotEmpty)
                       Text('${day.items.length} stops',
-                          style: AppText.sans(11, color: c.mute)),
+                          style: AppText.sans(13, color: c.mute)),
                   ],
                 ),
               ),
@@ -613,7 +613,7 @@ class _DayCard extends StatelessWidget {
                                   weight: FontWeight.w700)),
                         if (month.isNotEmpty)
                           Text(month, textAlign: TextAlign.center,
-                              style: AppText.mono(10, color: c.mute, letterSpacing: 1.0)),
+                              style: AppText.mono(13, color: c.mute, letterSpacing: 1.0)),
                       ],
                     ),
                   );
@@ -648,16 +648,16 @@ class _FxCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('환율', style: AppText.sans(12, color: c.mute)),
+              Text('환율', style: AppText.sans(13, color: c.mute)),
               const SizedBox(width: 6),
-              Text('1 USD 기준', style: AppText.mono(9, letterSpacing: 0.5, color: c.mute)),
+              Text('1 USD 기준', style: AppText.mono(13, letterSpacing: 0.5, color: c.mute)),
             ],
           ),
           const SizedBox(height: 8),
           if (loading)
-            Text('불러오는 중…', style: AppText.sans(12, color: c.mute))
+            Text('불러오는 중…', style: AppText.sans(13, color: c.mute))
           else if (rates == null)
-            Text('환율 정보를 가져오지 못했습니다', style: AppText.sans(12, color: c.mute))
+            Text('환율 정보를 가져오지 못했습니다', style: AppText.sans(13, color: c.mute))
           else
             Row(
               children: [
@@ -690,9 +690,9 @@ class _RateChip extends StatelessWidget {
       ),
       child: Column(
         children: [
-          Text(currency, style: AppText.mono(9, letterSpacing: 1, color: c.mute)),
+          Text(currency, style: AppText.mono(13, letterSpacing: 1, color: c.mute)),
           const SizedBox(height: 2),
-          Text(value, style: AppText.mono(12, color: c.ink, letterSpacing: 0.5)),
+          Text(value, style: AppText.mono(13, color: c.ink, letterSpacing: 0.5)),
         ],
       ),
     );
@@ -716,11 +716,11 @@ class _TimezoneCard extends StatelessWidget {
         children: [
           Icon(Icons.schedule_rounded, size: 14, color: c.mute),
           const SizedBox(width: 8),
-          Text('뉴욕 UTC-5', style: AppText.mono(10, letterSpacing: 0.5, color: c.ink)),
+          Text('뉴욕 UTC-5', style: AppText.mono(13, letterSpacing: 0.5, color: c.ink)),
           const SizedBox(width: 8),
           Container(width: 1, height: 12, color: c.line),
           const SizedBox(width: 8),
-          Text('서울 UTC+9', style: AppText.mono(10, letterSpacing: 0.5, color: c.ink)),
+          Text('서울 UTC+9', style: AppText.mono(13, letterSpacing: 0.5, color: c.ink)),
         ],
       ),
     );

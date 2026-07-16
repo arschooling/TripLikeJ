@@ -47,7 +47,7 @@ class FloatingTabBar extends StatelessWidget {
                     Text(
                       e.value.label,
                       style: TextStyle(
-                        fontSize: 10,
+                        fontSize: 13,
                         fontWeight: active ? FontWeight.w600 : FontWeight.w400,
                         color: active ? c.ink : c.mute,
                       ),

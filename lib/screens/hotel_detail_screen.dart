@@ -200,7 +200,7 @@ class _HotelDetailScreenState extends ConsumerState<HotelDetailScreen> {
                           style: AppText.serif(22, color: Colors.white)),
                       if (hotel.area.isNotEmpty)
                         Text(hotel.area,
-                            style: AppText.mono(10, color: Colors.white)),
+                            style: AppText.mono(13, color: Colors.white)),
                     ],
                   ),
                 ),
@@ -303,7 +303,7 @@ class _ViewContent extends StatelessWidget {
         Text(hotel.name, style: AppText.serif(22)),
         if (hotel.area.isNotEmpty) ...[
           const SizedBox(height: 2),
-          Text(hotel.area, style: AppText.mono(10)),
+          Text(hotel.area, style: AppText.mono(13)),
         ],
         SizedBox(height: 12),
         // Checkin/Checkout
@@ -326,11 +326,11 @@ class _ViewContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('체크인',
-                        style: AppText.sans(11, color: c.mute)),
+                        style: AppText.sans(13, color: c.mute)),
                     Text(hotel.checkin, style: AppText.sans(13)),
                     if (hotel.checkinTime != null)
                       Text(hotel.checkinTime!,
-                          style: AppText.mono(10, letterSpacing: 0.5)),
+                          style: AppText.mono(13, letterSpacing: 0.5)),
                   ],
                 ),
               ),
@@ -341,11 +341,11 @@ class _ViewContent extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text('체크아웃',
-                        style: AppText.sans(11, color: c.mute)),
+                        style: AppText.sans(13, color: c.mute)),
                     Text(hotel.checkout, style: AppText.sans(13)),
                     if (hotel.checkoutTime != null)
                       Text(hotel.checkoutTime!,
-                          style: AppText.mono(10, letterSpacing: 0.5)),
+                          style: AppText.mono(13, letterSpacing: 0.5)),
                   ],
                 ),
               ),
@@ -377,7 +377,7 @@ class _ViewContent extends StatelessWidget {
         ],
         if (hotel.amenities.isNotEmpty) ...[
           SizedBox(height: 14),
-          Text('편의시설', style: AppText.sans(12, color: c.mute)),
+          Text('편의시설', style: AppText.sans(13, color: c.mute)),
           const SizedBox(height: 8),
           Wrap(
             spacing: 6,
@@ -390,14 +390,14 @@ class _ViewContent extends StatelessWidget {
                         color: c.soft,
                         borderRadius: BorderRadius.circular(AppRadius.chip),
                       ),
-                      child: Text(a, style: AppText.sans(12)),
+                      child: Text(a, style: AppText.sans(13)),
                     ))
                 .toList(),
           ),
         ],
         if (hotel.note != null && hotel.note!.isNotEmpty) ...[
           SizedBox(height: 14),
-          Text('메모', style: AppText.sans(12, color: c.mute)),
+          Text('메모', style: AppText.sans(13, color: c.mute)),
           SizedBox(height: 4),
           Text(hotel.note!, style: AppText.sans(13, color: c.mute)),
         ],
@@ -455,7 +455,7 @@ class _EditContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(11, color: c.mute)),
+        Text(label, style: AppText.sans(13, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
@@ -527,7 +527,7 @@ class _EditContent extends StatelessWidget {
                 const TextInputType.numberWithOptions(decimal: true)),
         SizedBox(height: 14),
         // Amenities
-        Text('편의시설', style: AppText.sans(12, color: c.mute)),
+        Text('편의시설', style: AppText.sans(13, color: c.mute)),
         const SizedBox(height: 8),
         Wrap(
           spacing: 6,
@@ -551,7 +551,7 @@ class _EditContent extends StatelessWidget {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(e.value, style: AppText.sans(12)),
+                          Text(e.value, style: AppText.sans(13)),
                           SizedBox(width: 4),
                           Icon(Icons.close_rounded,
                               size: 12, color: c.mute),
@@ -628,7 +628,7 @@ class _Chip extends StatelessWidget {
         color: c.soft,
         borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
-      child: Text(text, style: AppText.mono(10, letterSpacing: 0.5)),
+      child: Text(text, style: AppText.mono(13, letterSpacing: 0.5)),
     );
   }
 }
