@@ -90,7 +90,7 @@ class _DatePickerContentState extends State<DatePickerContent> {
           children: [
             _NavButton(icon: Icons.chevron_left_rounded, onTap: _prev),
             const SizedBox(width: 12),
-            Text(monthLabel, style: AppText.sans(16, weight: FontWeight.w600)),
+            Text(monthLabel, style: AppText.sans(15, weight: FontWeight.w600)),
             const SizedBox(width: 12),
             _NavButton(icon: Icons.chevron_right_rounded, onTap: _next),
           ],
