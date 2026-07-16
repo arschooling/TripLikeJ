@@ -80,7 +80,7 @@ class _FoodScreenState extends ConsumerState<FoodScreen> {
                                 const EdgeInsets.only(bottom: 8, top: 4),
                             child: Text(
                               catName,
-                              style: AppText.mono(13,
+                              style: AppText.mono(10,
                                   color: c.accent,
                                   letterSpacing: 1.2),
                             ),
@@ -249,13 +249,13 @@ class _FoodCard extends StatelessWidget {
                             BorderRadius.circular(AppRadius.chip),
                       ),
                       child: Text(food.price,
-                          style: AppText.mono(13, letterSpacing: 0.5)),
+                          style: AppText.mono(10, letterSpacing: 0.5)),
                     ),
                   ],
                   if (food.note.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     Text(food.note,
-                        style: AppText.sans(13, color: c.mute)),
+                        style: AppText.sans(12, color: c.mute)),
                   ],
                 ],
               ),
@@ -332,12 +332,12 @@ class _FoodFormState extends State<_FoodForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(13, color: c.mute)),
+        Text(label, style: AppText.sans(11, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
-          style: AppText.sans(13, color: c.ink),
+          style: AppText.sans(14, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),

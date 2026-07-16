@@ -87,13 +87,13 @@ class StopFormState extends State<StopFormContent> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(13, color: c.mute)),
+        Text(label, style: AppText.sans(11, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           keyboardType: keyboardType,
           maxLines: maxLines,
-          style: AppText.sans(13, color: c.ink),
+          style: AppText.sans(14, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
@@ -122,7 +122,7 @@ class StopFormState extends State<StopFormContent> {
           // Time picker
           Row(
             children: [
-              Text('시간', style: AppText.sans(13, color: c.mute)),
+              Text('시간', style: AppText.sans(11, color: c.mute)),
               const SizedBox(width: 12),
               GestureDetector(
                 onTap: _pickTime,
@@ -135,7 +135,7 @@ class StopFormState extends State<StopFormContent> {
                   ),
                   child: Text(
                     _time.isEmpty ? '--:--' : _time,
-                    style: AppText.mono(13, color: c.ink, letterSpacing: 1),
+                    style: AppText.mono(14, color: c.ink, letterSpacing: 1),
                   ),
                 ),
               ),
@@ -143,7 +143,7 @@ class StopFormState extends State<StopFormContent> {
           ),
           const SizedBox(height: 14),
           // Category chips
-          Text('카테고리', style: AppText.sans(13, color: c.mute)),
+          Text('카테고리', style: AppText.sans(11, color: c.mute)),
           const SizedBox(height: 6),
           SingleChildScrollView(
             scrollDirection: Axis.horizontal,
@@ -170,7 +170,7 @@ class StopFormState extends State<StopFormContent> {
                         const SizedBox(width: 4),
                         Text(
                           cat.label,
-                          style: AppText.sans(13,
+                          style: AppText.sans(12,
                               color: active ? Colors.white : c.ink),
                         ),
                       ],
@@ -213,7 +213,7 @@ class StopFormState extends State<StopFormContent> {
                 alignment: Alignment.center,
                 child: Text(
                   '저장',
-                  style: AppText.sans(13,
+                  style: AppText.sans(14,
                       color: Colors.white, weight: FontWeight.w600),
                 ),
               ),

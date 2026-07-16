@@ -51,7 +51,7 @@ class EditButton extends StatelessWidget {
           Text(
             editing ? '완료' : '편집',
             style: TextStyle(
-              fontSize: 13.5,
+              fontSize: 11.5,
               fontWeight: FontWeight.w500,
               color: editing ? Colors.white : c.ink,
             ),

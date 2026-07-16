@@ -118,7 +118,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                             child: Center(
                               child: Text(
                                 widget.title,
-                                style: AppText.serif(13),
+                                style: AppText.serif(15),
                               ),
                             ),
                           ),

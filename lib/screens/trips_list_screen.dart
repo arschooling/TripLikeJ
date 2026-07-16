@@ -49,7 +49,7 @@ class _TripsListScreenState extends ConsumerState<TripsListScreen> {
                   children: [
                     Text('My Trips', style: AppText.serif(22, color: c.ink)),
                     const SizedBox(width: 8),
-                    Text(appVersion, style: AppText.mono(13, letterSpacing: 0.8, color: c.mute)),
+                    Text(appVersion, style: AppText.mono(9, letterSpacing: 0.8, color: c.mute)),
                     const Spacer(),
                     // Settings / profile button
                     GestureDetector(
@@ -241,7 +241,7 @@ class _TripCard extends ConsumerWidget {
                           if (trip.dates.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Text(trip.dates,
-                                style: AppText.mono(13, color: c.mute)),
+                                style: AppText.mono(10, color: c.mute)),
                           ],
                         ],
                       ),

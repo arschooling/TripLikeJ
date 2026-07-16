@@ -47,7 +47,7 @@ class PhotoPlaceholder extends StatelessWidget {
               bottom: 14,
               child: Text(
                 label,
-                style: AppText.mono(13, color: inkC, letterSpacing: 0.14 * 10),
+                style: AppText.mono(10, color: inkC, letterSpacing: 0.14 * 10),
               ),
             ),
         ],
