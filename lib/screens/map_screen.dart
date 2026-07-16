@@ -66,7 +66,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                   ),
                   child: Text(
                     'Day ${trip.days[i].n}',
-                    style: AppText.sans(13,
+                    style: AppText.sans(12,
                         color: active ? Colors.white : c.ink),
                   ),
                 ),
@@ -117,7 +117,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               children: [
                                 Text(stop.title, style: AppText.sans(14, weight: FontWeight.w600)),
                                 const SizedBox(height: 2),
-                                Text(stop.loc, style: AppText.sans(13, color: c.mute)),
+                                Text(stop.loc, style: AppText.sans(12, color: c.mute)),
                               ],
                             ),
                           ),
@@ -133,7 +133,7 @@ class _MapScreenState extends ConsumerState<MapScreen> {
                               ),
                               child: Text(
                                 '지도에서 보기',
-                                style: AppText.sans(13,
+                                style: AppText.sans(11,
                                     color: c.accent,
                                     weight: FontWeight.w500),
                               ),

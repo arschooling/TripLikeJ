@@ -128,7 +128,7 @@ class _SectionLabel extends StatelessWidget {
       padding: const EdgeInsets.only(left: 4),
       child: Text(
         text.toUpperCase(),
-        style: AppText.mono(13, letterSpacing: 1.2, color: color),
+        style: AppText.mono(10, letterSpacing: 1.2, color: color),
       ),
     );
   }
@@ -190,7 +190,7 @@ class _ToggleRow extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(title, style: AppText.sans(14, color: c.ink, weight: FontWeight.w500)),
-                Text(subtitle, style: AppText.sans(13.5, color: c.mute)),
+                Text(subtitle, style: AppText.sans(11.5, color: c.mute)),
               ],
             ),
           ),

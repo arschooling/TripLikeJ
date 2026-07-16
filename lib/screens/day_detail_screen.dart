@@ -73,7 +73,7 @@ class _DayDetailScreenState extends ConsumerState<DayDetailScreen> {
                         borderRadius: BorderRadius.circular(AppRadius.chip),
                       ),
                       child: Text(day.weather,
-                          style: AppText.mono(13, letterSpacing: 0.5, color: c.mute)),
+                          style: AppText.mono(10, letterSpacing: 0.5, color: c.mute)),
                     ),
                   EditButton(
                     editing: _editing,
@@ -224,7 +224,7 @@ class _StopRow extends StatelessWidget {
               children: [
                 SizedBox(
                   width: 52,
-                  child: Text(stop.time, style: AppText.mono(13.5, letterSpacing: 0.5, color: c.mute)),
+                  child: Text(stop.time, style: AppText.mono(11.5, letterSpacing: 0.5, color: c.mute)),
                 ),
                 Container(
                   width: 28, height: 28,
@@ -245,7 +245,7 @@ class _StopRow extends StatelessWidget {
                           style: AppText.sans(14, weight: FontWeight.w600, color: c.ink)),
                       if (stop.en.isNotEmpty) ...[
                         const SizedBox(height: 1),
-                        Text(stop.en, style: AppText.mono(13, letterSpacing: 0.5, color: c.mute)),
+                        Text(stop.en, style: AppText.mono(10, letterSpacing: 0.5, color: c.mute)),
                       ],
                       if (stop.note != null && stop.note!.isNotEmpty) ...[
                         const SizedBox(height: 4),
@@ -294,7 +294,7 @@ class _Chip extends StatelessWidget {
       decoration: BoxDecoration(
         color: c.softer, borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
-      child: Text(text, style: AppText.mono(13, letterSpacing: 0.5, color: c.mute)),
+      child: Text(text, style: AppText.mono(10, letterSpacing: 0.5, color: c.mute)),
     );
   }
 }

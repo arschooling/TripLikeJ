@@ -107,7 +107,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
               opacity: _fade,
               child: Text(
                 _destinations[_destIndex],
-                style: AppText.mono(13, letterSpacing: 2.5, color: c.mute),
+                style: AppText.mono(11, letterSpacing: 2.5, color: c.mute),
               ),
             ),
             const Spacer(),
