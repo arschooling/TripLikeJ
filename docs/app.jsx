@@ -2608,7 +2608,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v220</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v221</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -8929,7 +8929,7 @@ function LoginScreen({ errorMsg, onLoginStart }) {
     <div style={{ minHeight:'100vh', background:COLORS.bg, display:'flex', flexDirection:'column',
       alignItems:'center', justifyContent:'center', padding:'48px 36px', textAlign:'center' }}>
       <TakeoffIcon/>
-      <div style={{ fontFamily:SERIF, fontSize:56, color:COLORS.ink, letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:14 }}>
+      <div style={{ fontFamily:SERIF, fontSize:44, color:COLORS.ink, letterSpacing:'-0.02em', lineHeight:1.1, marginBottom:14 }}>
         {[...'Trip'].map((ch, i) => (
           <span key={'t'+i} style={{ display:'inline-block',
             animation:`charPop 0.65s cubic-bezier(0.34,1.56,0.64,1) ${0.82 + i*0.055}s both` }}>{ch}</span>
@@ -8942,7 +8942,7 @@ function LoginScreen({ errorMsg, onLoginStart }) {
           </span>
         ))}
       </div>
-      <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.mute, marginBottom:56, lineHeight:1.5,
+      <div style={{ fontFamily:SANS, fontSize:15, color:COLORS.mute, marginBottom:56, lineHeight:1.5,
         animation:'charPop 0.55s cubic-bezier(0.34,1.56,0.64,1) 1.38s both' }}>
         여행 일정을 J처럼 만들고 간편하게 공유해 보세요.
       </div>
@@ -13050,7 +13050,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v220</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v221</div>
         </div>
       </div>
       <button onClick={async () => {
