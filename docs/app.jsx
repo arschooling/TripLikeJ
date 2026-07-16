@@ -1136,7 +1136,7 @@ function DatePickerSheet({ open, value, onClose, onPick, minDate, title='날짜 
       <>
         <div style={{ padding:'0 14px 2px', display:'grid', gridTemplateColumns:'repeat(7, 1fr)' }}>
           {DOW.map((w, i) => (
-            <div key={i} style={{ textAlign:'center', fontFamily:MONO, fontSize:12, letterSpacing:'0.08em',
+            <div key={i} style={{ textAlign:'center', fontFamily:MONO, fontSize:16, letterSpacing:'0.08em',
               color: i===0 ? COLORS.accent : i===6 ? 'oklch(60% 0.06 250)' : COLORS.mute, padding:'4px 0' }}>{w}</div>
           ))}
         </div>
@@ -1335,7 +1335,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
               background: active ? COLORS.ink : 'transparent',
               borderRight: ki===0 ? `1px solid ${COLORS.line}` : 'none',
             }}>
-              <div style={{fontFamily:MONO, fontSize:12, letterSpacing:'0.12em', marginBottom:3,
+              <div style={{fontFamily:MONO, fontSize:16, letterSpacing:'0.12em', marginBottom:3,
                 color: active ? 'rgba(255,255,255,0.5)' : COLORS.mute}}>
                 {k==='start' ? 'START' : 'END'}
               </div>
@@ -1383,7 +1383,7 @@ function DateRangeSheet({ open, startIso, endIso, onClose, onPick }) {
           {/* 요일 헤더 */}
           <div style={{display:'grid', gridTemplateColumns:'repeat(7,1fr)', padding:'0 14px 2px'}}>
             {DOW.map((w,i) => (
-              <div key={i} style={{textAlign:'center', fontFamily:MONO, fontSize:12, letterSpacing:'0.08em', padding:'2px 0 6px',
+              <div key={i} style={{textAlign:'center', fontFamily:MONO, fontSize:16, letterSpacing:'0.08em', padding:'2px 0 6px',
                 color: i===0 ? COLORS.accent : i===6 ? 'oklch(60% 0.06 250)' : COLORS.mute}}>{w}</div>
             ))}
           </div>
@@ -2386,9 +2386,9 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
         textAlign:'center', transition:'all 0.18s',
       }}>
         <div style={{ fontSize:18, marginBottom:2 }}>{emoji}</div>
-        <div style={{ fontFamily:SANS, fontSize:12, fontWeight:600,
+        <div style={{ fontFamily:SANS, fontSize:16, fontWeight:600,
           color: active ? COLORS.bg : COLORS.ink, marginBottom:2 }}>{label}</div>
-        <div style={{ fontFamily:SANS, fontSize:12, color: active ? 'rgba(255,255,255,0.65)' : COLORS.mute,
+        <div style={{ fontFamily:SANS, fontSize:16, color: active ? 'rgba(255,255,255,0.65)' : COLORS.mute,
           lineHeight:1.3 }}>{desc}</div>
       </div>
     );
@@ -2406,7 +2406,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
           <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
         </div>
         <div style={{ flexShrink:0 }}>
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.accent, letterSpacing:'0.14em', marginBottom:4 }}>SHARE TRIP</div>
           <div style={{ fontFamily:SERIF, fontSize:22, color:COLORS.ink, marginBottom:14 }}>{trip.title}</div>
 
           {/* Mode selector */}
@@ -2425,7 +2425,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
             <>
               {memberProfiles.length > 0 && (
                 <>
-                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
+                  <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, letterSpacing:'0.08em',
                     textTransform:'uppercase', marginBottom:8 }}>현재 동행인</div>
                   {memberProfiles.map(c => (
                     <div key={c.uid} style={{
@@ -2444,7 +2444,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                       <div style={{ flex:1, minWidth:0 }}>
                         <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                           overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
-                        <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                        <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute,
                           overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
                       </div>
                       <button onClick={e => { e.stopPropagation(); handleRemove(c); }}
@@ -2461,7 +2461,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
               )}
               {contacts.length > 0 && (
                 <>
-                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
+                  <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, letterSpacing:'0.08em',
                     textTransform:'uppercase', marginBottom:8 }}>이전 동행인</div>
                   {contacts.map(c => {
                     const isSel = selected.has(c.uid);
@@ -2484,7 +2484,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                         <div style={{ flex:1, minWidth:0 }}>
                           <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.displayName}</div>
-                          <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                          <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute,
                             overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap' }}>{c.email}</div>
                         </div>
                         <div style={{ width:22, height:22, borderRadius:'50%', flexShrink:0,
@@ -2499,7 +2499,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                   <div style={{ height:16 }}/>
                 </>
               )}
-              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
+              <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, letterSpacing:'0.08em',
                 textTransform:'uppercase', marginBottom:8 }}>
                 {contacts.length > 0 ? '새로운 동행인' : '동행인 초대'}
               </div>
@@ -2523,7 +2523,7 @@ function ShareTripSheet({ open, onClose, trip, userData, allTrips, myUid }) {
                   이메일 주소를 입력하면 상대방 앱에 알림이 전송됩니다. 상대방이 수락하면 이 일정의 복사본이 상대방의 <strong>My Trips</strong>에 추가됩니다.
                 </div>
               </div>
-              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, letterSpacing:'0.08em',
+              <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, letterSpacing:'0.08em',
                 textTransform:'uppercase', marginBottom:8 }}>받는 사람 이메일</div>
               <input
                 value={email} onChange={e => setEmail(e.target.value)}
@@ -2608,7 +2608,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v214</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v215</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -4802,8 +4802,8 @@ function NearbySheet({ stop, initialTab, onClose }) {
         <div style={{ flex:1, minWidth:0 }}>
           <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink,
             whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.name}</div>
-          {item.nameOrig && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.nameOrig}</div>}
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginTop:3, display:'flex', gap:6, alignItems:'center' }}>
+          {item.nameOrig && <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:1, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{item.nameOrig}</div>}
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginTop:3, display:'flex', gap:6, alignItems:'center' }}>
             <span>{TYPE_KO[item.type] || item.type || '—'}</span>
             {item.dist > 0 && <><span style={{ opacity:0.4 }}>·</span><span>{fmtDist(item.dist)}</span></>}
             {item.rating && <><span style={{ opacity:0.4 }}>·</span><span style={{ color:COLORS.accent }}>★ {item.rating.toFixed(1)}</span></>}
@@ -4835,7 +4835,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
             <button onClick={() => setSort(s => s === 'relevance' ? 'distance' : 'relevance')}
               style={{ border:'none', background:COLORS.softer, borderRadius:10, padding:'6px 10px',
-                fontFamily:MONO, fontSize:12, cursor:'pointer', letterSpacing:'0.04em',
+                fontFamily:MONO, fontSize:16, cursor:'pointer', letterSpacing:'0.04em',
                 color: sort === 'distance' ? COLORS.accent : COLORS.mute }}>
               {sort === 'distance' ? '거리순' : '관련도순'}
             </button>
@@ -4844,7 +4844,7 @@ function NearbySheet({ stop, initialTab, onClose }) {
                 <button key={v} onClick={() => setTab(v)}
                   style={{ padding:'7px 13px', border:'none', borderRadius:9, cursor:'pointer',
                     background: tab===v ? COLORS.card : 'transparent',
-                    fontFamily:SANS, fontSize:12, fontWeight:600,
+                    fontFamily:SANS, fontSize:16, fontWeight:600,
                     color: tab===v ? COLORS.ink : COLORS.mute,
                     boxShadow: tab===v ? '0 1px 4px rgba(0,0,0,0.08)' : 'none' }}>
                   {label}
@@ -5041,7 +5041,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
               <button onClick={(e) => { e.stopPropagation(); setEditing(true); }} style={{
                 border:'none', background:COLORS.softer, borderRadius:10,
                 padding:'6px 10px', cursor:'pointer',
-                fontFamily:SANS, fontSize:12, fontWeight:500, color:COLORS.ink,
+                fontFamily:SANS, fontSize:16, fontWeight:500, color:COLORS.ink,
                 display:'flex', gap:4, alignItems:'center',
               }}>
                 <Icon name="edit" size={12} color={COLORS.ink} stroke={2}/> 수정
@@ -5058,7 +5058,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
         </div>
         <div style={{ padding:'18px 20px 0' }}>
           <div style={{ display:'flex', gap:6, alignItems:'center',
-            fontFamily:MONO, fontSize:12, color:COLORS.mute,
+            fontFamily:MONO, fontSize:16, color:COLORS.mute,
             letterSpacing:'0.12em', textTransform:'uppercase' }}>
             <Icon name={(CAT_META[draft.cat]||{icon:'pin'}).icon} size={12} stroke={1.8}/>
             <span>{catLabel(draft.cat || '', t)}</span>
@@ -5099,7 +5099,7 @@ function StopSheet({ open, dayHue, onClose, onSave, cityBias, onRegisterEdit, on
                       <Icon name={r.icon} size={15} color={COLORS.mute} stroke={1.8}/>
                     </div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute,
+                      <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute,
                         letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
                       <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink,
                         lineHeight:1.45, whiteSpace:'pre-wrap' }}>{r.value}</div>
@@ -5286,7 +5286,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
 
   const field = (key, label, placeholder = '') => (
     <div style={{ marginBottom:10 }}>
-      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+      <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
       <input value={draft[key]||''} onChange={e => setDraft({...draft, [key]:e.target.value})} placeholder={placeholder}
         style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
           background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box' }}/>
@@ -5295,7 +5295,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
 
   const dateField = (key, label) => (
     <div style={{ marginBottom:10 }}>
-      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
+      <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{label}</div>
       {dayOptions.length > 0 ? (
         <select value={draft[key]||''} onChange={e => setDraft({...draft, [key]:e.target.value})}
           style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
@@ -5345,7 +5345,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                 position:'absolute', top:12, right:12, zIndex:5,
                 border:'none', background:`${COLORS.card}EB`, borderRadius:14,
                 padding:'7px 13px', cursor:'pointer',
-                fontFamily:SANS, fontSize:12, fontWeight:500, color:COLORS.ink,
+                fontFamily:SANS, fontSize:16, fontWeight:500, color:COLORS.ink,
                 display:'flex', gap:5, alignItems:'center', boxShadow:'0 1px 6px rgba(0,0,0,0.12)',
               }}>
                 <Icon name="edit" size={12} color={COLORS.ink} stroke={2}/> 수정
@@ -5353,7 +5353,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             )}
           </div>
           <div style={{ padding:'18px 20px 0' }}>
-            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
+            <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.accent, letterSpacing:'0.12em', textTransform:'uppercase' }}>
               HOTEL{draft.nights ? ` · ${draft.nights}박` : ''}
             </div>
             {!editing && (
@@ -5371,7 +5371,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
             {editing ? (
               <div style={{ marginTop:14 }}>
                 <div style={{ position:'relative', marginBottom:10 }}>
-                  <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{t('wizHotelPh')}</div>
+                  <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>{t('wizHotelPh')}</div>
                   <div style={{ position:'relative' }}>
                     <input
                       value={searchQ !== '' ? searchQ : (draft.name || '')}
@@ -5406,7 +5406,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                               border:'none', background:'transparent', cursor:'pointer', textAlign:'left',
                               borderBottom: i < searchRes.length-1 ? `1px solid ${COLORS.line}` : 'none' }}>
                             <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>{hName}</div>
-                            {city && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:1 }}>{[addr, city].filter(Boolean).join(', ')}</div>}
+                            {city && <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:1 }}>{[addr, city].filter(Boolean).join(', ')}</div>}
                           </button>
                         );
                       })}
@@ -5424,7 +5424,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10, marginBottom:10 }}>
                     {['checkin','checkout'].map(k => (
                       <div key={k}>
-                        <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
+                        <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>
                           {k==='checkin'?'체크인 시간':'체크아웃 시간'}
                         </div>
                         <button onClick={()=>setTimePicker(k)} style={{ width:'100%', padding:'9px 11px',
@@ -5439,7 +5439,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   </div>
                   <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
                     <div>
-                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>박수</div>
+                      <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>박수</div>
                       <div style={{ padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
                         background:COLORS.bg, fontFamily:SANS, fontSize:17,
                         color: draft.nights ? COLORS.ink : COLORS.mute }}>
@@ -5451,7 +5451,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   {field('phone', '전화')}
                   {field('confirmation', '예약번호')}
                   <div>
-                    <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
+                    <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase', marginBottom:4 }}>메모</div>
                     <textarea value={draft.note||''} onChange={e=>setDraft({...draft,note:e.target.value})} rows={3}
                       style={{ width:'100%', padding:'9px 11px', borderRadius:8, border:`1px solid ${COLORS.line}`,
                         background:COLORS.bg, fontFamily:SANS, fontSize:17, color:COLORS.ink,
@@ -5471,7 +5471,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
                   }}>
                     <div style={{ paddingTop:2 }}><Icon name={r.icon} size={15} color={COLORS.mute} stroke={1.8}/></div>
                     <div style={{ flex:1 }}>
-                      <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
+                      <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.12em', textTransform:'uppercase' }}>{r.label}</div>
                       <div style={{ marginTop:2, fontFamily:SANS, fontSize:17, color:COLORS.ink, lineHeight:1.45, whiteSpace:'pre-wrap' }}>{r.value}</div>
                     </div>
                   </div>
@@ -5530,7 +5530,7 @@ function HotelSheet({ open, onClose, hotel, trip, tripDays, onSave, onDelete, on
               <div style={{ display:'flex', justifyContent:'center', padding:'10px 0 4px' }}>
                 <div style={{ width:36, height:4, background:COLORS.line, borderRadius:2 }}/>
               </div>
-              <div style={{ padding:'4px 20px 10px', fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
+              <div style={{ padding:'4px 20px 10px', fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase' }}>
                 {timePicker==='checkin'?'체크인 시간':'체크아웃 시간'}
               </div>
               {(timePicker==='checkin'
@@ -6095,7 +6095,7 @@ function PlaceSearchSheet({ open, item, cityBias, onClose, onPick }) {
               <div style={{ flex:1, minWidth:0 }}>
                 <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink,
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{name}</div>
-                {addr ? <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2,
+                {addr ? <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:2,
                   whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{addr}</div> : null}
               </div>
             </button>
@@ -7836,10 +7836,10 @@ function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarTog
           const perPerson = cur === 'KRW' ? Math.round(out / count) : out / count;
           return (
             <div key={cur} style={{ background:COLORS.card, borderRadius:14, padding:'12px 16px', marginBottom:8 }}>
-              <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>{cur} 공동 지출</div>
+              <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6 }}>{cur} 공동 지출</div>
               <div style={{ display:'flex', alignItems:'baseline', justifyContent:'space-between' }}>
                 <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{fmtAmt(out, cur)}</div>
-                <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>÷ {count} =</div>
+                <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute }}>÷ {count} =</div>
                 <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>1인당 {fmtAmt(perPerson, cur)}</div>
               </div>
             </div>
@@ -7847,7 +7847,7 @@ function SplitSheet({ open, onClose, shared, splitN, onChangeSplitN, onTabBarTog
         })}
         {/* 인원 수 */}
         <div style={{ background:COLORS.card, borderRadius:14, padding:'14px 16px', marginBottom:14 }}>
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:8 }}>인원 수</div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
             <button onClick={() => setN(String(Math.max(1,count-1)))} style={{
               width:32, height:32, borderRadius:16, border:`1px solid ${COLORS.line}`,
@@ -8021,14 +8021,14 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
           {entries.length === 0 ? (
             <div style={{ textAlign:'center', padding:'40px 0', color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>내보낼 항목이 없어요</div>
           ) : (<>
-            <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, marginBottom:8 }}>
+            <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, marginBottom:8 }}>
               {entries.length}개 항목 · TSV 형식 (구글 스프레드시트에 바로 붙여넣기 가능)
             </div>
             <textarea readOnly value={toTsv}
               onFocus={e => e.target.select()}
               style={{
                 width:'100%', height:150, padding:'12px', borderRadius:12, border:'none',
-                fontSize:12, fontFamily:MONO, color:COLORS.ink, background:COLORS.soft,
+                fontSize:16, fontFamily:MONO, color:COLORS.ink, background:COLORS.soft,
                 resize:'none', outline:'none', boxSizing:'border-box', lineHeight:1.5,
                 margin:'0 0 12px', whiteSpace:'pre',
               }}/>
@@ -8042,21 +8042,21 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
               <Icon name={copyDone ? 'check' : 'copy'} size={15} color={copyDone ? COLORS.bg : '#fff'} stroke={2}/>
               {copyDone ? '복사됨!' : '클립보드에 복사'}
             </button>
-            <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:10, textAlign:'center' }}>
+            <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:10, textAlign:'center' }}>
               복사 후 구글 스프레드시트에서 Ctrl+V (Mac: Cmd+V)
             </div>
           </>)}
         </div>
       ) : (
         <div style={{ padding:'0 16px 24px' }}>
-          <div style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.mute, marginBottom:10, lineHeight:1.6 }}>
+          <div style={{ fontFamily:SANS, fontSize:16.5, color:COLORS.mute, marginBottom:10, lineHeight:1.6 }}>
             구글 스프레드시트에서 셀을 선택해 복사(Ctrl+C)한 뒤 아래에 붙여넣기 하세요.<br/>
             <span style={{ fontWeight:600, color:COLORS.ink }}>열 순서:</span>{' '}
             날짜 · 구분 · 카테고리 · 범위 · 금액 · 통화 · 메모
           </div>
           {entries.length > 0 && importText.trim() && (
             <div style={{ marginBottom:10, padding:'8px 12px', borderRadius:10,
-              background:'rgba(200,80,80,0.08)', fontFamily:SANS, fontSize:12.5, color:COLORS.accent }}>
+              background:'rgba(200,80,80,0.08)', fontFamily:SANS, fontSize:16.5, color:COLORS.accent }}>
               기존 {entries.length}개 항목이 모두 교체됩니다
             </div>
           )}
@@ -8066,7 +8066,7 @@ function BudgetImportExportSheet({ open, onClose, entries, myUid, onImport }) {
             placeholder={'날짜\t구분\t카테고리\t범위\t금액\t통화\t메모\n2025-01-15\t지출\t식비\t공동\t25000\tKRW\t점심'}
             style={{
               width:'100%', height:140, padding:'12px', borderRadius:12,
-              border:`1.5px solid ${COLORS.line}`, fontFamily:MONO, fontSize:12,
+              border:`1.5px solid ${COLORS.line}`, fontFamily:MONO, fontSize:16,
               color:COLORS.ink, background:COLORS.soft, resize:'none',
               outline:'none', boxSizing:'border-box', lineHeight:1.5,
             }}
@@ -11186,7 +11186,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
               };
               return (
                 <div style={{ marginBottom:18 }}>
-                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</div>
+                  <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginBottom:6, textTransform:'uppercase', letterSpacing:'0.05em' }}>{label}</div>
                   <div style={{ position:'relative', borderRadius:14, background:COLORS.card, border:`1.5px solid ${COLORS.line}` }}>
                     {ghostSuffix && (
                       <div aria-hidden="true" style={{ position:'absolute', inset:0, padding:'12px 40px 12px 16px', display:'flex', alignItems:'center', pointerEvents:'none', overflow:'hidden', fontFamily:SANS, fontSize:17, lineHeight:'normal', borderRadius:14 }}>
@@ -11210,7 +11210,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   {codeMatch && (
                     <div onMouseDown={e => { e.preventDefault(); setValue(lang === 'ko' ? codeMatch.kor : codeMatch.eng); }}
                       style={{ marginTop:6, display:'inline-flex', alignItems:'center', gap:6, background:COLORS.card, border:`1px solid ${COLORS.line}`, borderRadius:20, padding:'5px 12px', cursor:'pointer' }}>
-                      <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute }}>{codeMatch.code}</span>
+                      <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute }}>{codeMatch.code}</span>
                       <span style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink }}>{lang === 'ko' ? codeMatch.kor : codeMatch.eng}</span>
                     </div>
                   )}
@@ -11223,7 +11223,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                 {makeAirportInput(arrAirport, setArrAirport, t('wizArrAirport'), false, t('wizArrAirportEx'))}
                 {!arrAirport && citySuggests.length > 0 && (
                   <div style={{ marginBottom:18, marginTop:-8 }}>
-                    <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
+                    <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginBottom:8, textTransform:'uppercase', letterSpacing:'0.05em' }}>
                       {t('wizNearAirports').replace('{city}', firstCity)}
                     </div>
                     <div style={{ display:'flex', flexWrap:'wrap', gap:7 }}>
@@ -11232,8 +11232,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                         const aptName = lang === 'ko' ? apt : (info?.eng || apt);
                         return (
                           <button key={apt} onMouseDown={e=>e.preventDefault()} onClick={() => setArrAirport(aptName)}
-                            style={{ display:'flex', alignItems:'center', gap:6, background:COLORS.card, border:`1.5px solid ${COLORS.line}`, borderRadius:20, padding:'6px 14px 6px 10px', cursor:'pointer', fontFamily:SANS, fontSize:12.5, color:COLORS.ink }}>
-                            <span style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:0.5 }}>{info?.code}</span>
+                            style={{ display:'flex', alignItems:'center', gap:6, background:COLORS.card, border:`1.5px solid ${COLORS.line}`, borderRadius:20, padding:'6px 14px 6px 10px', cursor:'pointer', fontFamily:SANS, fontSize:16.5, color:COLORS.ink }}>
+                            <span style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:0.5 }}>{info?.code}</span>
                             <span>{aptName}</span>
                           </button>
                         );
@@ -11241,7 +11241,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     </div>
                   </div>
                 )}
-                <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, lineHeight:1.5 }}>
+                <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, lineHeight:1.5 }}>
                   {t('wizNoFlight')}
                 </div>
               </div>
@@ -11259,16 +11259,16 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                     style={{ width:'100%', boxSizing:'border-box', border:'none', borderBottom:`1px solid ${COLORS.line}`, outline:'none', background:'transparent', fontFamily:SANS, fontSize:17, color:COLORS.ink, padding:'4px 0 8px', marginBottom:10 }}
                   />
                   {dayCount > 1 && (
-                    <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
+                    <div style={{ display:'flex', alignItems:'center', gap:8, fontFamily:SANS, fontSize:16, color:COLORS.mute }}>
                       <span>Day</span>
                       <input type="number" min={1} max={dayCount} value={h.from}
                         onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,from:Math.max(1,Math.min(dayCount,+e.target.value||1))} : hh))}
-                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:12, outline:'none' }}
+                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:16, outline:'none' }}
                       />
                       <span>~</span>
                       <input type="number" min={1} max={dayCount} value={h.to}
                         onChange={e => setHotels(prev => prev.map((hh,j) => j===i ? {...hh,to:Math.max(1,Math.min(dayCount,+e.target.value||1))} : hh))}
-                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:12, outline:'none' }}
+                        style={{ width:40, textAlign:'center', border:`1px solid ${COLORS.line}`, borderRadius:6, padding:'3px 4px', fontFamily:SANS, fontSize:16, outline:'none' }}
                       />
                       {hotels.length > 1 && (
                         <button onClick={() => setHotels(prev=>prev.filter((_,j)=>j!==i))} style={{ marginLeft:'auto', background:'none', border:'none', cursor:'pointer', color:COLORS.mute, fontSize:18 }}>×</button>
@@ -11303,7 +11303,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   </div>
                 )}
                 {!loading && placeErr && (
-                  <div style={{ textAlign:'center', padding:'24px 0', fontFamily:SANS, fontSize:12, color:'#E03C31' }}>
+                  <div style={{ textAlign:'center', padding:'24px 0', fontFamily:SANS, fontSize:16, color:'#E03C31' }}>
                     {placeErr}
                   </div>
                 )}
@@ -11313,7 +11313,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                   </div>
                 )}
                 {!loading && cityPlaces.length > 0 && (
-                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:12 }}>
+                  <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginBottom:12 }}>
                     {selCount > 0 ? t('wizSelCount').replace('{n}', selCount) : t('wizChoosePlaces')}
                   </div>
                 )}
@@ -11336,7 +11336,7 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                             : (() => { const h = p.name.split('').reduce((a,c)=>(a*31+c.charCodeAt(0))&0xffff,0)%360; return <Photo hue={h} height={88} small label={p.name}/>; })()
                           }
                           {p.type === 'hiking_trail' && (
-                            <div style={{ position:'absolute', bottom:6, left:7, background:'rgba(0,0,0,0.52)', borderRadius:5, padding:'2px 6px', fontFamily:SANS, fontSize:12, color:'#fff', letterSpacing:0.3 }}>
+                            <div style={{ position:'absolute', bottom:6, left:7, background:'rgba(0,0,0,0.52)', borderRadius:5, padding:'2px 6px', fontFamily:SANS, fontSize:16, color:'#fff', letterSpacing:0.3 }}>
                               {t('wizHiking')}
                             </div>
                           )}
@@ -11349,8 +11349,8 @@ function NewTripSheet({ open, onClose, onSubmit }) {
                           )}
                         </div>
                         <div style={{ padding:'7px 9px 9px' }}>
-                          <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
-                          {p.nameOrig && <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2, lineHeight:1.2 }}>{p.nameOrig}</div>}
+                          <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.ink, lineHeight:1.35, fontWeight: sel ? 600 : 400 }}>{p.name}</div>
+                          {p.nameOrig && <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:2, lineHeight:1.2 }}>{p.nameOrig}</div>}
                         </div>
                       </button>
                     );
@@ -11471,14 +11471,14 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
         </div>
         <div style={{ padding:'6px 20px 16px', borderBottom:`1px solid ${COLORS.line}` }}>
           <div style={{ fontFamily:SERIF, fontSize:24, color:COLORS.ink }}>동행인 추가</div>
-          <div style={{ fontFamily:SANS, fontSize:12.5, color:COLORS.mute, marginTop:4 }}>
+          <div style={{ fontFamily:SANS, fontSize:16.5, color:COLORS.mute, marginTop:4 }}>
             이메일로 동행인을 추가해요
           </div>
         </div>
 
         {pendingInvites.length > 0 && (
           <div style={{ margin:'14px 16px 0', background:'#FFF8E1', borderRadius:14, padding:14 }}>
-            <div style={{ fontFamily:MONO, fontSize:12, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
+            <div style={{ fontFamily:MONO, fontSize:16, color:'#B8860B', letterSpacing:'0.1em', marginBottom:8 }}>
               📩 동행 초대 {pendingInvites.length}건
             </div>
             {pendingInvites.map(inv => (
@@ -11491,17 +11491,17 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
                 }
                 <div style={{ flex:1, minWidth:0 }}>
                   <div style={{ fontFamily:SANS, fontSize:17, color:COLORS.ink, fontWeight:500 }}>{inv.fromName}</div>
-                  <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute }}>
+                  <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute }}>
                     {inv.type === 'contact' ? '동행인 요청' : (inv.tripTitle || inv.fromEmail)}
                   </div>
                 </div>
                 <button onClick={() => handleAccept(inv)} disabled={!!accepting} style={{
                   border:'none', borderRadius:9, padding:'6px 12px', cursor: accepting ? 'default' : 'pointer',
-                  background: accepting === inv.id ? COLORS.mute : COLORS.ink, color:COLORS.bg, fontFamily:SANS, fontSize:12, fontWeight:500,
+                  background: accepting === inv.id ? COLORS.mute : COLORS.ink, color:COLORS.bg, fontFamily:SANS, fontSize:16, fontWeight:500,
                 }}>{accepting === inv.id ? '처리 중...' : '수락'}</button>
                 <button onClick={() => fbRejectInvite(inv.id).then(() => setPendingInvites(p=>p.filter(i=>i.id!==inv.id)))} style={{
                   border:`1px solid ${COLORS.line}`, borderRadius:9, padding:'6px 10px', cursor:'pointer',
-                  background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute,
+                  background:'transparent', fontFamily:SANS, fontSize:16, color:COLORS.mute,
                 }}>거절</button>
               </div>
             ))}
@@ -11509,7 +11509,7 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
         )}
 
         <div style={{ padding:'16px 16px 0' }}>
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
             여행 선택 (선택사항)
           </div>
           <select value={selTrip||''} onChange={e => setSelTrip(e.target.value || null)}
@@ -11522,10 +11522,10 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
             ))}
           </select>
 
-          <div style={{ marginTop:16, fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
+          <div style={{ marginTop:16, fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', marginBottom:8 }}>
             이메일로 초대
           </div>
-          <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginBottom:10 }}>
+          <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginBottom:10 }}>
             상대방이 이 앱에 먼저 가입되어 있어야 합니다.
           </div>
           <input value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
@@ -11535,7 +11535,7 @@ function AddCompanionSheet({ open, onClose, authUser, userData, trips, onUserDat
               border:`1.5px solid ${COLORS.line}`, background:COLORS.card,
               fontFamily:SANS, fontSize:17, color:COLORS.ink, boxSizing:'border-box', outline:'none' }}/>
           {inviteMsg && (
-            <div style={{ marginTop:8, fontFamily:SANS, fontSize:12,
+            <div style={{ marginTop:8, fontFamily:SANS, fontSize:16,
               color: inviteMsg.includes('추가') || inviteMsg.includes('보냈') ? '#2E7D32' : COLORS.accent }}>
               {inviteMsg}
             </div>
@@ -11628,7 +11628,7 @@ function SettingsSheet({ open, onClose }) {
         </div>
         <div style={{ overflowY:'auto', flex:1, padding:'12px 16px' }}>
           {/* Appearance */}
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('appearance')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}`, marginBottom:16 }}>
             <_SettingsRow
               icon="moon"
@@ -11638,7 +11638,7 @@ function SettingsSheet({ open, onClose }) {
             />
           </div>
           {/* Language */}
-          <div style={{ fontFamily:MONO, fontSize:12, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
+          <div style={{ fontFamily:MONO, fontSize:16, color:COLORS.mute, letterSpacing:'0.1em', textTransform:'uppercase', marginBottom:6, paddingLeft:4 }}>{t('language')}</div>
           <div style={{ background:COLORS.card, borderRadius:14, border:`1px solid ${COLORS.line}` }}>
             <_SettingsLangOption code="ko" flag="🇰🇷" label={t('langKo')} divider={true}/>
             <_SettingsLangOption code="en" flag="🇺🇸" label={t('langEn')} divider={true}/>
@@ -11702,7 +11702,7 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
           }
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ fontFamily:SERIF, fontSize:18, color:COLORS.ink }}>{authUser.displayName}</div>
-            <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{authUser.email}</div>
+            <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:2 }}>{authUser.email}</div>
           </div>
           <div style={{ display:'flex', gap:8, alignItems:'center', flexShrink:0 }}>
             <button onClick={() => { onClose(); setTimeout(onOpenSettings, 80); }} style={{
@@ -11713,7 +11713,7 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
             </button>
             <button onClick={() => { fbSignOut(); onClose(); }} style={{
               border:`1px solid ${COLORS.line}`, borderRadius:10, padding:'7px 12px',
-              background:'transparent', fontFamily:SANS, fontSize:12, color:COLORS.mute, cursor:'pointer',
+              background:'transparent', fontFamily:SANS, fontSize:16, color:COLORS.mute, cursor:'pointer',
             }}>{t('logout')}</button>
           </div>
         </div>
@@ -11729,18 +11729,18 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
             </div>
             <div style={{ flex:1, minWidth:0 }}>
               <div style={{ fontFamily:SANS, fontSize:17, fontWeight:500, color:COLORS.ink }}>{t('companions')}</div>
-              <div style={{ fontFamily:SANS, fontSize:12, color:COLORS.mute, marginTop:2 }}>{t('companionsDesc')}</div>
+              <div style={{ fontFamily:SANS, fontSize:16, color:COLORS.mute, marginTop:2 }}>{t('companionsDesc')}</div>
             </div>
             <div style={{ display:'flex', gap:8, flexShrink:0 }}>
               <button onClick={() => { onClose(); setTimeout(onViewCompanions, 100); }} style={{
                 padding:'7px 13px', borderRadius:10, border:`1px solid ${COLORS.line}`,
                 background:'transparent', cursor:'pointer',
-                fontFamily:SANS, fontSize:12, color:COLORS.ink,
+                fontFamily:SANS, fontSize:16, color:COLORS.ink,
               }}>{t('view')}</button>
               <button onClick={() => { onClose(); setTimeout(() => onAddCompanion(null), 100); }} style={{
                 padding:'7px 13px', borderRadius:10, border:'none',
                 background:COLORS.accent, cursor:'pointer',
-                fontFamily:SANS, fontSize:12, fontWeight:600, color:'#fff',
+                fontFamily:SANS, fontSize:16, fontWeight:600, color:'#fff',
               }}>{t('addComp')}</button>
             </div>
           </div>
@@ -11750,7 +11750,7 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
             <button onClick={() => setConfirmDelete(true)} style={{
               width:'100%', marginTop:4, padding:'12px 0',
               background:'transparent', border:'none', cursor:'pointer',
-              fontFamily:SANS, fontSize:12, color:COLORS.mute,
+              fontFamily:SANS, fontSize:16, color:COLORS.mute,
               textAlign:'center',
             }}>{t('deleteAccount')}</button>
           ) : (
@@ -11761,11 +11761,11 @@ function ProfileSheet({ open, onClose, authUser, trips, onAddCompanion, onViewCo
               <div style={{ fontFamily:SANS, fontSize:17, fontWeight:600, color:'#C62828', marginBottom:6 }}>
                 {t('confirmDelete')}
               </div>
-              <div style={{ fontFamily:SANS, fontSize:12, color:'#B71C1C', lineHeight:1.5, marginBottom:14 }}>
+              <div style={{ fontFamily:SANS, fontSize:16, color:'#B71C1C', lineHeight:1.5, marginBottom:14 }}>
                 {t('confirmDeleteDesc')}
               </div>
               {deleteError && (
-                <div style={{ fontFamily:SANS, fontSize:12, color:'#C62828', marginBottom:10 }}>{t('deleteError')}</div>
+                <div style={{ fontFamily:SANS, fontSize:16, color:'#C62828', marginBottom:10 }}>{t('deleteError')}</div>
               )}
               <div style={{ display:'flex', gap:8 }}>
                 <button onClick={() => { setConfirmDelete(false); setDeleteError(''); }} style={{
@@ -13050,7 +13050,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v214</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v215</div>
         </div>
       </div>
       <button onClick={async () => {
