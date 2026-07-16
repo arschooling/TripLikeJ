@@ -111,14 +111,14 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                             },
                             child: Text(
                               '취소',
-                              style: AppText.sans(15, color: c.mute),
+                              style: AppText.sans(13, color: c.mute),
                             ),
                           ),
                           Expanded(
                             child: Center(
                               child: Text(
                                 widget.title,
-                                style: AppText.serif(15),
+                                style: AppText.serif(13),
                               ),
                             ),
                           ),
@@ -129,7 +129,7 @@ class _BottomSheetModalState extends State<BottomSheetModal>
                             },
                             child: Text(
                               '완료',
-                              style: AppText.sans(15,
+                              style: AppText.sans(13,
                                   color: c.accent,
                                   weight: FontWeight.w600),
                             ),
