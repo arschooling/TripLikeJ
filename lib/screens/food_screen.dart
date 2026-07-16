@@ -332,12 +332,12 @@ class _FoodFormState extends State<_FoodForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: AppText.sans(15, color: c.mute)),
+        Text(label, style: AppText.sans(13, color: c.mute)),
         const SizedBox(height: 4),
         TextField(
           controller: ctrl,
           maxLines: maxLines,
-          style: AppText.sans(15, color: c.ink),
+          style: AppText.sans(13, color: c.ink),
           decoration: InputDecoration(
             contentPadding:
                 const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
