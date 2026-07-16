@@ -223,7 +223,7 @@ class _StatCard extends StatelessWidget {
       child: Column(
         children: [
           Text(value, style: AppText.serif(28, color: highlight ? c.accent : c.ink)),
-          Text(label, style: AppText.sans(12, color: c.mute)),
+          Text(label, style: AppText.sans(13, color: c.mute)),
         ],
       ),
     );
@@ -350,7 +350,7 @@ class _PrepCatSectionState extends State<_PrepCatSection> {
                   style: AppText.sans(14, color: _catColor(widget.index), weight: FontWeight.w700),
                 ),
                 const SizedBox(width: 6),
-                Text('(${widget.cat.items.length})', style: AppText.mono(11, letterSpacing: 0.5)),
+                Text('(${widget.cat.items.length})', style: AppText.mono(13, letterSpacing: 0.5)),
                 const Spacer(),
                 if (widget.editing) ...[
                   GestureDetector(
@@ -471,12 +471,12 @@ class _PrepCatSectionState extends State<_PrepCatSection> {
                       _addingItem = false;
                       _itemCtrl.clear();
                     }),
-                    child: Text('취소', style: AppText.sans(12, color: c.mute)),
+                    child: Text('취소', style: AppText.sans(13, color: c.mute)),
                   ),
                   const SizedBox(width: 10),
                   GestureDetector(
                     onTap: _addItem,
-                    child: Text('추가', style: AppText.sans(12, color: c.accent, weight: FontWeight.w600)),
+                    child: Text('추가', style: AppText.sans(13, color: c.accent, weight: FontWeight.w600)),
                   ),
                 ],
               ),
