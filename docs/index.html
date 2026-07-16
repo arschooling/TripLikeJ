@@ -10,11 +10,7 @@
 <link rel="manifest" href="manifest.json"/>
 <link rel="icon" type="image/svg+xml" href="icon.svg"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
-<!-- 홈화면 설치 아이콘(주황 사각형). 다크에는 다크 전용 PNG를 정적으로 '제출' →
-     iOS 18이 다크 변형을 인식하면 자체 단색화(clever math) 대신 이 주황 아이콘을 그대로 사용.
-     정적 link라 '홈 화면에 추가' 시 iOS가 원본 HTML을 읽어도 반영됨(JS 주입은 무시될 수 있음). -->
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
-<link rel="apple-touch-icon" href="apple-touch-icon-dark.png" media="(prefers-color-scheme: dark)"/>
 <title>Trip Like J</title>
 <!-- Open Graph / 카카오톡·문자 미리보기 -->
 <meta property="og:type"        content="website"/>
@@ -96,7 +92,7 @@
 </style>
 <!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->
 <script>
-var EXPECTED_CACHE = 'tlj-v218';
+var EXPECTED_CACHE = 'tlj-v219';
 if('serviceWorker' in navigator) {
   var _reloading = false;
   function _doReload() {

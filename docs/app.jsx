@@ -2608,7 +2608,7 @@ function TripsScreen({ trips, onSelect, onAdd, onRestore, onShare, onDelete, loa
         paddingTop:'calc(16px + env(safe-area-inset-top,0px))',
         paddingLeft:20, paddingRight:112, paddingBottom:16,
       }}>
-        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v218</span></div>
+        <div style={{ fontFamily:SERIF, fontSize:34, color:COLORS.ink, letterSpacing:'-0.02em' }}>My Trips<span style={{fontFamily:'monospace',fontSize:12,color:COLORS.mute,marginLeft:8}}>v219</span></div>
       </div>
       {loading && trips.length === 0
         ? <div style={{ textAlign:'center', padding:60, color:COLORS.mute, fontFamily:SANS, fontSize:17 }}>{t('loading')}</div>
@@ -13050,7 +13050,7 @@ function App() {
           <div>tripId: {activeTripId ? activeTripId.slice(0,12)+'…' : 'none'}</div>
           <div>trip: {trip ? 'exists, days='+( trip.days?.length||0) : 'null'}</div>
           <div>userTrips: {userTrips.length}개</div>
-          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v218</div>
+          <div style={{ fontSize:12, marginTop:4, opacity:0.8 }}>v219</div>
         </div>
       </div>
       <button onClick={async () => {
