@@ -11,6 +11,29 @@
 <link rel="icon" type="image/svg+xml" href="icon.svg"/>
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
 <link rel="apple-touch-icon" href="apple-touch-icon.png"/>
+<script>
+/* iOS 18 다크/틴트 홈화면에서 웹클립 아이콘이 단색 처리되는 것을 완화하기 위한 베스트에포트.
+   현재 색상 스킴에 맞춰 apple-touch-icon(주황 아이콘)을 명시적으로 재주입한다.
+   '다크' 모드에선 주황이 유지될 수 있으나, '틴트' 모드의 강제 단색화는 OS가 제어하므로 못 막을 수 있음. */
+(function(){
+  function assertAppleIcon(){
+    try {
+      var links = document.querySelectorAll('link[rel="apple-touch-icon"]');
+      for (var i=0;i<links.length;i++) links[i].parentNode.removeChild(links[i]);
+      var link = document.createElement('link');
+      link.rel = 'apple-touch-icon';
+      link.href = 'apple-touch-icon.png';
+      document.head.appendChild(link);
+    } catch(e) {}
+  }
+  assertAppleIcon();
+  try {
+    var mq = window.matchMedia('(prefers-color-scheme: dark)');
+    if (mq.addEventListener) mq.addEventListener('change', assertAppleIcon);
+    else if (mq.addListener) mq.addListener(assertAppleIcon);
+  } catch(e) {}
+})();
+</script>
 <title>Trip Like J</title>
 <!-- Open Graph / 카카오톡·문자 미리보기 -->
 <meta property="og:type"        content="website"/>
@@ -92,7 +115,7 @@
 </style>
 <!-- 서비스 워커 등록 + 새 버전 감지 시 자동 새로고침 -->
 <script>
-var EXPECTED_CACHE = 'tlj-v215';
+var EXPECTED_CACHE = 'tlj-v216';
 if('serviceWorker' in navigator) {
   var _reloading = false;
   function _doReload() {
