@@ -1,4 +1,4 @@
-const V = 'tlj-v216';
+const V = 'tlj-v217';
 // index.html은 캐시하지 않음 — 항상 네트워크에서 받아야 버전 감지가 동작함
 const CACHE = V;
 
